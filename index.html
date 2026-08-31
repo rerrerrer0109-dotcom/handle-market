@@ -2,7 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<meta
+    name="theme-color"
+    content="#0f1115"
+>
 
 <title>Handle Market</title>
 
@@ -10,949 +19,2597 @@
 
 <style>
 
+/* =====================================================
+   HANDLE MARKET — MODERN UI
+   ===================================================== */
+
+:root {
+
+    --bg: #f4f6f9;
+    --surface: #ffffff;
+    --surface-2: #f7f8fb;
+    --surface-3: #eef1f5;
+
+    --text: #111318;
+    --text-2: #4f5664;
+    --muted: #868e9c;
+
+    --border: rgba(30, 40, 60, .09);
+
+    --primary: #1687e8;
+    --primary-dark: #086dc7;
+    --primary-soft: #eaf4ff;
+
+    --success: #159447;
+    --success-soft: #e9f8ef;
+
+    --danger: #dc4545;
+    --danger-soft: #fff0f0;
+
+    --warning: #a96f00;
+    --warning-soft: #fff6df;
+
+    --purple: #6d4bd2;
+    --purple-soft: #f1edff;
+
+    --cyan: #008dba;
+    --cyan-soft: #e9f8ff;
+
+    --shadow:
+        0 14px 35px rgba(28, 37, 54, .07);
+
+    --shadow-small:
+        0 6px 18px rgba(28, 37, 54, .055);
+
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --radius-sm: 11px;
+
+    --nav-height: 72px;
+}
+
+
+/* Telegram theme integration */
+
+body {
+
+    --tg-bg:
+        var(--tg-theme-bg-color, var(--bg));
+
+    --tg-surface:
+        var(--tg-theme-secondary-bg-color, var(--surface));
+
+    --tg-text:
+        var(--tg-theme-text-color, var(--text));
+
+    --tg-muted:
+        var(--tg-theme-hint-color, var(--muted));
+
+    --tg-primary:
+        var(--tg-theme-button-color, var(--primary));
+
+    --tg-primary-text:
+        var(--tg-theme-button-text-color, #ffffff);
+}
+
+
+@media (prefers-color-scheme: dark) {
+
+    :root {
+
+        --bg: #0f1115;
+        --surface: #181b21;
+        --surface-2: #20242b;
+        --surface-3: #292e36;
+
+        --text: #f4f5f7;
+        --text-2: #c1c6cf;
+        --muted: #9299a5;
+
+        --border: rgba(255,255,255,.075);
+
+        --primary-soft: rgba(22,135,232,.13);
+
+        --success-soft: rgba(21,148,71,.13);
+
+        --danger-soft: rgba(220,69,69,.13);
+
+        --warning-soft: rgba(220,155,25,.13);
+
+        --purple-soft: rgba(109,75,210,.15);
+
+        --cyan-soft: rgba(0,141,186,.14);
+
+        --shadow:
+            0 16px 40px rgba(0,0,0,.25);
+
+        --shadow-small:
+            0 7px 20px rgba(0,0,0,.18);
+    }
+}
+
+
+/* =====================================================
+   BASE
+   ===================================================== */
+
 * {
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 body {
+
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f5f7;
-    color: #111;
-    padding-bottom: 85px;
+
+    min-height: 100vh;
+
+    background:
+
+        radial-gradient(
+            circle at 92% 0%,
+            rgba(22,135,232,.08),
+            transparent 28%
+        ),
+
+        var(--tg-bg);
+
+    color:
+        var(--tg-text);
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+
+    padding-bottom:
+        calc(
+            var(--nav-height) +
+            env(safe-area-inset-bottom) +
+            20px
+        );
+
+    line-height: 1.45;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button {
+    border: none;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+button:disabled {
+    cursor: default;
+    opacity: .5;
 }
 
 .app {
-    max-width: 650px;
-    margin: auto;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
 }
+
+
+/* =====================================================
+   HEADER
+   ===================================================== */
 
 header {
-    background: white;
-    padding: 18px;
-    border-bottom: 1px solid #e5e5e5;
+
+    position: sticky;
+    top: 0;
+
+    z-index: 80;
+
+    padding:
+
+        calc(
+            15px +
+            env(safe-area-inset-top)
+        )
+
+        17px
+
+        14px;
+
+    background:
+        rgba(255,255,255,.9);
+
+    border-bottom:
+        1px solid var(--border);
+
+    backdrop-filter:
+        blur(18px);
+
+    -webkit-backdrop-filter:
+        blur(18px);
 }
 
+
+@media (prefers-color-scheme: dark) {
+
+    header {
+        background:
+            rgba(24,27,33,.9);
+    }
+}
+
+
+.header-row {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 11px;
+}
+
+
+.logo-icon {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 39px;
+
+    height: 39px;
+
+    flex: 0 0 39px;
+
+    border-radius: 13px;
+
+    background:
+
+        linear-gradient(
+            145deg,
+            #31a0f4,
+            #1575d5
+        );
+
+    color: white;
+
+    font-size: 19px;
+
+    font-weight: 900;
+
+    box-shadow:
+
+        0 8px 20px
+        rgba(22,135,232,.24);
+}
+
+
+.header-text {
+    min-width: 0;
+}
+
+
 .logo {
-    font-size: 25px;
+
+    font-size: 23px;
+
+    line-height: 1.05;
+
+    font-weight: 900;
+
+    letter-spacing: -.7px;
+}
+
+
+.subtitle {
+
+    margin-top: 4px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 11.5px;
+
+    font-weight: 500;
+}
+
+
+.auth-status {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    margin-top: 10px;
+
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    font-size: 10px;
+
     font-weight: 800;
 }
 
-.subtitle {
-    color: #777;
-    font-size: 13px;
-    margin-top: 5px;
-}
-
-.auth-status {
-    margin-top: 10px;
-    font-size: 13px;
-}
 
 .auth-ok {
-    color: #139447;
+    color: var(--success);
+    background: var(--success-soft);
 }
 
+
 .auth-error {
-    color: #d93025;
+    color: var(--danger);
+    background: var(--danger-soft);
 }
+
+
+/* =====================================================
+   PAGE
+   ===================================================== */
 
 .page {
     display: none;
 }
 
 .page.active {
+
     display: block;
+
+    animation:
+        pageEnter .18s ease;
 }
+
+
+@keyframes pageEnter {
+
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =====================================================
+   HERO
+   ===================================================== */
+
+.hero {
+
+    margin: 16px;
+
+    padding: 22px;
+
+    border-radius:
+        26px;
+
+    color: white;
+
+    background:
+
+        radial-gradient(
+            circle at 90% 10%,
+            rgba(255,255,255,.22),
+            transparent 30%
+        ),
+
+        linear-gradient(
+            135deg,
+            #1687e8,
+            #1967d2 62%,
+            #6446c8
+        );
+
+    box-shadow:
+
+        0 18px 40px
+        rgba(22,135,232,.22);
+}
+
+
+.hero-eyebrow {
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: .9px;
+
+    opacity: .8;
+}
+
+
+.hero-title {
+
+    margin-top: 7px;
+
+    max-width: 430px;
+
+    font-size: 28px;
+
+    line-height: 1.1;
+
+    font-weight: 900;
+
+    letter-spacing: -1px;
+}
+
+
+.hero-text {
+
+    max-width: 480px;
+
+    margin-top: 9px;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+
+    opacity: .87;
+}
+
+
+/* =====================================================
+   SEARCH
+   ===================================================== */
 
 .search {
-    padding: 16px;
+    padding: 0 16px 15px;
 }
+
+
+.search-box {
+    position: relative;
+}
+
+
+.search-icon {
+
+    position: absolute;
+
+    left: 15px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    color:
+        var(--tg-muted);
+
+    font-size: 16px;
+
+    pointer-events: none;
+}
+
 
 .search input {
+
     width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 14px;
-    padding: 14px;
-    font-size: 16px;
-    background: white;
+
+    padding:
+        14px
+        15px
+        14px
+        43px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        16px;
+
+    outline: none;
+
+    background:
+        var(--tg-surface);
+
+    color:
+        var(--tg-text);
+
+    font-size:
+        14px;
+
+    box-shadow:
+        var(--shadow-small);
+
+    transition:
+        border-color .18s,
+        box-shadow .18s;
 }
+
+
+.search input:focus {
+
+    border-color:
+        rgba(22,135,232,.5);
+
+    box-shadow:
+
+        0 0 0 4px
+        rgba(22,135,232,.08),
+
+        var(--shadow-small);
+}
+
+
+/* =====================================================
+   SECTIONS
+   ===================================================== */
 
 .section {
-    padding: 0 16px 20px;
+    padding: 0 16px 24px;
 }
+
+
+.section-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    margin-bottom: 12px;
+}
+
 
 .section-title {
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 12px;
+
+    margin: 0;
+
+    font-size: 18px;
+
+    font-weight: 900;
+
+    letter-spacing: -.4px;
 }
+
 
 .section-subtitle {
-    font-size: 13px;
-    color: #777;
-    margin-top: -6px;
-    margin-bottom: 14px;
+
+    margin-top: -5px;
+
+    margin-bottom: 13px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 11.5px;
+
+    line-height: 1.45;
 }
+
+
+/* =====================================================
+   CATEGORIES
+   ===================================================== */
 
 .categories {
+
     display: flex;
+
     gap: 8px;
+
     overflow-x: auto;
+
+    padding-bottom: 4px;
+
+    scrollbar-width: none;
 }
+
+
+.categories::-webkit-scrollbar {
+    display: none;
+}
+
 
 .category {
-    white-space: nowrap;
-    background: white;
-    border: 1px solid #e8e8e8;
-    border-radius: 20px;
-    padding: 9px 14px;
+
+    flex: 0 0 auto;
+
+    padding: 9px 13px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 999px;
+
+    background:
+        var(--tg-surface);
+
+    color:
+        var(--tg-text);
+
+    font-size: 11px;
+
+    font-weight: 750;
+
+    box-shadow:
+        0 3px 9px rgba(0,0,0,.025);
 }
+
+
+/* =====================================================
+   CARD
+   ===================================================== */
 
 .card {
-    background: white;
-    padding: 17px;
+
+    position: relative;
+
+    overflow: hidden;
+
     margin-bottom: 12px;
-    border-radius: 18px;
-    box-shadow: 0 2px 9px rgba(0,0,0,.04);
+
+    padding: 18px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius-xl);
+
+    background:
+        var(--tg-surface);
+
+    box-shadow:
+        var(--shadow-small);
+
+    transition:
+        transform .15s ease,
+        box-shadow .15s ease;
 }
+
+
+.card:active {
+    transform: scale(.995);
+}
+
+
+.card-glow {
+
+    position: absolute;
+
+    pointer-events: none;
+
+    width: 100px;
+
+    height: 100px;
+
+    top: -35px;
+
+    right: -35px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(22,135,232,.05);
+}
+
 
 .username {
-    font-size: 23px;
-    font-weight: 800;
-}
 
-.price {
-    font-size: 20px;
-    font-weight: 700;
-    margin-top: 13px;
-}
+    position: relative;
 
-.meta {
-    color: #777;
-    margin-top: 6px;
-    font-size: 13px;
-}
+    z-index: 1;
 
-.description {
-    color: #555;
-    margin-top: 12px;
-    line-height: 1.45;
+    font-size: 22px;
+
+    line-height: 1.15;
+
+    font-weight: 900;
+
+    letter-spacing: -.6px;
+
     word-break: break-word;
 }
 
-.badge {
-    display: inline-block;
-    margin-top: 7px;
-    padding: 5px 9px;
-    border-radius: 10px;
-    font-size: 12px;
+
+.price {
+
+    margin-top: 11px;
+
+    font-size: 21px;
+
+    line-height: 1.1;
+
+    font-weight: 900;
+
+    letter-spacing: -.5px;
 }
 
-.badge-pending {
-    background: #fff7e0;
-    color: #9a6900;
+
+.meta {
+
+    margin-top: 6px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 11px;
+
+    font-weight: 550;
 }
+
+
+.description {
+
+    margin-top: 12px;
+
+    color:
+        var(--text-2);
+
+    font-size: 12.5px;
+
+    line-height: 1.55;
+
+    word-break: break-word;
+}
+
+
+/* =====================================================
+   BADGE
+   ===================================================== */
+
+.badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    margin-top: 8px;
+
+    padding: 6px 9px;
+
+    border-radius: 999px;
+
+    font-size: 9.5px;
+
+    font-weight: 900;
+
+    letter-spacing: .3px;
+}
+
+
+.badge-pending {
+
+    background:
+        var(--warning-soft);
+
+    color:
+        var(--warning);
+}
+
 
 .badge-active,
 .badge-accepted {
-    background: #ebf9ef;
-    color: #14863c;
+
+    background:
+        var(--success-soft);
+
+    color:
+        var(--success);
 }
+
 
 .badge-paused,
 .badge-countered {
-    background: #eef6ff;
-    color: #1764a5;
+
+    background:
+        var(--primary-soft);
+
+    color:
+        var(--primary);
 }
+
 
 .badge-frozen {
-    background: #e8f6ff;
-    color: #006a9f;
+
+    background:
+        var(--cyan-soft);
+
+    color:
+        var(--cyan);
 }
 
+
 .badge-rejected {
-    background: #fff0f0;
-    color: #c33;
+
+    background:
+        var(--danger-soft);
+
+    color:
+        var(--danger);
 }
+
 
 .badge-removed,
 .badge-declined,
 .badge-cancelled,
 .badge-closed {
-    background: #f2f2f2;
-    color: #777;
+
+    background:
+        var(--surface-3);
+
+    color:
+        var(--muted);
 }
+
+
+/* =====================================================
+   BUTTONS
+   ===================================================== */
 
 .buttons {
+
     display: flex;
-    gap: 8px;
-    margin-top: 14px;
+
     flex-wrap: wrap;
+
+    gap: 8px;
+
+    margin-top: 15px;
 }
+
 
 button {
-    border: none;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 14px;
-    cursor: pointer;
+
+    padding: 11px 13px;
+
+    border-radius: 13px;
+
+    font-size: 11.5px;
+
+    font-weight: 800;
+
+    transition:
+        transform .1s ease,
+        opacity .1s ease,
+        filter .1s ease;
 }
 
-button:disabled {
-    opacity: .55;
-    cursor: default;
+
+button:active:not(:disabled) {
+    transform: scale(.97);
 }
+
 
 .primary {
+
     flex: 1;
-    background: #1687e8;
-    color: white;
+
+    color:
+        var(--tg-primary-text);
+
+    background:
+
+        linear-gradient(
+            135deg,
+            var(--tg-primary),
+            var(--primary-dark)
+        );
+
+    box-shadow:
+
+        0 7px 16px
+        rgba(22,135,232,.17);
 }
+
 
 .secondary {
-    background: #eee;
+
+    background:
+        var(--surface-3);
+
+    color:
+        var(--tg-text);
 }
 
+
 .danger {
-    background: #e74747;
+
+    background:
+        var(--danger);
+
     color: white;
 }
 
+
 .watch-button {
-    background: #eee;
-    min-width: 90px;
+
+    background:
+        var(--surface-3);
+
+    color:
+        var(--tg-text);
 }
+
 
 .watch-button.watching {
-    background: #fff4cc;
-    color: #805e00;
-    font-weight: 700;
+
+    color:
+        #986b00;
+
+    background:
+        #fff2c7;
 }
+
+
+@media (prefers-color-scheme: dark) {
+
+    .watch-button.watching {
+
+        color:
+            #e3b949;
+
+        background:
+            rgba(220,165,28,.14);
+    }
+}
+
 
 .report-button {
-    background: #fff0f0;
-    color: #b42a2a;
-    font-weight: 700;
-    min-width: 86px;
+
+    color:
+        var(--danger);
+
+    background:
+        var(--danger-soft);
 }
+
 
 .report-button.reported {
-    background: #f2f2f2;
-    color: #777;
+
+    color:
+        var(--muted);
+
+    background:
+        var(--surface-3);
 }
+
 
 .seller-profile-button {
+
     width: 100%;
-    margin-top: 12px;
-    background: #f3f0ff;
-    color: #6540b5;
-    font-weight: 700;
+
+    margin-top: 13px;
+
+    color:
+        var(--purple);
+
+    background:
+        var(--purple-soft);
 }
+
 
 .own-listing-button {
+
     flex: 1;
-    background: #ebf9ef;
-    color: #14863c;
-    font-weight: 700;
+
+    color:
+        var(--success);
+
+    background:
+        var(--success-soft);
 }
+
 
 .unlock-button {
+
     width: 100%;
-    margin-top: 12px;
-    background: #f1f6ff;
-    border: 1px solid #d8e7ff;
-    color: #1764a5;
-    font-weight: 700;
+
+    margin-top: 13px;
+
+    padding: 13px;
+
+    color:
+        var(--primary);
+
+    background:
+        var(--primary-soft);
+
+    border:
+        1px solid rgba(22,135,232,.12);
 }
+
+
+/* =====================================================
+   CONTACT
+   ===================================================== */
+
+.contact-box,
+.owner-contact-box {
+
+    margin-top: 13px;
+
+    padding: 14px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        16px;
+}
+
 
 .contact-box {
-    margin-top: 12px;
-    border-radius: 14px;
-    padding: 14px;
-    background: #edf9f1;
-    border: 1px solid #caedd5;
+    background:
+        var(--success-soft);
 }
+
 
 .owner-contact-box {
-    margin-top: 12px;
-    border-radius: 14px;
-    padding: 14px;
-    background: #f5f5f5;
-    border: 1px solid #dedede;
+    background:
+        var(--surface-2);
 }
+
 
 .contact-title {
-    font-weight: 800;
-    color: #168344;
+
+    color:
+        var(--success);
+
+    font-size: 12px;
+
+    font-weight: 900;
 }
+
 
 .owner-title {
-    font-weight: 800;
-    color: #333;
+
+    font-size: 12px;
+
+    font-weight: 900;
 }
 
+
 .contact-value {
-    font-size: 17px;
-    font-weight: 700;
+
     margin-top: 8px;
+
+    font-size: 16px;
+
+    font-weight: 800;
+
     word-break: break-word;
 }
 
+
 .contact-actions {
+
     display: flex;
+
     gap: 8px;
+
     margin-top: 12px;
 }
+
 
 .contact-actions button {
     flex: 1;
 }
 
+
 .owner-note {
-    color: #777;
-    font-size: 12px;
-    line-height: 1.45;
-    margin-top: 8px;
+
+    margin-top: 6px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 10.5px;
 }
+
 
 .payment-wait {
-    margin-top: 12px;
+
+    margin-top: 13px;
+
     padding: 12px;
-    border-radius: 12px;
-    background: #eef6ff;
-    color: #1764a5;
-    font-size: 13px;
+
+    border-radius: 13px;
+
+    color:
+        var(--primary);
+
+    background:
+        var(--primary-soft);
+
+    font-size: 11px;
 }
+
+
+/* =====================================================
+   FORMS
+   ===================================================== */
 
 .form-box {
+
     margin: 16px;
-    padding: 18px;
-    background: white;
-    border-radius: 18px;
+
+    padding: 20px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius-xl);
+
+    background:
+        var(--tg-surface);
+
+    box-shadow:
+        var(--shadow-small);
 }
 
+
 .form-title {
+
     font-size: 22px;
+
+    font-weight: 900;
+
+    letter-spacing: -.6px;
+}
+
+
+.form-subtitle {
+
+    margin:
+        6px 0 20px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 11.5px;
+
+    line-height: 1.5;
+}
+
+
+.field {
+    margin-bottom: 16px;
+}
+
+
+.field label {
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 11.5px;
+
     font-weight: 800;
 }
 
-.form-subtitle {
-    color: #777;
-    font-size: 13px;
-    margin: 5px 0 20px;
-}
-
-.field {
-    margin-bottom: 15px;
-}
-
-.field label {
-    display: block;
-    font-weight: 700;
-    margin-bottom: 7px;
-}
 
 .field input,
 .field select,
 .field textarea {
+
     width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 12px;
-    font-size: 15px;
-    background: white;
+
+    padding: 12px 13px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        14px;
+
+    outline: none;
+
+    background:
+        var(--surface-2);
+
+    color:
+        var(--tg-text);
+
+    font-size: 13px;
 }
 
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+
+    border-color:
+        rgba(22,135,232,.45);
+
+    box-shadow:
+        0 0 0 4px
+        rgba(22,135,232,.07);
+}
+
+
 .field textarea {
-    min-height: 90px;
+
+    min-height: 95px;
+
     resize: vertical;
 }
 
+
 .field-hint {
-    color: #888;
-    font-size: 11px;
-    margin-top: 5px;
-    line-height: 1.4;
+
+    margin-top: 6px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 10px;
+
+    line-height: 1.45;
 }
+
 
 .payment-box {
-    background: #f3f8ff;
-    border: 1px solid #dbeaff;
-    border-radius: 14px;
-    padding: 15px;
+
     margin-bottom: 15px;
+
+    padding: 15px;
+
+    border-radius: 16px;
+
+    background:
+        var(--primary-soft);
+
+    border:
+        1px solid rgba(22,135,232,.11);
 }
+
 
 .payment-price {
+
+    margin-top: 3px;
+
     font-size: 25px;
-    font-weight: 800;
+
+    font-weight: 900;
+
+    letter-spacing: -.7px;
 }
+
 
 .payment-button {
+
     width: 100%;
-    background: #1687e8;
-    color: white;
-    padding: 15px;
-    font-size: 16px;
-    font-weight: 800;
+
+    padding: 14px;
+
+    border-radius: 15px;
+
+    color:
+        var(--tg-primary-text);
+
+    background:
+
+        linear-gradient(
+            135deg,
+            var(--tg-primary),
+            var(--primary-dark)
+        );
+
+    font-size: 13px;
+
+    font-weight: 900;
+
+    box-shadow:
+
+        0 9px 21px
+        rgba(22,135,232,.18);
 }
+
+
+/* =====================================================
+   MESSAGE
+   ===================================================== */
 
 .message {
-    margin-top: 14px;
-    padding: 13px;
-    border-radius: 12px;
+
     display: none;
+
+    margin-top: 13px;
+
+    padding: 12px;
+
+    border-radius: 13px;
+
+    font-size: 11px;
+
+    line-height: 1.45;
 }
+
 
 .message.success {
+
     display: block;
-    background: #eaf8ee;
-    color: #14823a;
+
+    color:
+        var(--success);
+
+    background:
+        var(--success-soft);
 }
+
 
 .message.error {
+
     display: block;
-    background: #fff0f0;
-    color: #c62828;
+
+    color:
+        var(--danger);
+
+    background:
+        var(--danger-soft);
 }
+
 
 .message.info {
+
     display: block;
-    background: #eef6ff;
-    color: #1764a5;
+
+    color:
+        var(--primary);
+
+    background:
+        var(--primary-soft);
 }
+
+
+/* =====================================================
+   WARNING
+   ===================================================== */
 
 .warning {
-    margin: 16px;
-    padding: 14px;
-    border-radius: 14px;
-    background: #fff8e7;
-    border: 1px solid #ffe09d;
-    font-size: 13px;
+
+    margin: 0 16px 20px;
+
+    padding: 13px;
+
+    border-radius: 15px;
+
+    color:
+        var(--warning);
+
+    background:
+        var(--warning-soft);
+
+    border:
+        1px solid rgba(230,160,15,.13);
+
+    font-size: 10.5px;
+
     line-height: 1.5;
 }
+
+
+/* =====================================================
+   PROFILE
+   ===================================================== */
 
 .profile-card {
+
     margin: 16px;
-    padding: 20px;
-    background: white;
-    border-radius: 18px;
+
+    padding: 21px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius-xl);
+
+    background:
+        var(--tg-surface);
+
+    box-shadow:
+        var(--shadow-small);
 }
+
+
+.profile-avatar {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 54px;
+
+    height: 54px;
+
+    margin-bottom: 13px;
+
+    border-radius: 17px;
+
+    font-size: 23px;
+
+    background:
+
+        linear-gradient(
+            135deg,
+            var(--primary-soft),
+            var(--purple-soft)
+        );
+}
+
 
 .profile-name {
-    font-size: 22px;
-    font-weight: 800;
+
+    font-size: 23px;
+
+    font-weight: 900;
+
+    letter-spacing: -.6px;
 }
+
 
 .profile-username {
-    color: #777;
-    margin-top: 5px;
+
+    margin-top: 4px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 11.5px;
 }
+
 
 .verified-box {
-    background: #edf9f1;
-    color: #138541;
-    padding: 14px;
-    border-radius: 14px;
-    margin-top: 17px;
+
+    margin-top: 15px;
+
+    padding: 11px;
+
+    border-radius: 13px;
+
+    color:
+        var(--success);
+
+    background:
+        var(--success-soft);
+
+    font-size: 11px;
+
+    font-weight: 750;
 }
+
+
+.profile-action,
+.seller-profile-action,
+.watchlist-profile-button,
+.admin-button {
+
+    width: 100%;
+
+    margin-top: 9px;
+
+    padding: 13px;
+
+    font-size: 11.5px;
+}
+
 
 .profile-action {
-    width: 100%;
-    margin-top: 12px;
-    background: #1687e8;
+
     color: white;
-    font-weight: 700;
+
+    background:
+
+        linear-gradient(
+            135deg,
+            var(--primary),
+            var(--primary-dark)
+        );
 }
+
 
 .seller-profile-action {
-    width: 100%;
-    margin-top: 10px;
-    background: #f3f0ff;
-    color: #6540b5;
-    font-weight: 700;
+
+    color:
+        var(--purple);
+
+    background:
+        var(--purple-soft);
 }
+
 
 .watchlist-profile-button {
-    width: 100%;
-    margin-top: 10px;
-    background: #fff4cc;
-    color: #725500;
-    font-weight: 700;
+
+    color:
+        #9c7000;
+
+    background:
+        var(--warning-soft);
 }
+
 
 .admin-button {
-    width: 100%;
-    background: #222;
+
     color: white;
-    margin-top: 12px;
-    font-weight: 700;
-}
 
-.admin-box {
-    margin: 16px;
-}
+    background:
 
-.admin-header {
-    background: #222;
-    color: white;
-    padding: 18px;
-    border-radius: 18px;
-    margin-bottom: 18px;
-}
-
-.admin-header h2 {
-    margin: 0;
-}
-
-.admin-section {
-    margin-bottom: 28px;
-}
-
-.admin-section-title {
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 12px;
-}
-
-.approve-button {
-    flex: 1;
-    background: #19a651;
-    color: white;
-}
-
-.reject-button {
-    flex: 1;
-    background: #e74747;
-    color: white;
-}
-
-.counter-button {
-    flex: 1;
-    background: #f1f6ff;
-    color: #1764a5;
-}
-
-.freeze-button {
-    background: #dff4ff;
-    color: #006a9f;
-    font-weight: 700;
-}
-
-.unfreeze-button {
-    background: #eaf8ee;
-    color: #14823a;
-    font-weight: 700;
-}
-
-.dismiss-button {
-    background: #eee;
-    color: #444;
-    font-weight: 700;
-}
-
-.admin-remove-button {
-    background: #fff0f0;
-    color: #c62828;
-    font-weight: 700;
-}
-
-.empty {
-    padding: 30px 15px;
-    text-align: center;
-    color: #777;
-    background: white;
-    border-radius: 16px;
-}
-
-.offer-summary {
-    margin-top: 12px;
-    background: #f7f7f7;
-    border-radius: 12px;
-    padding: 12px;
-}
-
-.offer-label {
-    color: #777;
-    font-size: 12px;
-}
-
-.offer-big {
-    font-size: 20px;
-    font-weight: 800;
-    margin-top: 3px;
-}
-
-.offer-message {
-    margin-top: 10px;
-    color: #555;
-    line-height: 1.45;
-}
-
-.buyer-box {
-    margin-top: 12px;
-    background: #f5f5f5;
-    padding: 11px;
-    border-radius: 10px;
-    font-size: 13px;
-}
-
-.wanted-card {
-    border-left: 4px solid #1687e8;
-}
-
-.wanted-label {
-    color: #777;
-    font-size: 12px;
-    margin-top: 12px;
-}
-
-.wanted-budget {
-    font-size: 22px;
-    font-weight: 800;
-    margin-top: 3px;
-}
-
-.wanted-buyer {
-    margin-top: 12px;
-    padding: 11px;
-    border-radius: 11px;
-    background: #f5f5f5;
-    font-size: 13px;
-}
-
-.contact-buyer-button {
-    width: 100%;
-    margin-top: 14px;
-    background: #1687e8;
-    color: white;
-    font-weight: 700;
-}
-
-.your-request-button {
-    width: 100%;
-    margin-top: 14px;
-    background: #edf9f1;
-    color: #138541;
-    font-weight: 700;
-}
-
-.close-request-button {
-    width: 100%;
-    margin-top: 13px;
-    background: #fff0f0;
-    color: #c62828;
-    font-weight: 700;
-}
-
-.manage-buttons {
-    display: flex;
-    gap: 7px;
-    flex-wrap: wrap;
-    margin-top: 14px;
-}
-
-.manage-buttons button {
-    flex: 1;
-    min-width: 90px;
-}
-
-.edit-listing-button {
-    background: #eef6ff;
-    color: #1764a5;
-    font-weight: 700;
-}
-
-.pause-listing-button {
-    background: #fff7e0;
-    color: #8a6200;
-    font-weight: 700;
-}
-
-.resume-listing-button {
-    background: #eaf8ee;
-    color: #14823a;
-    font-weight: 700;
-}
-
-.remove-listing-button {
-    background: #fff0f0;
-    color: #c62828;
-    font-weight: 700;
-}
-
-.paused-note {
-    margin-top: 12px;
-    background: #eef6ff;
-    color: #1764a5;
-    padding: 11px;
-    border-radius: 11px;
-    font-size: 13px;
-    line-height: 1.4;
-}
-
-.frozen-note {
-    margin-top: 12px;
-    background: #e8f6ff;
-    border: 1px solid #bfe7fa;
-    color: #006a9f;
-    padding: 13px;
-    border-radius: 12px;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.removed-note {
-    margin-top: 12px;
-    background: #f3f3f3;
-    color: #777;
-    padding: 11px;
-    border-radius: 11px;
-    font-size: 13px;
-}
-
-.report-card {
-    border-left: 4px solid #e74747;
-}
-
-.report-reason {
-    font-weight: 800;
-    margin-top: 12px;
-}
-
-.report-details {
-    margin-top: 8px;
-    padding: 11px;
-    border-radius: 11px;
-    background: #f7f7f7;
-    color: #555;
-    line-height: 1.45;
-}
-
-.frozen-card {
-    border-left: 4px solid #42a5d9;
+        linear-gradient(
+            135deg,
+            #272b33,
+            #17191e
+        );
 }
 
 
-/* SELLER PROFILE */
+/* =====================================================
+   SELLER PROFILE
+   ===================================================== */
 
 .seller-page {
     padding: 16px;
 }
 
-.seller-header-card {
-    background: white;
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 16px;
+
+.back-button {
+
+    margin-bottom: 12px;
+
+    color:
+        var(--tg-text);
+
+    background:
+        var(--tg-surface);
+
+    border:
+        1px solid var(--border);
 }
+
+
+.seller-header-card {
+
+    padding: 21px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius:
+        var(--radius-xl);
+
+    background:
+        var(--tg-surface);
+
+    box-shadow:
+        var(--shadow-small);
+}
+
 
 .seller-avatar {
-    width: 58px;
-    height: 58px;
-    border-radius: 50%;
-    background: #f3f0ff;
-    color: #6540b5;
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
-    font-size: 27px;
-    margin-bottom: 13px;
+
+    width: 60px;
+
+    height: 60px;
+
+    margin-bottom: 14px;
+
+    border-radius: 18px;
+
+    font-size: 26px;
+
+    background:
+
+        linear-gradient(
+            135deg,
+            var(--purple-soft),
+            var(--primary-soft)
+        );
 }
 
+
 .seller-name {
-    font-size: 26px;
+
+    font-size: 25px;
+
+    line-height: 1.1;
+
+    font-weight: 900;
+
+    letter-spacing: -.8px;
+}
+
+
+.seller-member {
+
+    margin-top: 6px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 10.5px;
+}
+
+
+.seller-auth {
+
+    display: inline-flex;
+
+    margin-top: 11px;
+
+    padding: 7px 10px;
+
+    border-radius: 999px;
+
+    color:
+        var(--success);
+
+    background:
+        var(--success-soft);
+
+    font-size: 10px;
+
     font-weight: 800;
 }
 
-.seller-member {
-    color: #777;
-    font-size: 13px;
-    margin-top: 6px;
-}
-
-.seller-auth {
-    margin-top: 13px;
-    display: inline-block;
-    background: #edf9f1;
-    color: #138541;
-    padding: 8px 11px;
-    border-radius: 11px;
-    font-size: 13px;
-    font-weight: 700;
-}
 
 .seller-bio {
-    margin-top: 16px;
-    color: #555;
-    line-height: 1.5;
+
+    margin-top: 15px;
+
+    color:
+        var(--text-2);
+
+    font-size: 12.5px;
+
+    line-height: 1.55;
+
     white-space: pre-wrap;
+
     word-break: break-word;
 }
 
+
 .seller-bio-empty {
-    margin-top: 16px;
-    color: #999;
+
+    margin-top: 15px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 11px;
+
     font-style: italic;
 }
 
+
 .seller-stats {
+
     display: grid;
-    grid-template-columns: repeat(3,1fr);
+
+    grid-template-columns:
+        repeat(3,1fr);
+
     gap: 8px;
+
     margin-top: 18px;
 }
 
+
 .seller-stat {
-    background: #f7f7f8;
-    padding: 13px 8px;
-    border-radius: 14px;
+
+    padding: 14px 6px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 15px;
+
     text-align: center;
+
+    background:
+        var(--surface-2);
 }
+
 
 .seller-stat-number {
-    font-size: 22px;
-    font-weight: 800;
+
+    font-size: 21px;
+
+    font-weight: 900;
+
+    letter-spacing: -.4px;
 }
+
 
 .seller-stat-label {
-    font-size: 11px;
-    color: #777;
-    margin-top: 5px;
-    line-height: 1.2;
+
+    margin-top: 4px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 9px;
+
+    line-height: 1.3;
+
+    font-weight: 650;
 }
+
 
 .seller-edit-button {
+
     width: 100%;
-    margin-top: 16px;
-    background: #f3f0ff;
-    color: #6540b5;
-    font-weight: 700;
+
+    margin-top: 14px;
+
+    color:
+        var(--purple);
+
+    background:
+        var(--purple-soft);
 }
+
+
+.seller-visibility-public,
+.seller-visibility-private {
+
+    margin-top: 13px;
+
+    padding: 11px;
+
+    border-radius: 13px;
+
+    font-size: 10.5px;
+
+    line-height: 1.5;
+}
+
 
 .seller-visibility-public {
-    margin-top: 13px;
-    background: #edf9f1;
-    color: #14823a;
-    padding: 11px;
-    border-radius: 12px;
-    font-size: 13px;
+
+    color:
+        var(--success);
+
+    background:
+        var(--success-soft);
 }
+
 
 .seller-visibility-private {
-    margin-top: 13px;
-    background: #fff7e0;
-    color: #8a6200;
-    padding: 11px;
-    border-radius: 12px;
-    font-size: 13px;
+
+    color:
+        var(--warning);
+
+    background:
+        var(--warning-soft);
 }
 
-.back-button {
-    margin-bottom: 12px;
-    background: white;
-    color: #444;
-    font-weight: 700;
-}
 
 .seller-listings-title {
-    font-size: 20px;
-    font-weight: 800;
-    margin: 22px 0 12px;
+
+    margin:
+        22px 0 12px;
+
+    font-size: 18px;
+
+    font-weight: 900;
+
+    letter-spacing: -.4px;
 }
 
 
-/* NAV */
+/* =====================================================
+   WANTED
+   ===================================================== */
+
+.wanted-card {
+    border-left:
+        3px solid var(--primary);
+}
+
+
+.wanted-label {
+
+    margin-top: 11px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 10px;
+}
+
+
+.wanted-budget {
+
+    margin-top: 3px;
+
+    font-size: 21px;
+
+    font-weight: 900;
+}
+
+
+.wanted-buyer {
+
+    margin-top: 12px;
+
+    padding: 11px;
+
+    border-radius: 12px;
+
+    background:
+        var(--surface-2);
+
+    font-size: 10.5px;
+}
+
+
+.contact-buyer-button,
+.your-request-button,
+.close-request-button {
+
+    width: 100%;
+
+    margin-top: 12px;
+}
+
+
+.contact-buyer-button {
+
+    color: white;
+
+    background:
+        var(--primary);
+}
+
+
+.your-request-button {
+
+    color:
+        var(--success);
+
+    background:
+        var(--success-soft);
+}
+
+
+.close-request-button {
+
+    color:
+        var(--danger);
+
+    background:
+        var(--danger-soft);
+}
+
+
+/* =====================================================
+   MANAGEMENT
+   ===================================================== */
+
+.manage-buttons {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 7px;
+
+    margin-top: 14px;
+}
+
+
+.manage-buttons button {
+
+    flex: 1;
+
+    min-width: 82px;
+}
+
+
+.edit-listing-button {
+
+    color:
+        var(--primary);
+
+    background:
+        var(--primary-soft);
+}
+
+
+.pause-listing-button {
+
+    color:
+        var(--warning);
+
+    background:
+        var(--warning-soft);
+}
+
+
+.resume-listing-button {
+
+    color:
+        var(--success);
+
+    background:
+        var(--success-soft);
+}
+
+
+.remove-listing-button {
+
+    color:
+        var(--danger);
+
+    background:
+        var(--danger-soft);
+}
+
+
+.paused-note,
+.frozen-note,
+.removed-note {
+
+    margin-top: 12px;
+
+    padding: 11px;
+
+    border-radius: 13px;
+
+    font-size: 10.5px;
+
+    line-height: 1.5;
+}
+
+
+.paused-note {
+
+    color:
+        var(--primary);
+
+    background:
+        var(--primary-soft);
+}
+
+
+.frozen-note {
+
+    color:
+        var(--cyan);
+
+    background:
+        var(--cyan-soft);
+}
+
+
+.removed-note {
+
+    color:
+        var(--tg-muted);
+
+    background:
+        var(--surface-3);
+}
+
+
+/* =====================================================
+   OFFER
+   ===================================================== */
+
+.offer-summary {
+
+    margin-top: 11px;
+
+    padding: 12px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 14px;
+
+    background:
+        var(--surface-2);
+}
+
+
+.offer-label {
+
+    color:
+        var(--tg-muted);
+
+    font-size: 10px;
+}
+
+
+.offer-big {
+
+    margin-top: 2px;
+
+    font-size: 20px;
+
+    font-weight: 900;
+}
+
+
+.offer-message {
+
+    margin-top: 10px;
+
+    color:
+        var(--text-2);
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+
+.buyer-box {
+
+    margin-top: 11px;
+
+    padding: 11px;
+
+    border-radius: 12px;
+
+    background:
+        var(--surface-2);
+
+    font-size: 10.5px;
+}
+
+
+/* =====================================================
+   ADMIN
+   ===================================================== */
+
+.admin-box {
+    margin: 16px;
+}
+
+
+.admin-header {
+
+    margin-bottom: 20px;
+
+    padding: 21px;
+
+    border-radius:
+        var(--radius-xl);
+
+    color: white;
+
+    background:
+
+        radial-gradient(
+            circle at 90% 10%,
+            rgba(255,255,255,.12),
+            transparent 32%
+        ),
+
+        linear-gradient(
+            135deg,
+            #262a33,
+            #111317
+        );
+
+    box-shadow:
+        var(--shadow);
+}
+
+
+.admin-header h2 {
+
+    margin: 0;
+
+    font-size: 21px;
+
+    font-weight: 900;
+
+    letter-spacing: -.5px;
+}
+
+
+.admin-section {
+    margin-bottom: 29px;
+}
+
+
+.admin-section-title {
+
+    margin-bottom: 11px;
+
+    font-size: 18px;
+
+    font-weight: 900;
+}
+
+
+.approve-button {
+
+    flex: 1;
+
+    color: white;
+
+    background:
+        var(--success);
+}
+
+
+.reject-button {
+
+    flex: 1;
+
+    color: white;
+
+    background:
+        var(--danger);
+}
+
+
+.counter-button {
+
+    flex: 1;
+
+    color:
+        var(--primary);
+
+    background:
+        var(--primary-soft);
+}
+
+
+.freeze-button {
+
+    color:
+        var(--cyan);
+
+    background:
+        var(--cyan-soft);
+}
+
+
+.unfreeze-button {
+
+    color:
+        var(--success);
+
+    background:
+        var(--success-soft);
+}
+
+
+.dismiss-button {
+
+    color:
+        var(--tg-text);
+
+    background:
+        var(--surface-3);
+}
+
+
+.admin-remove-button {
+
+    color:
+        var(--danger);
+
+    background:
+        var(--danger-soft);
+}
+
+
+.report-card {
+
+    border-left:
+        3px solid var(--danger);
+}
+
+
+.frozen-card {
+
+    border-left:
+        3px solid var(--cyan);
+}
+
+
+.report-reason {
+
+    margin-top: 11px;
+
+    font-size: 11px;
+
+    font-weight: 900;
+}
+
+
+.report-details {
+
+    margin-top: 8px;
+
+    padding: 11px;
+
+    border-radius: 12px;
+
+    color:
+        var(--text-2);
+
+    background:
+        var(--surface-2);
+
+    font-size: 10.5px;
+
+    line-height: 1.5;
+}
+
+
+/* =====================================================
+   EMPTY
+   ===================================================== */
+
+.empty {
+
+    padding: 32px 16px;
+
+    border:
+        1px dashed var(--border);
+
+    border-radius: 17px;
+
+    background:
+        var(--tg-surface);
+
+    color:
+        var(--tg-muted);
+
+    text-align: center;
+
+    font-size: 11px;
+}
+
+
+/* =====================================================
+   NAV
+   ===================================================== */
 
 .bottom-nav {
+
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 70px;
-    background: white;
-    border-top: 1px solid #ddd;
-    display: flex;
+
     z-index: 100;
+
+    left: 50%;
+
+    bottom:
+        max(
+            7px,
+            env(safe-area-inset-bottom)
+        );
+
+    transform:
+        translateX(-50%);
+
+    display: flex;
+
+    width:
+        calc(100% - 18px);
+
+    max-width: 690px;
+
+    height: 66px;
+
+    padding: 6px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 22px;
+
+    background:
+        rgba(255,255,255,.94);
+
+    box-shadow:
+
+        0 15px 38px
+        rgba(24,31,43,.14);
+
+    backdrop-filter:
+        blur(20px);
+
+    -webkit-backdrop-filter:
+        blur(20px);
 }
+
+
+@media (prefers-color-scheme: dark) {
+
+    .bottom-nav {
+
+        background:
+            rgba(24,27,33,.94);
+    }
+}
+
 
 .nav-item {
+
     flex: 1;
-    text-align: center;
-    font-size: 11px;
-    padding-top: 9px;
-    color: #777;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 3px;
+
+    border-radius: 16px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 8.5px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        color .15s,
+        background .15s,
+        transform .1s;
 }
+
+
+.nav-item:active {
+    transform: scale(.96);
+}
+
 
 .nav-icon {
+
     display: block;
-    font-size: 23px;
-    margin-bottom: 3px;
+
+    margin: 0;
+
+    font-size: 19px;
+
+    line-height: 1;
 }
+
 
 .nav-item.active {
-    color: #1687e8;
-    font-weight: 700;
+
+    color:
+        var(--primary);
+
+    background:
+        var(--primary-soft);
+
+    font-weight: 900;
 }
 
 
-/* MODALS */
+/* =====================================================
+   MODALS
+   ===================================================== */
 
 .modal-backdrop {
+
     display: none;
+
     position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.45);
+
     z-index: 1000;
-    padding: 20px;
-    align-items: center;
+
+    inset: 0;
+
+    align-items: flex-end;
+
     justify-content: center;
+
+    padding:
+        14px
+        14px
+        max(
+            14px,
+            env(safe-area-inset-bottom)
+        );
+
+    background:
+        rgba(0,0,0,.44);
+
+    backdrop-filter:
+        blur(4px);
+
+    -webkit-backdrop-filter:
+        blur(4px);
 }
+
 
 .modal-backdrop.show {
+
     display: flex;
+
+    animation:
+        backdropIn .16s ease;
 }
+
 
 .modal {
+
     width: 100%;
-    max-width: 430px;
-    background: white;
-    border-radius: 20px;
-    padding: 20px;
-    max-height: 90vh;
+
+    max-width: 500px;
+
+    max-height: 88vh;
+
     overflow-y: auto;
+
+    padding: 21px;
+
+    border:
+        1px solid var(--border);
+
+    border-radius: 25px;
+
+    background:
+        var(--tg-surface);
+
+    color:
+        var(--tg-text);
+
+    box-shadow:
+
+        0 25px 80px
+        rgba(0,0,0,.25);
+
+    animation:
+        modalIn .2s ease;
 }
+
+
+@keyframes backdropIn {
+
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+
+@keyframes modalIn {
+
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 
 .modal-title {
-    font-size: 22px;
-    font-weight: 800;
+
+    font-size: 21px;
+
+    line-height: 1.2;
+
+    font-weight: 900;
+
+    letter-spacing: -.5px;
 }
+
 
 .modal-subtitle {
-    color: #777;
-    margin-top: 5px;
-    margin-bottom: 18px;
+
+    margin:
+        6px 0 18px;
+
+    color:
+        var(--tg-muted);
+
+    font-size: 11px;
+
+    line-height: 1.5;
 }
 
+
 .modal-actions {
+
     display: flex;
+
     gap: 8px;
+
     margin-top: 15px;
 }
+
 
 .modal-actions button {
     flex: 1;
 }
 
-@media (max-width:430px) {
 
-    .seller-stats {
-        grid-template-columns: repeat(3,1fr);
+/* =====================================================
+   DESKTOP
+   ===================================================== */
+
+@media (min-width: 650px) {
+
+    .modal-backdrop {
+        align-items: center;
+    }
+
+    .hero {
+        padding: 27px;
+    }
+
+    .hero-title {
+        font-size: 32px;
+    }
+
+    .card {
+        padding: 20px;
+    }
+}
+
+
+@media (max-width: 390px) {
+
+    .hero-title {
+        font-size: 25px;
+    }
+
+    .username {
+        font-size: 20px;
+    }
+
+    .price {
+        font-size: 19px;
     }
 
     .buttons button {
-        flex: 1 1 28%;
+        padding: 10px 10px;
+        font-size: 10.5px;
+    }
+
+    .seller-stat-number {
+        font-size: 19px;
     }
 }
 
@@ -964,15 +2621,31 @@ button:disabled {
 
 <div class="app">
 
+
+<!-- HEADER -->
+
 <header>
+
+<div class="header-row">
+
+<div class="logo-icon">
+H
+</div>
+
+<div class="header-text">
 
 <div class="logo">
 Handle Market
 </div>
 
 <div class="subtitle">
-Discover premium WhatsApp usernames
+WhatsApp username marketplace
 </div>
+
+</div>
+
+</div>
+
 
 <div
     id="authStatus"
@@ -984,11 +2657,39 @@ Connecting...
 </header>
 
 
-<!-- HOME -->
+<!-- =====================================================
+     HOME
+===================================================== -->
 
-<div id="home" class="page active">
+<div
+    id="home"
+    class="page active"
+>
+
+<div class="hero">
+
+<div class="hero-eyebrow">
+HANDLE MARKET
+</div>
+
+<div class="hero-title">
+Discover valuable WhatsApp usernames.
+</div>
+
+<div class="hero-text">
+Browse listings, connect with sellers and negotiate directly through Handle Market.
+</div>
+
+</div>
+
 
 <div class="search">
+
+<div class="search-box">
+
+<div class="search-icon">
+⌕
+</div>
 
 <input
     placeholder="Search @username"
@@ -997,55 +2698,131 @@ Connecting...
 
 </div>
 
+</div>
+
+
 <div class="section">
+
+<div class="section-header">
 
 <div class="section-title">
 Categories
 </div>
 
+</div>
+
+
 <div class="categories">
 
-<div class="category">🔥 Premium</div>
-<div class="category">Business</div>
-<div class="category">AI</div>
-<div class="category">Short</div>
-<div class="category">Travel</div>
-<div class="category">Finance</div>
+<div class="category">
+🔥 Premium
+</div>
 
+<div class="category">
+💼 Business
+</div>
+
+<div class="category">
+🤖 AI
+</div>
+
+<div class="category">
+⚡ Short
+</div>
+
+<div class="category">
+✈️ Travel
+</div>
+
+<div class="category">
+💰 Finance
+</div>
+
+<div class="category">
+🎮 Gaming
 </div>
 
 </div>
+
+</div>
+
 
 <div class="section">
+
+<div class="section-header">
 
 <div class="section-title">
 Featured usernames
 </div>
 
+</div>
+
+
 <div id="homeListings">
 
 <div class="empty">
-Loading...
+Loading marketplace...
 </div>
 
 </div>
 
 </div>
+
 
 <div class="warning">
 
-⚠️ Handle Market does not control or guarantee the transfer of WhatsApp usernames.
+⚠️ Handle Market is a discovery and negotiation platform. It does not control or guarantee the transfer of WhatsApp usernames.
 
 </div>
 
 </div>
 
 
-<!-- MARKETPLACE -->
+<!-- =====================================================
+     MARKETPLACE
+===================================================== -->
 
-<div id="marketplace" class="page">
+<div
+    id="marketplace"
+    class="page"
+>
+
+<div
+    style="
+        padding:
+            19px
+            16px
+            7px;
+    "
+>
+
+<div class="section-title">
+Marketplace
+</div>
+
+<div
+    style="
+        color:
+            var(--tg-muted);
+        font-size:
+            11px;
+        margin-top:
+            3px;
+    "
+>
+Discover active username listings.
+</div>
+
+</div>
+
 
 <div class="search">
+
+<div class="search-box">
+
+<div class="search-icon">
+⌕
+</div>
 
 <input
     placeholder="Search Marketplace"
@@ -1054,11 +2831,10 @@ Loading...
 
 </div>
 
-<div class="section">
-
-<div class="section-title">
-Marketplace
 </div>
+
+
+<div class="section">
 
 <div id="marketListings">
 
@@ -1073,9 +2849,14 @@ Loading...
 </div>
 
 
-<!-- LIST -->
+<!-- =====================================================
+     LIST
+===================================================== -->
 
-<div id="list" class="page">
+<div
+    id="list"
+    class="page"
+>
 
 <div class="form-box">
 
@@ -1084,8 +2865,9 @@ List Username
 </div>
 
 <div class="form-subtitle">
-Submit username for moderation.
+Create a new listing. Your listing will be reviewed before appearing in Marketplace.
 </div>
+
 
 <form
     id="listingForm"
@@ -1106,6 +2888,7 @@ WhatsApp username
 
 </div>
 
+
 <div class="field">
 
 <label>
@@ -1117,10 +2900,12 @@ Asking price (USD)
     type="number"
     min="1"
     step="0.01"
+    placeholder="5000"
     required
 >
 
 </div>
+
 
 <div class="field">
 
@@ -1145,6 +2930,7 @@ Category
 
 </div>
 
+
 <div class="field">
 
 <label>
@@ -1154,9 +2940,11 @@ Description
 <textarea
     id="listingDescription"
     maxlength="500"
+    placeholder="Tell buyers about this username..."
 ></textarea>
 
 </div>
+
 
 <div class="field">
 
@@ -1182,6 +2970,7 @@ Other
 
 </div>
 
+
 <div class="field">
 
 <label>
@@ -1190,23 +2979,32 @@ Seller contact
 
 <input
     id="contactValue"
-    placeholder="@username"
+    placeholder="@telegramusername"
     maxlength="200"
     required
 >
 
+
 <div class="field-hint">
-
-Buyers cannot see this until they unlock it.
-
+Your contact is private until a buyer unlocks it.
 </div>
 
 </div>
+
 
 <div class="payment-box">
 
-<div>
-Listing fee
+<div
+    style="
+        color:
+            var(--tg-muted);
+        font-size:
+            10px;
+        font-weight:
+            700;
+    "
+>
+LISTING FEE
 </div>
 
 <div
@@ -1218,15 +3016,15 @@ Listing fee
 
 </div>
 
+
 <button
     id="listingButton"
     class="payment-button"
     type="submit"
 >
-
 Pay 1 ⭐ & Submit
-
 </button>
+
 
 <div
     id="listingMessage"
@@ -1244,6 +3042,13 @@ Pay 1 ⭐ & Submit
 My Listings
 </div>
 
+<div
+    class="section-subtitle"
+>
+Manage your submitted usernames.
+</div>
+
+
 <div id="myListings">
 
 <div class="empty">
@@ -1257,21 +3062,25 @@ Loading...
 </div>
 
 
-<!-- WANTED -->
+<!-- =====================================================
+     WANTED
+===================================================== -->
 
-<div id="wanted" class="page">
+<div
+    id="wanted"
+    class="page"
+>
 
 <div class="form-box">
 
 <div class="form-title">
-🎯 Post Wanted Request
+🎯 Wanted
 </div>
 
 <div class="form-subtitle">
-
-Looking for a specific WhatsApp username? Publish your request.
-
+Publish the username you are looking for and your budget.
 </div>
+
 
 <form
     id="wantedForm"
@@ -1292,6 +3101,7 @@ Desired username
 
 </div>
 
+
 <div class="field">
 
 <label>
@@ -1303,10 +3113,12 @@ Budget (USD)
     type="number"
     min="1"
     step="0.01"
+    placeholder="1000"
     required
 >
 
 </div>
+
 
 <div class="field">
 
@@ -1331,6 +3143,7 @@ Category
 
 </div>
 
+
 <div class="field">
 
 <label>
@@ -1340,14 +3153,25 @@ Description
 <textarea
     id="wantedDescription"
     maxlength="500"
+    placeholder="Add details about what you are looking for..."
 ></textarea>
 
 </div>
 
+
 <div class="payment-box">
 
-<div>
-Wanted publication fee
+<div
+    style="
+        color:
+            var(--tg-muted);
+        font-size:
+            10px;
+        font-weight:
+            700;
+    "
+>
+PUBLICATION FEE
 </div>
 
 <div
@@ -1359,15 +3183,15 @@ Wanted publication fee
 
 </div>
 
+
 <button
     id="wantedButton"
     class="payment-button"
     type="submit"
 >
-
 Pay 1 ⭐ & Publish
-
 </button>
+
 
 <div
     id="wantedMessage"
@@ -1382,8 +3206,15 @@ Pay 1 ⭐ & Publish
 <div class="section">
 
 <div class="section-title">
-🎯 Wanted Requests
+Wanted Requests
 </div>
+
+<div
+    class="section-subtitle"
+>
+Active requests from buyers.
+</div>
+
 
 <div id="wantedPosts">
 
@@ -1402,6 +3233,7 @@ Loading...
 My Wanted Posts
 </div>
 
+
 <div id="myWantedPosts">
 
 <div class="empty">
@@ -1415,25 +3247,33 @@ Loading...
 </div>
 
 
-<!-- PROFILE -->
+<!-- =====================================================
+     PROFILE
+===================================================== -->
 
-<div id="profile" class="page">
+<div
+    id="profile"
+    class="page"
+>
 
 <div
     id="profileContent"
     class="profile-card"
 >
-
 Loading...
-
 </div>
 
 </div>
 
 
-<!-- SELLER PROFILE -->
+<!-- =====================================================
+     SELLER PROFILE
+===================================================== -->
 
-<div id="sellerProfile" class="page">
+<div
+    id="sellerProfile"
+    class="page"
+>
 
 <div class="seller-page">
 
@@ -1441,10 +3281,9 @@ Loading...
     class="back-button"
     onclick="openPage('marketplace',null)"
 >
-
-← Back to Marketplace
-
+← Marketplace
 </button>
+
 
 <div id="sellerProfileContent">
 
@@ -1459,18 +3298,33 @@ Loading seller profile...
 </div>
 
 
-<!-- WATCHLIST -->
+<!-- =====================================================
+     WATCHLIST
+===================================================== -->
 
-<div id="watchlist" class="page">
+<div
+    id="watchlist"
+    class="page"
+>
 
 <div
     class="section"
-    style="padding-top:16px"
+    style="
+        padding-top:
+            19px;
+    "
 >
 
 <div class="section-title">
 ⭐ My Watchlist
 </div>
+
+<div
+    class="section-subtitle"
+>
+Usernames you saved for later.
+</div>
+
 
 <div id="watchlistListings">
 
@@ -1485,18 +3339,27 @@ Loading...
 </div>
 
 
-<!-- OFFERS -->
+<!-- =====================================================
+     OFFERS
+===================================================== -->
 
-<div id="offers" class="page">
+<div
+    id="offers"
+    class="page"
+>
 
 <div
     class="section"
-    style="padding-top:16px"
+    style="
+        padding-top:
+            19px;
+    "
 >
 
 <div class="section-title">
 💬 Offers Sent
 </div>
+
 
 <div id="sentOffers">
 
@@ -1515,6 +3378,7 @@ Loading...
 📥 Offers Received
 </div>
 
+
 <div id="receivedOffers">
 
 <div class="empty">
@@ -1528,9 +3392,14 @@ Loading...
 </div>
 
 
-<!-- ADMIN -->
+<!-- =====================================================
+     ADMIN
+===================================================== -->
 
-<div id="admin" class="page">
+<div
+    id="admin"
+    class="page"
+>
 
 <div class="admin-box">
 
@@ -1539,6 +3408,19 @@ Loading...
 <h2>
 🛡 Admin Panel
 </h2>
+
+<div
+    style="
+        margin-top:
+            6px;
+        font-size:
+            10.5px;
+        opacity:
+            .7;
+    "
+>
+Moderation & marketplace control
+</div>
 
 </div>
 
@@ -1597,10 +3479,13 @@ Loading...
 
 </div>
 
+
 </div>
 
 
-<!-- NAV -->
+<!-- =====================================================
+     NAV
+===================================================== -->
 
 <div class="bottom-nav">
 
@@ -1610,7 +3495,7 @@ Loading...
 >
 
 <span class="nav-icon">
-🏠
+⌂
 </span>
 
 Home
@@ -1624,7 +3509,7 @@ Home
 >
 
 <span class="nav-icon">
-🔎
+⌕
 </span>
 
 Market
@@ -1638,7 +3523,7 @@ Market
 >
 
 <span class="nav-icon">
-➕
+＋
 </span>
 
 List
@@ -1652,7 +3537,7 @@ List
 >
 
 <span class="nav-icon">
-🎯
+◎
 </span>
 
 Wanted
@@ -1666,7 +3551,7 @@ Wanted
 >
 
 <span class="nav-icon">
-👤
+◉
 </span>
 
 Profile
@@ -1676,7 +3561,9 @@ Profile
 </div>
 
 
-<!-- SELLER PROFILE EDIT MODAL -->
+<!-- =====================================================
+     SELLER EDIT MODAL
+===================================================== -->
 
 <div
     id="sellerEditModal"
@@ -1690,10 +3577,9 @@ Profile
 👤 Edit Seller Profile
 </div>
 
+
 <div class="modal-subtitle">
-
-Your Telegram username and contact information are not shown on the public seller profile.
-
+Your Telegram username and private seller contact are not displayed publicly.
 </div>
 
 
@@ -1734,10 +3620,9 @@ Private
 
 </select>
 
+
 <div class="field-hint">
-
 Private profiles are not linked from Marketplace listings.
-
 </div>
 
 </div>
@@ -1755,9 +3640,7 @@ Private profiles are not linked from Marketplace listings.
     class="secondary"
     onclick="closeModal('sellerEditModal')"
 >
-
 Cancel
-
 </button>
 
 
@@ -1766,9 +3649,7 @@ Cancel
     class="primary"
     onclick="saveSellerProfile()"
 >
-
 Save Profile
-
 </button>
 
 </div>
@@ -1778,7 +3659,9 @@ Save Profile
 </div>
 
 
-<!-- EDIT LISTING MODAL -->
+<!-- =====================================================
+     EDIT LISTING MODAL
+===================================================== -->
 
 <div
     id="editListingModal"
@@ -1791,6 +3674,7 @@ Save Profile
 <div class="modal-title">
 ✏️ Edit Listing
 </div>
+
 
 <div
     id="editListingSubtitle"
@@ -1840,9 +3724,7 @@ Description
     class="secondary"
     onclick="closeModal('editListingModal')"
 >
-
 Cancel
-
 </button>
 
 
@@ -1851,9 +3733,7 @@ Cancel
     class="primary"
     onclick="saveListingEdit()"
 >
-
 Save Changes
-
 </button>
 
 </div>
@@ -1863,7 +3743,9 @@ Save Changes
 </div>
 
 
-<!-- REPORT MODAL -->
+<!-- =====================================================
+     REPORT MODAL
+===================================================== -->
 
 <div
     id="reportModal"
@@ -1876,6 +3758,7 @@ Save Changes
 <div class="modal-title">
 🚩 Report Listing
 </div>
+
 
 <div
     id="reportModalSubtitle"
@@ -1925,7 +3808,7 @@ Details
 <textarea
     id="reportDetails"
     maxlength="1000"
-    placeholder="Optional details"
+    placeholder="Optional details..."
 ></textarea>
 
 </div>
@@ -1943,9 +3826,7 @@ Details
     class="secondary"
     onclick="closeModal('reportModal')"
 >
-
 Cancel
-
 </button>
 
 
@@ -1954,9 +3835,7 @@ Cancel
     class="danger"
     onclick="submitReport()"
 >
-
 Submit Report
-
 </button>
 
 </div>
@@ -1966,7 +3845,9 @@ Submit Report
 </div>
 
 
-<!-- OFFER MODAL -->
+<!-- =====================================================
+     OFFER MODAL
+===================================================== -->
 
 <div
     id="offerModal"
@@ -1977,8 +3858,9 @@ Submit Report
 <div class="modal">
 
 <div class="modal-title">
-Make Offer
+💬 Make Offer
 </div>
+
 
 <div
     id="offerModalSubtitle"
@@ -2011,6 +3893,7 @@ Message
 <textarea
     id="offerMessage"
     maxlength="500"
+    placeholder="Optional message..."
 ></textarea>
 
 </div>
@@ -2028,9 +3911,7 @@ Message
     class="secondary"
     onclick="closeModal('offerModal')"
 >
-
 Cancel
-
 </button>
 
 
@@ -2039,9 +3920,7 @@ Cancel
     class="primary"
     onclick="submitOffer()"
 >
-
 Send Offer
-
 </button>
 
 </div>
@@ -2051,7 +3930,9 @@ Send Offer
 </div>
 
 
-<!-- COUNTER MODAL -->
+<!-- =====================================================
+     COUNTER MODAL
+===================================================== -->
 
 <div
     id="counterModal"
@@ -2064,6 +3945,7 @@ Send Offer
 <div class="modal-title">
 Counter Offer
 </div>
+
 
 <div
     id="counterModalSubtitle"
@@ -2093,9 +3975,7 @@ Counter amount (USD)
     class="secondary"
     onclick="closeModal('counterModal')"
 >
-
 Cancel
-
 </button>
 
 
@@ -2103,9 +3983,7 @@ Cancel
     class="primary"
     onclick="submitCounterOffer()"
 >
-
 Send Counter
-
 </button>
 
 </div>
@@ -2117,8 +3995,13 @@ Send Counter
 
 <script>
 
+/* =====================================================
+   CONFIG
+===================================================== */
+
 const API_URL =
     "https://handle-market.onrender.com";
+
 
 const tg =
     window.Telegram?.WebApp;
@@ -2127,47 +4010,62 @@ const tg =
 let authenticatedUser =
     null;
 
+
 let listingPriceStars =
     1;
+
 
 let contactUnlockPriceStars =
     1;
 
+
 let wantedPriceStars =
     1;
+
 
 let marketplaceListings =
     [];
 
+
 let myListingsData =
     [];
+
 
 let watchedListingIds =
     new Set();
 
+
 let reportedListingIds =
     new Set();
+
 
 let currentEditListingId =
     null;
 
+
 let currentReportListingId =
     null;
+
 
 let currentReportUsername =
     "";
 
+
 let currentOfferListingId =
     null;
+
 
 let currentOfferListingName =
     "";
 
+
 let currentCounterOfferId =
     null;
 
+
 let currentCounterUsername =
     "";
+
 
 let mySellerProfile =
     null;
@@ -2178,13 +4076,12 @@ if (tg) {
     tg.ready();
 
     tg.expand();
-
 }
 
 
-// ======================================================
-// API
-// ======================================================
+/* =====================================================
+   API
+===================================================== */
 
 async function api(
     path,
@@ -2238,9 +4135,9 @@ async function api(
 }
 
 
-// ======================================================
-// AUTH
-// ======================================================
+/* =====================================================
+   AUTH
+===================================================== */
 
 async function authenticate() {
 
@@ -2305,7 +4202,7 @@ async function authenticate() {
 
 
         status.textContent =
-            "✓ Telegram account verified";
+            "✓ Telegram authenticated";
 
 
         status.className =
@@ -2403,6 +4300,11 @@ function renderMainProfile(
         )
         .innerHTML = `
 
+            <div class="profile-avatar">
+                👤
+            </div>
+
+
             <div class="profile-name">
 
                 ${escapeHtml(
@@ -2431,7 +4333,7 @@ function renderMainProfile(
 
             <div class="verified-box">
 
-                ✓ Authenticated by Handle Market
+                ✓ Telegram account authenticated
 
             </div>
 
@@ -2476,9 +4378,9 @@ function renderMainProfile(
 }
 
 
-// ======================================================
-// SELLER PROFILE
-// ======================================================
+/* =====================================================
+   SELLER PROFILE
+===================================================== */
 
 async function openSellerProfile(
     profileId
@@ -2624,7 +4526,7 @@ async function openMySellerProfile() {
             true
         );
 
-    } catch (error) {
+    } catch {
 
         container.innerHTML = `
 
@@ -2702,9 +4604,9 @@ function renderSellerProfile(
                 ${
                     profile.is_public
 
-                        ? "🌐 Public profile — buyers can open your seller profile from Marketplace."
+                        ? "🌐 Public profile — buyers can view your seller profile."
 
-                        : "🔒 Private profile — your seller profile is hidden from Marketplace."
+                        : "🔒 Private profile — your profile is hidden from Marketplace."
                 }
 
             </div>
@@ -2761,7 +4663,7 @@ function renderSellerProfile(
 
                         <div class="seller-auth">
 
-                            ✓ Telegram account authenticated
+                            ✓ Telegram authenticated
 
                         </div>
 
@@ -2931,6 +4833,9 @@ function renderSellerProfileListing(
                 listing.id
             )}"
         >
+
+            <div class="card-glow"></div>
+
 
             <div class="username">
 
@@ -3291,9 +5196,9 @@ function readableSellerProfileError(
 }
 
 
-// ======================================================
-// REPORT STATE
-// ======================================================
+/* =====================================================
+   REPORT STATE
+===================================================== */
 
 async function loadMyReports() {
 
@@ -3434,9 +5339,9 @@ function updateAllReportButtons() {
 }
 
 
-// ======================================================
-// REPORT
-// ======================================================
+/* =====================================================
+   REPORT
+===================================================== */
 
 function openReportModal(
     listingId,
@@ -3654,9 +5559,9 @@ function readableReportError(
 }
 
 
-// ======================================================
-// MY LISTINGS
-// ======================================================
+/* =====================================================
+   MY LISTINGS
+===================================================== */
 
 async function loadMyListings() {
 
@@ -3698,7 +5603,9 @@ async function loadMyListings() {
             container.innerHTML = `
 
                 <div class="empty">
-                    No listings
+
+                    You have no listings yet.
+
                 </div>
 
             `;
@@ -3844,7 +5751,7 @@ function renderMyListing(
 
                         <div class="paused-note">
 
-                            ⏸ This listing is hidden from Marketplace.
+                            ⏸ This listing is currently hidden from Marketplace.
 
                         </div>
 
@@ -3985,6 +5892,9 @@ function renderMyListing(
 
         <div class="card">
 
+            <div class="card-glow"></div>
+
+
             <div class="username">
 
                 @${escapeHtml(
@@ -4119,6 +6029,10 @@ async function saveListingEdit() {
         true;
 
 
+    button.textContent =
+        "Saving...";
+
+
     try {
 
         await api(
@@ -4176,6 +6090,10 @@ async function saveListingEdit() {
 
         button.disabled =
             false;
+
+
+        button.textContent =
+            "Save Changes";
     }
 }
 
@@ -4330,9 +6248,9 @@ async function refreshMarketplaceAndListings() {
 }
 
 
-// ======================================================
-// MARKETPLACE
-// ======================================================
+/* =====================================================
+   MARKETPLACE
+===================================================== */
 
 async function loadMarketplace() {
 
@@ -4416,11 +6334,11 @@ function renderMarketplace(
     ) {
 
         market.innerHTML =
-            `<div class="empty">No listings</div>`;
+            `<div class="empty">No usernames found.</div>`;
 
 
         home.innerHTML =
-            `<div class="empty">No listings</div>`;
+            `<div class="empty">No usernames found.</div>`;
 
 
         return;
@@ -4522,6 +6440,9 @@ function renderPublicListing(
                 listing.id
             )}"
         >
+
+            <div class="card-glow"></div>
+
 
             <div class="username">
 
@@ -4660,9 +6581,9 @@ function renderPublicListing(
 }
 
 
-// ======================================================
-// WATCHLIST
-// ======================================================
+/* =====================================================
+   WATCHLIST
+===================================================== */
 
 async function loadWatchlistState() {
 
@@ -4860,6 +6781,10 @@ async function loadWatchlistPage() {
         );
 
 
+    container.innerHTML =
+        `<div class="empty">Loading...</div>`;
+
+
     try {
 
         const data =
@@ -4939,9 +6864,9 @@ async function loadWatchlistPage() {
 }
 
 
-// ======================================================
-// CONTACT
-// ======================================================
+/* =====================================================
+   CONTACT
+===================================================== */
 
 async function checkUnlockedContacts(
     listings
@@ -5391,9 +7316,9 @@ function getLockedContactHtml(
 }
 
 
-// ======================================================
-// WANTED
-// ======================================================
+/* =====================================================
+   WANTED
+===================================================== */
 
 function openWantedPage(
     nav
@@ -5487,6 +7412,9 @@ function renderWantedPost(
 
         <div class="card wanted-card">
 
+            <div class="card-glow"></div>
+
+
             <div class="meta">
                 LOOKING FOR
             </div>
@@ -5498,6 +7426,11 @@ function renderWantedPost(
                     post.desired_username
                 )}
 
+            </div>
+
+
+            <div class="wanted-label">
+                BUYER BUDGET
             </div>
 
 
@@ -5600,6 +7533,10 @@ async function startWantedPayment(
 
     button.disabled =
         true;
+
+
+    button.textContent =
+        "Creating invoice...";
 
 
     try {
@@ -5813,6 +7750,11 @@ async function loadMyWanted() {
                             </div>
 
 
+                            <div class="wanted-label">
+                                BUDGET
+                            </div>
+
+
                             <div class="wanted-budget">
 
                                 $${formatPrice(
@@ -5932,9 +7874,9 @@ function resetWantedButton() {
 }
 
 
-// ======================================================
-// OFFERS
-// ======================================================
+/* =====================================================
+   OFFERS
+===================================================== */
 
 async function openOfferModal(
     listingId,
@@ -5994,7 +7936,7 @@ async function openOfferModal(
         document.getElementById(
             "offerModalSubtitle"
         ).textContent =
-            `@${username} · $${formatPrice(
+            `@${username} · Asking $${formatPrice(
                 askingPrice
             )}`;
 
@@ -6003,6 +7945,12 @@ async function openOfferModal(
             "offerAmount"
         ).value =
             askingPrice;
+
+
+        document.getElementById(
+            "offerMessage"
+        ).value =
+            "";
 
 
         showModal(
@@ -6019,6 +7967,20 @@ async function openOfferModal(
 
 
 async function submitOffer() {
+
+    const button =
+        document.getElementById(
+            "sendOfferButton"
+        );
+
+
+    button.disabled =
+        true;
+
+
+    button.textContent =
+        "Sending...";
+
 
     try {
 
@@ -6061,6 +8023,15 @@ async function submitOffer() {
         tg?.showAlert(
             error.message
         );
+
+    } finally {
+
+        button.disabled =
+            false;
+
+
+        button.textContent =
+            "Send Offer";
     }
 }
 
@@ -6200,9 +8171,19 @@ function renderSentOffer(
         "username";
 
 
+    const frozen =
+        Boolean(
+            offer.listing
+                ?.is_frozen
+        );
+
+
     return `
 
         <div class="card">
+
+            <div class="card-glow"></div>
+
 
             <div class="username">
 
@@ -6211,6 +8192,23 @@ function renderSentOffer(
                 )}
 
             </div>
+
+
+            ${
+                frozen
+
+                    ? `
+
+                        <div class="badge badge-frozen">
+
+                            🧊 FROZEN
+
+                        </div>
+
+                    `
+
+                    : ""
+            }
 
 
             <div
@@ -6231,7 +8229,7 @@ function renderSentOffer(
             <div class="offer-summary">
 
                 <div class="offer-label">
-                    Your offer
+                    YOUR OFFER
                 </div>
 
                 <div class="offer-big">
@@ -6253,7 +8251,9 @@ function renderSentOffer(
                         <div class="offer-summary">
 
                             <div class="offer-label">
-                                Seller counter
+
+                                SELLER COUNTER
+
                             </div>
 
                             <div class="offer-big">
@@ -6278,11 +8278,27 @@ function renderSentOffer(
 
                     ? `
 
+                        ${
+                            frozen
+
+                                ? `
+
+                                    <div class="frozen-note">
+
+                                        🧊 The listing is frozen. The counter cannot be accepted until moderation removes the freeze.
+
+                                    </div>
+
+                                `
+
+                                : ""
+                        }
+
+
                         <div class="buttons">
 
                             ${
-                                offer.listing
-                                    ?.is_frozen
+                                frozen
 
                                     ? ""
 
@@ -6379,6 +8395,9 @@ function renderReceivedOffer(
 
         <div class="card">
 
+            <div class="card-glow"></div>
+
+
             <div class="username">
 
                 @${escapeHtml(
@@ -6423,7 +8442,9 @@ function renderReceivedOffer(
             <div class="offer-summary">
 
                 <div class="offer-label">
-                    Buyer offer
+
+                    BUYER OFFER
+
                 </div>
 
                 <div class="offer-big">
@@ -6442,6 +8463,23 @@ function renderReceivedOffer(
                 "pending"
 
                     ? `
+
+                        ${
+                            frozen
+
+                                ? `
+
+                                    <div class="frozen-note">
+
+                                        🧊 Accept and Counter are disabled while the listing is frozen.
+
+                                    </div>
+
+                                `
+
+                                : ""
+                        }
+
 
                         <div class="buttons">
 
@@ -6536,7 +8574,13 @@ async function sellerOfferAction(
         );
 
 
-        await loadOfferCenter();
+        await Promise.all(
+            [
+                loadOfferCenter(),
+                loadMarketplace(),
+                loadMyListings()
+            ]
+        );
 
     } catch (error) {
 
@@ -6640,7 +8684,12 @@ async function buyerOfferAction(
         );
 
 
-        await loadOfferCenter();
+        await Promise.all(
+            [
+                loadOfferCenter(),
+                loadMarketplace()
+            ]
+        );
 
     } catch (error) {
 
@@ -6651,9 +8700,9 @@ async function buyerOfferAction(
 }
 
 
-// ======================================================
-// LISTING PAYMENT
-// ======================================================
+/* =====================================================
+   LISTING PAYMENT
+===================================================== */
 
 async function startListingPayment(
     event
@@ -6670,6 +8719,10 @@ async function startListingPayment(
 
     button.disabled =
         true;
+
+
+    button.textContent =
+        "Creating invoice...";
 
 
     try {
@@ -6844,9 +8897,9 @@ function resetListingButton() {
 }
 
 
-// ======================================================
-// ADMIN
-// ======================================================
+/* =====================================================
+   ADMIN
+===================================================== */
 
 function openAdmin() {
 
@@ -6929,6 +8982,25 @@ async function loadPendingListings() {
                             </div>
 
 
+                            ${
+                                listing.description
+
+                                    ? `
+
+                                        <div class="description">
+
+                                            ${escapeHtml(
+                                                listing.description
+                                            )}
+
+                                        </div>
+
+                                    `
+
+                                    : ""
+                            }
+
+
                             <div class="buttons">
 
                                 <button
@@ -6941,7 +9013,7 @@ async function loadPendingListings() {
                                     "
                                 >
 
-                                    Approve
+                                    ✓ Approve
 
                                 </button>
 
@@ -6956,7 +9028,7 @@ async function loadPendingListings() {
                                     "
                                 >
 
-                                    Reject
+                                    ✕ Reject
 
                                 </button>
 
@@ -6981,26 +9053,36 @@ async function adminStatus(
     status
 ) {
 
-    await api(
-        "/admin/listing-status",
-        {
-            initData:
-                tg.initData,
+    try {
 
-            listing_id:
-                id,
+        await api(
+            "/admin/listing-status",
+            {
+                initData:
+                    tg.initData,
 
-            status
-        }
-    );
+                listing_id:
+                    id,
+
+                status
+            }
+        );
 
 
-    await Promise.all(
-        [
-            loadAdminPanel(),
-            loadMarketplace()
-        ]
-    );
+        await Promise.all(
+            [
+                loadAdminPanel(),
+                loadMarketplace(),
+                loadMyListings()
+            ]
+        );
+
+    } catch (error) {
+
+        tg?.showAlert(
+            error.message
+        );
+    }
 }
 
 
@@ -7056,7 +9138,13 @@ async function loadAdminReports() {
                                 </div>
 
 
-                                <div class="username">
+                                <div
+                                    class="username"
+                                    style="
+                                        margin-top:
+                                            10px;
+                                    "
+                                >
 
                                     ${
                                         listing
@@ -7272,7 +9360,13 @@ async function loadFrozenListings() {
                             </div>
 
 
-                            <div class="username">
+                            <div
+                                class="username"
+                                style="
+                                    margin-top:
+                                        10px;
+                                "
+                            >
 
                                 @${escapeHtml(
                                     listing.whatsapp_username
@@ -7361,22 +9455,31 @@ async function adminUnfreezeListing(
     listingId
 ) {
 
-    await api(
-        "/admin/listing-freeze",
-        {
-            initData:
-                tg.initData,
+    try {
 
-            listing_id:
-                listingId,
+        await api(
+            "/admin/listing-freeze",
+            {
+                initData:
+                    tg.initData,
 
-            action:
-                "unfreeze"
-        }
-    );
+                listing_id:
+                    listingId,
+
+                action:
+                    "unfreeze"
+            }
+        );
 
 
-    await refreshAfterModeration();
+        await refreshAfterModeration();
+
+    } catch (error) {
+
+        tg?.showAlert(
+            error.message
+        );
+    }
 }
 
 
@@ -7395,19 +9498,28 @@ async function adminRemoveListing(
     }
 
 
-    await api(
-        "/admin/listing-remove",
-        {
-            initData:
-                tg.initData,
+    try {
 
-            listing_id:
-                id
-        }
-    );
+        await api(
+            "/admin/listing-remove",
+            {
+                initData:
+                    tg.initData,
+
+                listing_id:
+                    id
+            }
+        );
 
 
-    await refreshAfterModeration();
+        await refreshAfterModeration();
+
+    } catch (error) {
+
+        tg?.showAlert(
+            error.message
+        );
+    }
 }
 
 
@@ -7419,15 +9531,16 @@ async function refreshAfterModeration() {
             loadMarketplace(),
             loadMyListings(),
             loadWatchlistState(),
-            loadOfferCenter()
+            loadOfferCenter(),
+            loadMyReports()
         ]
     );
 }
 
 
-// ======================================================
-// SEARCH
-// ======================================================
+/* =====================================================
+   SEARCH
+===================================================== */
 
 function filterMarketplace(
     value
@@ -7490,9 +9603,9 @@ function filterMarketplace(
 }
 
 
-// ======================================================
-// HELPERS
-// ======================================================
+/* =====================================================
+   NAVIGATION
+===================================================== */
 
 function openPage(
     id,
@@ -7541,11 +9654,17 @@ function openPage(
 
 
     window.scrollTo(
-        0,
-        0
+        {
+            top: 0,
+            behavior: "smooth"
+        }
     );
 }
 
+
+/* =====================================================
+   MODALS
+===================================================== */
 
 function showModal(
     id
@@ -7587,6 +9706,10 @@ function backdropClose(
     }
 }
 
+
+/* =====================================================
+   HELPERS
+===================================================== */
 
 function openTelegramContact(
     value
@@ -7902,9 +10025,9 @@ function escapeJs(
 }
 
 
-// ======================================================
-// START
-// ======================================================
+/* =====================================================
+   START
+===================================================== */
 
 authenticate();
 
