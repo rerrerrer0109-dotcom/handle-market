@@ -1,599 +1,744 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
 <title>Handle Market</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-*{box-sizing:border-box}
 
-body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#f4f5f7;
-    color:#111;
-    padding-bottom:85px
+* {
+    box-sizing: border-box;
 }
 
-.app{max-width:650px;margin:auto}
-
-header{
-    background:white;
-    padding:18px;
-    border-bottom:1px solid #e5e5e5
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f5f7;
+    color: #111;
+    padding-bottom: 85px;
 }
 
-.logo{font-size:25px;font-weight:800}
-.subtitle{color:#777;font-size:13px;margin-top:5px}
-.auth-status{margin-top:10px;font-size:13px}
-.auth-ok{color:#139447}
-.auth-error{color:#d93025}
-
-.page{display:none}
-.page.active{display:block}
-
-.search{padding:16px}
-
-.search input{
-    width:100%;
-    border:1px solid #ddd;
-    border-radius:14px;
-    padding:14px;
-    font-size:16px;
-    background:white
+.app {
+    max-width: 650px;
+    margin: auto;
 }
 
-.section{padding:0 16px 20px}
-
-.section-title{
-    font-size:20px;
-    font-weight:800;
-    margin-bottom:12px
+header {
+    background: white;
+    padding: 18px;
+    border-bottom: 1px solid #e5e5e5;
 }
 
-.categories{
-    display:flex;
-    gap:8px;
-    overflow-x:auto
+.logo {
+    font-size: 25px;
+    font-weight: 800;
 }
 
-.category{
-    white-space:nowrap;
-    background:white;
-    border:1px solid #e8e8e8;
-    border-radius:20px;
-    padding:9px 14px
+.subtitle {
+    color: #777;
+    font-size: 13px;
+    margin-top: 5px;
 }
 
-.card{
-    background:white;
-    padding:17px;
-    margin-bottom:12px;
-    border-radius:18px;
-    box-shadow:0 2px 9px rgba(0,0,0,.04)
+.auth-status {
+    margin-top: 10px;
+    font-size: 13px;
 }
 
-.username{font-size:23px;font-weight:800}
-
-.price{
-    font-size:20px;
-    font-weight:700;
-    margin-top:13px
+.auth-ok {
+    color: #139447;
 }
 
-.meta{
-    color:#777;
-    margin-top:6px;
-    font-size:13px
+.auth-error {
+    color: #d93025;
 }
 
-.description{
-    color:#555;
-    margin-top:12px;
-    line-height:1.45
+.page {
+    display: none;
 }
 
-.badge{
-    display:inline-block;
-    margin-top:7px;
-    padding:5px 9px;
-    border-radius:10px;
-    font-size:12px
+.page.active {
+    display: block;
 }
 
-.badge-pending{
-    background:#fff7e0;
-    color:#9a6900
+.search {
+    padding: 16px;
+}
+
+.search input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 16px;
+    background: white;
+}
+
+.section {
+    padding: 0 16px 20px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.categories {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+}
+
+.category {
+    white-space: nowrap;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 20px;
+    padding: 9px 14px;
+}
+
+.card {
+    background: white;
+    padding: 17px;
+    margin-bottom: 12px;
+    border-radius: 18px;
+    box-shadow: 0 2px 9px rgba(0,0,0,.04);
+}
+
+.username {
+    font-size: 23px;
+    font-weight: 800;
+}
+
+.price {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 13px;
+}
+
+.meta {
+    color: #777;
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+.description {
+    color: #555;
+    margin-top: 12px;
+    line-height: 1.45;
+}
+
+.badge {
+    display: inline-block;
+    margin-top: 7px;
+    padding: 5px 9px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.badge-pending {
+    background: #fff7e0;
+    color: #9a6900;
 }
 
 .badge-active,
-.badge-accepted{
-    background:#ebf9ef;
-    color:#14863c
+.badge-accepted {
+    background: #ebf9ef;
+    color: #14863c;
 }
 
-.badge-rejected{
-    background:#fff0f0;
-    color:#c33
+.badge-paused {
+    background: #eef6ff;
+    color: #1764a5;
 }
 
-.badge-countered{
-    background:#eef6ff;
-    color:#1764a5
+.badge-rejected {
+    background: #fff0f0;
+    color: #c33;
 }
 
+.badge-countered {
+    background: #eef6ff;
+    color: #1764a5;
+}
+
+.badge-removed,
 .badge-declined,
 .badge-cancelled,
-.badge-closed{
-    background:#f2f2f2;
-    color:#777
+.badge-closed {
+    background: #f2f2f2;
+    color: #777;
 }
 
-.buttons{
-    display:flex;
-    gap:8px;
-    margin-top:14px
+.buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
 }
 
-button{
-    border:none;
-    border-radius:12px;
-    padding:12px 14px;
-    font-size:14px;
-    cursor:pointer
+button {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    cursor: pointer;
 }
 
-button:disabled{
-    opacity:.55;
-    cursor:default
+button:disabled {
+    opacity: .55;
+    cursor: default;
 }
 
-.primary{
-    flex:1;
-    background:#1687e8;
-    color:white
+.primary {
+    flex: 1;
+    background: #1687e8;
+    color: white;
 }
 
-.secondary{background:#eee}
-
-.watch-button{
-    background:#eee;
-    min-width:100px
+.secondary {
+    background: #eee;
 }
 
-.watch-button.watching{
-    background:#fff4cc;
-    color:#805e00;
-    font-weight:700
+.watch-button {
+    background: #eee;
+    min-width: 100px;
 }
 
-.own-listing-button{
-    flex:1;
-    background:#ebf9ef;
-    color:#14863c;
-    font-weight:700
+.watch-button.watching {
+    background: #fff4cc;
+    color: #805e00;
+    font-weight: 700;
 }
 
-.unlock-button{
-    width:100%;
-    margin-top:12px;
-    background:#f1f6ff;
-    border:1px solid #d8e7ff;
-    color:#1764a5;
-    font-weight:700
+.own-listing-button {
+    flex: 1;
+    background: #ebf9ef;
+    color: #14863c;
+    font-weight: 700;
 }
 
-.contact-box{
-    margin-top:12px;
-    border-radius:14px;
-    padding:14px;
-    background:#edf9f1;
-    border:1px solid #caedd5
+.unlock-button {
+    width: 100%;
+    margin-top: 12px;
+    background: #f1f6ff;
+    border: 1px solid #d8e7ff;
+    color: #1764a5;
+    font-weight: 700;
 }
 
-.owner-contact-box{
-    margin-top:12px;
-    border-radius:14px;
-    padding:14px;
-    background:#f5f5f5;
-    border:1px solid #dedede
+.contact-box {
+    margin-top: 12px;
+    border-radius: 14px;
+    padding: 14px;
+    background: #edf9f1;
+    border: 1px solid #caedd5;
 }
 
-.contact-title{
-    font-weight:800;
-    color:#168344
+.owner-contact-box {
+    margin-top: 12px;
+    border-radius: 14px;
+    padding: 14px;
+    background: #f5f5f5;
+    border: 1px solid #dedede;
 }
 
-.owner-title{
-    font-weight:800;
-    color:#333
+.contact-title {
+    font-weight: 800;
+    color: #168344;
 }
 
-.contact-value{
-    font-size:17px;
-    font-weight:700;
-    margin-top:8px;
-    word-break:break-word
+.owner-title {
+    font-weight: 800;
+    color: #333;
 }
 
-.contact-actions{
-    display:flex;
-    gap:8px;
-    margin-top:12px
+.contact-value {
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 8px;
+    word-break: break-word;
 }
 
-.contact-actions button{flex:1}
-
-.owner-note{
-    color:#777;
-    font-size:12px;
-    line-height:1.45;
-    margin-top:8px
+.contact-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
 }
 
-.payment-wait{
-    margin-top:12px;
-    padding:12px;
-    border-radius:12px;
-    background:#eef6ff;
-    color:#1764a5;
-    font-size:13px
+.contact-actions button {
+    flex: 1;
 }
 
-.form-box{
-    margin:16px;
-    padding:18px;
-    background:white;
-    border-radius:18px
+.owner-note {
+    color: #777;
+    font-size: 12px;
+    line-height: 1.45;
+    margin-top: 8px;
 }
 
-.form-title{
-    font-size:22px;
-    font-weight:800
+.payment-wait {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #eef6ff;
+    color: #1764a5;
+    font-size: 13px;
 }
 
-.form-subtitle{
-    color:#777;
-    font-size:13px;
-    margin:5px 0 20px
+.form-box {
+    margin: 16px;
+    padding: 18px;
+    background: white;
+    border-radius: 18px;
 }
 
-.field{margin-bottom:15px}
+.form-title {
+    font-size: 22px;
+    font-weight: 800;
+}
 
-.field label{
-    display:block;
-    font-weight:700;
-    margin-bottom:7px
+.form-subtitle {
+    color: #777;
+    font-size: 13px;
+    margin: 5px 0 20px;
+}
+
+.field {
+    margin-bottom: 15px;
+}
+
+.field label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 7px;
 }
 
 .field input,
 .field select,
-.field textarea{
-    width:100%;
-    border:1px solid #ddd;
-    border-radius:12px;
-    padding:12px;
-    font-size:15px
+.field textarea {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 15px;
 }
 
-.field textarea{min-height:90px}
-
-.field-hint{
-    color:#888;
-    font-size:11px;
-    margin-top:5px
+.field textarea {
+    min-height: 90px;
 }
 
-.payment-box{
-    background:#f3f8ff;
-    border:1px solid #dbeaff;
-    border-radius:14px;
-    padding:15px;
-    margin-bottom:15px
+.field-hint {
+    color: #888;
+    font-size: 11px;
+    margin-top: 5px;
 }
 
-.payment-price{
-    font-size:25px;
-    font-weight:800
+.payment-box {
+    background: #f3f8ff;
+    border: 1px solid #dbeaff;
+    border-radius: 14px;
+    padding: 15px;
+    margin-bottom: 15px;
 }
 
-.payment-button{
-    width:100%;
-    background:#1687e8;
-    color:white;
-    padding:15px;
-    font-size:16px;
-    font-weight:800
+.payment-price {
+    font-size: 25px;
+    font-weight: 800;
 }
 
-.message{
-    margin-top:14px;
-    padding:13px;
-    border-radius:12px;
-    display:none
+.payment-button {
+    width: 100%;
+    background: #1687e8;
+    color: white;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 800;
 }
 
-.message.success{
-    display:block;
-    background:#eaf8ee;
-    color:#14823a
+.message {
+    margin-top: 14px;
+    padding: 13px;
+    border-radius: 12px;
+    display: none;
 }
 
-.message.error{
-    display:block;
-    background:#fff0f0;
-    color:#c62828
+.message.success {
+    display: block;
+    background: #eaf8ee;
+    color: #14823a;
 }
 
-.message.info{
-    display:block;
-    background:#eef6ff;
-    color:#1764a5
+.message.error {
+    display: block;
+    background: #fff0f0;
+    color: #c62828;
 }
 
-.warning{
-    margin:16px;
-    padding:14px;
-    border-radius:14px;
-    background:#fff8e7;
-    border:1px solid #ffe09d;
-    font-size:13px;
-    line-height:1.5
+.message.info {
+    display: block;
+    background: #eef6ff;
+    color: #1764a5;
 }
 
-.profile-card{
-    margin:16px;
-    padding:20px;
-    background:white;
-    border-radius:18px
+.warning {
+    margin: 16px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #fff8e7;
+    border: 1px solid #ffe09d;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
-.profile-name{
-    font-size:22px;
-    font-weight:800
+.profile-card {
+    margin: 16px;
+    padding: 20px;
+    background: white;
+    border-radius: 18px;
 }
 
-.profile-username{
-    color:#777;
-    margin-top:5px
+.profile-name {
+    font-size: 22px;
+    font-weight: 800;
 }
 
-.verified-box{
-    background:#edf9f1;
-    color:#138541;
-    padding:14px;
-    border-radius:14px;
-    margin-top:17px
+.profile-username {
+    color: #777;
+    margin-top: 5px;
 }
 
-.profile-action{
-    width:100%;
-    margin-top:12px;
-    background:#1687e8;
-    color:white;
-    font-weight:700
+.verified-box {
+    background: #edf9f1;
+    color: #138541;
+    padding: 14px;
+    border-radius: 14px;
+    margin-top: 17px;
 }
 
-.watchlist-profile-button{
-    width:100%;
-    margin-top:10px;
-    background:#fff4cc;
-    color:#725500;
-    font-weight:700
+.profile-action {
+    width: 100%;
+    margin-top: 12px;
+    background: #1687e8;
+    color: white;
+    font-weight: 700;
 }
 
-.admin-button{
-    width:100%;
-    background:#222;
-    color:white;
-    margin-top:12px;
-    font-weight:700
+.watchlist-profile-button {
+    width: 100%;
+    margin-top: 10px;
+    background: #fff4cc;
+    color: #725500;
+    font-weight: 700;
 }
 
-.admin-box{margin:16px}
-
-.admin-header{
-    background:#222;
-    color:white;
-    padding:18px;
-    border-radius:18px;
-    margin-bottom:15px
+.admin-button {
+    width: 100%;
+    background: #222;
+    color: white;
+    margin-top: 12px;
+    font-weight: 700;
 }
 
-.admin-header h2{margin:0}
-
-.approve-button{
-    flex:1;
-    background:#19a651;
-    color:white
+.admin-box {
+    margin: 16px;
 }
 
-.reject-button{
-    flex:1;
-    background:#e74747;
-    color:white
+.admin-header {
+    background: #222;
+    color: white;
+    padding: 18px;
+    border-radius: 18px;
+    margin-bottom: 15px;
 }
 
-.counter-button{
-    flex:1;
-    background:#f1f6ff;
-    color:#1764a5
+.admin-header h2 {
+    margin: 0;
 }
 
-.empty{
-    padding:30px 15px;
-    text-align:center;
-    color:#777;
-    background:white;
-    border-radius:16px
+.approve-button {
+    flex: 1;
+    background: #19a651;
+    color: white;
 }
 
-.offer-summary{
-    margin-top:12px;
-    background:#f7f7f7;
-    border-radius:12px;
-    padding:12px
+.reject-button {
+    flex: 1;
+    background: #e74747;
+    color: white;
 }
 
-.offer-label{
-    color:#777;
-    font-size:12px
+.counter-button {
+    flex: 1;
+    background: #f1f6ff;
+    color: #1764a5;
 }
 
-.offer-big{
-    font-size:20px;
-    font-weight:800;
-    margin-top:3px
+.empty {
+    padding: 30px 15px;
+    text-align: center;
+    color: #777;
+    background: white;
+    border-radius: 16px;
 }
 
-.offer-message{
-    margin-top:10px;
-    color:#555;
-    line-height:1.45
+.offer-summary {
+    margin-top: 12px;
+    background: #f7f7f7;
+    border-radius: 12px;
+    padding: 12px;
 }
 
-.buyer-box{
-    margin-top:12px;
-    background:#f5f5f5;
-    padding:11px;
-    border-radius:10px;
-    font-size:13px
+.offer-label {
+    color: #777;
+    font-size: 12px;
 }
 
-.wanted-card{
-    border-left:4px solid #1687e8
+.offer-big {
+    font-size: 20px;
+    font-weight: 800;
+    margin-top: 3px;
 }
 
-.wanted-label{
-    color:#777;
-    font-size:12px;
-    margin-top:12px
+.offer-message {
+    margin-top: 10px;
+    color: #555;
+    line-height: 1.45;
 }
 
-.wanted-budget{
-    font-size:22px;
-    font-weight:800;
-    margin-top:3px
+.buyer-box {
+    margin-top: 12px;
+    background: #f5f5f5;
+    padding: 11px;
+    border-radius: 10px;
+    font-size: 13px;
 }
 
-.wanted-buyer{
-    margin-top:12px;
-    padding:11px;
-    border-radius:11px;
-    background:#f5f5f5;
-    font-size:13px
+.wanted-card {
+    border-left: 4px solid #1687e8;
 }
 
-.contact-buyer-button{
-    width:100%;
-    margin-top:14px;
-    background:#1687e8;
-    color:white;
-    font-weight:700
+.wanted-label {
+    color: #777;
+    font-size: 12px;
+    margin-top: 12px;
 }
 
-.your-request-button{
-    width:100%;
-    margin-top:14px;
-    background:#edf9f1;
-    color:#138541;
-    font-weight:700
+.wanted-budget {
+    font-size: 22px;
+    font-weight: 800;
+    margin-top: 3px;
 }
 
-.close-request-button{
-    width:100%;
-    margin-top:13px;
-    background:#fff0f0;
-    color:#c62828;
-    font-weight:700
+.wanted-buyer {
+    margin-top: 12px;
+    padding: 11px;
+    border-radius: 11px;
+    background: #f5f5f5;
+    font-size: 13px;
 }
 
-.bottom-nav{
-    position:fixed;
-    bottom:0;
-    left:0;
-    right:0;
-    height:70px;
-    background:white;
-    border-top:1px solid #ddd;
-    display:flex;
-    z-index:100
+.contact-buyer-button {
+    width: 100%;
+    margin-top: 14px;
+    background: #1687e8;
+    color: white;
+    font-weight: 700;
 }
 
-.nav-item{
-    flex:1;
-    text-align:center;
-    font-size:11px;
-    padding-top:9px;
-    color:#777
+.your-request-button {
+    width: 100%;
+    margin-top: 14px;
+    background: #edf9f1;
+    color: #138541;
+    font-weight: 700;
 }
 
-.nav-icon{
-    display:block;
-    font-size:23px;
-    margin-bottom:3px
+.close-request-button {
+    width: 100%;
+    margin-top: 13px;
+    background: #fff0f0;
+    color: #c62828;
+    font-weight: 700;
 }
 
-.nav-item.active{
-    color:#1687e8;
-    font-weight:700
+
+/* MY LISTING MANAGEMENT */
+
+.manage-buttons {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-top: 14px;
 }
 
-.modal-backdrop{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.45);
-    z-index:1000;
-    padding:20px;
-    align-items:center;
-    justify-content:center
+.manage-buttons button {
+    flex: 1;
+    min-width: 90px;
 }
 
-.modal-backdrop.show{display:flex}
-
-.modal{
-    width:100%;
-    max-width:430px;
-    background:white;
-    border-radius:20px;
-    padding:20px;
-    max-height:90vh;
-    overflow-y:auto
+.edit-listing-button {
+    background: #eef6ff;
+    color: #1764a5;
+    font-weight: 700;
 }
 
-.modal-title{
-    font-size:22px;
-    font-weight:800
+.pause-listing-button {
+    background: #fff7e0;
+    color: #8a6200;
+    font-weight: 700;
 }
 
-.modal-subtitle{
-    color:#777;
-    margin-top:5px;
-    margin-bottom:18px
+.resume-listing-button {
+    background: #eaf8ee;
+    color: #14823a;
+    font-weight: 700;
 }
 
-.modal-actions{
-    display:flex;
-    gap:8px;
-    margin-top:15px
+.remove-listing-button {
+    background: #fff0f0;
+    color: #c62828;
+    font-weight: 700;
 }
 
-.modal-actions button{flex:1}
+.paused-note {
+    margin-top: 12px;
+    background: #eef6ff;
+    color: #1764a5;
+    padding: 11px;
+    border-radius: 11px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.removed-note {
+    margin-top: 12px;
+    background: #f3f3f3;
+    color: #777;
+    padding: 11px;
+    border-radius: 11px;
+    font-size: 13px;
+}
+
+
+/* NAVIGATION */
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: white;
+    border-top: 1px solid #ddd;
+    display: flex;
+    z-index: 100;
+}
+
+.nav-item {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    padding-top: 9px;
+    color: #777;
+}
+
+.nav-icon {
+    display: block;
+    font-size: 23px;
+    margin-bottom: 3px;
+}
+
+.nav-item.active {
+    color: #1687e8;
+    font-weight: 700;
+}
+
+
+/* MODALS */
+
+.modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 1000;
+    padding: 20px;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-backdrop.show {
+    display: flex;
+}
+
+.modal {
+    width: 100%;
+    max-width: 430px;
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-title {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.modal-subtitle {
+    color: #777;
+    margin-top: 5px;
+    margin-bottom: 18px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.modal-actions button {
+    flex: 1;
+}
+
 </style>
+
 </head>
+
 
 <body>
 
 <div class="app">
 
 <header>
-<div class="logo">Handle Market</div>
-<div class="subtitle">Discover premium WhatsApp usernames</div>
-<div id="authStatus" class="auth-status">Connecting...</div>
+
+<div class="logo">
+Handle Market
+</div>
+
+<div class="subtitle">
+Discover premium WhatsApp usernames
+</div>
+
+<div
+    id="authStatus"
+    class="auth-status"
+>
+Connecting...
+</div>
+
 </header>
 
 
@@ -602,35 +747,56 @@ button:disabled{
 <div id="home" class="page active">
 
 <div class="search">
+
 <input
     placeholder="Search @username"
     oninput="filterMarketplace(this.value)"
 >
+
 </div>
 
+
 <div class="section">
-<div class="section-title">Categories</div>
+
+<div class="section-title">
+Categories
+</div>
 
 <div class="categories">
+
 <div class="category">🔥 Premium</div>
 <div class="category">Business</div>
 <div class="category">AI</div>
 <div class="category">Short</div>
 <div class="category">Travel</div>
 <div class="category">Finance</div>
+
 </div>
+
 </div>
+
 
 <div class="section">
-<div class="section-title">Featured usernames</div>
+
+<div class="section-title">
+Featured usernames
+</div>
 
 <div id="homeListings">
-<div class="empty">Loading...</div>
-</div>
+
+<div class="empty">
+Loading...
 </div>
 
+</div>
+
+</div>
+
+
 <div class="warning">
+
 ⚠️ Handle Market does not control or guarantee the transfer of WhatsApp usernames.
+
 </div>
 
 </div>
@@ -641,20 +807,30 @@ button:disabled{
 <div id="marketplace" class="page">
 
 <div class="search">
+
 <input
     placeholder="Search Marketplace"
     oninput="filterMarketplace(this.value)"
 >
+
 </div>
 
 <div class="section">
-<div class="section-title">Marketplace</div>
+
+<div class="section-title">
+Marketplace
+</div>
 
 <div id="marketListings">
-<div class="empty">Loading...</div>
+
+<div class="empty">
+Loading...
 </div>
 
 </div>
+
+</div>
+
 </div>
 
 
@@ -664,22 +840,41 @@ button:disabled{
 
 <div class="form-box">
 
-<div class="form-title">List Username</div>
-<div class="form-subtitle">Submit username for moderation.</div>
+<div class="form-title">
+List Username
+</div>
 
-<form id="listingForm" onsubmit="startListingPayment(event)">
+<div class="form-subtitle">
+Submit username for moderation.
+</div>
+
+
+<form
+    id="listingForm"
+    onsubmit="startListingPayment(event)"
+>
 
 <div class="field">
-<label>WhatsApp username</label>
+
+<label>
+WhatsApp username
+</label>
+
 <input
     id="listingUsername"
     placeholder="@username"
     required
 >
+
 </div>
 
+
 <div class="field">
-<label>Asking price (USD)</label>
+
+<label>
+Asking price (USD)
+</label>
+
 <input
     id="listingPrice"
     type="number"
@@ -687,12 +882,18 @@ button:disabled{
     step="0.01"
     required
 >
+
 </div>
 
+
 <div class="field">
-<label>Category</label>
+
+<label>
+Category
+</label>
 
 <select id="listingCategory">
+
 <option>Premium</option>
 <option>Business</option>
 <option>AI</option>
@@ -703,12 +904,17 @@ button:disabled{
 <option>Crypto</option>
 <option>Media</option>
 <option>Other</option>
+
 </select>
 
 </div>
 
+
 <div class="field">
-<label>Description</label>
+
+<label>
+Description
+</label>
 
 <textarea
     id="listingDescription"
@@ -717,19 +923,37 @@ button:disabled{
 
 </div>
 
+
 <div class="field">
-<label>Contact method</label>
+
+<label>
+Contact method
+</label>
 
 <select id="contactType">
-<option value="telegram">Telegram</option>
-<option value="email">Email</option>
-<option value="other">Other</option>
+
+<option value="telegram">
+Telegram
+</option>
+
+<option value="email">
+Email
+</option>
+
+<option value="other">
+Other
+</option>
+
 </select>
 
 </div>
 
+
 <div class="field">
-<label>Seller contact</label>
+
+<label>
+Seller contact
+</label>
 
 <input
     id="contactValue"
@@ -739,36 +963,67 @@ button:disabled{
 >
 
 <div class="field-hint">
+
 Buyers cannot see this until they unlock it.
-</div>
+
 </div>
 
-<div class="payment-box">
-<div>Listing fee</div>
-<div id="listingFee" class="payment-price">1 ⭐</div>
 </div>
+
+
+<div class="payment-box">
+
+<div>
+Listing fee
+</div>
+
+<div
+    id="listingFee"
+    class="payment-price"
+>
+1 ⭐
+</div>
+
+</div>
+
 
 <button
     id="listingButton"
     class="payment-button"
     type="submit"
 >
+
 Pay 1 ⭐ & Submit
+
 </button>
 
-<div id="listingMessage" class="message"></div>
+
+<div
+    id="listingMessage"
+    class="message"
+></div>
 
 </form>
+
 </div>
+
 
 <div class="section">
-<div class="section-title">My Listings</div>
+
+<div class="section-title">
+My Listings
+</div>
 
 <div id="myListings">
-<div class="empty">Loading...</div>
+
+<div class="empty">
+Loading...
 </div>
 
 </div>
+
+</div>
+
 </div>
 
 
@@ -778,11 +1033,16 @@ Pay 1 ⭐ & Submit
 
 <div class="form-box">
 
-<div class="form-title">🎯 Post Wanted Request</div>
+<div class="form-title">
+🎯 Post Wanted Request
+</div>
 
 <div class="form-subtitle">
+
 Looking for a specific WhatsApp username? Publish your request.
+
 </div>
+
 
 <form
     id="wantedForm"
@@ -791,7 +1051,9 @@ Looking for a specific WhatsApp username? Publish your request.
 
 <div class="field">
 
-<label>Desired username</label>
+<label>
+Desired username
+</label>
 
 <input
     id="wantedUsername"
@@ -799,23 +1061,20 @@ Looking for a specific WhatsApp username? Publish your request.
     required
 >
 
-<div class="field-hint">
-Enter the WhatsApp username you want to buy.
-</div>
-
 </div>
 
 
 <div class="field">
 
-<label>Budget (USD)</label>
+<label>
+Budget (USD)
+</label>
 
 <input
     id="wantedBudget"
     type="number"
     min="1"
     step="0.01"
-    placeholder="3000"
     required
 >
 
@@ -824,7 +1083,9 @@ Enter the WhatsApp username you want to buy.
 
 <div class="field">
 
-<label>Category</label>
+<label>
+Category
+</label>
 
 <select id="wantedCategory">
 
@@ -846,12 +1107,13 @@ Enter the WhatsApp username you want to buy.
 
 <div class="field">
 
-<label>Description</label>
+<label>
+Description
+</label>
 
 <textarea
     id="wantedDescription"
     maxlength="500"
-    placeholder="Example: Looking for this exact username. Ready to negotiate."
 ></textarea>
 
 </div>
@@ -859,7 +1121,9 @@ Enter the WhatsApp username you want to buy.
 
 <div class="payment-box">
 
-<div>Wanted publication fee</div>
+<div>
+Wanted publication fee
+</div>
 
 <div
     id="wantedFee"
@@ -876,7 +1140,9 @@ Enter the WhatsApp username you want to buy.
     class="payment-button"
     type="submit"
 >
+
 Pay 1 ⭐ & Publish
+
 </button>
 
 
@@ -934,7 +1200,9 @@ Loading...
     id="profileContent"
     class="profile-card"
 >
+
 Loading...
+
 </div>
 
 </div>
@@ -1016,11 +1284,17 @@ Loading...
 <div class="admin-box">
 
 <div class="admin-header">
-<h2>🛡 Admin Panel</h2>
+
+<h2>
+🛡 Admin Panel
+</h2>
+
 </div>
 
 <div id="pendingListings">
-<div class="empty">Loading...</div>
+
+<div class="empty">
+Loading...
 </div>
 
 </div>
@@ -1030,7 +1304,10 @@ Loading...
 </div>
 
 
-<!-- NAVIGATION -->
+</div>
+
+
+<!-- BOTTOM NAVIGATION -->
 
 <div class="bottom-nav">
 
@@ -1038,40 +1315,161 @@ Loading...
     class="nav-item active"
     onclick="openPage('home',this)"
 >
-<span class="nav-icon">🏠</span>
+
+<span class="nav-icon">
+🏠
+</span>
+
 Home
+
 </div>
+
 
 <div
     class="nav-item"
     onclick="openPage('marketplace',this)"
 >
-<span class="nav-icon">🔎</span>
+
+<span class="nav-icon">
+🔎
+</span>
+
 Market
+
 </div>
+
 
 <div
     class="nav-item"
     onclick="openPage('list',this);loadMyListings();"
 >
-<span class="nav-icon">➕</span>
+
+<span class="nav-icon">
+➕
+</span>
+
 List
+
 </div>
+
 
 <div
     class="nav-item"
     onclick="openWantedPage(this)"
 >
-<span class="nav-icon">🎯</span>
+
+<span class="nav-icon">
+🎯
+</span>
+
 Wanted
+
 </div>
+
 
 <div
     class="nav-item"
     onclick="openPage('profile',this)"
 >
-<span class="nav-icon">👤</span>
+
+<span class="nav-icon">
+👤
+</span>
+
 Profile
+
+</div>
+
+</div>
+
+
+<!-- EDIT LISTING MODAL -->
+
+<div
+    id="editListingModal"
+    class="modal-backdrop"
+    onclick="backdropClose(event,'editListingModal')"
+>
+
+<div class="modal">
+
+<div class="modal-title">
+✏️ Edit Listing
+</div>
+
+<div
+    id="editListingSubtitle"
+    class="modal-subtitle"
+></div>
+
+
+<div class="field">
+
+<label>
+Asking price (USD)
+</label>
+
+<input
+    id="editListingPrice"
+    type="number"
+    min="1"
+    step="0.01"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Description
+</label>
+
+<textarea
+    id="editListingDescription"
+    maxlength="500"
+></textarea>
+
+</div>
+
+
+<div class="field-hint">
+
+Username and seller contact cannot be changed after the listing is created.
+
+</div>
+
+
+<div
+    id="editListingMessage"
+    class="message"
+></div>
+
+
+<div class="modal-actions">
+
+<button
+    class="secondary"
+    onclick="closeModal('editListingModal')"
+>
+
+Cancel
+
+</button>
+
+
+<button
+    id="saveListingEditButton"
+    class="primary"
+    onclick="saveListingEdit()"
+>
+
+Save Changes
+
+</button>
+
+</div>
+
 </div>
 
 </div>
@@ -1096,9 +1494,12 @@ Make Offer
     class="modal-subtitle"
 ></div>
 
+
 <div class="field">
 
-<label>Your offer (USD)</label>
+<label>
+Your offer (USD)
+</label>
 
 <input
     id="offerAmount"
@@ -1109,9 +1510,12 @@ Make Offer
 
 </div>
 
+
 <div class="field">
 
-<label>Message (optional)</label>
+<label>
+Message (optional)
+</label>
 
 <textarea
     id="offerMessage"
@@ -1120,10 +1524,12 @@ Make Offer
 
 </div>
 
+
 <div
     id="offerModalMessage"
     class="message"
 ></div>
+
 
 <div class="modal-actions">
 
@@ -1131,15 +1537,20 @@ Make Offer
     class="secondary"
     onclick="closeModal('offerModal')"
 >
+
 Cancel
+
 </button>
+
 
 <button
     id="sendOfferButton"
     class="primary"
     onclick="submitOffer()"
 >
+
 Send Offer
+
 </button>
 
 </div>
@@ -1168,9 +1579,12 @@ Counter Offer
     class="modal-subtitle"
 ></div>
 
+
 <div class="field">
 
-<label>Counter amount (USD)</label>
+<label>
+Counter amount (USD)
+</label>
 
 <input
     id="counterAmount"
@@ -1181,20 +1595,26 @@ Counter Offer
 
 </div>
 
+
 <div class="modal-actions">
 
 <button
     class="secondary"
     onclick="closeModal('counterModal')"
 >
+
 Cancel
+
 </button>
+
 
 <button
     class="primary"
     onclick="submitCounterOffer()"
 >
+
 Send Counter
+
 </button>
 
 </div>
@@ -1211,6 +1631,7 @@ const API_URL =
 
 const tg =
     window.Telegram?.WebApp;
+
 
 let authenticatedUser =
     null;
@@ -1243,6 +1664,12 @@ let currentCounterOfferId =
     null;
 
 let currentCounterUsername =
+    "";
+
+let currentEditListingId =
+    null;
+
+let currentEditListingUsername =
     "";
 
 
@@ -1495,6 +1922,8 @@ async function authenticate() {
         );
 
 
+        await loadMyListings();
+
         await loadMyWanted();
 
     } catch (error) {
@@ -1511,6 +1940,802 @@ async function authenticate() {
         status.className =
             "auth-status auth-error";
     }
+}
+
+
+// ======================================================
+// MY LISTINGS
+// ======================================================
+
+async function loadMyListings() {
+
+    if (
+        !tg?.initData
+    ) {
+
+        return;
+    }
+
+
+    const container =
+        document.getElementById(
+            "myListings"
+        );
+
+
+    try {
+
+        const data =
+            await api(
+                "/my-listings",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const listings =
+            data.listings ||
+            [];
+
+
+        if (
+            !listings.length
+        ) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+
+                    No listings
+
+                </div>
+
+            `;
+
+
+            return;
+        }
+
+
+        container.innerHTML =
+            listings
+                .map(
+                    renderMyListing
+                )
+                .join("");
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                Failed to load your listings.
+
+            </div>
+
+        `;
+    }
+}
+
+
+// ======================================================
+// RENDER MY LISTING
+// ======================================================
+
+function renderMyListing(
+    listing
+) {
+
+    let displayStatus =
+        String(
+            listing.status ||
+            ""
+        ).toUpperCase();
+
+
+    let badgeClass =
+        "badge-pending";
+
+
+    if (
+        listing.status ===
+        "active"
+    ) {
+
+        if (
+            listing.is_paused
+        ) {
+
+            displayStatus =
+                "PAUSED";
+
+
+            badgeClass =
+                "badge-paused";
+
+        } else {
+
+            displayStatus =
+                "ACTIVE";
+
+
+            badgeClass =
+                "badge-active";
+        }
+    }
+
+
+    if (
+        listing.status ===
+        "pending"
+    ) {
+
+        badgeClass =
+            "badge-pending";
+    }
+
+
+    if (
+        listing.status ===
+        "rejected"
+    ) {
+
+        badgeClass =
+            "badge-rejected";
+    }
+
+
+    if (
+        listing.status ===
+        "removed"
+    ) {
+
+        badgeClass =
+            "badge-removed";
+    }
+
+
+    let management =
+        "";
+
+
+    if (
+        listing.status ===
+        "active"
+    ) {
+
+        const pauseButton =
+            listing.is_paused
+
+                ? `
+
+                    <button
+                        class="resume-listing-button"
+                        onclick="
+                            changeListingPause(
+                                '${escapeJs(
+                                    listing.id
+                                )}',
+                                'resume'
+                            )
+                        "
+                    >
+
+                        ▶ Resume
+
+                    </button>
+
+                `
+
+                : `
+
+                    <button
+                        class="pause-listing-button"
+                        onclick="
+                            changeListingPause(
+                                '${escapeJs(
+                                    listing.id
+                                )}',
+                                'pause'
+                            )
+                        "
+                    >
+
+                        ⏸ Pause
+
+                    </button>
+
+                `;
+
+
+        management = `
+
+            ${
+                listing.is_paused
+
+                    ? `
+
+                        <div class="paused-note">
+
+                            ⏸ This listing is hidden from Marketplace.
+
+                        </div>
+
+                    `
+
+                    : ""
+            }
+
+
+            <div class="manage-buttons">
+
+                <button
+                    class="edit-listing-button"
+                    onclick="
+                        openEditListingModal(
+                            '${escapeJs(
+                                listing.id
+                            )}',
+                            '${escapeJs(
+                                listing.whatsapp_username
+                            )}',
+                            '${escapeJs(
+                                listing.asking_price
+                            )}',
+                            '${escapeJs(
+                                listing.description ||
+                                ""
+                            )}'
+                        )
+                    "
+                >
+
+                    ✏️ Edit
+
+                </button>
+
+
+                ${pauseButton}
+
+
+                <button
+                    class="remove-listing-button"
+                    onclick="
+                        removeListing(
+                            '${escapeJs(
+                                listing.id
+                            )}',
+                            '${escapeJs(
+                                listing.whatsapp_username
+                            )}'
+                        )
+                    "
+                >
+
+                    🗑 Remove
+
+                </button>
+
+            </div>
+
+        `;
+
+    } else if (
+        listing.status ===
+        "pending" ||
+        listing.status ===
+        "rejected"
+    ) {
+
+        management = `
+
+            <div class="manage-buttons">
+
+                <button
+                    class="remove-listing-button"
+                    onclick="
+                        removeListing(
+                            '${escapeJs(
+                                listing.id
+                            )}',
+                            '${escapeJs(
+                                listing.whatsapp_username
+                            )}'
+                        )
+                    "
+                >
+
+                    🗑 Remove
+
+                </button>
+
+            </div>
+
+        `;
+
+    } else if (
+        listing.status ===
+        "removed"
+    ) {
+
+        management = `
+
+            <div class="removed-note">
+
+                This listing was removed and is kept only for history.
+
+            </div>
+
+        `;
+    }
+
+
+    return `
+
+        <div class="card">
+
+            <div class="username">
+
+                @${escapeHtml(
+                    listing.whatsapp_username
+                )}
+
+            </div>
+
+
+            <div
+                class="badge ${badgeClass}"
+            >
+
+                ${escapeHtml(
+                    displayStatus
+                )}
+
+            </div>
+
+
+            <div class="price">
+
+                $${formatPrice(
+                    listing.asking_price
+                )}
+
+            </div>
+
+
+            <div class="meta">
+
+                ${escapeHtml(
+                    listing.category ||
+                    "Other"
+                )}
+
+            </div>
+
+
+            ${
+                listing.description
+
+                    ? `
+
+                        <div class="description">
+
+                            ${escapeHtml(
+                                listing.description
+                            )}
+
+                        </div>
+
+                    `
+
+                    : ""
+            }
+
+
+            ${management}
+
+        </div>
+
+    `;
+}
+
+
+// ======================================================
+// EDIT LISTING
+// ======================================================
+
+function openEditListingModal(
+    listingId,
+    username,
+    price,
+    description
+) {
+
+    currentEditListingId =
+        listingId;
+
+
+    currentEditListingUsername =
+        username;
+
+
+    document
+        .getElementById(
+            "editListingSubtitle"
+        )
+        .textContent =
+            `@${username}`;
+
+
+    document
+        .getElementById(
+            "editListingPrice"
+        )
+        .value =
+            price;
+
+
+    document
+        .getElementById(
+            "editListingDescription"
+        )
+        .value =
+            description ||
+            "";
+
+
+    hideEditListingMessage();
+
+
+    showModal(
+        "editListingModal"
+    );
+}
+
+
+async function saveListingEdit() {
+
+    if (
+        !currentEditListingId
+    ) {
+
+        return;
+    }
+
+
+    const price =
+        Number(
+            document
+                .getElementById(
+                    "editListingPrice"
+                )
+                .value
+        );
+
+
+    const description =
+        document
+            .getElementById(
+                "editListingDescription"
+            )
+            .value
+            .trim();
+
+
+    const button =
+        document.getElementById(
+            "saveListingEditButton"
+        );
+
+
+    button.disabled =
+        true;
+
+
+    button.textContent =
+        "Saving...";
+
+
+    try {
+
+        await api(
+            "/listing/manage/edit",
+            {
+                initData:
+                    tg.initData,
+
+                listing_id:
+                    currentEditListingId,
+
+                asking_price:
+                    price,
+
+                description
+            }
+        );
+
+
+        closeModal(
+            "editListingModal"
+        );
+
+
+        tg?.showAlert(
+            `@${currentEditListingUsername} updated ✓`
+        );
+
+
+        await Promise.all(
+            [
+                loadMyListings(),
+                loadMarketplace(),
+                loadWatchlistState()
+            ]
+        );
+
+    } catch (error) {
+
+        showEditListingMessage(
+            readableListingManageError(
+                error.message
+            )
+        );
+
+    } finally {
+
+        button.disabled =
+            false;
+
+
+        button.textContent =
+            "Save Changes";
+    }
+}
+
+
+function showEditListingMessage(
+    text
+) {
+
+    const box =
+        document.getElementById(
+            "editListingMessage"
+        );
+
+
+    box.className =
+        "message error";
+
+
+    box.textContent =
+        text;
+}
+
+
+function hideEditListingMessage() {
+
+    const box =
+        document.getElementById(
+            "editListingMessage"
+        );
+
+
+    box.className =
+        "message";
+
+
+    box.textContent =
+        "";
+}
+
+
+// ======================================================
+// PAUSE / RESUME
+// ======================================================
+
+async function changeListingPause(
+    listingId,
+    action
+) {
+
+    const message =
+        action ===
+        "pause"
+
+            ? "Pause this listing? It will disappear from Marketplace."
+
+            : "Resume this listing and show it in Marketplace again?";
+
+
+    const confirmed =
+        await askConfirm(
+            message
+        );
+
+
+    if (
+        !confirmed
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/listing/manage/pause",
+            {
+                initData:
+                    tg.initData,
+
+                listing_id:
+                    listingId,
+
+                action
+            }
+        );
+
+
+        tg?.showAlert(
+            action ===
+            "pause"
+
+                ? "Listing paused ✓"
+
+                : "Listing resumed ✓"
+        );
+
+
+        await Promise.all(
+            [
+                loadMyListings(),
+                loadMarketplace(),
+                loadWatchlistState()
+            ]
+        );
+
+    } catch (error) {
+
+        tg?.showAlert(
+            readableListingManageError(
+                error.message
+            )
+        );
+    }
+}
+
+
+// ======================================================
+// REMOVE LISTING
+// ======================================================
+
+async function removeListing(
+    listingId,
+    username
+) {
+
+    const confirmed =
+        await askConfirm(
+            `Remove @${username} from Handle Market? This action cannot be undone from the app.`
+        );
+
+
+    if (
+        !confirmed
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/listing/manage/remove",
+            {
+                initData:
+                    tg.initData,
+
+                listing_id:
+                    listingId
+            }
+        );
+
+
+        watchedListingIds.delete(
+            String(
+                listingId
+            )
+        );
+
+
+        updateWatchlistCount();
+
+
+        tg?.showAlert(
+            `@${username} removed ✓`
+        );
+
+
+        await Promise.all(
+            [
+                loadMyListings(),
+                loadMarketplace(),
+                loadWatchlistState(),
+                loadOfferCenter()
+            ]
+        );
+
+    } catch (error) {
+
+        tg?.showAlert(
+            readableListingManageError(
+                error.message
+            )
+        );
+    }
+}
+
+
+// ======================================================
+// LISTING MANAGEMENT ERRORS
+// ======================================================
+
+function readableListingManageError(
+    error
+) {
+
+    const errors = {
+
+        listing_id_required:
+            "Listing ID is missing.",
+
+        listing_not_found:
+            "Listing not found.",
+
+        not_listing_owner:
+            "You cannot manage this listing.",
+
+        invalid_price:
+            "Enter a valid price.",
+
+        listing_not_editable:
+            "This listing cannot be edited.",
+
+        listing_not_manageable:
+            "This listing cannot be paused or resumed.",
+
+        invalid_listing_action:
+            "Invalid listing action.",
+
+        listing_update_failed:
+            "Could not update this listing.",
+
+        listing_remove_failed:
+            "Could not remove this listing.",
+
+        listing_already_removed:
+            "This listing was already removed.",
+
+        listing_has_agreement:
+            "This listing already has an accepted agreement and cannot be resumed or edited."
+    };
+
+
+    return errors[
+        error
+    ] ||
+    error ||
+    "Something went wrong.";
 }
 
 
@@ -1630,10 +2855,6 @@ async function loadWanted() {
     }
 }
 
-
-// ======================================================
-// RENDER PUBLIC WANTED
-// ======================================================
 
 function renderWantedPost(
     post
@@ -1824,7 +3045,7 @@ function renderWantedPost(
 
 
 // ======================================================
-// START WANTED PAYMENT
+// WANTED PAYMENT
 // ======================================================
 
 async function startWantedPayment(
@@ -1972,10 +3193,6 @@ async function startWantedPayment(
 }
 
 
-// ======================================================
-// WAIT WANTED PAYMENT
-// ======================================================
-
 async function waitWantedPayment(
     orderId
 ) {
@@ -2038,7 +3255,7 @@ async function waitWantedPayment(
 
                 showWantedMessage(
                     "error",
-                    "Payment was refunded. Wanted request was not published."
+                    "Payment was refunded."
                 );
 
 
@@ -2113,15 +3330,6 @@ async function loadMyWanted() {
     }
 
 
-    container.innerHTML = `
-
-        <div class="empty">
-            Loading...
-        </div>
-
-    `;
-
-
     try {
 
         const data =
@@ -2165,12 +3373,7 @@ async function loadMyWanted() {
                 )
                 .join("");
 
-    } catch (error) {
-
-        console.error(
-            error
-        );
-
+    } catch {
 
         container.innerHTML = `
 
@@ -2185,17 +3388,13 @@ async function loadMyWanted() {
 }
 
 
-// ======================================================
-// RENDER MY WANTED
-// ======================================================
-
 function renderMyWantedPost(
     post
 ) {
 
     const badgeClass =
         post.status ===
-            "active"
+        "active"
 
             ? "badge-active"
 
@@ -2304,10 +3503,6 @@ function renderMyWantedPost(
 }
 
 
-// ======================================================
-// CLOSE WANTED
-// ======================================================
-
 async function closeWantedRequest(
     wantedId
 ) {
@@ -2359,10 +3554,6 @@ async function closeWantedRequest(
     }
 }
 
-
-// ======================================================
-// WANTED HELPERS
-// ======================================================
 
 function showWantedMessage(
     type,
@@ -2502,7 +3693,7 @@ async function loadWatchlistState() {
     } catch (error) {
 
         console.error(
-            "Watchlist load:",
+            "Watchlist:",
             error
         );
     }
@@ -2623,10 +3814,9 @@ function getWatchButtons(
 ) {
 
     return [
-        ...document
-            .querySelectorAll(
-                ".watch-button"
-            )
+        ...document.querySelectorAll(
+            ".watch-button"
+        )
     ]
         .filter(
             button =>
@@ -2780,17 +3970,9 @@ async function loadWatchlistPage() {
 
                     Your Watchlist is empty.
 
-                    <br><br>
-
-                    Tap ☆ Watch on a username
-                    to save it here.
-
                 </div>
 
             `;
-
-
-            updateAllWatchButtons();
 
 
             return;
@@ -2812,12 +3994,7 @@ async function loadWatchlistPage() {
             watchlistListings
         );
 
-    } catch (error) {
-
-        console.error(
-            error
-        );
-
+    } catch {
 
         container.innerHTML = `
 
@@ -2895,26 +4072,16 @@ async function loadMarketplace() {
             .getElementById(
                 "marketListings"
             )
-            .innerHTML = `
-
-                <div class="empty">
-                    Marketplace unavailable
-                </div>
-
-            `;
+            .innerHTML =
+                `<div class="empty">Marketplace unavailable</div>`;
 
 
         document
             .getElementById(
                 "homeListings"
             )
-            .innerHTML = `
-
-                <div class="empty">
-                    Marketplace unavailable
-                </div>
-
-            `;
+            .innerHTML =
+                `<div class="empty">Marketplace unavailable</div>`;
     }
 }
 
@@ -2939,22 +4106,12 @@ function renderMarketplace(
         !listings.length
     ) {
 
-        market.innerHTML = `
-
-            <div class="empty">
-                No listings
-            </div>
-
-        `;
+        market.innerHTML =
+            `<div class="empty">No listings</div>`;
 
 
-        home.innerHTML = `
-
-            <div class="empty">
-                No listings
-            </div>
-
-        `;
+        home.innerHTML =
+            `<div class="empty">No listings</div>`;
 
 
         return;
@@ -3206,7 +4363,7 @@ async function unlockSellerContact(
     ) {
 
         tg?.showAlert(
-            "Please wait for Telegram authentication."
+            "Please wait for authentication."
         );
 
 
@@ -3264,7 +4421,6 @@ async function unlockSellerContact(
 
 
         tg?.showAlert(
-            "Error: " +
             error.message
         );
     }
@@ -3337,18 +4493,13 @@ async function startContactPayment(
                 );
 
 
-                tg.showAlert(
-                    "Payment failed."
-                );
-
-
                 return;
             }
 
 
             setContactLoading(
                 listingId,
-                "Payment sent. Waiting for secure confirmation..."
+                "Payment sent. Waiting for confirmation..."
             );
 
 
@@ -3393,39 +4544,6 @@ async function waitForContactPayment(
             ) {
 
                 await unlockSellerContact(
-                    listingId
-                );
-
-
-                return;
-            }
-
-
-            if (
-                data.order.status ===
-                "refunded"
-            ) {
-
-                restoreContactButton(
-                    listingId
-                );
-
-
-                tg.showAlert(
-                    "Payment was refunded."
-                );
-
-
-                return;
-            }
-
-
-            if (
-                data.order.status ===
-                "failed"
-            ) {
-
-                restoreContactButton(
                     listingId
                 );
 
@@ -3480,12 +4598,18 @@ function showSellerContact(
             <div class="owner-contact-box">
 
                 <div class="owner-title">
+
                     👤 Your Listing
+
                 </div>
 
+
                 <div class="owner-note">
-                    This is your own listing. No contact unlock payment is required.
+
+                    This is your own listing.
+
                 </div>
+
 
                 <div class="meta">
 
@@ -3497,52 +4621,12 @@ function showSellerContact(
 
                 </div>
 
+
                 <div class="contact-value">
 
                     ${escapeHtml(
                         contact.value
                     )}
-
-                </div>
-
-                <div class="contact-actions">
-
-                    ${
-                        contact.type ===
-                        "telegram"
-
-                            ? `
-
-                                <button
-                                    class="primary"
-                                    onclick="
-                                        openTelegramContact(
-                                            '${escapeJs(
-                                                contact.value
-                                            )}'
-                                        )
-                                    "
-                                >
-                                    Open Telegram
-                                </button>
-
-                            `
-
-                            : ""
-                    }
-
-                    <button
-                        class="secondary"
-                        onclick="
-                            copyContact(
-                                '${escapeJs(
-                                    contact.value
-                                )}'
-                            )
-                        "
-                    >
-                        Copy
-                    </button>
 
                 </div>
 
@@ -3562,8 +4646,11 @@ function showSellerContact(
             <div class="contact-box">
 
                 <div class="contact-title">
+
                     🔓 Seller Contact Unlocked
+
                 </div>
+
 
                 <div class="meta">
 
@@ -3575,6 +4662,7 @@ function showSellerContact(
 
                 </div>
 
+
                 <div class="contact-value">
 
                     ${escapeHtml(
@@ -3582,6 +4670,7 @@ function showSellerContact(
                     )}
 
                 </div>
+
 
                 <div class="contact-actions">
 
@@ -3601,13 +4690,16 @@ function showSellerContact(
                                         )
                                     "
                                 >
+
                                     Open Telegram
+
                                 </button>
 
                             `
 
                             : ""
                     }
+
 
                     <button
                         class="secondary"
@@ -3619,7 +4711,9 @@ function showSellerContact(
                             )
                         "
                     >
+
                         Copy
+
                     </button>
 
                 </div>
@@ -3691,10 +4785,9 @@ function getContactAreas(
 ) {
 
     return [
-        ...document
-            .querySelectorAll(
-                ".contact-area"
-            )
+        ...document.querySelectorAll(
+            ".contact-area"
+        )
     ]
         .filter(
             area =>
@@ -3798,11 +4891,6 @@ async function openOfferModal(
         !authenticatedUser
     ) {
 
-        tg?.showAlert(
-            "Please wait for authentication."
-        );
-
-
         return;
     }
 
@@ -3902,14 +4990,6 @@ async function openOfferModal(
 
 async function submitOffer() {
 
-    if (
-        !currentOfferListingId
-    ) {
-
-        return;
-    }
-
-
     const amount =
         Number(
             document
@@ -3937,10 +5017,6 @@ async function submitOffer() {
 
     button.disabled =
         true;
-
-
-    button.textContent =
-        "Sending...";
 
 
     try {
@@ -3985,10 +5061,6 @@ async function submitOffer() {
 
         button.disabled =
             false;
-
-
-        button.textContent =
-            "Send Offer";
     }
 }
 
@@ -4022,10 +5094,6 @@ async function loadSentOffers() {
         document.getElementById(
             "sentOffers"
         );
-
-
-    container.innerHTML =
-        `<div class="empty">Loading...</div>`;
 
 
     try {
@@ -4073,10 +5141,6 @@ async function loadReceivedOffers() {
         document.getElementById(
             "receivedOffers"
         );
-
-
-    container.innerHTML =
-        `<div class="empty">Loading...</div>`;
 
 
     try {
@@ -4128,9 +5192,12 @@ function renderSentOffer(
         "username";
 
 
-    let extra = "";
+    let extra =
+        "";
 
-    let actions = "";
+
+    let actions =
+        "";
 
 
     if (
@@ -4285,7 +5352,9 @@ function renderSentOffer(
             >
 
                 ${escapeHtml(
-                    offer.status
+                    String(
+                        offer.status
+                    )
                         .toUpperCase()
                 )}
 
@@ -4312,9 +5381,17 @@ function renderSentOffer(
             ${
                 offer.message
 
-                    ? `<div class="offer-message">${escapeHtml(
-                        offer.message
-                    )}</div>`
+                    ? `
+
+                        <div class="offer-message">
+
+                            ${escapeHtml(
+                                offer.message
+                            )}
+
+                        </div>
+
+                    `
 
                     : ""
             }
@@ -4362,6 +5439,10 @@ function renderReceivedOffer(
             : "No public Telegram username";
 
 
+    let actions =
+        "";
+
+
     const counterBox =
         offer.seller_counter_amount
 
@@ -4388,9 +5469,6 @@ function renderReceivedOffer(
             : "";
 
 
-    let actions = "";
-
-
     if (
         offer.status ===
         "pending"
@@ -4409,7 +5487,9 @@ function renderReceivedOffer(
                         )
                     "
                 >
+
                     ✓ Accept
+
                 </button>
 
 
@@ -4427,7 +5507,9 @@ function renderReceivedOffer(
                         )
                     "
                 >
+
                     Counter
+
                 </button>
 
 
@@ -4440,7 +5522,9 @@ function renderReceivedOffer(
                         )
                     "
                 >
+
                     ✕
+
                 </button>
 
             </div>
@@ -4467,15 +5551,10 @@ function renderReceivedOffer(
                         )
                     "
                 >
+
                     Decline
+
                 </button>
-
-            </div>
-
-
-            <div class="meta">
-
-                Waiting for the buyer to accept or cancel your counter.
 
             </div>
 
@@ -4503,7 +5582,9 @@ function renderReceivedOffer(
             >
 
                 ${escapeHtml(
-                    offer.status
+                    String(
+                        offer.status
+                    )
                         .toUpperCase()
                 )}
 
@@ -4549,9 +5630,17 @@ function renderReceivedOffer(
             ${
                 offer.message
 
-                    ? `<div class="offer-message">${escapeHtml(
-                        offer.message
-                    )}</div>`
+                    ? `
+
+                        <div class="offer-message">
+
+                            ${escapeHtml(
+                                offer.message
+                            )}
+
+                        </div>
+
+                    `
 
                     : ""
             }
@@ -4574,9 +5663,8 @@ async function sellerOfferAction(
 
     const confirmed =
         await askConfirm(
-
             action ===
-                "accept"
+            "accept"
 
                 ? "Accept this offer?"
 
@@ -4609,6 +5697,10 @@ async function sellerOfferAction(
 
 
         await loadOfferCenter();
+
+        await loadMyListings();
+
+        await loadMarketplace();
 
     } catch (error) {
 
@@ -4696,11 +5788,6 @@ async function submitCounterOffer() {
         );
 
 
-        tg?.showAlert(
-            `Counter offer sent for @${currentCounterUsername} ✓`
-        );
-
-
         await loadOfferCenter();
 
     } catch (error) {
@@ -4721,9 +5808,8 @@ async function buyerOfferAction(
 
     const confirmed =
         await askConfirm(
-
             action ===
-                "accept_counter"
+            "accept_counter"
 
                 ? "Accept the seller's counter offer?"
 
@@ -4756,6 +5842,8 @@ async function buyerOfferAction(
 
 
         await loadOfferCenter();
+
+        await loadMarketplace();
 
     } catch (error) {
 
@@ -4857,9 +5945,9 @@ async function startListingPayment(
 
                 if (
                     status ===
-                        "cancelled" ||
+                    "cancelled" ||
                     status ===
-                        "failed"
+                    "failed"
                 ) {
 
                     resetListingButton();
@@ -4937,10 +6025,10 @@ async function waitListingPayment(
                     .reset();
 
 
-                await loadMyListings();
-
-
                 resetListingButton();
+
+
+                await loadMyListings();
 
 
                 return;
@@ -4955,129 +6043,7 @@ async function waitListingPayment(
     }
 
 
-    showListingMessage(
-        "info",
-        "Confirmation is taking longer. Do not pay again."
-    );
-
-
     resetListingButton();
-}
-
-
-async function loadMyListings() {
-
-    if (
-        !tg?.initData
-    ) {
-
-        return;
-    }
-
-
-    try {
-
-        const data =
-            await api(
-                "/my-listings",
-                {
-                    initData:
-                        tg.initData
-                }
-            );
-
-
-        const container =
-            document.getElementById(
-                "myListings"
-            );
-
-
-        if (
-            !data.listings?.length
-        ) {
-
-            container.innerHTML =
-                `<div class="empty">No listings</div>`;
-
-
-            return;
-        }
-
-
-        container.innerHTML =
-            data.listings
-                .map(
-                    listing => {
-
-                        let badgeClass =
-                            "badge-pending";
-
-
-                        if (
-                            listing.status ===
-                            "active"
-                        ) {
-
-                            badgeClass =
-                                "badge-active";
-                        }
-
-
-                        if (
-                            listing.status ===
-                            "rejected"
-                        ) {
-
-                            badgeClass =
-                                "badge-rejected";
-                        }
-
-
-                        return `
-
-                            <div class="card">
-
-                                <div class="username">
-
-                                    @${escapeHtml(
-                                        listing.whatsapp_username
-                                    )}
-
-                                </div>
-
-                                <div
-                                    class="badge ${badgeClass}"
-                                >
-
-                                    ${escapeHtml(
-                                        listing.status
-                                            .toUpperCase()
-                                    )}
-
-                                </div>
-
-                                <div class="price">
-
-                                    $${formatPrice(
-                                        listing.asking_price
-                                    )}
-
-                                </div>
-
-                            </div>
-
-                        `;
-                    }
-                )
-                .join("");
-
-    } catch (error) {
-
-        console.error(
-            error
-        );
-    }
 }
 
 
@@ -5144,6 +6110,7 @@ async function loadPendingListings() {
 
                             </div>
 
+
                             <div class="price">
 
                                 $${formatPrice(
@@ -5151,6 +6118,7 @@ async function loadPendingListings() {
                                 )}
 
                             </div>
+
 
                             <div class="buttons">
 
@@ -5163,8 +6131,11 @@ async function loadPendingListings() {
                                         )
                                     "
                                 >
+
                                     ✓ Approve
+
                                 </button>
+
 
                                 <button
                                     class="reject-button"
@@ -5175,7 +6146,9 @@ async function loadPendingListings() {
                                         )
                                     "
                                 >
+
                                     ✕ Reject
+
                                 </button>
 
                             </div>
@@ -5446,7 +6419,7 @@ function hideOfferModalMessage() {
 
 
 // ======================================================
-// CONTACT ACTIONS
+// UI HELPERS
 // ======================================================
 
 async function copyContact(
@@ -5491,19 +6464,16 @@ function openTelegramContact(
 
 
     if (
-        !username
+        username
     ) {
 
-        return;
+        tg?.openTelegramLink(
+            "https://t.me/" +
+            encodeURIComponent(
+                username
+            )
+        );
     }
-
-
-    tg?.openTelegramLink(
-        "https://t.me/" +
-        encodeURIComponent(
-            username
-        )
-    );
 }
 
 
@@ -5532,10 +6502,6 @@ function formatContactType(
     return "Contact";
 }
 
-
-// ======================================================
-// UI HELPERS
-// ======================================================
 
 function showListingMessage(
     type,
@@ -5777,6 +6743,14 @@ function escapeJs(
         .replaceAll(
             "'",
             "\\'"
+        )
+        .replaceAll(
+            "\n",
+            "\\n"
+        )
+        .replaceAll(
+            "\r",
+            ""
         );
 }
 
@@ -5796,4 +6770,5 @@ loadWanted();
 </script>
 
 </body>
+
 </html>
