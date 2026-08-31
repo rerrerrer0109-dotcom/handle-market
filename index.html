@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Handle Market</title>
 
@@ -23,7 +27,7 @@
         }
 
         .app {
-            max-width: 600px;
+            max-width: 650px;
             margin: auto;
         }
 
@@ -45,6 +49,20 @@
             color: #777;
             font-size: 13px;
             margin-top: 4px;
+        }
+
+        .auth-status {
+            font-size: 12px;
+            margin-top: 8px;
+            color: #777;
+        }
+
+        .auth-ok {
+            color: #159447;
+        }
+
+        .auth-error {
+            color: #d93025;
         }
 
         .search {
@@ -182,6 +200,51 @@
             line-height: 1.5;
         }
 
+        .profile-card {
+            background: white;
+            margin: 16px;
+            padding: 20px;
+            border-radius: 18px;
+        }
+
+        .profile-name {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .profile-username {
+            color: #777;
+            margin-top: 5px;
+        }
+
+        .verified-box {
+            margin-top: 18px;
+            padding: 14px;
+            border-radius: 14px;
+            background: #effaf3;
+            color: #168344;
+            line-height: 1.5;
+        }
+
+        .error-box {
+            margin-top: 18px;
+            padding: 14px;
+            border-radius: 14px;
+            background: #fff0f0;
+            color: #c62828;
+            line-height: 1.5;
+        }
+
+        .sell-button {
+            background: #1687e8;
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 20px;
+        }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -214,16 +277,6 @@
             color: #1687e8;
             font-weight: 700;
         }
-
-        .sell-button {
-            background: #1687e8;
-            color: white;
-            width: 100%;
-            padding: 15px;
-            font-size: 16px;
-            font-weight: 700;
-            margin-top: 20px;
-        }
     </style>
 </head>
 
@@ -232,18 +285,41 @@
 <div class="app">
 
     <header>
-        <div class="logo">Handle Market</div>
-        <div class="subtitle">Discover premium WhatsApp usernames</div>
+
+        <div class="logo">
+            Handle Market
+        </div>
+
+        <div class="subtitle">
+            Discover premium WhatsApp usernames
+        </div>
+
+        <div
+            id="authStatus"
+            class="auth-status"
+        >
+            Connecting to Telegram...
+        </div>
+
     </header>
 
 
     <!-- HOME -->
 
-    <div id="home" class="page active">
+    <div
+        id="home"
+        class="page active"
+    >
 
         <div class="search">
-            <input type="text" placeholder="Search @username">
+
+            <input
+                type="text"
+                placeholder="Search @username"
+            >
+
         </div>
+
 
         <div class="section">
 
@@ -252,12 +328,31 @@
             </div>
 
             <div class="categories">
-                <div class="category">🔥 Premium</div>
-                <div class="category">Business</div>
-                <div class="category">AI</div>
-                <div class="category">Short</div>
-                <div class="category">Travel</div>
-                <div class="category">Finance</div>
+
+                <div class="category">
+                    🔥 Premium
+                </div>
+
+                <div class="category">
+                    Business
+                </div>
+
+                <div class="category">
+                    AI
+                </div>
+
+                <div class="category">
+                    Short
+                </div>
+
+                <div class="category">
+                    Travel
+                </div>
+
+                <div class="category">
+                    Finance
+                </div>
+
             </div>
 
         </div>
@@ -354,11 +449,16 @@
 
     <!-- MARKETPLACE -->
 
-    <div id="marketplace" class="page">
+    <div
+        id="marketplace"
+        class="page"
+    >
 
         <div class="placeholder">
 
-            <h2>🔎 Marketplace</h2>
+            <h2>
+                🔎 Marketplace
+            </h2>
 
             <p>
                 Browse usernames, filter categories,
@@ -372,14 +472,20 @@
 
     <!-- LIST -->
 
-    <div id="list" class="page">
+    <div
+        id="list"
+        class="page"
+    >
 
         <div class="placeholder">
 
-            <h2>➕ List Username</h2>
+            <h2>
+                ➕ List Username
+            </h2>
 
             <p>
-                Add your WhatsApp username to the marketplace.
+                Add your WhatsApp username
+                to Handle Market.
             </p>
 
             <button class="sell-button">
@@ -393,11 +499,16 @@
 
     <!-- WANTED -->
 
-    <div id="wanted" class="page">
+    <div
+        id="wanted"
+        class="page"
+    >
 
         <div class="placeholder">
 
-            <h2>🎯 Wanted</h2>
+            <h2>
+                🎯 Wanted
+            </h2>
 
             <p>
                 Tell the community which username
@@ -415,15 +526,23 @@
 
     <!-- PROFILE -->
 
-    <div id="profile" class="page">
+    <div
+        id="profile"
+        class="page"
+    >
 
-        <div class="placeholder">
+        <div
+            id="profileContent"
+            class="profile-card"
+        >
 
-            <h2>👤 Profile</h2>
+            <div class="profile-name">
+                Loading...
+            </div>
 
-            <p id="telegramUser">
-                Loading Telegram profile...
-            </p>
+            <div class="profile-username">
+                Authenticating with Telegram
+            </div>
 
         </div>
 
@@ -436,29 +555,73 @@
 
 <div class="bottom-nav">
 
-    <div class="nav-item active" onclick="openPage('home', this)">
-        <span class="nav-icon">🏠</span>
+    <div
+        class="nav-item active"
+        onclick="openPage('home', this)"
+    >
+
+        <span class="nav-icon">
+            🏠
+        </span>
+
         Home
+
     </div>
 
-    <div class="nav-item" onclick="openPage('marketplace', this)">
-        <span class="nav-icon">🔎</span>
+
+    <div
+        class="nav-item"
+        onclick="openPage('marketplace', this)"
+    >
+
+        <span class="nav-icon">
+            🔎
+        </span>
+
         Market
+
     </div>
 
-    <div class="nav-item" onclick="openPage('list', this)">
-        <span class="nav-icon">➕</span>
+
+    <div
+        class="nav-item"
+        onclick="openPage('list', this)"
+    >
+
+        <span class="nav-icon">
+            ➕
+        </span>
+
         List
+
     </div>
 
-    <div class="nav-item" onclick="openPage('wanted', this)">
-        <span class="nav-icon">🎯</span>
+
+    <div
+        class="nav-item"
+        onclick="openPage('wanted', this)"
+    >
+
+        <span class="nav-icon">
+            🎯
+        </span>
+
         Wanted
+
     </div>
 
-    <div class="nav-item" onclick="openPage('profile', this)">
-        <span class="nav-icon">👤</span>
+
+    <div
+        class="nav-item"
+        onclick="openPage('profile', this)"
+    >
+
+        <span class="nav-icon">
+            👤
+        </span>
+
         Profile
+
     </div>
 
 </div>
@@ -466,23 +629,197 @@
 
 <script>
 
-    const tg = window.Telegram.WebApp;
-
-    tg.ready();
-    tg.expand();
+    const API_URL =
+        "https://handle-market.onrender.com";
 
 
-    const user = tg.initDataUnsafe?.user;
+    const tg =
+        window.Telegram?.WebApp;
 
-    if (user) {
 
-        document.getElementById("telegramUser").innerHTML =
-            "<b>" +
-            (user.first_name || "Telegram User") +
-            "</b><br><br>" +
-            (user.username
-                ? "@" + user.username
-                : "Telegram account connected");
+    let authenticatedUser = null;
+
+
+    if (tg) {
+
+        tg.ready();
+        tg.expand();
+
+    }
+
+
+    async function authenticateTelegramUser() {
+
+        const status =
+            document.getElementById("authStatus");
+
+        const profile =
+            document.getElementById("profileContent");
+
+
+        if (!tg || !tg.initData) {
+
+            status.textContent =
+                "⚠️ Open Handle Market inside Telegram";
+
+            status.className =
+                "auth-status auth-error";
+
+
+            profile.innerHTML = `
+
+                <div class="profile-name">
+                    Telegram required
+                </div>
+
+                <div class="profile-username">
+                    Please open Handle Market
+                    from @handlemarket_bot.
+                </div>
+
+                <div class="error-box">
+                    Authentication data was not received.
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        status.textContent =
+            "Verifying Telegram account...";
+
+
+        try {
+
+            const response =
+                await fetch(
+                    API_URL + "/auth",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            initData: tg.initData
+                        })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok || !data.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "authentication_failed"
+                );
+
+            }
+
+
+            authenticatedUser =
+                data.user;
+
+
+            status.textContent =
+                "✓ Telegram account verified";
+
+            status.className =
+                "auth-status auth-ok";
+
+
+            const fullName = [
+                data.user.first_name,
+                data.user.last_name
+            ]
+            .filter(Boolean)
+            .join(" ");
+
+
+            const username =
+                data.user.username
+                    ? "@" + data.user.username
+                    : "No public Telegram username";
+
+
+            profile.innerHTML = `
+
+                <div class="profile-name">
+                    ${escapeHtml(
+                        fullName ||
+                        "Telegram User"
+                    )}
+                </div>
+
+                <div class="profile-username">
+                    ${escapeHtml(username)}
+                </div>
+
+                <div class="verified-box">
+
+                    ✓ Authenticated by Handle Market server
+
+                    <br><br>
+
+                    Your Telegram account has been
+                    cryptographically verified.
+
+                </div>
+
+            `;
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+
+            status.textContent =
+                "✕ Authentication failed";
+
+            status.className =
+                "auth-status auth-error";
+
+
+            profile.innerHTML = `
+
+                <div class="profile-name">
+                    Authentication failed
+                </div>
+
+                <div class="profile-username">
+                    Telegram account could not
+                    be verified.
+                </div>
+
+                <div class="error-box">
+                    ${escapeHtml(error.message)}
+                </div>
+
+            `;
+
+        }
+
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
 
     }
 
@@ -492,7 +829,9 @@
         document
             .querySelectorAll(".page")
             .forEach(page => {
+
                 page.classList.remove("active");
+
             });
 
 
@@ -505,12 +844,18 @@
         document
             .querySelectorAll(".nav-item")
             .forEach(item => {
+
                 item.classList.remove("active");
+
             });
 
 
         element.classList.add("active");
+
     }
+
+
+    authenticateTelegramUser();
 
 </script>
 
