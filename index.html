@@ -1218,7 +1218,66 @@ header {
 
 
 /* =========================================================
-   LISTING STATS - NEW v21
+   PUBLIC VIEWS + LIKES
+   ========================================================= */
+
+.public-stats {
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+
+    margin-top:13px;
+}
+
+
+.public-stat {
+
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+
+    padding:7px 10px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius:999px;
+
+    color:var(--text-2);
+    background:var(--surface-2);
+
+    font-size:9px;
+    font-weight:850;
+}
+
+
+.public-stat strong {
+    color:var(--text);
+}
+
+
+.promotion-vip .public-stat {
+
+    color:rgba(255,255,255,.72);
+
+    border-color:
+        rgba(255,255,255,.10);
+
+    background:
+        rgba(255,255,255,.055);
+}
+
+
+.promotion-vip .public-stat strong {
+    color:#fff;
+}
+
+
+/* =========================================================
+   MY LISTING STATS
    ========================================================= */
 
 .listing-stats {
@@ -1227,11 +1286,11 @@ header {
 
     grid-template-columns:
         repeat(
-            3,
+            4,
             minmax(0,1fr)
         );
 
-    gap:7px;
+    gap:6px;
 
     margin-top:13px;
 }
@@ -1241,7 +1300,7 @@ header {
 
     min-width:0;
 
-    padding:10px 5px;
+    padding:10px 3px;
 
     border:
         1px solid
@@ -1258,7 +1317,7 @@ header {
 
 .listing-stat-number {
 
-    font-size:15px;
+    font-size:13px;
     font-weight:900;
     line-height:1.1;
 }
@@ -1274,7 +1333,7 @@ header {
             var(--muted)
         );
 
-    font-size:7.5px;
+    font-size:6.8px;
     font-weight:800;
     white-space:nowrap;
 }
@@ -1514,6 +1573,24 @@ header {
 }
 
 
+.promotion-vip .like-button {
+
+    color:#ff9cab;
+
+    background:
+        rgba(145,15,38,.23);
+}
+
+
+.promotion-vip .like-button.liked {
+
+    color:#ff536e;
+
+    background:
+        rgba(186,14,45,.28);
+}
+
+
 .promotion-vip .report-button {
 
     color:#ff7886;
@@ -1663,6 +1740,7 @@ header {
     grid-template-columns:
         minmax(0,1fr)
         auto
+        auto
         auto;
 
     gap:7px;
@@ -1673,15 +1751,29 @@ header {
 
 .action-icon-button {
 
-    min-width:48px;
+    min-width:46px;
 
     display:flex;
     align-items:center;
     justify-content:center;
 
-    padding:11px 12px;
+    padding:11px 10px;
 
     border-radius:13px;
+}
+
+
+.like-button {
+
+    color:#d85768;
+    background:var(--red-soft);
+}
+
+
+.like-button.liked {
+
+    color:#e61f45;
+    background:#ffe4e9;
 }
 
 
@@ -1800,6 +1892,7 @@ header {
 
     grid-template-columns:
         minmax(0,1fr)
+        auto
         auto
         auto;
 
@@ -3201,6 +3294,10 @@ button {
         flex:1;
         max-width:none;
     }
+
+    .listing-stat-label {
+        font-size:6px;
+    }
 }
 
 </style>
@@ -4553,6 +4650,9 @@ let myListingsData =
 let watchedListingIds =
     new Set();
 
+let likedListingIds =
+    new Set();
+
 let reportedListingIds =
     new Set();
 
@@ -4561,9 +4661,6 @@ let mySellerProfile =
 
 let currentPromotionListingId =
     null;
-
-
-/* NEW v21 */
 
 let recordedListingViewIds =
     new Set();
@@ -4742,6 +4839,7 @@ async function authenticate() {
         await Promise.all(
             [
                 loadWatchlistState(),
+                loadLikeState(),
                 loadMyReports()
             ]
         );
@@ -4943,6 +5041,188 @@ function promotionBadgeHtml(
         </span>
 
     `;
+}
+
+
+/* =========================================================
+   PUBLIC STATS
+   ========================================================= */
+
+function publicStatsHtml(
+    listing
+) {
+
+    const views =
+        Number(
+            listing?.views_count ||
+            0
+        );
+
+
+    const likes =
+        Number(
+            listing?.likes_count ||
+            0
+        );
+
+
+    return `
+
+        <div
+            class="public-stats"
+            data-public-stats-listing-id="${escapeHtml(
+                listing.id
+            )}"
+        >
+
+            <span class="public-stat">
+
+                👁
+
+                <strong
+                    data-public-view-count="${escapeHtml(
+                        listing.id
+                    )}"
+                >
+                    ${views}
+                </strong>
+
+                Views
+
+            </span>
+
+
+            <span class="public-stat">
+
+                ❤️
+
+                <strong
+                    data-public-like-count="${escapeHtml(
+                        listing.id
+                    )}"
+                >
+                    ${likes}
+                </strong>
+
+                Likes
+
+            </span>
+
+        </div>
+
+    `;
+}
+
+
+function updatePublicStatsDisplays(
+    listingId,
+    views,
+    likes
+) {
+
+    if (
+        views !== undefined
+        &&
+        views !== null
+    ) {
+
+        document.querySelectorAll(
+            `[data-public-view-count="${cssEscape(
+                listingId
+            )}"]`
+        ).forEach(
+            element => {
+
+                element.textContent =
+                    Number(
+                        views ||
+                        0
+                    );
+            }
+        );
+    }
+
+
+    if (
+        likes !== undefined
+        &&
+        likes !== null
+    ) {
+
+        document.querySelectorAll(
+            `[data-public-like-count="${cssEscape(
+                listingId
+            )}"]`
+        ).forEach(
+            element => {
+
+                element.textContent =
+                    Number(
+                        likes ||
+                        0
+                    );
+            }
+        );
+    }
+}
+
+
+function updateListingLocalCounts(
+    listingId,
+    values = {}
+) {
+
+    marketplaceListings =
+        marketplaceListings.map(
+            listing => {
+
+                if (
+                    String(
+                        listing.id
+                    )
+                    !==
+                    String(
+                        listingId
+                    )
+                ) {
+
+                    return listing;
+                }
+
+
+                return {
+                    ...listing,
+
+                    ...(
+                        values.views_count !== undefined
+
+                            ? {
+                                views_count:
+                                    Number(
+                                        values.views_count ||
+                                        0
+                                    )
+                            }
+
+                            : {}
+                    ),
+
+                    ...(
+                        values.likes_count !== undefined
+
+                            ? {
+                                likes_count:
+                                    Number(
+                                        values.likes_count ||
+                                        0
+                                    )
+                            }
+
+                            : {}
+                    )
+                };
+            }
+        );
 }
 
 
@@ -5391,6 +5671,7 @@ function renderHomeListings() {
         .join("");
 
 
+    updateAllLikeButtons();
     updateAllWatchButtons();
     updateAllReportButtons();
 
@@ -5457,6 +5738,7 @@ function applyMarketplaceFilters() {
     );
 
 
+    updateAllLikeButtons();
     updateAllWatchButtons();
     updateAllReportButtons();
 
@@ -5968,6 +6250,14 @@ function renderListingCard(
         );
 
 
+    const liked =
+        likedListingIds.has(
+            String(
+                listing.id
+            )
+        );
+
+
     const reported =
         reportedListingIds.has(
             String(
@@ -6102,6 +6392,11 @@ function renderListingCard(
             }
 
 
+            ${publicStatsHtml(
+                listing
+            )}
+
+
             <div class="listing-actions">
 
                 <button
@@ -6121,6 +6416,23 @@ function renderListingCard(
                     "
                 >
                     Make Offer
+                </button>
+
+
+                <button
+                    class="action-icon-button like-button ${liked ? "liked" : ""}"
+                    data-like-listing-id="${escapeHtml(
+                        listing.id
+                    )}"
+                    onclick="
+                        toggleLike(
+                            '${escapeJs(
+                                listing.id
+                            )}'
+                        )
+                    "
+                >
+                    ${liked ? "❤️" : "♡"}
                 </button>
 
 
@@ -6182,7 +6494,191 @@ function renderListingCard(
 
 
 /* =========================================================
-   LISTING VIEW TRACKING - NEW v21
+   LIKES
+   ========================================================= */
+
+async function loadLikeState() {
+
+    if (
+        !tg?.initData
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/listing-likes/state",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        likedListingIds =
+            new Set(
+
+                (
+                    data.listing_ids ||
+                    []
+                ).map(
+                    String
+                )
+            );
+
+
+        updateAllLikeButtons();
+
+    } catch (
+        error
+    ) {
+
+        console.log(
+            "Likes state:",
+            error.message
+        );
+    }
+}
+
+
+async function toggleLike(
+    listingId
+) {
+
+    if (
+        !authenticatedUser
+    ) {
+
+        tg?.showAlert(
+            "Open Handle Market inside Telegram to like listings."
+        );
+
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/listing-like/toggle",
+                {
+                    initData:
+                        tg.initData,
+
+                    listing_id:
+                        listingId
+                }
+            );
+
+
+        if (
+            data.liked
+        ) {
+
+            likedListingIds.add(
+                String(
+                    listingId
+                )
+            );
+
+        } else {
+
+            likedListingIds.delete(
+                String(
+                    listingId
+                )
+            );
+        }
+
+
+        updateListingLocalCounts(
+            listingId,
+            {
+                likes_count:
+                    Number(
+                        data.likes_count ||
+                        0
+                    )
+            }
+        );
+
+
+        updatePublicStatsDisplays(
+            listingId,
+            undefined,
+            data.likes_count
+        );
+
+
+        updateAllLikeButtons();
+
+
+    } catch (
+        error
+    ) {
+
+        if (
+            error.message ===
+            "cannot_like_own_listing"
+        ) {
+
+            tg?.showAlert(
+                "You cannot like your own listing."
+            );
+
+        } else {
+
+            tg?.showAlert(
+                error.message
+            );
+        }
+    }
+}
+
+
+function updateAllLikeButtons() {
+
+    document.querySelectorAll(
+        ".like-button"
+    ).forEach(
+        button => {
+
+            const id =
+                String(
+                    button.dataset
+                        .likeListingId ||
+                    ""
+                );
+
+
+            const liked =
+                likedListingIds.has(
+                    id
+                );
+
+
+            button.textContent =
+                liked
+                    ? "❤️"
+                    : "♡";
+
+
+            button.classList.toggle(
+                "liked",
+                liked
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   LISTING VIEW TRACKING
    ========================================================= */
 
 async function recordListingView(
@@ -6207,16 +6703,17 @@ async function recordListingView(
 
     try {
 
-        await api(
-            "/listing/view",
-            {
-                initData:
-                    tg.initData,
+        const data =
+            await api(
+                "/listing/view",
+                {
+                    initData:
+                        tg.initData,
 
-                listing_id:
-                    listingId
-            }
-        );
+                    listing_id:
+                        listingId
+                }
+            );
 
 
         recordedListingViewIds.add(
@@ -6224,6 +6721,31 @@ async function recordListingView(
                 listingId
             )
         );
+
+
+        if (
+            data.views !==
+            undefined
+        ) {
+
+            updateListingLocalCounts(
+                listingId,
+                {
+                    views_count:
+                        Number(
+                            data.views ||
+                            0
+                        )
+                }
+            );
+
+
+            updatePublicStatsDisplays(
+                listingId,
+                data.views,
+                undefined
+            );
+        }
 
     } catch (
         error
@@ -6296,6 +6818,14 @@ async function openListingPage(
 
     const watched =
         watchedListingIds.has(
+            String(
+                listing.id
+            )
+        );
+
+
+    const liked =
+        likedListingIds.has(
             String(
                 listing.id
             )
@@ -6416,6 +6946,11 @@ async function openListingPage(
             }
 
 
+            ${publicStatsHtml(
+                listing
+            )}
+
+
             <div class="detail-actions">
 
                 <button
@@ -6435,6 +6970,23 @@ async function openListingPage(
                     "
                 >
                     Make Offer
+                </button>
+
+
+                <button
+                    class="action-icon-button like-button ${liked ? "liked" : ""}"
+                    data-like-listing-id="${escapeHtml(
+                        listing.id
+                    )}"
+                    onclick="
+                        toggleLike(
+                            '${escapeJs(
+                                listing.id
+                            )}'
+                        )
+                    "
+                >
+                    ${liked ? "❤️" : "♡"}
                 </button>
 
 
@@ -6537,6 +7089,9 @@ async function openListingPage(
     await recordListingView(
         listing.id
     );
+
+
+    updateAllLikeButtons();
 
 
     if (
@@ -7088,6 +7643,24 @@ function markOwnListing(
             }
 
 
+            const like =
+                card.querySelector(
+                    ".like-button"
+                );
+
+
+            if (
+                like
+            ) {
+
+                like.disabled =
+                    true;
+
+                like.title =
+                    "You cannot like your own listing";
+            }
+
+
             const report =
                 card.querySelector(
                     ".report-button"
@@ -7353,6 +7926,7 @@ async function openWatchlist() {
                 : '<div class="empty">Your Watchlist is empty.</div>';
 
 
+        updateAllLikeButtons();
         updateAllWatchButtons();
         updateAllReportButtons();
 
@@ -7752,7 +8326,7 @@ async function startListingPayment(
 
 
 /* =========================================================
-   MY LISTINGS + STATS
+   MY LISTINGS
    ========================================================= */
 
 async function loadMyListings() {
@@ -7831,6 +8405,13 @@ function listingStatsHtml(
         );
 
 
+    const likes =
+        Number(
+            stats.likes ||
+            0
+        );
+
+
     const watchlists =
         Number(
             stats.watchlists ||
@@ -7857,6 +8438,19 @@ function listingStatsHtml(
 
                 <div class="listing-stat-label">
                     Views
+                </div>
+
+            </div>
+
+
+            <div class="listing-stat">
+
+                <div class="listing-stat-number">
+                    ❤️ ${likes}
+                </div>
+
+                <div class="listing-stat-label">
+                    Likes
                 </div>
 
             </div>
@@ -10305,6 +10899,7 @@ function renderSellerProfile(
     `;
 
 
+    updateAllLikeButtons();
     updateAllWatchButtons();
     updateAllReportButtons();
 
@@ -10702,6 +11297,11 @@ async function loadAdminPremiumListings() {
                                     </span>
 
                                 </div>
+
+
+                                ${publicStatsHtml(
+                                    listing
+                                )}
 
 
                                 <button
@@ -11438,6 +12038,31 @@ function escapeJs(
     .replaceAll(
         "\r",
         ""
+    );
+}
+
+
+function cssEscape(
+    value
+) {
+
+    if (
+        window.CSS &&
+        typeof CSS.escape ===
+        "function"
+    ) {
+
+        return CSS.escape(
+            String(value)
+        );
+    }
+
+
+    return String(
+        value
+    ).replace(
+        /["\\]/g,
+        "\\$&"
     );
 }
 
