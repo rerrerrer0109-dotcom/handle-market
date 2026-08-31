@@ -115,8 +115,7 @@ header {
     padding: 17px;
     margin-bottom: 12px;
     border-radius: 18px;
-    box-shadow:
-        0 2px 9px rgba(0,0,0,.04);
+    box-shadow: 0 2px 9px rgba(0,0,0,.04);
 }
 
 .username {
@@ -151,11 +150,6 @@ header {
     font-size: 12px;
 }
 
-.badge-verified {
-    background: #edf7ff;
-    color: #1687e8;
-}
-
 .badge-pending {
     background: #fff7e0;
     color: #9a6900;
@@ -185,6 +179,11 @@ button {
     cursor: pointer;
 }
 
+button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
 .primary {
     flex: 1;
     color: white;
@@ -202,6 +201,15 @@ button {
     padding: 15px;
     font-weight: 700;
     font-size: 16px;
+}
+
+.payment-button {
+    width: 100%;
+    background: #1687e8;
+    color: white;
+    padding: 16px;
+    font-size: 17px;
+    font-weight: 800;
 }
 
 .admin-button {
@@ -228,7 +236,7 @@ button {
 }
 
 .refresh-button {
-    background: #eeeeee;
+    background: #eee;
     width: 100%;
     margin-bottom: 15px;
 }
@@ -272,6 +280,7 @@ button {
     padding: 12px 13px;
     font-size: 15px;
     background: white;
+    outline: none;
 }
 
 .field textarea {
@@ -283,6 +292,32 @@ button {
     color: #888;
     font-size: 11px;
     margin-top: 5px;
+}
+
+.payment-box {
+    background: #f3f8ff;
+    border: 1px solid #dbeaff;
+    border-radius: 14px;
+    padding: 15px;
+    margin-bottom: 16px;
+}
+
+.payment-title {
+    font-size: 14px;
+    color: #666;
+}
+
+.payment-price {
+    font-size: 25px;
+    font-weight: 800;
+    margin-top: 5px;
+}
+
+.payment-note {
+    color: #777;
+    font-size: 12px;
+    line-height: 1.45;
+    margin-top: 7px;
 }
 
 .message {
@@ -302,6 +337,12 @@ button {
     display: block;
     background: #fff0f0;
     color: #c62828;
+}
+
+.message.info {
+    display: block;
+    background: #eef6ff;
+    color: #1764a5;
 }
 
 .warning {
@@ -421,7 +462,6 @@ button {
 
 <div class="app">
 
-
 <header>
 
 <div class="logo">
@@ -458,6 +498,7 @@ Connecting to Telegram...
 >
 
 </div>
+
 
 <div class="section">
 
@@ -503,7 +544,8 @@ person-to-person username transfer mechanism.
 
 <br><br>
 
-Handle Market does not guarantee username transfer.
+Handle Market provides discovery and communication
+between users but does not guarantee username transfer.
 
 </div>
 
@@ -526,6 +568,7 @@ Handle Market does not guarantee username transfer.
 >
 
 </div>
+
 
 <div class="section">
 
@@ -560,13 +603,13 @@ List Username
 </div>
 
 <div class="form-subtitle">
-Submit your WhatsApp username for review.
+Submit your WhatsApp username for marketplace review.
 </div>
 
 
 <form
     id="listingForm"
-    onsubmit="submitListing(event)"
+    onsubmit="startListingPayment(event)"
 >
 
 
@@ -681,7 +724,28 @@ Seller contact
 >
 
 <div class="field-hint">
-Stored privately. Not visible in public Marketplace.
+Stored privately. Not visible in the public Marketplace.
+</div>
+
+</div>
+
+
+<div class="payment-box">
+
+<div class="payment-title">
+Listing fee
+</div>
+
+<div
+    id="listingFee"
+    class="payment-price"
+>
+1 ⭐
+</div>
+
+<div class="payment-note">
+The listing is created only after Telegram confirms
+the Stars payment. It will then be sent for admin review.
 </div>
 
 </div>
@@ -689,10 +753,10 @@ Stored privately. Not visible in public Marketplace.
 
 <button
     id="submitListingButton"
-    class="big-button"
+    class="payment-button"
     type="submit"
 >
-Submit Listing
+Pay 1 ⭐ & Submit
 </button>
 
 
@@ -740,7 +804,7 @@ Loading...
 </div>
 
 <div class="form-subtitle">
-Wanted posts will be connected next.
+Wanted posts will be connected later.
 </div>
 
 <div class="empty">
@@ -815,14 +879,12 @@ Loading...
 
 </div>
 
-
 </div>
 
 
-<!-- NAV -->
+<!-- BOTTOM NAVIGATION -->
 
 <div class="bottom-nav">
-
 
 <div
     class="nav-item active"
@@ -868,7 +930,6 @@ Wanted
 Profile
 </div>
 
-
 </div>
 
 
@@ -883,14 +944,28 @@ const tg =
     window.Telegram?.WebApp;
 
 
-let authenticatedUser = null;
+let authenticatedUser =
+    null;
 
-let marketplaceListings = [];
+
+let marketplaceListings =
+    [];
+
+
+let listingPriceStars =
+    1;
+
+
+let activePaymentOrderId =
+    null;
 
 
 if (tg) {
+
     tg.ready();
+
     tg.expand();
+
 }
 
 
@@ -905,13 +980,17 @@ async function authenticateTelegramUser() {
             "authStatus"
         );
 
+
     const profile =
         document.getElementById(
             "profileContent"
         );
 
 
-    if (!tg || !tg.initData) {
+    if (
+        !tg ||
+        !tg.initData
+    ) {
 
         status.textContent =
             "⚠ Open inside Telegram";
@@ -929,17 +1008,19 @@ async function authenticateTelegramUser() {
             await fetch(
                 API_URL + "/auth",
                 {
-                    method: "POST",
+                    method:
+                        "POST",
 
                     headers: {
                         "Content-Type":
                             "application/json"
                     },
 
-                    body: JSON.stringify({
-                        initData:
-                            tg.initData
-                    })
+                    body:
+                        JSON.stringify({
+                            initData:
+                                tg.initData
+                        })
                 }
             );
 
@@ -948,7 +1029,11 @@ async function authenticateTelegramUser() {
             await response.json();
 
 
-        if (!response.ok || !data.ok) {
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
             throw new Error(
                 data.error ||
                 "authentication_failed"
@@ -958,6 +1043,16 @@ async function authenticateTelegramUser() {
 
         authenticatedUser =
             data.user;
+
+
+        listingPriceStars =
+            Number(
+                data.listing_price_stars ||
+                1
+            );
+
+
+        updateListingPrice();
 
 
         status.textContent =
@@ -972,8 +1067,8 @@ async function authenticateTelegramUser() {
                 data.user.first_name,
                 data.user.last_name
             ]
-            .filter(Boolean)
-            .join(" ");
+                .filter(Boolean)
+                .join(" ");
 
 
         const username =
@@ -983,10 +1078,13 @@ async function authenticateTelegramUser() {
                 : "No Telegram username";
 
 
-        let adminButton = "";
+        let adminButton =
+            "";
 
 
-        if (data.user.is_admin) {
+        if (
+            data.user.is_admin
+        ) {
 
             adminButton = `
 
@@ -1004,14 +1102,20 @@ async function authenticateTelegramUser() {
         profile.innerHTML = `
 
             <div class="profile-name">
+
                 ${escapeHtml(
                     fullName ||
                     "Telegram User"
                 )}
+
             </div>
 
             <div class="profile-username">
-                ${escapeHtml(username)}
+
+                ${escapeHtml(
+                    username
+                )}
+
             </div>
 
             <div class="verified-box">
@@ -1049,9 +1153,11 @@ async function authenticateTelegramUser() {
             </div>
 
             <div class="profile-username">
+
                 ${escapeHtml(
                     error.message
                 )}
+
             </div>
 
         `;
@@ -1060,12 +1166,51 @@ async function authenticateTelegramUser() {
 
 
 // ======================================================
-// CREATE LISTING
+// DISPLAY LISTING PRICE
 // ======================================================
 
-async function submitListing(event) {
+function updateListingPrice() {
+
+    document
+        .getElementById(
+            "listingFee"
+        )
+        .textContent =
+            `${listingPriceStars} ⭐`;
+
+
+    document
+        .getElementById(
+            "submitListingButton"
+        )
+        .textContent =
+            `Pay ${listingPriceStars} ⭐ & Submit`;
+}
+
+
+// ======================================================
+// START LISTING PAYMENT
+// ======================================================
+
+async function startListingPayment(
+    event
+) {
 
     event.preventDefault();
+
+
+    if (
+        !tg ||
+        !tg.initData
+    ) {
+
+        showListingMessage(
+            "error",
+            "Open Handle Market inside Telegram."
+        );
+
+        return;
+    }
 
 
     const button =
@@ -1073,82 +1218,84 @@ async function submitListing(event) {
             "submitListingButton"
         );
 
-    const message =
-        document.getElementById(
-            "listingMessage"
-        );
 
+    button.disabled =
+        true;
 
-    button.disabled = true;
 
     button.textContent =
-        "Submitting...";
+        "Creating invoice...";
 
 
-    message.className =
-        "message";
+    showListingMessage(
+        "info",
+        "Preparing Telegram Stars payment..."
+    );
 
 
     try {
 
         const response =
             await fetch(
-                API_URL + "/listings",
+                API_URL +
+                "/listing-payment/create",
                 {
-                    method: "POST",
+                    method:
+                        "POST",
 
                     headers: {
                         "Content-Type":
                             "application/json"
                     },
 
-                    body: JSON.stringify({
+                    body:
+                        JSON.stringify({
 
-                        initData:
-                            tg.initData,
+                            initData:
+                                tg.initData,
 
-                        whatsapp_username:
-                            document
-                                .getElementById(
-                                    "listingUsername"
-                                )
-                                .value,
+                            whatsapp_username:
+                                document
+                                    .getElementById(
+                                        "listingUsername"
+                                    )
+                                    .value,
 
-                        asking_price:
-                            document
-                                .getElementById(
-                                    "listingPrice"
-                                )
-                                .value,
+                            asking_price:
+                                document
+                                    .getElementById(
+                                        "listingPrice"
+                                    )
+                                    .value,
 
-                        category:
-                            document
-                                .getElementById(
-                                    "listingCategory"
-                                )
-                                .value,
+                            category:
+                                document
+                                    .getElementById(
+                                        "listingCategory"
+                                    )
+                                    .value,
 
-                        description:
-                            document
-                                .getElementById(
-                                    "listingDescription"
-                                )
-                                .value,
+                            description:
+                                document
+                                    .getElementById(
+                                        "listingDescription"
+                                    )
+                                    .value,
 
-                        contact_type:
-                            document
-                                .getElementById(
-                                    "contactType"
-                                )
-                                .value,
+                            contact_type:
+                                document
+                                    .getElementById(
+                                        "contactType"
+                                    )
+                                    .value,
 
-                        contact_value:
-                            document
-                                .getElementById(
-                                    "contactValue"
-                                )
-                                .value
-                    })
+                            contact_value:
+                                document
+                                    .getElementById(
+                                        "contactValue"
+                                    )
+                                    .value
+                        })
                 }
             );
 
@@ -1157,7 +1304,10 @@ async function submitListing(event) {
             await response.json();
 
 
-        if (!response.ok || !data.ok) {
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
 
             throw new Error(
                 readableError(
@@ -1167,40 +1317,288 @@ async function submitListing(event) {
         }
 
 
-        message.className =
-            "message success";
-
-        message.textContent =
-            "✓ Listing submitted. Pending admin review.";
+        activePaymentOrderId =
+            data.order_id;
 
 
-        document
-            .getElementById(
-                "listingForm"
-            )
-            .reset();
+        const invoiceLink =
+            data.invoice_link;
 
 
-        await loadMyListings();
+        if (
+            !invoiceLink
+        ) {
+
+            throw new Error(
+                "Invoice link was not received."
+            );
+        }
+
+
+        showListingMessage(
+            "info",
+            `Invoice created. Complete payment of ${data.amount_stars} ⭐.`
+        );
+
+
+        // Telegram officially supports opening
+        // an invoice directly above the Mini App.
+        tg.openInvoice(
+            invoiceLink,
+
+            async status => {
+
+                console.log(
+                    "Invoice closed:",
+                    status
+                );
+
+
+                if (
+                    status ===
+                    "cancelled"
+                ) {
+
+                    showListingMessage(
+                        "error",
+                        "Payment cancelled."
+                    );
+
+                    resetListingButton();
+
+                    return;
+                }
+
+
+                if (
+                    status ===
+                    "failed"
+                ) {
+
+                    showListingMessage(
+                        "error",
+                        "Telegram reported that the payment failed."
+                    );
+
+                    resetListingButton();
+
+                    return;
+                }
+
+
+                if (
+                    status === "paid" ||
+                    status === "pending"
+                ) {
+
+                    showListingMessage(
+                        "info",
+                        "Payment sent. Waiting for secure server confirmation..."
+                    );
+
+
+                    await waitForPaymentCompletion(
+                        activePaymentOrderId
+                    );
+
+                    return;
+                }
+
+
+                showListingMessage(
+                    "info",
+                    "Checking payment status..."
+                );
+
+
+                await waitForPaymentCompletion(
+                    activePaymentOrderId
+                );
+            }
+        );
 
     }
 
     catch (error) {
 
-        message.className =
-            "message error";
+        console.error(
+            error
+        );
 
-        message.textContent =
-            "✕ " + error.message;
+
+        showListingMessage(
+            "error",
+            error.message
+        );
+
+
+        resetListingButton();
+    }
+}
+
+
+// ======================================================
+// WAIT FOR SERVER CONFIRMATION
+// ======================================================
+
+async function waitForPaymentCompletion(
+    orderId
+) {
+
+    const MAX_ATTEMPTS =
+        15;
+
+
+    for (
+        let attempt = 1;
+        attempt <= MAX_ATTEMPTS;
+        attempt++
+    ) {
+
+        try {
+
+            const response =
+                await fetch(
+                    API_URL +
+                    "/listing-payment/status",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                initData:
+                                    tg.initData,
+
+                                order_id:
+                                    orderId
+
+                            })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.ok
+            ) {
+
+                throw new Error(
+                    data.error ||
+                    "payment_status_failed"
+                );
+            }
+
+
+            const status =
+                data.order.status;
+
+
+            if (
+                status ===
+                "completed"
+            ) {
+
+                showListingMessage(
+                    "success",
+                    "✓ Payment confirmed. Listing submitted for admin review."
+                );
+
+
+                document
+                    .getElementById(
+                        "listingForm"
+                    )
+                    .reset();
+
+
+                activePaymentOrderId =
+                    null;
+
+
+                await loadMyListings();
+
+
+                resetListingButton();
+
+
+                return;
+            }
+
+
+            if (
+                status ===
+                "refunded"
+            ) {
+
+                showListingMessage(
+                    "error",
+                    "Payment was refunded because the listing could not be created."
+                );
+
+
+                resetListingButton();
+
+                return;
+            }
+
+
+            if (
+                status ===
+                "failed"
+            ) {
+
+                showListingMessage(
+                    "error",
+                    "Payment order failed."
+                );
+
+
+                resetListingButton();
+
+                return;
+            }
+
+
+            showListingMessage(
+                "info",
+                `Payment status: ${status}. Waiting for Telegram confirmation...`
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Status check:",
+                error
+            );
+        }
+
+
+        await sleep(
+            2000
+        );
     }
 
-    finally {
 
-        button.disabled = false;
+    showListingMessage(
+        "info",
+        "Payment confirmation is taking longer than expected. Do not pay again. Reopen Handle Market in a moment and check My Listings."
+    );
 
-        button.textContent =
-            "Submit Listing";
-    }
+
+    resetListingButton();
 }
 
 
@@ -1210,7 +1608,10 @@ async function submitListing(event) {
 
 async function loadMyListings() {
 
-    if (!tg?.initData) {
+    if (
+        !tg?.initData
+    ) {
+
         return;
     }
 
@@ -1225,19 +1626,22 @@ async function loadMyListings() {
 
         const response =
             await fetch(
-                API_URL + "/my-listings",
+                API_URL +
+                "/my-listings",
                 {
-                    method: "POST",
+                    method:
+                        "POST",
 
                     headers: {
                         "Content-Type":
                             "application/json"
                     },
 
-                    body: JSON.stringify({
-                        initData:
-                            tg.initData
-                    })
+                    body:
+                        JSON.stringify({
+                            initData:
+                                tg.initData
+                        })
                 }
             );
 
@@ -1246,12 +1650,20 @@ async function loadMyListings() {
             await response.json();
 
 
-        if (!response.ok || !data.ok) {
-            throw new Error();
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                data.error
+            );
         }
 
 
-        if (!data.listings.length) {
+        if (
+            !data.listings.length
+        ) {
 
             container.innerHTML = `
 
@@ -1267,7 +1679,9 @@ async function loadMyListings() {
 
         container.innerHTML =
             data.listings
-                .map(renderMyListing)
+                .map(
+                    renderMyListing
+                )
                 .join("");
 
     }
@@ -1295,7 +1709,8 @@ async function loadMarketplace() {
 
         const response =
             await fetch(
-                API_URL + "/listings"
+                API_URL +
+                "/listings"
             );
 
 
@@ -1303,13 +1718,20 @@ async function loadMarketplace() {
             await response.json();
 
 
-        if (!response.ok || !data.ok) {
-            throw new Error();
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                "marketplace_error"
+            );
         }
 
 
         marketplaceListings =
-            data.listings || [];
+            data.listings ||
+            [];
 
 
         renderMarketplace(
@@ -1323,6 +1745,19 @@ async function loadMarketplace() {
         document
             .getElementById(
                 "marketListings"
+            )
+            .innerHTML = `
+
+                <div class="empty">
+                    Marketplace unavailable.
+                </div>
+
+            `;
+
+
+        document
+            .getElementById(
+                "homeListings"
             )
             .innerHTML = `
 
@@ -1345,6 +1780,7 @@ function openAdminPanel() {
         !authenticatedUser ||
         !authenticatedUser.is_admin
     ) {
+
         return;
     }
 
@@ -1364,6 +1800,7 @@ async function loadPendingListings() {
     if (
         !authenticatedUser?.is_admin
     ) {
+
         return;
     }
 
@@ -1390,17 +1827,19 @@ async function loadPendingListings() {
                 API_URL +
                 "/admin/pending-listings",
                 {
-                    method: "POST",
+                    method:
+                        "POST",
 
                     headers: {
                         "Content-Type":
                             "application/json"
                     },
 
-                    body: JSON.stringify({
-                        initData:
-                            tg.initData
-                    })
+                    body:
+                        JSON.stringify({
+                            initData:
+                                tg.initData
+                        })
                 }
             );
 
@@ -1409,7 +1848,10 @@ async function loadPendingListings() {
             await response.json();
 
 
-        if (!response.ok || !data.ok) {
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
 
             throw new Error(
                 data.error
@@ -1417,7 +1859,9 @@ async function loadPendingListings() {
         }
 
 
-        if (!data.listings.length) {
+        if (
+            !data.listings.length
+        ) {
 
             container.innerHTML = `
 
@@ -1445,7 +1889,7 @@ async function loadPendingListings() {
         container.innerHTML = `
 
             <div class="empty">
-                Failed to load admin listings.
+                Failed to load pending listings.
             </div>
 
         `;
@@ -1454,7 +1898,7 @@ async function loadPendingListings() {
 
 
 // ======================================================
-// ADMIN ACTION
+// ADMIN APPROVE / REJECT
 // ======================================================
 
 async function adminSetStatus(
@@ -1463,26 +1907,24 @@ async function adminSetStatus(
     newStatus
 ) {
 
-    let text;
+    const text =
+        newStatus === "active"
 
+            ? `Approve @${username} and publish it?`
 
-    if (newStatus === "active") {
-
-        text =
-            `Approve @${username} and publish it in Marketplace?`;
-
-    } else {
-
-        text =
-            `Reject @${username}?`;
-    }
+            : `Reject @${username}?`;
 
 
     const confirmed =
-        await askConfirm(text);
+        await askConfirm(
+            text
+        );
 
 
-    if (!confirmed) {
+    if (
+        !confirmed
+    ) {
+
         return;
     }
 
@@ -1494,24 +1936,27 @@ async function adminSetStatus(
                 API_URL +
                 "/admin/listing-status",
                 {
-                    method: "POST",
+                    method:
+                        "POST",
 
                     headers: {
                         "Content-Type":
                             "application/json"
                     },
 
-                    body: JSON.stringify({
+                    body:
+                        JSON.stringify({
 
-                        initData:
-                            tg.initData,
+                            initData:
+                                tg.initData,
 
-                        listing_id:
-                            listingId,
+                            listing_id:
+                                listingId,
 
-                        status:
-                            newStatus
-                    })
+                            status:
+                                newStatus
+
+                        })
                 }
             );
 
@@ -1520,23 +1965,24 @@ async function adminSetStatus(
             await response.json();
 
 
-        if (!response.ok || !data.ok) {
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
 
             throw new Error(
-                data.error ||
-                "admin_action_failed"
+                data.error
             );
         }
 
 
-        if (tg?.showAlert) {
+        tg?.showAlert(
+            newStatus === "active"
 
-            tg.showAlert(
-                newStatus === "active"
-                    ? "Listing approved ✓"
-                    : "Listing rejected"
-            );
-        }
+                ? "Listing approved ✓"
+
+                : "Listing rejected"
+        );
 
 
         await loadPendingListings();
@@ -1549,157 +1995,27 @@ async function adminSetStatus(
 
     catch (error) {
 
-        if (tg?.showAlert) {
-
-            tg.showAlert(
-                "Error: " +
-                error.message
-            );
-        }
+        tg?.showAlert(
+            "Error: " +
+            error.message
+        );
     }
 }
 
 
 // ======================================================
-// RENDER ADMIN LISTING
+// RENDER PUBLIC MARKETPLACE
 // ======================================================
 
-function renderAdminListing(listing) {
-
-    let sellerText =
-        "Unknown seller";
-
-
-    if (listing.seller) {
-
-        const tgUsername =
-            listing.seller
-                .telegram_username
-                ? "@" +
-                    listing.seller.telegram_username
-                : "No Telegram username";
-
-
-        sellerText =
-            `${escapeHtml(
-                listing.seller.first_name ||
-                "Telegram User"
-            )}<br>${escapeHtml(
-                tgUsername
-            )}`;
-    }
-
-
-    return `
-
-        <div class="card">
-
-            <div class="username">
-
-                @${escapeHtml(
-                    listing.whatsapp_username
-                )}
-
-            </div>
-
-
-            <div class="badge badge-pending">
-                PENDING
-            </div>
-
-
-            <div class="price">
-
-                $${formatPrice(
-                    listing.asking_price
-                )}
-
-            </div>
-
-
-            <div class="meta">
-
-                ${escapeHtml(
-                    listing.category ||
-                    "Other"
-                )}
-
-            </div>
-
-
-            ${
-                listing.description
-                    ? `
-
-                        <div class="description">
-
-                            ${escapeHtml(
-                                listing.description
-                            )}
-
-                        </div>
-
-                    `
-                    : ""
-            }
-
-
-            <div class="seller-info">
-
-                <b>Seller</b><br>
-
-                ${sellerText}
-
-            </div>
-
-
-            <div class="buttons">
-
-                <button
-                    class="approve-button"
-                    onclick="adminSetStatus(
-                        '${listing.id}',
-                        '${escapeJs(
-                            listing.whatsapp_username
-                        )}',
-                        'active'
-                    )"
-                >
-                    ✓ Approve
-                </button>
-
-
-                <button
-                    class="reject-button"
-                    onclick="adminSetStatus(
-                        '${listing.id}',
-                        '${escapeJs(
-                            listing.whatsapp_username
-                        )}',
-                        'rejected'
-                    )"
-                >
-                    ✕ Reject
-                </button>
-
-            </div>
-
-        </div>
-
-    `;
-}
-
-
-// ======================================================
-// RENDER PUBLIC
-// ======================================================
-
-function renderMarketplace(listings) {
+function renderMarketplace(
+    listings
+) {
 
     const market =
         document.getElementById(
             "marketListings"
         );
+
 
     const home =
         document.getElementById(
@@ -1707,7 +2023,9 @@ function renderMarketplace(listings) {
         );
 
 
-    if (!listings.length) {
+    if (
+        !listings.length
+    ) {
 
         market.innerHTML = `
 
@@ -1726,13 +2044,16 @@ function renderMarketplace(listings) {
 
         `;
 
+
         return;
     }
 
 
     market.innerHTML =
         listings
-            .map(renderPublicListing)
+            .map(
+                renderPublicListing
+            )
             .join("");
 
 
@@ -1745,18 +2066,27 @@ function renderMarketplace(listings) {
 
     const homeItems =
         featured.length
+
             ? featured
-            : listings.slice(0, 5);
+
+            : listings.slice(
+                0,
+                5
+            );
 
 
     home.innerHTML =
         homeItems
-            .map(renderPublicListing)
+            .map(
+                renderPublicListing
+            )
             .join("");
 }
 
 
-function renderPublicListing(listing) {
+function renderPublicListing(
+    listing
+) {
 
     return `
 
@@ -1769,22 +2099,6 @@ function renderPublicListing(listing) {
                 )}
 
             </div>
-
-
-            ${
-                listing.verification_status ===
-                "verified"
-
-                ? `
-
-                    <div class="badge badge-verified">
-                        ✓ Owner verified
-                    </div>
-
-                `
-
-                : ""
-            }
 
 
             <div class="price">
@@ -1808,6 +2122,7 @@ function renderPublicListing(listing) {
 
             ${
                 listing.description
+
                     ? `
 
                         <div class="description">
@@ -1819,6 +2134,7 @@ function renderPublicListing(listing) {
                         </div>
 
                     `
+
                     : ""
             }
 
@@ -1849,22 +2165,32 @@ function renderPublicListing(listing) {
 
 
 // ======================================================
-// MY LISTING
+// RENDER MY LISTING
 // ======================================================
 
-function renderMyListing(listing) {
+function renderMyListing(
+    listing
+) {
 
     let badgeClass =
         "badge-pending";
 
 
-    if (listing.status === "active") {
+    if (
+        listing.status ===
+        "active"
+    ) {
+
         badgeClass =
             "badge-active";
     }
 
 
-    if (listing.status === "rejected") {
+    if (
+        listing.status ===
+        "rejected"
+    ) {
+
         badgeClass =
             "badge-rejected";
     }
@@ -1913,13 +2239,158 @@ function renderMyListing(listing) {
 
             </div>
 
+        </div>
+
+    `;
+}
+
+
+// ======================================================
+// RENDER ADMIN LISTING
+// ======================================================
+
+function renderAdminListing(
+    listing
+) {
+
+    let sellerText =
+        "Unknown seller";
+
+
+    if (
+        listing.seller
+    ) {
+
+        const sellerUsername =
+            listing.seller
+                .telegram_username
+
+                ? "@" +
+                    listing.seller
+                        .telegram_username
+
+                : "No Telegram username";
+
+
+        sellerText = `
+
+            ${escapeHtml(
+                listing.seller
+                    .first_name ||
+                "Telegram User"
+            )}
+
+            <br>
+
+            ${escapeHtml(
+                sellerUsername
+            )}
+
+        `;
+    }
+
+
+    return `
+
+        <div class="card">
+
+            <div class="username">
+
+                @${escapeHtml(
+                    listing.whatsapp_username
+                )}
+
+            </div>
+
+
+            <div class="badge badge-pending">
+                PENDING
+            </div>
+
+
+            <div class="price">
+
+                $${formatPrice(
+                    listing.asking_price
+                )}
+
+            </div>
+
 
             <div class="meta">
 
-                Verification:
                 ${escapeHtml(
-                    listing.verification_status
+                    listing.category ||
+                    "Other"
                 )}
+
+            </div>
+
+
+            ${
+                listing.description
+
+                    ? `
+
+                        <div class="description">
+
+                            ${escapeHtml(
+                                listing.description
+                            )}
+
+                        </div>
+
+                    `
+
+                    : ""
+            }
+
+
+            <div class="seller-info">
+
+                <b>Seller</b>
+
+                <br>
+
+                ${sellerText}
+
+            </div>
+
+
+            <div class="buttons">
+
+                <button
+                    class="approve-button"
+
+                    onclick="
+                        adminSetStatus(
+                            '${listing.id}',
+                            '${escapeJs(
+                                listing.whatsapp_username
+                            )}',
+                            'active'
+                        )
+                    "
+                >
+                    ✓ Approve
+                </button>
+
+
+                <button
+                    class="reject-button"
+
+                    onclick="
+                        adminSetStatus(
+                            '${listing.id}',
+                            '${escapeJs(
+                                listing.whatsapp_username
+                            )}',
+                            'rejected'
+                        )
+                    "
+                >
+                    ✕ Reject
+                </button>
 
             </div>
 
@@ -1933,16 +2404,26 @@ function renderMyListing(listing) {
 // SEARCH
 // ======================================================
 
-function filterMarketplace(value) {
+function filterMarketplace(
+    value
+) {
 
     const query =
-        String(value || "")
-            .replace("@", "")
+        String(
+            value ||
+            ""
+        )
+            .replace(
+                "@",
+                ""
+            )
             .trim()
             .toLowerCase();
 
 
-    if (!query) {
+    if (
+        !query
+    ) {
 
         renderMarketplace(
             marketplaceListings
@@ -1954,29 +2435,37 @@ function filterMarketplace(value) {
 
     const filtered =
         marketplaceListings
-            .filter(item =>
+            .filter(
+                item =>
 
-                item.whatsapp_username
-                    .toLowerCase()
-                    .includes(query)
+                    item
+                        .whatsapp_username
+                        .toLowerCase()
+                        .includes(
+                            query
+                        )
 
-                ||
+                    ||
 
-                String(
-                    item.category || ""
-                )
-                    .toLowerCase()
-                    .includes(query)
-
+                    String(
+                        item.category ||
+                        ""
+                    )
+                        .toLowerCase()
+                        .includes(
+                            query
+                        )
             );
 
 
-    renderMarketplace(filtered);
+    renderMarketplace(
+        filtered
+    );
 }
 
 
 // ======================================================
-// PAGE NAVIGATION
+// NAVIGATION
 // ======================================================
 
 function openPage(
@@ -1985,35 +2474,96 @@ function openPage(
 ) {
 
     document
-        .querySelectorAll(".page")
+        .querySelectorAll(
+            ".page"
+        )
         .forEach(
             page =>
-                page.classList.remove(
-                    "active"
-                )
+
+                page
+                    .classList
+                    .remove(
+                        "active"
+                    )
         );
 
 
     document
-        .getElementById(pageId)
-        .classList.add("active");
+        .getElementById(
+            pageId
+        )
+        .classList
+        .add(
+            "active"
+        );
 
 
     document
-        .querySelectorAll(".nav-item")
+        .querySelectorAll(
+            ".nav-item"
+        )
         .forEach(
             item =>
-                item.classList.remove(
-                    "active"
-                )
+
+                item
+                    .classList
+                    .remove(
+                        "active"
+                    )
         );
 
 
-    if (navElement) {
+    if (
+        navElement
+    ) {
+
         navElement
             .classList
-            .add("active");
+            .add(
+                "active"
+            );
     }
+}
+
+
+// ======================================================
+// MESSAGES
+// ======================================================
+
+function showListingMessage(
+    type,
+    text
+) {
+
+    const box =
+        document.getElementById(
+            "listingMessage"
+        );
+
+
+    box.className =
+        `message ${type}`;
+
+
+    box.textContent =
+        text;
+}
+
+
+function resetListingButton() {
+
+    const button =
+        document.getElementById(
+            "submitListingButton"
+        );
+
+
+    button.disabled =
+        false;
+
+
+    button.textContent =
+        `Pay ${listingPriceStars} ⭐ & Submit`;
 }
 
 
@@ -2021,23 +2571,32 @@ function openPage(
 // CONFIRM
 // ======================================================
 
-function askConfirm(text) {
+function askConfirm(
+    text
+) {
 
     return new Promise(
         resolve => {
 
-            if (tg?.showConfirm) {
+            if (
+                tg?.showConfirm
+            ) {
 
                 tg.showConfirm(
                     text,
+
                     result =>
-                        resolve(result)
+                        resolve(
+                            result
+                        )
                 );
 
             } else {
 
                 resolve(
-                    window.confirm(text)
+                    window.confirm(
+                        text
+                    )
                 );
             }
         }
@@ -2049,46 +2608,104 @@ function askConfirm(text) {
 // HELPERS
 // ======================================================
 
-function escapeHtml(value) {
+function sleep(
+    ms
+) {
 
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-
-function escapeJs(value) {
-
-    return String(value ?? "")
-        .replaceAll("\\", "\\\\")
-        .replaceAll("'", "\\'");
-}
-
-
-function formatPrice(value) {
-
-    const number =
-        Number(value);
-
-
-    if (!Number.isFinite(number)) {
-        return "0";
-    }
-
-
-    return number.toLocaleString(
-        "en-US",
-        {
-            maximumFractionDigits: 2
-        }
+    return new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                ms
+            )
     );
 }
 
 
-function readableError(error) {
+function escapeHtml(
+    value
+) {
+
+    return String(
+        value ??
+        ""
+    )
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+}
+
+
+function escapeJs(
+    value
+) {
+
+    return String(
+        value ??
+        ""
+    )
+        .replaceAll(
+            "\\",
+            "\\\\"
+        )
+        .replaceAll(
+            "'",
+            "\\'"
+        );
+}
+
+
+function formatPrice(
+    value
+) {
+
+    const number =
+        Number(
+            value
+        );
+
+
+    if (
+        !Number.isFinite(
+            number
+        )
+    ) {
+
+        return "0";
+    }
+
+
+    return number
+        .toLocaleString(
+            "en-US",
+            {
+                maximumFractionDigits:
+                    2
+            }
+        );
+}
+
+
+function readableError(
+    error
+) {
 
     const map = {
 
@@ -2096,19 +2713,31 @@ function readableError(error) {
             "Enter a valid username.",
 
         invalid_price:
-            "Enter a valid price.",
+            "Enter a valid asking price.",
+
+        invalid_contact_type:
+            "Select a valid contact method.",
 
         contact_required:
             "Seller contact is required.",
 
         listing_already_exists:
-            "You already submitted this username.",
+            "You already have this username listed or pending.",
+
+        listing_check_failed:
+            "Could not check existing listings.",
+
+        payment_order_failed:
+            "Could not create payment order.",
+
+        invoice_create_failed:
+            "Could not create Telegram Stars invoice.",
 
         initData_expired:
-            "Close and reopen the Mini App.",
+            "Telegram session expired. Close and reopen Handle Market.",
 
         account_blocked:
-            "Your account is blocked."
+            "Your Handle Market account is blocked."
 
     };
 
@@ -2120,6 +2749,10 @@ function readableError(error) {
     );
 }
 
+
+// ======================================================
+// FUTURE FEATURES
+// ======================================================
 
 function futureOffer() {
 
