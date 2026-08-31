@@ -156,7 +156,6 @@ function validateInitData(initData) {
                 "hex"
             );
 
-
         const calculatedBuffer =
             Buffer.from(
                 calculatedHash,
@@ -226,8 +225,7 @@ function validateInitData(initData) {
     if (
         !Number.isFinite(authDate) ||
         authDate <= 0 ||
-        now - authDate >
-            MAX_AGE_SECONDS ||
+        now - authDate > MAX_AGE_SECONDS ||
         authDate > now + 30
     ) {
 
@@ -288,75 +286,102 @@ function validateInitData(initData) {
         valid: true,
         user
     };
+
 }
 
 
 // ============================================
-// HEALTH
+// SIMPLE HEALTH CHECK
+// IMPORTANT: NO DATABASE REQUEST HERE
 // ============================================
 
 app.get(
     "/health",
 
+    (req, res) => {
+
+        res.status(200).json({
+            ok: true,
+            service: "Handle Market API"
+        });
+
+    }
+);
+
+
+// ============================================
+// DATABASE HEALTH CHECK
+// ============================================
+
+app.get(
+    "/db-health",
+
     async (req, res) => {
 
         if (!supabase) {
 
-            return res
-                .status(500)
-                .json({
-                    ok: false,
-                    service:
-                        "Handle Market API",
-                    database:
-                        "not_configured"
-                });
+            return res.status(500).json({
+                ok: false,
+                database: "not_configured"
+            });
 
         }
 
 
-        const {
-            error
-        } =
-            await supabase
-                .from("users")
-                .select(
-                    "telegram_id",
-                    {
-                        head: true,
-                        count: "exact"
-                    }
+        try {
+
+            const {
+                error
+            } =
+                await supabase
+                    .from("users")
+                    .select(
+                        "telegram_id",
+                        {
+                            head: true,
+                            count: "exact"
+                        }
+                    );
+
+
+            if (error) {
+
+                console.error(
+                    "Supabase error:",
+                    error
                 );
 
 
-        if (error) {
+                return res.status(500).json({
+                    ok: false,
+                    database: "error",
+                    message: error.message
+                });
+
+            }
+
+
+            return res.json({
+                ok: true,
+                database: "connected"
+            });
+
+        }
+
+        catch (error) {
 
             console.error(
-                "Supabase health error:",
+                "Database connection error:",
                 error
             );
 
 
-            return res
-                .status(500)
-                .json({
-                    ok: false,
-                    service:
-                        "Handle Market API",
-                    database:
-                        "error"
-                });
+            return res.status(500).json({
+                ok: false,
+                database: "connection_failed"
+            });
 
         }
-
-
-        res.json({
-            ok: true,
-            service:
-                "Handle Market API",
-            database:
-                "connected"
-        });
 
     }
 );
@@ -382,8 +407,7 @@ app.post(
                 .status(400)
                 .json({
                     ok: false,
-                    error:
-                        "initData_missing"
+                    error: "initData_missing"
                 });
 
         }
@@ -399,8 +423,7 @@ app.post(
                 .status(401)
                 .json({
                     ok: false,
-                    error:
-                        result.error
+                    error: result.error
                 });
 
         }
@@ -412,8 +435,7 @@ app.post(
                 .status(500)
                 .json({
                     ok: false,
-                    error:
-                        "database_not_configured"
+                    error: "database_not_configured"
                 });
 
         }
@@ -423,34 +445,25 @@ app.post(
             result.user;
 
 
-        // ====================================
-        // CREATE OR UPDATE USER IN DATABASE
-        // ====================================
-
         const userRecord = {
 
             telegram_id:
                 telegramUser.id,
 
             first_name:
-                telegramUser.first_name ||
-                "",
+                telegramUser.first_name || "",
 
             last_name:
-                telegramUser.last_name ||
-                "",
+                telegramUser.last_name || "",
 
             telegram_username:
-                telegramUser.username ||
-                null,
+                telegramUser.username || null,
 
             language_code:
-                telegramUser.language_code ||
-                null,
+                telegramUser.language_code || null,
 
             photo_url:
-                telegramUser.photo_url ||
-                null,
+                telegramUser.photo_url || null,
 
             last_seen_at:
                 new Date().toISOString()
@@ -487,8 +500,7 @@ app.post(
                 .status(500)
                 .json({
                     ok: false,
-                    error:
-                        "database_error"
+                    error: "database_error"
                 });
 
         }
@@ -502,18 +514,13 @@ app.post(
                 .status(403)
                 .json({
                     ok: false,
-                    error:
-                        "account_blocked"
+                    error: "account_blocked"
                 });
 
         }
 
 
-        // ====================================
-        // RESPONSE
-        // ====================================
-
-        res.json({
+        return res.json({
 
             ok: true,
 
@@ -546,7 +553,7 @@ app.post(
 
 
 // ============================================
-// BAD JSON / OTHER ERRORS
+// ERROR HANDLER
 // ============================================
 
 app.use(
@@ -564,8 +571,7 @@ app.use(
             .status(400)
             .json({
                 ok: false,
-                error:
-                    "bad_request"
+                error: "bad_request"
             });
 
     }
@@ -577,13 +583,12 @@ app.use(
 // ============================================
 
 const PORT =
-    process.env.PORT ||
-    3000;
+    process.env.PORT || 3000;
 
 
 app.listen(
     PORT,
-
+    "0.0.0.0",
     () => {
 
         console.log(
