@@ -17,8 +17,8 @@
 <style>
 
 /* =========================================================
-   HANDLE MARKET v14
-   MODERN UI + LISTING PAGE + PROMOTIONS
+   HANDLE MARKET v14.1
+   MODERN UI + PROMOTIONS + PREMIUM VIP/HOT BACKGROUNDS
    ========================================================= */
 
 :root {
@@ -413,14 +413,6 @@ header {
     padding: 0 16px 24px;
 }
 
-.section-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    margin-bottom: 12px;
-}
-
 .section-title {
     font-size: 18px;
     font-weight: 900;
@@ -539,7 +531,7 @@ header {
 
 
 /* =========================================================
-   CARDS
+   BASIC CARD
    ========================================================= */
 
 .card {
@@ -593,7 +585,7 @@ header {
 
 
 /* =========================================================
-   PROMOTION STYLES
+   PROMOTION BADGES
    ========================================================= */
 
 .promotion-badge {
@@ -618,12 +610,12 @@ header {
         linear-gradient(
             135deg,
             #6d3ff2,
-            #9f48e7,
-            #db7b29
+            #9a4bea 55%,
+            #e39b31
         );
 
     box-shadow:
-        0 5px 14px rgba(119,64,225,.22);
+        0 5px 15px rgba(119,64,225,.28);
 }
 
 .promotion-badge-hot {
@@ -632,12 +624,12 @@ header {
     background:
         linear-gradient(
             135deg,
-            #f04a22,
-            #f28b22
+            #ef3f2d,
+            #f27c22
         );
 
     box-shadow:
-        0 5px 14px rgba(240,90,30,.2);
+        0 5px 14px rgba(240,90,30,.24);
 }
 
 .promotion-badge-bump {
@@ -645,81 +637,286 @@ header {
     background: var(--blue-soft);
 }
 
+
+/* =========================================================
+   VIP PREMIUM CARD
+   ========================================================= */
+
 .listing-card.promotion-vip,
 .detail-card.promotion-vip {
+
     border: 2px solid transparent;
 
     background:
         linear-gradient(
-            var(--surface),
-            var(--surface)
+            135deg,
+            #f5edff 0%,
+            #edf5ff 48%,
+            #fff4d8 100%
         ) padding-box,
+
         linear-gradient(
             135deg,
-            #6d3ff2,
-            #2486ef,
-            #e2a733
+            #7144f0 0%,
+            #2589ef 50%,
+            #e7aa2d 100%
         ) border-box;
 
     box-shadow:
-        0 12px 35px rgba(108,63,242,.14),
-        0 0 0 1px rgba(255,255,255,.15) inset;
+        0 15px 40px rgba(106,67,224,.17),
+        0 5px 18px rgba(25,132,228,.08);
 }
 
-.listing-card.promotion-vip {
-    position: relative;
-    overflow: hidden;
-}
+
+/* Decorative VIP glow */
 
 .listing-card.promotion-vip::before,
 .detail-card.promotion-vip::before {
+
     content: "";
 
     position: absolute;
 
-    width: 130px;
-    height: 130px;
+    width: 180px;
+    height: 180px;
 
-    top: -70px;
-    right: -55px;
+    right: -95px;
+    top: -105px;
 
     border-radius: 50%;
 
     background:
         radial-gradient(
             circle,
-            rgba(132,83,245,.15),
-            transparent 70%
+            rgba(120,74,240,.19),
+            rgba(120,74,240,0) 70%
         );
 
     pointer-events: none;
 }
 
+
+.listing-card.promotion-vip::after,
+.detail-card.promotion-vip::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 150px;
+    height: 150px;
+
+    left: -100px;
+    bottom: -110px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(234,176,47,.15),
+            rgba(234,176,47,0) 72%
+        );
+
+    pointer-events: none;
+}
+
+
+/* VIP inner elements */
+
+.listing-card.promotion-vip .category-badge,
+.detail-card.promotion-vip .category-badge {
+
+    background:
+        rgba(255,255,255,.65);
+
+    color: #6d6676;
+
+    border:
+        1px solid rgba(255,255,255,.6);
+}
+
+
+.listing-card.promotion-vip .seller-link,
+.detail-card.promotion-vip .seller-link {
+
+    background:
+        rgba(238,229,255,.78);
+
+    color: #6440c4;
+}
+
+
+.listing-card.promotion-vip .listing-view-link,
+.detail-card.promotion-vip .listing-view-link {
+
+    background:
+        rgba(226,242,255,.82);
+}
+
+
+.listing-card.promotion-vip .owner-contact-box,
+.detail-card.promotion-vip .owner-contact-box {
+
+    background:
+        rgba(255,255,255,.58);
+
+    border-color:
+        rgba(111,69,232,.13);
+
+    backdrop-filter:
+        blur(5px);
+}
+
+
+.listing-card.promotion-vip .contact-lock-card,
+.detail-card.promotion-vip .contact-lock-card {
+
+    background:
+        rgba(235,245,255,.72);
+
+    border-color:
+        rgba(58,116,232,.18);
+}
+
+
+/* =========================================================
+   HOT PREMIUM CARD
+   ========================================================= */
+
 .listing-card.promotion-hot,
 .detail-card.promotion-hot {
+
     border: 2px solid transparent;
 
     background:
         linear-gradient(
-            var(--surface),
-            var(--surface)
+            135deg,
+            #fff0e5 0%,
+            #fff7ec 53%,
+            #fff1d7 100%
         ) padding-box,
+
         linear-gradient(
             135deg,
-            #ff3f39,
-            #ff7a1a,
-            #ffb21a
+            #ff4436 0%,
+            #ff7a1e 54%,
+            #ffb51d 100%
         ) border-box;
 
     box-shadow:
-        0 12px 30px rgba(239,93,31,.11);
+        0 14px 35px rgba(239,93,31,.14);
 }
+
+
+/* Decorative HOT glow */
+
+.listing-card.promotion-hot::before,
+.detail-card.promotion-hot::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 170px;
+    height: 170px;
+
+    right: -95px;
+    top: -100px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255,112,31,.16),
+            rgba(255,112,31,0) 70%
+        );
+
+    pointer-events: none;
+}
+
+
+.listing-card.promotion-hot .category-badge,
+.detail-card.promotion-hot .category-badge {
+
+    background:
+        rgba(255,255,255,.62);
+
+    color: #78695f;
+}
+
+
+.listing-card.promotion-hot .seller-link,
+.detail-card.promotion-hot .seller-link {
+
+    background:
+        rgba(255,235,222,.78);
+
+    color: #c65a21;
+}
+
+
+.listing-card.promotion-hot .listing-view-link,
+.detail-card.promotion-hot .listing-view-link {
+
+    background:
+        rgba(255,245,231,.82);
+
+    color: #d86721;
+}
+
+
+.listing-card.promotion-hot .owner-contact-box,
+.detail-card.promotion-hot .owner-contact-box {
+
+    background:
+        rgba(255,255,255,.58);
+
+    border-color:
+        rgba(239,103,27,.13);
+
+    backdrop-filter:
+        blur(5px);
+}
+
+
+.listing-card.promotion-hot .contact-lock-card,
+.detail-card.promotion-hot .contact-lock-card {
+
+    background:
+        rgba(255,244,230,.76);
+
+    border-color:
+        rgba(240,108,31,.18);
+}
+
+
+/* =========================================================
+   BUMP
+   ========================================================= */
 
 .listing-card.promotion-bump,
 .detail-card.promotion-bump {
+
+    border-color:
+        rgba(22,136,232,.18);
+
     box-shadow:
-        0 10px 30px rgba(22,136,232,.08);
+        0 12px 32px rgba(22,136,232,.09);
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--surface) 0%,
+            #f4f9ff 100%
+        );
 }
+
+
+/* =========================================================
+   PROMOTION STATUS
+   ========================================================= */
 
 .promotion-status {
     display: flex;
@@ -743,12 +940,22 @@ header {
 
 .promotion-status-vip {
     color: #7144d7;
-    background: #f4efff;
+
+    background:
+        rgba(240,232,255,.85);
+
+    border:
+        1px solid rgba(113,68,215,.10);
 }
 
 .promotion-status-hot {
     color: #d75718;
-    background: #fff1e8;
+
+    background:
+        rgba(255,235,220,.87);
+
+    border:
+        1px solid rgba(215,87,24,.08);
 }
 
 .promotion-status-bump {
@@ -756,7 +963,81 @@ header {
     background: var(--blue-soft);
 }
 
+
+/* =========================================================
+   DARK MODE PROMOTIONS
+   ========================================================= */
+
 @media (prefers-color-scheme: dark) {
+
+    .listing-card.promotion-vip,
+    .detail-card.promotion-vip {
+
+        background:
+            linear-gradient(
+                135deg,
+                #251d35 0%,
+                #19283a 52%,
+                #33291a 100%
+            ) padding-box,
+
+            linear-gradient(
+                135deg,
+                #895cff,
+                #3399ff,
+                #e9b244
+            ) border-box;
+
+        box-shadow:
+            0 16px 42px rgba(100,68,215,.22);
+    }
+
+
+    .listing-card.promotion-hot,
+    .detail-card.promotion-hot {
+
+        background:
+            linear-gradient(
+                135deg,
+                #342017 0%,
+                #2d2119 54%,
+                #352918 100%
+            ) padding-box,
+
+            linear-gradient(
+                135deg,
+                #ff5043,
+                #ff842d,
+                #ffc041
+            ) border-box;
+    }
+
+
+    .listing-card.promotion-bump,
+    .detail-card.promotion-bump {
+
+        background:
+            linear-gradient(
+                135deg,
+                #181b20,
+                #17212a
+            );
+    }
+
+
+    .listing-card.promotion-vip .category-badge,
+    .detail-card.promotion-vip .category-badge,
+    .listing-card.promotion-vip .owner-contact-box,
+    .detail-card.promotion-vip .owner-contact-box,
+    .listing-card.promotion-hot .category-badge,
+    .detail-card.promotion-hot .category-badge,
+    .listing-card.promotion-hot .owner-contact-box,
+    .detail-card.promotion-hot .owner-contact-box {
+
+        background:
+            rgba(255,255,255,.055);
+    }
+
 
     .promotion-status-vip {
         color: #c5afff;
@@ -776,7 +1057,13 @@ header {
 
 .listing-card {
     position: relative;
+    overflow: hidden;
     padding: 17px;
+}
+
+.listing-card > * {
+    position: relative;
+    z-index: 2;
 }
 
 .listing-header {
@@ -860,16 +1147,6 @@ header {
     background: var(--blue-soft);
 }
 
-.listing-view-link svg,
-.seller-link svg {
-    width: 12px;
-    height: 12px;
-
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-}
-
 .listing-actions {
     display: grid;
 
@@ -891,7 +1168,6 @@ header {
     min-width: 48px;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
@@ -904,16 +1180,12 @@ header {
     white-space: nowrap;
 }
 
-.action-icon-button svg {
-    width: 15px;
-    height: 15px;
-}
-
 .watch-button {
     color:
         var(--tg-theme-text-color, var(--text));
 
-    background: var(--surface-3);
+    background:
+        rgba(238,241,245,.82);
 }
 
 .watch-button.watching {
@@ -923,7 +1195,7 @@ header {
 
 .report-button {
     color: var(--red);
-    background: var(--red-soft);
+    background: rgba(255,240,240,.88);
 }
 
 .report-button.reported {
@@ -958,35 +1230,23 @@ header {
     border: 1px solid var(--border);
 }
 
-.detail-back-button svg {
-    width: 15px;
-    height: 15px;
-
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-}
-
 .detail-card {
     position: relative;
     overflow: hidden;
 
     padding: 22px;
 
-    border: 1px solid var(--border);
-
     border-radius: 26px;
-
-    background:
-        var(--tg-theme-secondary-bg-color, var(--surface));
 
     box-shadow: var(--shadow-lg);
 }
 
-.detail-label {
+.detail-card > * {
     position: relative;
-    z-index: 1;
+    z-index: 2;
+}
 
+.detail-label {
     color:
         var(--tg-theme-hint-color, var(--muted));
 
@@ -996,9 +1256,6 @@ header {
 }
 
 .detail-username {
-    position: relative;
-    z-index: 1;
-
     margin-top: 7px;
 
     font-size: 30px;
@@ -1010,9 +1267,6 @@ header {
 }
 
 .detail-price {
-    position: relative;
-    z-index: 1;
-
     margin-top: 13px;
 
     font-size: 28px;
@@ -1020,9 +1274,6 @@ header {
 }
 
 .detail-info {
-    position: relative;
-    z-index: 1;
-
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -1033,14 +1284,11 @@ header {
 }
 
 .detail-description {
-    position: relative;
-    z-index: 1;
-
     margin-top: 17px;
 
     padding-top: 15px;
 
-    border-top: 1px solid var(--border);
+    border-top: 1px solid rgba(100,100,100,.10);
 
     color: var(--text-2);
 
@@ -1049,9 +1297,6 @@ header {
 }
 
 .detail-actions {
-    position: relative;
-    z-index: 1;
-
     display: grid;
 
     grid-template-columns:
@@ -1093,16 +1338,6 @@ header {
 
     font-size: 11px;
     font-weight: 900;
-}
-
-.share-listing-button svg,
-.copy-link-button svg {
-    width: 16px;
-    height: 16px;
-
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.9;
 }
 
 .copy-link-button {
@@ -1181,12 +1416,7 @@ header {
     color: var(--blue);
 
     background:
-        var(--tg-theme-secondary-bg-color, var(--surface));
-}
-
-.contact-lock-icon svg {
-    width: 15px;
-    height: 15px;
+        rgba(255,255,255,.65);
 }
 
 .contact-lock-title {
@@ -1323,7 +1553,7 @@ button:active:not(:disabled) {
 
 
 /* =========================================================
-   PROMOTE BUTTON
+   PROMOTE
    ========================================================= */
 
 .promote-launch-button {
@@ -1362,7 +1592,6 @@ button:active:not(:disabled) {
     border-radius: 13px;
 
     color: var(--blue);
-
     background: var(--blue-soft);
 
     font-size: 9.5px;
@@ -1377,7 +1606,6 @@ button:active:not(:disabled) {
     border-radius: 13px;
 
     color: var(--green);
-
     background: var(--green-soft);
 
     font-size: 9.5px;
@@ -1405,8 +1633,8 @@ button:active:not(:disabled) {
     background:
         linear-gradient(
             135deg,
-            var(--surface-2),
-            var(--orange-soft)
+            #fff5ed,
+            #fff9f4
         );
 }
 
@@ -1415,9 +1643,10 @@ button:active:not(:disabled) {
 
     background:
         linear-gradient(
-            var(--surface-2),
-            var(--surface-2)
+            #f8f4ff,
+            #f8f4ff
         ) padding-box,
+
         linear-gradient(
             135deg,
             #7546ed,
@@ -1461,7 +1690,7 @@ button:active:not(:disabled) {
         var(--tg-theme-hint-color, var(--muted));
 
     background:
-        var(--tg-theme-secondary-bg-color, var(--surface));
+        rgba(255,255,255,.62);
 
     font-size: 8px;
     font-weight: 800;
@@ -1489,7 +1718,7 @@ button:active:not(:disabled) {
         var(--tg-theme-text-color, var(--text));
 
     background:
-        var(--tg-theme-secondary-bg-color, var(--surface));
+        rgba(255,255,255,.65);
 }
 
 .promotion-buy-button strong {
@@ -1508,16 +1737,6 @@ button:active:not(:disabled) {
         var(--tg-theme-hint-color, var(--muted));
 
     font-size: 8px;
-}
-
-.promotion-plan-hot .promotion-buy-button {
-    border-color:
-        rgba(236,100,25,.15);
-}
-
-.promotion-plan-vip .promotion-buy-button {
-    border-color:
-        rgba(111,69,232,.16);
 }
 
 .promotion-rules {
@@ -1827,12 +2046,6 @@ button:active:not(:disabled) {
         );
 }
 
-.profile-avatar svg,
-.seller-avatar svg {
-    width: 24px;
-    height: 24px;
-}
-
 .profile-name,
 .seller-name {
     font-size: 20px;
@@ -1912,11 +2125,6 @@ button:active:not(:disabled) {
 
     background:
         var(--tg-theme-secondary-bg-color, var(--surface));
-}
-
-.profile-tile-icon svg {
-    width: 16px;
-    height: 16px;
 }
 
 .profile-tile-purple .profile-tile-icon {
@@ -2722,13 +2930,7 @@ Loading...
     class="detail-back-button"
     onclick="openPage('marketplace',null)"
 >
-
-<svg viewBox="0 0 24 24">
-<path d="M15 18 9 12l6-6"></path>
-</svg>
-
-Marketplace
-
+← Marketplace
 </button>
 
 <div id="listingDetailContent">
@@ -2880,7 +3082,6 @@ LISTING FEE
 >
 Pay 1 ⭐ & Submit
 </button>
-
 
 <div id="listingMessage" class="message"></div>
 
@@ -3134,6 +3335,7 @@ Manage negotiations.
 
 </div>
 
+
 <div class="section">
 
 <div class="section-title">
@@ -3147,6 +3349,7 @@ Offers Sent
 </div>
 
 </div>
+
 
 <div class="section">
 
@@ -3379,7 +3582,7 @@ LEVEL 1
 </div>
 
 <div class="promotion-plan-subtitle">
-Priority placement with a bright HOT frame.
+Priority placement with a bright HOT design.
 </div>
 
 </div>
@@ -3465,7 +3668,7 @@ Close
 </div>
 
 
-<!-- EDIT SELLER PROFILE MODAL -->
+<!-- SELLER EDIT MODAL -->
 
 <div
     id="sellerEditModal"
@@ -3802,10 +4005,6 @@ Send Counter
 
 <script>
 
-/* =========================================================
-   CONFIG
-   ========================================================= */
-
 const API_URL =
     "https://handle-market.onrender.com";
 
@@ -3878,10 +4077,6 @@ if (tg) {
 }
 
 
-/* =========================================================
-   API
-   ========================================================= */
-
 async function api(
     path,
     body
@@ -3891,8 +4086,7 @@ async function api(
         await fetch(
             API_URL + path,
             {
-                method:
-                    "POST",
+                method: "POST",
 
                 headers: {
                     "Content-Type":
@@ -3928,10 +4122,6 @@ async function api(
     return data;
 }
 
-
-/* =========================================================
-   AUTH
-   ========================================================= */
 
 async function authenticate() {
 
@@ -4070,7 +4260,7 @@ async function authenticate() {
 
 
 /* =========================================================
-   PROMOTION HELPERS
+   PROMOTION
    ========================================================= */
 
 function promotionClass(
@@ -4084,26 +4274,17 @@ function promotionClass(
         );
 
 
-    if (
-        type ===
-        "vip"
-    ) {
+    if (type === "vip") {
         return "promotion-vip";
     }
 
 
-    if (
-        type ===
-        "hot"
-    ) {
+    if (type === "hot") {
         return "promotion-hot";
     }
 
 
-    if (
-        type ===
-        "bump"
-    ) {
+    if (type === "bump") {
         return "promotion-bump";
     }
 
@@ -4116,26 +4297,17 @@ function promotionLabel(
     type
 ) {
 
-    if (
-        type ===
-        "vip"
-    ) {
+    if (type === "vip") {
         return "💎 VIP";
     }
 
 
-    if (
-        type ===
-        "hot"
-    ) {
+    if (type === "hot") {
         return "🔥 HOT";
     }
 
 
-    if (
-        type ===
-        "bump"
-    ) {
+    if (type === "bump") {
         return "⬆️ BUMP";
     }
 
@@ -4235,24 +4407,19 @@ function formatPromotionRemaining(
     value
 ) {
 
-    if (
-        !value
-    ) {
+    if (!value) {
         return "Expired";
     }
 
 
     const diff =
-        new Date(value)
-            .getTime()
+        new Date(value).getTime()
         -
         Date.now();
 
 
     if (
-        !Number.isFinite(
-            diff
-        ) ||
+        !Number.isFinite(diff) ||
         diff <= 0
     ) {
         return "Expired";
@@ -4288,16 +4455,12 @@ function formatPromotionRemaining(
         60;
 
 
-    if (
-        days > 0
-    ) {
+    if (days > 0) {
         return `${days}d ${hours}h left`;
     }
 
 
-    if (
-        hours > 0
-    ) {
+    if (hours > 0) {
         return `${hours}h ${minutes}m left`;
     }
 
@@ -4323,16 +4486,14 @@ function durationLabel(
 ) {
 
     if (
-        Number(hours) ===
-        24
+        Number(hours) === 24
     ) {
         return "24 Hours";
     }
 
 
     if (
-        Number(hours) ===
-        72
+        Number(hours) === 72
     ) {
         return "3 Days";
     }
@@ -4341,10 +4502,6 @@ function durationLabel(
     return "7 Days";
 }
 
-
-/* =========================================================
-   PROMOTE LISTING
-   ========================================================= */
 
 function openPromotionModal(
     listingId
@@ -4358,9 +4515,7 @@ function openPromotionModal(
         );
 
 
-    if (
-        !listing
-    ) {
+    if (!listing) {
         return;
     }
 
@@ -4369,6 +4524,7 @@ function openPromotionModal(
         listing.status !==
         "active"
     ) {
+
         tg?.showAlert(
             "Only active listings can be promoted."
         );
@@ -4380,6 +4536,7 @@ function openPromotionModal(
     if (
         listing.is_frozen
     ) {
+
         tg?.showAlert(
             "Frozen listings cannot be promoted."
         );
@@ -4391,6 +4548,7 @@ function openPromotionModal(
     if (
         listing.is_paused
     ) {
+
         tg?.showAlert(
             "Resume this listing before promoting it."
         );
@@ -4488,20 +4646,6 @@ function openPromotionModal(
     );
 
 
-    const message =
-        document.getElementById(
-            "promotionMessage"
-        );
-
-
-    message.className =
-        "message";
-
-
-    message.textContent =
-        "";
-
-
     showModal(
         "promotionModal"
     );
@@ -4513,13 +4657,9 @@ function renderPromotionButtons(
     containerId
 ) {
 
-    const container =
-        document.getElementById(
-            containerId
-        );
-
-
-    container.innerHTML =
+    document.getElementById(
+        containerId
+    ).innerHTML =
         [
             24,
             72,
@@ -4540,20 +4680,11 @@ function renderPromotionButtons(
                     >
 
                         <strong>
-
-                            ${durationLabel(
-                                hours
-                            )}
-
+                            ${durationLabel(hours)}
                         </strong>
 
                         <span>
-
-                            ${promotionPriceFor(
-                                type,
-                                hours
-                            )} ⭐
-
+                            ${promotionPriceFor(type,hours)} ⭐
                         </span>
 
                     </button>
@@ -4585,13 +4716,8 @@ async function startPromotionPayment(
         true;
 
 
-    button.innerHTML = `
-
-        <strong>
-            Loading...
-        </strong>
-
-    `;
+    button.innerHTML =
+        `<strong>Loading...</strong>`;
 
 
     try {
@@ -4645,9 +4771,7 @@ async function startPromotionPayment(
 
         showPromotionMessage(
             "error",
-            readablePromotionError(
-                error.message
-            )
+            error.message
         );
 
     } finally {
@@ -4708,11 +4832,10 @@ async function waitPromotionPayment(
 
 
                 setTimeout(
-                    () => {
+                    () =>
                         closeModal(
                             "promotionModal"
-                        );
-                    },
+                        ),
                     900
                 );
 
@@ -4728,24 +4851,8 @@ async function waitPromotionPayment(
 
                 showPromotionMessage(
                     "error",
-                    "Promotion could not be activated. The Stars payment was refunded."
+                    "Promotion could not be activated. Stars were refunded."
                 );
-
-
-                return;
-            }
-
-
-            if (
-                data.order.status ===
-                "failed"
-            ) {
-
-                showPromotionMessage(
-                    "error",
-                    "Promotion payment failed."
-                );
-
 
                 return;
             }
@@ -4757,12 +4864,6 @@ async function waitPromotionPayment(
             1800
         );
     }
-
-
-    showPromotionMessage(
-        "info",
-        "Payment is still being processed. Reopen My Listings in a few seconds."
-    );
 }
 
 
@@ -4783,45 +4884,6 @@ function showPromotionMessage(
 
     box.textContent =
         text;
-}
-
-
-function readablePromotionError(
-    error
-) {
-
-    const errors = {
-
-        invalid_promotion:
-            "Invalid promotion option.",
-
-        listing_not_found:
-            "Listing not found.",
-
-        not_listing_owner:
-            "Only the listing owner can promote it.",
-
-        listing_not_promotable:
-            "This listing cannot currently be promoted.",
-
-        listing_has_agreement:
-            "This listing already has an accepted agreement.",
-
-        promotion_order_failed:
-            "Could not create promotion order.",
-
-        invoice_create_failed:
-            "Could not create Telegram Stars invoice."
-    };
-
-
-    return (
-        errors[
-            error
-        ] ||
-        error ||
-        "Promotion failed."
-    );
 }
 
 
@@ -4859,19 +4921,7 @@ function renderMainProfile(
                 >
 
                     <div class="profile-tile-icon">
-
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                        >
-
-                            <path
-                                d="M12 3 19 6v5c0 4.5-2.8 8-7 10-4.2-2-7-5.5-7-10V6z"
-                            ></path>
-
-                        </svg>
-
+                        🛡
                     </div>
 
                     <div>
@@ -4902,25 +4952,7 @@ function renderMainProfile(
             <div class="profile-top">
 
                 <div class="profile-avatar">
-
-                    <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                    >
-
-                        <circle
-                            cx="12"
-                            cy="8"
-                            r="3.5"
-                        ></circle>
-
-                        <path
-                            d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6"
-                        ></path>
-
-                    </svg>
-
+                    👤
                 </div>
 
                 <div>
@@ -5091,6 +5123,7 @@ async function loadMarketplace() {
         if (
             authenticatedUser
         ) {
+
             await checkUnlockedContacts(
                 marketplaceListings
             );
@@ -5450,9 +5483,7 @@ async function openListingPage(
         );
 
 
-    if (
-        !listing
-    ) {
+    if (!listing) {
 
         await loadMarketplace();
 
@@ -5478,9 +5509,7 @@ async function openListingPage(
         );
 
 
-    if (
-        !listing
-    ) {
+    if (!listing) {
 
         container.innerHTML = `
 
@@ -5888,9 +5917,7 @@ async function handleStartParameter() {
 
 async function loadMyListings() {
 
-    if (
-        !tg?.initData
-    ) {
+    if (!tg?.initData) {
         return;
     }
 
@@ -6522,9 +6549,7 @@ async function checkUnlockedContacts(
 
     if (
         !authenticatedUser ||
-        !Array.isArray(
-            listings
-        )
+        !Array.isArray(listings)
     ) {
         return;
     }
@@ -6806,9 +6831,7 @@ function showSellerContact(
     );
 
 
-    if (
-        owner
-    ) {
+    if (owner) {
         markOwnListing(
             listingId
         );
@@ -6840,9 +6863,7 @@ function markOwnListing(
                 );
 
 
-            if (
-                offer
-            ) {
+            if (offer) {
 
                 offer.disabled =
                     true;
@@ -6858,9 +6879,7 @@ function markOwnListing(
                 );
 
 
-            if (
-                report
-            ) {
+            if (report) {
 
                 report.dataset.owner =
                     "true";
@@ -7024,9 +7043,7 @@ function updateWatchButtons(
 
     const watched =
         watchedListingIds.has(
-            String(
-                listingId
-            )
+            String(listingId)
         );
 
 
@@ -7081,9 +7098,7 @@ function updateWatchlistCount() {
         );
 
 
-    if (
-        counter
-    ) {
+    if (counter) {
 
         counter.textContent =
             watchedListingIds.size;
@@ -8017,8 +8032,7 @@ async function loadSentOffers() {
                                     <div class="buttons">
 
                                         ${
-                                            offer.listing
-                                                ?.is_frozen
+                                            offer.listing?.is_frozen
 
                                                 ? ""
 
@@ -8175,8 +8189,7 @@ async function loadReceivedOffers() {
                                     <div class="buttons">
 
                                         ${
-                                            offer.listing
-                                                ?.is_frozen
+                                            offer.listing?.is_frozen
 
                                                 ? ""
 
@@ -8493,8 +8506,7 @@ async function loadWanted() {
 
                                     `
 
-                                    : post.buyer
-                                        ?.telegram_username
+                                    : post.buyer?.telegram_username
 
                                         ? `
 
@@ -9435,7 +9447,7 @@ function filterMarketplace(
 
 
 /* =========================================================
-   NAV / MODALS
+   NAVIGATION / MODALS
    ========================================================= */
 
 function openPage(
@@ -9453,11 +9465,17 @@ function openPage(
     );
 
 
-    document.getElementById(
-        id
-    ).classList.add(
-        "active"
-    );
+    const page =
+        document.getElementById(
+            id
+        );
+
+
+    if (page) {
+        page.classList.add(
+            "active"
+        );
+    }
 
 
     document.querySelectorAll(
@@ -9470,9 +9488,7 @@ function openPage(
     );
 
 
-    if (
-        nav
-    ) {
+    if (nav) {
 
         nav.classList.add(
             "active"
@@ -9600,9 +9616,7 @@ function openTelegramContact(
             .trim();
 
 
-    if (
-        username
-    ) {
+    if (username) {
 
         tg?.openTelegramLink(
             "https://t.me/" +
@@ -9660,11 +9674,8 @@ function formatMemberDate(
     return date.toLocaleDateString(
         "en-US",
         {
-            month:
-                "short",
-
-            year:
-                "numeric"
+            month: "short",
+            year: "numeric"
         }
     );
 }
