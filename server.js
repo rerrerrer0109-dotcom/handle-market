@@ -3,11 +3,9 @@ const crypto = require("crypto");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
-
 app.use(express.json({ limit: "100kb" }));
 
-const ALLOWED_ORIGIN =
-  "https://rerrerrer0109-dotcom.github.io";
+const ALLOWED_ORIGIN = "https://rerrerrer0109-dotcom.github.io";
 
 app.use((req, res, next) => {
   res.setHeader(
@@ -77,7 +75,7 @@ const TELEGRAM_WEBHOOK_SECRET =
 
 
 /* =========================================================
-   PROMOTION PRICES
+   PROMOTION
    ========================================================= */
 
 const PROMOTION_TEST_MODE =
@@ -96,7 +94,9 @@ const PROMOTION_TEST_PRICE_STARS =
   );
 
 const PROMOTION_PRICES = {
+
   bump: {
+
     24: Math.max(
       1,
       Number(
@@ -122,7 +122,9 @@ const PROMOTION_PRICES = {
     )
   },
 
+
   hot: {
+
     24: Math.max(
       1,
       Number(
@@ -148,7 +150,9 @@ const PROMOTION_PRICES = {
     )
   },
 
+
   vip: {
+
     24: Math.max(
       1,
       Number(
@@ -186,6 +190,7 @@ if (
   SUPABASE_URL &&
   SUPABASE_SECRET_KEY
 ) {
+
   supabase =
     createClient(
       SUPABASE_URL,
@@ -209,8 +214,12 @@ const sleep =
   ms =>
     new Promise(
       resolve =>
-        setTimeout(resolve, ms)
+        setTimeout(
+          resolve,
+          ms
+        )
     );
+
 
 const nowIso =
   () =>
@@ -218,57 +227,21 @@ const nowIso =
 
 
 /* =========================================================
-   USERNAME CATEGORIES
-
-   Premium is NOT a seller category.
-   Premium can only be awarded by Handle Market.
-   ========================================================= */
-
-const USERNAME_CATEGORIES = [
-  "Business",
-  "Brand",
-  "Tech & AI",
-  "Short",
-  "Travel",
-  "Finance",
-  "Gaming",
-  "Crypto",
-  "Media",
-  "Generic",
-  "Other"
-];
-
-
-function normalizeCategory(value) {
-  const raw =
-    String(
-      value ||
-      ""
-    ).trim();
-
-  if (raw === "AI") {
-    return "Tech & AI";
-  }
-
-  return USERNAME_CATEGORIES.includes(raw)
-    ? raw
-    : "Other";
-}
-
-
-/* =========================================================
-   TELEGRAM
+   TELEGRAM API
    ========================================================= */
 
 async function telegramApi(
   method,
   payload = {}
 ) {
+
   if (!BOT_TOKEN) {
+
     throw new Error(
       "BOT_TOKEN not configured"
     );
   }
+
 
   const response =
     await fetch(
@@ -286,24 +259,29 @@ async function telegramApi(
       }
     );
 
+
   const data =
     await response.json();
+
 
   if (
     !response.ok ||
     !data.ok
   ) {
+
     console.error(
       `Telegram API ${method}:`,
       data.description ||
       data
     );
 
+
     throw new Error(
       data.description ||
       "telegram_api_error"
     );
   }
+
 
   return data.result;
 }
@@ -313,7 +291,9 @@ async function safeSendMessage(
   chatId,
   text
 ) {
+
   try {
+
     await telegramApi(
       "sendMessage",
       {
@@ -323,7 +303,9 @@ async function safeSendMessage(
         text
       }
     );
+
   } catch (error) {
+
     console.log(
       "Notification not delivered:",
       error.message
@@ -338,6 +320,7 @@ function createStarsInvoice(
   payload,
   amount
 ) {
+
   return telegramApi(
     "createInvoiceLink",
     {
@@ -345,7 +328,8 @@ function createStarsInvoice(
       description,
       payload,
 
-      currency: "XTR",
+      currency:
+        "XTR",
 
       prices: [
         {
@@ -363,6 +347,7 @@ function refundStars(
   userId,
   chargeId
 ) {
+
   return telegramApi(
     "refundStarPayment",
     {
@@ -377,14 +362,16 @@ function refundStars(
 
 
 /* =========================================================
-   WEBHOOK SETUP
+   TELEGRAM WEBHOOK SETUP
    ========================================================= */
 
 async function setupTelegramWebhook() {
+
   if (
     !PUBLIC_BASE_URL ||
     !TELEGRAM_WEBHOOK_SECRET
   ) {
+
     console.log(
       "Webhook environment not configured"
     );
@@ -392,20 +379,25 @@ async function setupTelegramWebhook() {
     return;
   }
 
+
   const webhookUrl =
     PUBLIC_BASE_URL +
     "/telegram-webhook";
+
 
   for (
     let attempt = 1;
     attempt <= 6;
     attempt++
   ) {
+
     try {
+
       await telegramApi(
         "setWebhook",
         {
-          url: webhookUrl,
+          url:
+            webhookUrl,
 
           secret_token:
             TELEGRAM_WEBHOOK_SECRET,
@@ -420,20 +412,29 @@ async function setupTelegramWebhook() {
         }
       );
 
+
       console.log(
         "Telegram webhook configured ✓"
       );
 
+
       return;
+
     } catch (error) {
+
       console.error(
         `Webhook attempt ${attempt} failed:`,
         error.message
       );
 
-      if (attempt < 6) {
+
+      if (
+        attempt < 6
+      ) {
+
         await sleep(
-          attempt * 5000
+          attempt *
+          5000
         );
       }
     }
@@ -442,53 +443,83 @@ async function setupTelegramWebhook() {
 
 
 /* =========================================================
-   TELEGRAM INIT DATA
+   INIT DATA
    ========================================================= */
 
-function validateInitData(initData) {
+function validateInitData(
+  initData
+) {
+
   if (!BOT_TOKEN) {
+
     return {
       valid: false,
-      error: "server_not_configured"
+      error:
+        "server_not_configured"
     };
   }
+
 
   if (
     !initData ||
-    typeof initData !== "string"
+    typeof initData !==
+      "string"
   ) {
+
     return {
       valid: false,
-      error: "initData_missing"
+      error:
+        "initData_missing"
     };
   }
 
+
   const params =
-    new URLSearchParams(initData);
+    new URLSearchParams(
+      initData
+    );
+
 
   const receivedHash =
     params.get("hash");
 
+
   if (!receivedHash) {
+
     return {
       valid: false,
-      error: "hash_missing"
+      error:
+        "hash_missing"
     };
   }
 
-  params.delete("hash");
+
+  params.delete(
+    "hash"
+  );
+
 
   const dataCheckString =
-    [...params.entries()]
+    [
+      ...params.entries()
+    ]
       .sort(
-        ([a], [b]) =>
+        (
+          [a],
+          [b]
+        ) =>
           a.localeCompare(b)
       )
+
       .map(
-        ([key, value]) =>
+        (
+          [key, value]
+        ) =>
           `${key}=${value}`
       )
+
       .join("\n");
+
 
   const secretKey =
     crypto
@@ -496,8 +527,11 @@ function validateInitData(initData) {
         "sha256",
         "WebAppData"
       )
-      .update(BOT_TOKEN)
+      .update(
+        BOT_TOKEN
+      )
       .digest();
+
 
   const calculatedHash =
     crypto
@@ -505,15 +539,22 @@ function validateInitData(initData) {
         "sha256",
         secretKey
       )
-      .update(dataCheckString)
-      .digest("hex");
+      .update(
+        dataCheckString
+      )
+      .digest(
+        "hex"
+      );
+
 
   try {
+
     const a =
       Buffer.from(
         receivedHash,
         "hex"
       );
+
 
     const b =
       Buffer.from(
@@ -521,68 +562,103 @@ function validateInitData(initData) {
         "hex"
       );
 
+
     if (
-      a.length !== b.length ||
+      a.length !==
+        b.length
+      ||
       !crypto.timingSafeEqual(
         a,
         b
       )
     ) {
+
       return {
         valid: false,
-        error: "invalid_signature"
+        error:
+          "invalid_signature"
       };
     }
+
   } catch {
+
     return {
       valid: false,
-      error: "invalid_hash"
+      error:
+        "invalid_hash"
     };
   }
+
 
   const authDate =
     Number(
-      params.get("auth_date")
+      params.get(
+        "auth_date"
+      )
     );
+
 
   const now =
     Math.floor(
-      Date.now() / 1000
+      Date.now() /
+      1000
     );
 
+
   if (
-    !Number.isFinite(authDate) ||
-    authDate <= 0 ||
-    now - authDate > 3600 ||
-    authDate > now + 30
+    !Number.isFinite(
+      authDate
+    )
+    ||
+    authDate <= 0
+    ||
+    now - authDate >
+      3600
+    ||
+    authDate >
+      now + 30
   ) {
+
     return {
       valid: false,
-      error: "initData_expired"
+      error:
+        "initData_expired"
     };
   }
+
 
   let user;
 
+
   try {
+
     user =
       JSON.parse(
-        params.get("user") ||
+        params.get(
+          "user"
+        ) ||
         "null"
       );
+
   } catch {
+
     return {
       valid: false,
-      error: "invalid_user"
+      error:
+        "invalid_user"
     };
   }
 
+
   if (!user?.id) {
+
     return {
       valid: false,
-      error: "user_missing"
+      error:
+        "user_missing"
     };
   }
+
 
   return {
     valid: true,
@@ -598,54 +674,74 @@ function validateInitData(initData) {
 async function ensureSellerProfile(
   telegramId
 ) {
+
   const {
     data,
     error
   } =
     await supabase
-      .from("seller_profiles")
+
+      .from(
+        "seller_profiles"
+      )
+
       .upsert(
         {
           telegram_id:
-            Number(telegramId)
+            Number(
+              telegramId
+            )
         },
         {
           onConflict:
             "telegram_id"
         }
       )
+
       .select(
         "id,telegram_id,bio,is_public,created_at,updated_at"
       )
+
       .single();
 
+
   if (error) {
+
     throw error;
   }
+
 
   return data;
 }
 
 
 /* =========================================================
-   AUTH USER
+   AUTH DATABASE USER
    ========================================================= */
 
 async function getDatabaseUser(
   initData
 ) {
+
   const result =
-    validateInitData(initData);
+    validateInitData(
+      initData
+    );
+
 
   if (!result.valid) {
+
     return {
       ok: false,
       status: 401,
-      error: result.error
+      error:
+        result.error
     };
   }
 
+
   if (!supabase) {
+
     return {
       ok: false,
       status: 500,
@@ -654,12 +750,17 @@ async function getDatabaseUser(
     };
   }
 
+
   const tgUser =
     result.user;
 
+
   const userRecord = {
+
     telegram_id:
-      Number(tgUser.id),
+      Number(
+        tgUser.id
+      ),
 
     first_name:
       tgUser.first_name ||
@@ -685,12 +786,15 @@ async function getDatabaseUser(
       nowIso()
   };
 
+
   const {
     data,
     error
   } =
     await supabase
+
       .from("users")
+
       .upsert(
         userRecord,
         {
@@ -698,40 +802,56 @@ async function getDatabaseUser(
             "telegram_id"
         }
       )
+
       .select()
+
       .single();
 
+
   if (error) {
+
     console.error(
       "User DB error:",
       error
     );
 
+
     return {
       ok: false,
       status: 500,
-      error: "database_error"
+      error:
+        "database_error"
     };
   }
 
-  if (data.is_blocked) {
+
+  if (
+    data.is_blocked
+  ) {
+
     return {
       ok: false,
       status: 403,
-      error: "account_blocked"
+      error:
+        "account_blocked"
     };
   }
 
+
   try {
+
     data.seller_profile =
       await ensureSellerProfile(
         data.telegram_id
       );
+
   } catch (error) {
+
     console.error(
       "Seller profile ensure error:",
       error
     );
+
 
     return {
       ok: false,
@@ -740,6 +860,7 @@ async function getDatabaseUser(
         "seller_profile_error"
     };
   }
+
 
   return {
     ok: true,
@@ -751,24 +872,90 @@ async function getDatabaseUser(
 async function requireAdmin(
   initData
 ) {
+
   const auth =
     await getDatabaseUser(
       initData
     );
 
+
   if (!auth.ok) {
+
     return auth;
   }
 
-  if (!auth.user.is_admin) {
+
+  if (
+    !auth.user.is_admin
+  ) {
+
     return {
       ok: false,
       status: 403,
-      error: "admin_required"
+      error:
+        "admin_required"
     };
   }
 
+
   return auth;
+}
+
+
+/* =========================================================
+   CATEGORIES
+   ========================================================= */
+
+const USERNAME_CATEGORIES = [
+
+  "Business",
+
+  "Brand",
+
+  "Tech & AI",
+
+  "Short",
+
+  "Travel",
+
+  "Finance",
+
+  "Gaming",
+
+  "Crypto",
+
+  "Media",
+
+  "Generic",
+
+  "Other"
+];
+
+
+function normalizeCategory(
+  value
+) {
+
+  const raw =
+    String(
+      value ||
+      ""
+    ).trim();
+
+
+  if (
+    raw === "AI"
+  ) {
+
+    return "Tech & AI";
+  }
+
+
+  return USERNAME_CATEGORIES.includes(
+    raw
+  )
+    ? raw
+    : "Other";
 }
 
 
@@ -776,51 +963,75 @@ async function requireAdmin(
    LISTING VALIDATION
    ========================================================= */
 
-function validateListingInput(body) {
+function validateListingInput(
+  body
+) {
+
   let username =
     String(
       body.whatsapp_username ||
       ""
     ).trim();
 
+
   if (
-    username.startsWith("@")
+    username.startsWith(
+      "@"
+    )
   ) {
+
     username =
       username.slice(1);
   }
 
+
   if (
-    username.length < 2 ||
-    username.length > 64 ||
+    username.length < 2
+    ||
+    username.length > 64
+    ||
     !/^[a-zA-Z0-9._]+$/.test(
       username
     )
   ) {
+
     return {
       ok: false,
-      error: "invalid_username"
+      error:
+        "invalid_username"
     };
   }
+
 
   const price =
-    Number(body.asking_price);
+    Number(
+      body.asking_price
+    );
+
 
   if (
-    !Number.isFinite(price) ||
-    price <= 0 ||
+    !Number.isFinite(
+      price
+    )
+    ||
+    price <= 0
+    ||
     price > 100000000
   ) {
+
     return {
       ok: false,
-      error: "invalid_price"
+      error:
+        "invalid_price"
     };
   }
+
 
   const category =
     normalizeCategory(
       body.category
     );
+
 
   const description =
     String(
@@ -828,19 +1039,28 @@ function validateListingInput(body) {
       ""
     )
       .trim()
-      .slice(0, 500);
+      .slice(
+        0,
+        500
+      );
+
 
   const contactTypes = [
+
     "telegram",
+
     "email",
+
     "other"
   ];
+
 
   if (
     !contactTypes.includes(
       body.contact_type
     )
   ) {
+
     return {
       ok: false,
       error:
@@ -848,28 +1068,41 @@ function validateListingInput(body) {
     };
   }
 
+
   const contactValue =
     String(
       body.contact_value ||
       ""
     )
       .trim()
-      .slice(0, 200);
+      .slice(
+        0,
+        200
+      );
+
 
   if (!contactValue) {
+
     return {
       ok: false,
-      error: "contact_required"
+      error:
+        "contact_required"
     };
   }
 
+
   return {
+
     ok: true,
 
     data: {
+
       username,
+
       price,
+
       category,
+
       description,
 
       contactType:
@@ -884,28 +1117,38 @@ function validateListingInput(body) {
 function normalizeWantedUsername(
   value
 ) {
+
   let username =
     String(
       value ||
       ""
     ).trim();
 
+
   if (
-    username.startsWith("@")
+    username.startsWith(
+      "@"
+    )
   ) {
+
     username =
       username.slice(1);
   }
 
+
   if (
-    username.length < 2 ||
-    username.length > 64 ||
+    username.length < 2
+    ||
+    username.length > 64
+    ||
     !/^[a-zA-Z0-9._]+$/.test(
       username
     )
   ) {
+
     return null;
   }
+
 
   return username;
 }
@@ -919,37 +1162,258 @@ async function buyerHasContactAccess(
   buyerId,
   listingId
 ) {
+
   const {
     data,
     error
   } =
     await supabase
-      .from("contact_unlocks")
+
+      .from(
+        "contact_unlocks"
+      )
+
       .select("id")
+
       .eq(
         "buyer_telegram_id",
-        Number(buyerId)
+        Number(
+          buyerId
+        )
       )
+
       .eq(
         "listing_id",
         listingId
       )
+
       .eq(
         "status",
         "paid"
       )
+
       .maybeSingle();
 
+
   if (error) {
+
     console.error(
       "Contact access lookup:",
       error
     );
 
+
     return false;
   }
 
-  return Boolean(data);
+
+  return Boolean(
+    data
+  );
+}
+
+
+/* =========================================================
+   LISTING STATISTICS
+   ========================================================= */
+
+function countByListingId(
+  rows
+) {
+
+  const counts =
+    new Map();
+
+
+  for (
+    const row of
+    rows || []
+  ) {
+
+    const key =
+      String(
+        row.listing_id
+      );
+
+
+    counts.set(
+      key,
+      (
+        counts.get(key) ||
+        0
+      ) + 1
+    );
+  }
+
+
+  return counts;
+}
+
+
+async function attachOwnerListingStats(
+  listings
+) {
+
+  const rows =
+    listings || [];
+
+
+  const ids =
+    rows
+      .map(
+        row =>
+          row.id
+      )
+      .filter(Boolean);
+
+
+  if (!ids.length) {
+
+    return rows.map(
+      row => ({
+        ...row,
+
+        stats: {
+          views: 0,
+          watchlists: 0,
+          offers: 0
+        }
+      })
+    );
+  }
+
+
+  const [
+    viewsResult,
+    watchResult,
+    offersResult
+  ] =
+    await Promise.all([
+
+      supabase
+        .from(
+          "listing_views"
+        )
+        .select(
+          "listing_id"
+        )
+        .in(
+          "listing_id",
+          ids
+        ),
+
+
+      supabase
+        .from(
+          "watchlist"
+        )
+        .select(
+          "listing_id"
+        )
+        .in(
+          "listing_id",
+          ids
+        ),
+
+
+      supabase
+        .from(
+          "offers"
+        )
+        .select(
+          "listing_id"
+        )
+        .in(
+          "listing_id",
+          ids
+        )
+    ]);
+
+
+  if (
+    viewsResult.error
+  ) {
+
+    console.error(
+      "Listing views stats error:",
+      viewsResult.error
+    );
+  }
+
+
+  if (
+    watchResult.error
+  ) {
+
+    console.error(
+      "Watchlist stats error:",
+      watchResult.error
+    );
+  }
+
+
+  if (
+    offersResult.error
+  ) {
+
+    console.error(
+      "Offers stats error:",
+      offersResult.error
+    );
+  }
+
+
+  const viewCounts =
+    countByListingId(
+      viewsResult.data ||
+      []
+    );
+
+
+  const watchCounts =
+    countByListingId(
+      watchResult.data ||
+      []
+    );
+
+
+  const offerCounts =
+    countByListingId(
+      offersResult.data ||
+      []
+    );
+
+
+  return rows.map(
+    row => ({
+
+      ...row,
+
+      stats: {
+
+        views:
+          viewCounts.get(
+            String(
+              row.id
+            )
+          ) || 0,
+
+        watchlists:
+          watchCounts.get(
+            String(
+              row.id
+            )
+          ) || 0,
+
+        offers:
+          offerCounts.get(
+            String(
+              row.id
+            )
+          ) || 0
+      }
+    })
+  );
 }
 
 
@@ -961,22 +1425,28 @@ async function closeOtherOpenOffers(
   listingId,
   acceptedOfferId
 ) {
+
   const {
     data: openOffers
   } =
     await supabase
+
       .from("offers")
+
       .select(
         "id,buyer_telegram_id"
       )
+
       .eq(
         "listing_id",
         listingId
       )
+
       .neq(
         "id",
         acceptedOfferId
       )
+
       .in(
         "status",
         [
@@ -985,23 +1455,34 @@ async function closeOtherOpenOffers(
         ]
       );
 
-  const { error } =
+
+  const {
+    error
+  } =
     await supabase
+
       .from("offers")
+
       .update(
         {
-          status: "declined",
-          updated_at: nowIso()
+          status:
+            "declined",
+
+          updated_at:
+            nowIso()
         }
       )
+
       .eq(
         "listing_id",
         listingId
       )
+
       .neq(
         "id",
         acceptedOfferId
       )
+
       .in(
         "status",
         [
@@ -1010,14 +1491,18 @@ async function closeOtherOpenOffers(
         ]
       );
 
+
   if (error) {
+
     console.error(
       "Close other offers:",
       error
     );
   }
 
-  return openOffers || [];
+
+  return openOffers ||
+    [];
 }
 
 
@@ -1025,18 +1510,23 @@ async function closeListingOpenOffers(
   listingId,
   message
 ) {
+
   const {
     data: offers
   } =
     await supabase
+
       .from("offers")
+
       .select(
         "id,buyer_telegram_id"
       )
+
       .eq(
         "listing_id",
         listingId
       )
+
       .in(
         "status",
         [
@@ -1045,18 +1535,26 @@ async function closeListingOpenOffers(
         ]
       );
 
+
   await supabase
+
     .from("offers")
+
     .update(
       {
-        status: "declined",
-        updated_at: nowIso()
+        status:
+          "declined",
+
+        updated_at:
+          nowIso()
       }
     )
+
     .eq(
       "listing_id",
       listingId
     )
+
     .in(
       "status",
       [
@@ -1065,10 +1563,12 @@ async function closeListingOpenOffers(
       ]
     );
 
+
   for (
     const offer of
     offers || []
   ) {
+
     safeSendMessage(
       offer.buyer_telegram_id,
       message
@@ -1085,31 +1585,45 @@ function promotionPrice(
   type,
   durationHours
 ) {
+
   if (
-    !PROMOTION_PRICES[type] ||
+    !PROMOTION_PRICES[
+      type
+    ]
+    ||
     ![
       24,
       72,
       168
     ].includes(
-      Number(durationHours)
+      Number(
+        durationHours
+      )
     )
   ) {
+
     return null;
   }
 
+
   return PROMOTION_TEST_MODE
+
     ? PROMOTION_TEST_PRICE_STARS
+
     : PROMOTION_PRICES[
         type
       ][
-        Number(durationHours)
+        Number(
+          durationHours
+        )
       ];
 }
 
 
 function promotionPricesForClient() {
+
   const out = {};
+
 
   for (
     const type of
@@ -1119,7 +1633,10 @@ function promotionPricesForClient() {
       "vip"
     ]
   ) {
-    out[type] = {};
+
+    out[type] =
+      {};
+
 
     for (
       const hours of
@@ -1129,6 +1646,7 @@ function promotionPricesForClient() {
         168
       ]
     ) {
+
       out[type][hours] =
         promotionPrice(
           type,
@@ -1137,69 +1655,110 @@ function promotionPricesForClient() {
     }
   }
 
+
   return out;
 }
 
 
-function isFuture(value) {
+function isFuture(
+  value
+) {
+
   if (!value) {
+
     return false;
   }
 
-  const time =
-    new Date(value).getTime();
+
+  const t =
+    new Date(
+      value
+    ).getTime();
+
 
   return (
-    Number.isFinite(time) &&
-    time > Date.now()
+    Number.isFinite(t)
+    &&
+    t >
+      Date.now()
   );
 }
 
 
-function promotionMeta(listing) {
+function promotionMeta(
+  listing
+) {
+
   if (
     isFuture(
       listing.vip_until
     )
   ) {
+
     return {
-      promotion_type: "vip",
+
+      promotion_type:
+        "vip",
+
       promotion_until:
         listing.vip_until,
-      promotion_rank: 3
+
+      promotion_rank:
+        3
     };
   }
+
 
   if (
     isFuture(
       listing.hot_until
     )
   ) {
+
     return {
-      promotion_type: "hot",
+
+      promotion_type:
+        "hot",
+
       promotion_until:
         listing.hot_until,
-      promotion_rank: 2
+
+      promotion_rank:
+        2
     };
   }
+
 
   if (
     isFuture(
       listing.bump_until
     )
   ) {
+
     return {
-      promotion_type: "bump",
+
+      promotion_type:
+        "bump",
+
       promotion_until:
         listing.bump_until,
-      promotion_rank: 1
+
+      promotion_rank:
+        1
     };
   }
 
+
   return {
-    promotion_type: null,
-    promotion_until: null,
-    promotion_rank: 0
+
+    promotion_type:
+      null,
+
+    promotion_until:
+      null,
+
+    promotion_rank:
+      0
   };
 }
 
@@ -1207,13 +1766,18 @@ function promotionMeta(listing) {
 function promotionSortTime(
   listing
 ) {
+
   const meta =
-    promotionMeta(listing);
+    promotionMeta(
+      listing
+    );
+
 
   if (
     meta.promotion_type ===
     "vip"
   ) {
+
     return new Date(
       listing.vip_promoted_at ||
       listing.created_at ||
@@ -1221,10 +1785,12 @@ function promotionSortTime(
     ).getTime();
   }
 
+
   if (
     meta.promotion_type ===
     "hot"
   ) {
+
     return new Date(
       listing.hot_promoted_at ||
       listing.created_at ||
@@ -1232,16 +1798,19 @@ function promotionSortTime(
     ).getTime();
   }
 
+
   if (
     meta.promotion_type ===
     "bump"
   ) {
+
     return new Date(
       listing.bump_promoted_at ||
       listing.created_at ||
       0
     ).getTime();
   }
+
 
   return new Date(
     listing.created_at ||
@@ -1253,42 +1822,73 @@ function promotionSortTime(
 function sortListingsByPromotion(
   listings
 ) {
+
   return [
-    ...(listings || [])
+    ...(
+      listings ||
+      []
+    )
   ].sort(
-    (a, b) => {
-      const aRank =
-        promotionMeta(a)
+    (
+      a,
+      b
+    ) => {
+
+      const ar =
+        promotionMeta(
+          a
+        )
           .promotion_rank;
 
-      const bRank =
-        promotionMeta(b)
+
+      const br =
+        promotionMeta(
+          b
+        )
           .promotion_rank;
 
-      if (
-        bRank !== aRank
-      ) {
-        return bRank - aRank;
-      }
-
-      const bTime =
-        promotionSortTime(b);
-
-      const aTime =
-        promotionSortTime(a);
 
       if (
-        bTime !== aTime
+        br !== ar
       ) {
-        return bTime - aTime;
+
+        return (
+          br - ar
+        );
       }
+
+
+      const bt =
+        promotionSortTime(
+          b
+        );
+
+
+      const at =
+        promotionSortTime(
+          a
+        );
+
+
+      if (
+        bt !== at
+      ) {
+
+        return (
+          bt - at
+        );
+      }
+
 
       return (
+
         new Date(
           b.created_at ||
           0
         ).getTime()
+
         -
+
         new Date(
           a.created_at ||
           0
@@ -1299,11 +1899,18 @@ function sortListingsByPromotion(
 }
 
 
-function withPromotion(listing) {
+function withPromotion(
+  listing
+) {
+
   const meta =
-    promotionMeta(listing);
+    promotionMeta(
+      listing
+    );
+
 
   return {
+
     ...listing,
 
     promotion_type:
@@ -1322,71 +1929,101 @@ function withPromotion(listing) {
 async function attachPublicSellerProfiles(
   listings
 ) {
+
   const rows =
     listings || [];
+
 
   const sellerIds = [
     ...new Set(
       rows
         .map(
-          row =>
+          x =>
             Number(
-              row.seller_telegram_id
+              x.seller_telegram_id
             )
         )
         .filter(Boolean)
     )
   ];
 
+
   let profiles = [];
 
-  if (sellerIds.length) {
-    const { data } =
+
+  if (
+    sellerIds.length
+  ) {
+
+    const {
+      data
+    } =
       await supabase
-        .from("seller_profiles")
+
+        .from(
+          "seller_profiles"
+        )
+
         .select(
           "id,telegram_id,is_public"
         )
+
         .in(
           "telegram_id",
           sellerIds
         );
 
+
     profiles =
       data || [];
   }
 
+
   const profileMap =
     new Map(
+
       profiles
+
         .filter(
-          profile =>
-            profile.is_public
+          p =>
+            p.is_public
         )
+
         .map(
-          profile => [
+          p => [
             String(
-              profile.telegram_id
+              p.telegram_id
             ),
-            profile.id
+            p.id
           ]
         )
     );
 
+
   return rows.map(
     row => {
+
       const copy =
-        withPromotion(row);
+        withPromotion(
+          row
+        );
+
 
       const sellerId =
         copy.seller_telegram_id;
 
-      delete copy.seller_telegram_id;
+
+      delete copy
+        .seller_telegram_id;
+
 
       copy.seller_profile_id =
         profileMap.get(
-          String(sellerId)
+          String(
+            sellerId
+          )
         ) || null;
+
 
       return copy;
     }
@@ -1397,6 +2034,7 @@ async function attachPublicSellerProfiles(
 function safeSellerDisplayName(
   user
 ) {
+
   const first =
     String(
       user?.first_name ||
@@ -1404,14 +2042,18 @@ function safeSellerDisplayName(
     ).trim() ||
     "Seller";
 
+
   const last =
     String(
       user?.last_name ||
       ""
     ).trim();
 
+
   return last
+
     ? `${first} ${last.charAt(0).toUpperCase()}.`
+
     : first;
 }
 
@@ -1424,134 +2066,197 @@ async function buildSellerProfilePayload(
   profile,
   own = false
 ) {
+
   const {
     data: user
   } =
     await supabase
+
       .from("users")
+
       .select(
         "telegram_id,first_name,last_name"
       )
+
       .eq(
         "telegram_id",
         profile.telegram_id
       )
+
       .maybeSingle();
 
+
   if (!user) {
+
     return null;
   }
+
 
   const {
     data: allSellerListings
   } =
     await supabase
+
       .from("listings")
+
       .select("id")
+
       .eq(
         "seller_telegram_id",
         profile.telegram_id
       );
+
 
   const listingIds =
     (
       allSellerListings ||
       []
     ).map(
-      row => row.id
+      x =>
+        x.id
     );
+
 
   let acceptedAgreements =
     0;
 
-  if (listingIds.length) {
-    const { count } =
+
+  if (
+    listingIds.length
+  ) {
+
+    const {
+      count
+    } =
       await supabase
+
         .from("offers")
+
         .select(
           "id",
           {
-            count: "exact",
-            head: true
+            count:
+              "exact",
+
+            head:
+              true
           }
         )
+
         .in(
           "listing_id",
           listingIds
         )
+
         .eq(
           "status",
           "accepted"
         );
 
+
     acceptedAgreements =
-      Number(count || 0);
+      Number(
+        count ||
+        0
+      );
   }
 
+
   const {
-    count: activeWanted
+    count:
+      activeWanted
   } =
     await supabase
-      .from("wanted_requests")
+
+      .from(
+        "wanted_requests"
+      )
+
       .select(
         "id",
         {
-          count: "exact",
-          head: true
+          count:
+            "exact",
+
+          head:
+            true
         }
       )
+
       .eq(
         "buyer_telegram_id",
         profile.telegram_id
       )
+
       .eq(
         "status",
         "active"
       );
 
+
   const {
-    data: activeListings
+    data:
+      activeListings
   } =
     await supabase
+
       .from("listings")
+
       .select(
         "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at"
       )
+
       .eq(
         "seller_telegram_id",
         profile.telegram_id
       )
+
       .eq(
         "status",
         "active"
       )
+
       .eq(
         "is_paused",
         false
       )
+
       .eq(
         "is_frozen",
         false
       )
+
       .limit(100);
+
 
   const sorted =
     sortListingsByPromotion(
       activeListings ||
       []
-    ).map(
-      row => {
-        const copy =
-          withPromotion(row);
+    )
 
-        delete copy.seller_telegram_id;
+      .map(
+        row => {
 
-        return copy;
-      }
-    );
+          const copy =
+            withPromotion(
+              row
+            );
+
+
+          delete copy
+            .seller_telegram_id;
+
+
+          return copy;
+        }
+      );
+
 
   const payload = {
-    id: profile.id,
+
+    id:
+      profile.id,
 
     display_name:
       safeSellerDisplayName(
@@ -1569,6 +2274,7 @@ async function buildSellerProfilePayload(
       true,
 
     stats: {
+
       active_listings:
         sorted.length,
 
@@ -1586,40 +2292,54 @@ async function buildSellerProfilePayload(
       sorted
   };
 
+
   if (own) {
+
     payload.is_public =
       Boolean(
         profile.is_public
       );
 
+
     payload.updated_at =
       profile.updated_at;
   }
+
 
   return payload;
 }
 
 
 /* =========================================================
-   ADMIN NOTIFICATION
+   ADMIN NOTIFICATIONS
    ========================================================= */
 
-async function notifyAdmins(text) {
+async function notifyAdmins(
+  text
+) {
+
   const {
     data: admins
   } =
     await supabase
+
       .from("users")
-      .select("telegram_id")
+
+      .select(
+        "telegram_id"
+      )
+
       .eq(
         "is_admin",
         true
       );
 
+
   for (
     const admin of
     admins || []
   ) {
+
     safeSendMessage(
       admin.telegram_id,
       text
@@ -1634,7 +2354,11 @@ async function notifyAdmins(text) {
 
 app.get(
   "/health",
-  (req, res) => {
+  (
+    req,
+    res
+  ) => {
+
     res.json(
       {
         ok: true,
@@ -1643,7 +2367,7 @@ app.get(
           "Handle Market API",
 
         version:
-          "v19-premium"
+          "v21-listing-stats"
       }
     );
   }
@@ -1652,8 +2376,13 @@ app.get(
 
 app.get(
   "/db-health",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     if (!supabase) {
+
       return res
         .status(500)
         .json(
@@ -1665,34 +2394,46 @@ app.get(
         );
     }
 
-    const { error } =
+
+    const {
+      error
+    } =
       await supabase
+
         .from("users")
+
         .select(
           "telegram_id",
           {
             head: true,
-            count: "exact"
+            count:
+              "exact"
           }
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
           {
             ok: false,
-            database: "error",
+            database:
+              "error",
+
             message:
               error.message
           }
         );
     }
 
+
     res.json(
       {
         ok: true,
-        database: "connected"
+        database:
+          "connected"
       }
     );
   }
@@ -1705,68 +2446,81 @@ app.get(
 
 app.post(
   "/auth",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
 
-    const user =
+
+    const u =
       auth.user;
 
-    const profile =
-      user.seller_profile;
+
+    const p =
+      u.seller_profile;
+
 
     res.json(
       {
         ok: true,
 
         user: {
+
           id:
-            user.telegram_id,
+            u.telegram_id,
 
           first_name:
-            user.first_name,
+            u.first_name,
 
           last_name:
-            user.last_name,
+            u.last_name,
 
           username:
-            user.telegram_username,
+            u.telegram_username,
 
           language_code:
-            user.language_code,
+            u.language_code,
 
           photo_url:
-            user.photo_url,
+            u.photo_url,
 
           is_admin:
             Boolean(
-              user.is_admin
+              u.is_admin
             ),
 
           seller_profile_id:
-            profile?.id ||
+            p?.id ||
             null,
 
           seller_profile_bio:
-            profile?.bio ||
+            p?.bio ||
             "",
 
           seller_profile_is_public:
             Boolean(
-              profile?.is_public
+              p?.is_public
             )
         },
 
@@ -1791,34 +2545,48 @@ app.post(
 
 
 /* =========================================================
-   LISTING PAYMENT
+   LISTING PAYMENT CREATE
    ========================================================= */
 
 app.post(
   "/listing-payment/create",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const validation =
       validateListingInput(
         req.body
       );
 
-    if (!validation.ok) {
+
+    if (
+      !validation.ok
+    ) {
+
       return res
         .status(400)
         .json(
@@ -1830,27 +2598,38 @@ app.post(
         );
     }
 
+
     const seller =
       auth.user;
+
 
     const input =
       validation.data;
 
+
     const {
-      data: existing,
-      error: existingError
+      data:
+        existing,
+
+      error:
+        existingError
     } =
       await supabase
+
         .from("listings")
+
         .select("id")
+
         .eq(
           "seller_telegram_id",
           seller.telegram_id
         )
+
         .ilike(
           "whatsapp_username",
           input.username
         )
+
         .in(
           "status",
           [
@@ -1859,9 +2638,14 @@ app.post(
             "reserved"
           ]
         )
+
         .limit(1);
 
-    if (existingError) {
+
+    if (
+      existingError
+    ) {
+
       return res
         .status(500)
         .json(
@@ -1873,7 +2657,11 @@ app.post(
         );
     }
 
-    if (existing?.length) {
+
+    if (
+      existing?.length
+    ) {
+
       return res
         .status(409)
         .json(
@@ -1885,22 +2673,29 @@ app.post(
         );
     }
 
+
     const orderId =
       crypto.randomUUID();
+
 
     const payload =
       `listing:${orderId}`;
 
+
     const {
-      error: orderError
+      error:
+        orderError
     } =
       await supabase
+
         .from(
           "listing_payment_orders"
         )
+
         .insert(
           {
-            id: orderId,
+            id:
+              orderId,
 
             seller_telegram_id:
               seller.telegram_id,
@@ -1934,7 +2729,11 @@ app.post(
           }
         );
 
-    if (orderError) {
+
+    if (
+      orderError
+    ) {
+
       return res
         .status(500)
         .json(
@@ -1946,7 +2745,9 @@ app.post(
         );
     }
 
+
     try {
+
       const invoiceLink =
         await createStarsInvoice(
           "Handle Market Listing",
@@ -1958,10 +2759,13 @@ app.post(
           LISTING_PRICE_STARS
         );
 
+
       res.json(
         {
           ok: true,
-          order_id: orderId,
+
+          order_id:
+            orderId,
 
           amount_stars:
             LISTING_PRICE_STARS,
@@ -1970,20 +2774,27 @@ app.post(
             invoiceLink
         }
       );
+
     } catch {
+
       await supabase
+
         .from(
           "listing_payment_orders"
         )
+
         .update(
           {
-            status: "failed"
+            status:
+              "failed"
           }
         )
+
         .eq(
           "id",
           orderId
         );
+
 
       res
         .status(500)
@@ -1999,24 +2810,38 @@ app.post(
 );
 
 
+/* =========================================================
+   LISTING PAYMENT STATUS
+   ========================================================= */
+
 app.post(
   "/listing-payment/status",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const orderId =
       String(
@@ -2024,31 +2849,39 @@ app.post(
         ""
       ).trim();
 
+
     const {
       data: order,
       error
     } =
       await supabase
+
         .from(
           "listing_payment_orders"
         )
+
         .select(
           "id,amount_stars,status,listing_id"
         )
+
         .eq(
           "id",
           orderId
         )
+
         .eq(
           "seller_telegram_id",
           auth.user.telegram_id
         )
+
         .maybeSingle();
+
 
     if (
       error ||
       !order
     ) {
+
       return res
         .status(404)
         .json(
@@ -2059,6 +2892,7 @@ app.post(
           }
         );
     }
+
 
     res.json(
       {
@@ -2071,49 +2905,66 @@ app.post(
 
 
 /* =========================================================
-   MY LISTINGS
+   MY LISTINGS + STATISTICS
    ========================================================= */
 
 app.post(
   "/my-listings",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const {
       data,
       error
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,whatsapp_username,asking_price,currency,category,description,status,verification_status,is_premium_name,is_featured,is_paused,is_frozen,frozen_reason,frozen_at,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at"
         )
+
         .eq(
           "seller_telegram_id",
           auth.user.telegram_id
         )
+
         .order(
           "created_at",
           {
-            ascending: false
+            ascending:
+              false
           }
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -2124,6 +2975,22 @@ app.post(
           }
         );
     }
+
+
+    const promoted =
+      (
+        data ||
+        []
+      ).map(
+        withPromotion
+      );
+
+
+    const listingsWithStats =
+      await attachOwnerListingStats(
+        promoted
+      );
+
 
     res.json(
       {
@@ -2136,11 +3003,253 @@ app.post(
           null,
 
         listings:
-          (
-            data ||
-            []
-          ).map(
-            withPromotion
+          listingsWithStats
+      }
+    );
+  }
+);
+
+
+/* =========================================================
+   UNIQUE LISTING VIEW
+   ========================================================= */
+
+app.post(
+  "/listing/view",
+  async (
+    req,
+    res
+  ) => {
+
+    const auth =
+      await getDatabaseUser(
+        req.body.initData
+      );
+
+
+    if (!auth.ok) {
+
+      return res
+        .status(
+          auth.status
+        )
+        .json(
+          {
+            ok: false,
+            error:
+              auth.error
+          }
+        );
+    }
+
+
+    const listingId =
+      String(
+        req.body.listing_id ||
+        ""
+      ).trim();
+
+
+    if (!listingId) {
+
+      return res
+        .status(400)
+        .json(
+          {
+            ok: false,
+            error:
+              "listing_id_required"
+          }
+        );
+    }
+
+
+    const {
+      data:
+        listing,
+
+      error:
+        listingError
+    } =
+      await supabase
+
+        .from("listings")
+
+        .select(
+          "id,seller_telegram_id,status,is_paused,is_frozen"
+        )
+
+        .eq(
+          "id",
+          listingId
+        )
+
+        .maybeSingle();
+
+
+    if (
+      listingError
+      ||
+      !listing
+      ||
+      listing.status !==
+        "active"
+      ||
+      listing.is_paused
+      ||
+      listing.is_frozen
+    ) {
+
+      return res
+        .status(404)
+        .json(
+          {
+            ok: false,
+            error:
+              "listing_not_available"
+          }
+        );
+    }
+
+
+    const viewerId =
+      Number(
+        auth.user.telegram_id
+      );
+
+
+    if (
+      viewerId ===
+      Number(
+        listing.seller_telegram_id
+      )
+    ) {
+
+      return res.json(
+        {
+          ok: true,
+          counted: false,
+          owner: true
+        }
+      );
+    }
+
+
+    const {
+      error:
+        insertError
+    } =
+      await supabase
+
+        .from(
+          "listing_views"
+        )
+
+        .insert(
+          {
+            listing_id:
+              listingId,
+
+            viewer_telegram_id:
+              viewerId
+          }
+        );
+
+
+    if (
+      insertError &&
+      insertError.code !==
+        "23505"
+    ) {
+
+      console.error(
+        "Listing view insert error:",
+        insertError
+      );
+
+
+      return res
+        .status(500)
+        .json(
+          {
+            ok: false,
+            error:
+              "view_record_failed"
+          }
+        );
+    }
+
+
+    const counted =
+      !insertError;
+
+
+    const {
+      count,
+      error:
+        countError
+    } =
+      await supabase
+
+        .from(
+          "listing_views"
+        )
+
+        .select(
+          "listing_id",
+          {
+            count:
+              "exact",
+
+            head:
+              true
+          }
+        )
+
+        .eq(
+          "listing_id",
+          listingId
+        );
+
+
+    if (
+      !countError
+    ) {
+
+      await supabase
+
+        .from("listings")
+
+        .update(
+          {
+            views_count:
+              Number(
+                count ||
+                0
+              )
+          }
+        )
+
+        .eq(
+          "id",
+          listingId
+        );
+    }
+
+
+    return res.json(
+      {
+        ok: true,
+
+        counted,
+
+        owner:
+          false,
+
+        views:
+          Number(
+            count ||
+            0
           )
       }
     );
@@ -2154,31 +3263,43 @@ app.post(
 
 app.get(
   "/listings",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const {
       data,
       error
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at"
         )
+
         .eq(
           "status",
           "active"
         )
+
         .eq(
           "is_paused",
           false
         )
+
         .eq(
           "is_frozen",
           false
         )
+
         .limit(200);
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -2190,15 +3311,19 @@ app.get(
         );
     }
 
+
     const sorted =
       sortListingsByPromotion(
-        data || []
+        data ||
+        []
       );
+
 
     const publicRows =
       await attachPublicSellerProfiles(
         sorted
       );
+
 
     res.json(
       {
@@ -2221,22 +3346,32 @@ app.get(
 
 app.post(
   "/listing/manage/edit",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const listingId =
       String(
@@ -2244,10 +3379,12 @@ app.post(
         ""
       ).trim();
 
+
     const price =
       Number(
         req.body.asking_price
       );
+
 
     const description =
       String(
@@ -2255,47 +3392,68 @@ app.post(
         ""
       )
         .trim()
-        .slice(0, 500);
+        .slice(
+          0,
+          500
+        );
+
 
     if (
-      !listingId ||
-      !Number.isFinite(price) ||
-      price <= 0 ||
+      !listingId
+      ||
+      !Number.isFinite(
+        price
+      )
+      ||
+      price <= 0
+      ||
       price > 100000000
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-            error: "invalid_price"
+            error:
+              "invalid_price"
           }
         );
     }
 
+
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,status,is_frozen"
         )
+
         .eq(
           "id",
           listingId
         )
+
         .maybeSingle();
 
+
     if (
-      !listing ||
+      !listing
+      ||
       Number(
         listing.seller_telegram_id
-      ) !==
+      )
+      !==
       Number(
         auth.user.telegram_id
       )
     ) {
+
       return res
         .status(404)
         .json(
@@ -2307,9 +3465,11 @@ app.post(
         );
     }
 
+
     if (
       listing.is_frozen
     ) {
+
       return res
         .status(409)
         .json(
@@ -2321,6 +3481,7 @@ app.post(
         );
     }
 
+
     if (
       ![
         "active",
@@ -2329,6 +3490,7 @@ app.post(
         listing.status
       )
     ) {
+
       return res
         .status(409)
         .json(
@@ -2340,12 +3502,15 @@ app.post(
         );
     }
 
+
     const {
       data,
       error
     } =
       await supabase
+
         .from("listings")
+
         .update(
           {
             asking_price:
@@ -2357,14 +3522,19 @@ app.post(
               nowIso()
           }
         )
+
         .eq(
           "id",
           listingId
         )
+
         .select()
+
         .single();
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -2375,6 +3545,7 @@ app.post(
           }
         );
     }
+
 
     res.json(
       {
@@ -2387,27 +3558,37 @@ app.post(
 
 
 /* =========================================================
-   PAUSE / RESUME
+   LISTING PAUSE / RESUME
    ========================================================= */
 
 app.post(
   "/listing/manage/pause",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const listingId =
       String(
@@ -2415,18 +3596,23 @@ app.post(
         ""
       ).trim();
 
+
     const action =
       String(
         req.body.action ||
         ""
       ).trim();
 
+
     if (
       ![
         "pause",
         "resume"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
+
       return res
         .status(400)
         .json(
@@ -2438,29 +3624,39 @@ app.post(
         );
     }
 
+
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,status,is_frozen"
         )
+
         .eq(
           "id",
           listingId
         )
+
         .maybeSingle();
 
+
     if (
-      !listing ||
+      !listing
+      ||
       Number(
         listing.seller_telegram_id
-      ) !==
+      )
+      !==
       Number(
         auth.user.telegram_id
       )
     ) {
+
       return res
         .status(404)
         .json(
@@ -2472,10 +3668,12 @@ app.post(
         );
     }
 
+
     if (
       listing.status !==
       "active"
     ) {
+
       return res
         .status(409)
         .json(
@@ -2487,7 +3685,11 @@ app.post(
         );
     }
 
-    if (listing.is_frozen) {
+
+    if (
+      listing.is_frozen
+    ) {
+
       return res
         .status(409)
         .json(
@@ -2499,27 +3701,39 @@ app.post(
         );
     }
 
+
     if (
       action ===
       "resume"
     ) {
+
       const {
-        data: accepted
+        data:
+          accepted
       } =
         await supabase
+
           .from("offers")
+
           .select("id")
+
           .eq(
             "listing_id",
             listingId
           )
+
           .eq(
             "status",
             "accepted"
           )
+
           .limit(1);
 
-      if (accepted?.length) {
+
+      if (
+        accepted?.length
+      ) {
+
         return res
           .status(409)
           .json(
@@ -2532,12 +3746,15 @@ app.post(
       }
     }
 
+
     const {
       data,
       error
     } =
       await supabase
+
         .from("listings")
+
         .update(
           {
             is_paused:
@@ -2548,14 +3765,19 @@ app.post(
               nowIso()
           }
         )
+
         .eq(
           "id",
           listingId
         )
+
         .select()
+
         .single();
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -2567,10 +3789,12 @@ app.post(
         );
     }
 
+
     res.json(
       {
         ok: true,
-        listing: data
+        listing:
+          data
       }
     );
   }
@@ -2583,22 +3807,32 @@ app.post(
 
 app.post(
   "/listing/manage/remove",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const listingId =
       String(
@@ -2606,29 +3840,39 @@ app.post(
         ""
       ).trim();
 
+
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,status,is_frozen"
         )
+
         .eq(
           "id",
           listingId
         )
+
         .maybeSingle();
 
+
     if (
-      !listing ||
+      !listing
+      ||
       Number(
         listing.seller_telegram_id
-      ) !==
+      )
+      !==
       Number(
         auth.user.telegram_id
       )
     ) {
+
       return res
         .status(404)
         .json(
@@ -2640,7 +3884,11 @@ app.post(
         );
     }
 
-    if (listing.is_frozen) {
+
+    if (
+      listing.is_frozen
+    ) {
+
       return res
         .status(409)
         .json(
@@ -2652,10 +3900,12 @@ app.post(
         );
     }
 
+
     if (
       listing.status ===
       "removed"
     ) {
+
       return res.json(
         {
           ok: true
@@ -2663,25 +3913,35 @@ app.post(
       );
     }
 
-    const { error } =
+
+    const {
+      error
+    } =
       await supabase
+
         .from("listings")
+
         .update(
           {
-            status: "removed",
+            status:
+              "removed",
 
-            is_paused: true,
+            is_paused:
+              true,
 
             updated_at:
               nowIso()
           }
         )
+
         .eq(
           "id",
           listingId
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -2693,11 +3953,13 @@ app.post(
         );
     }
 
+
     await closeListingOpenOffers(
       listingId,
 
       `❌ @${listing.whatsapp_username} was removed. Your open offer was closed.`
     );
+
 
     res.json(
       {
@@ -2714,28 +3976,39 @@ app.post(
 
 app.post(
   "/promotion-payment/create",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const listingId =
       String(
         req.body.listing_id ||
         ""
       ).trim();
+
 
     const type =
       String(
@@ -2745,10 +4018,12 @@ app.post(
         .trim()
         .toLowerCase();
 
+
     const durationHours =
       Number(
         req.body.duration_hours
       );
+
 
     const amountStars =
       promotionPrice(
@@ -2756,10 +4031,12 @@ app.post(
         durationHours
       );
 
+
     if (
       !listingId ||
       !amountStars
     ) {
+
       return res
         .status(400)
         .json(
@@ -2771,25 +4048,35 @@ app.post(
         );
     }
 
+
     const {
-      data: listing,
-      error: listingError
+      data:
+        listing,
+
+      error:
+        listingError
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen"
         )
+
         .eq(
           "id",
           listingId
         )
+
         .maybeSingle();
+
 
     if (
       listingError ||
       !listing
     ) {
+
       return res
         .status(404)
         .json(
@@ -2801,14 +4088,17 @@ app.post(
         );
     }
 
+
     if (
       Number(
         listing.seller_telegram_id
-      ) !==
+      )
+      !==
       Number(
         auth.user.telegram_id
       )
     ) {
+
       return res
         .status(403)
         .json(
@@ -2820,12 +4110,16 @@ app.post(
         );
     }
 
+
     if (
       listing.status !==
-        "active" ||
-      listing.is_paused ||
+        "active"
+      ||
+      listing.is_paused
+      ||
       listing.is_frozen
     ) {
+
       return res
         .status(409)
         .json(
@@ -2837,23 +4131,34 @@ app.post(
         );
     }
 
+
     const {
-      data: accepted
+      data:
+        accepted
     } =
       await supabase
+
         .from("offers")
+
         .select("id")
+
         .eq(
           "listing_id",
           listingId
         )
+
         .eq(
           "status",
           "accepted"
         )
+
         .limit(1);
 
-    if (accepted?.length) {
+
+    if (
+      accepted?.length
+    ) {
+
       return res
         .status(409)
         .json(
@@ -2865,22 +4170,29 @@ app.post(
         );
     }
 
+
     const orderId =
       crypto.randomUUID();
+
 
     const payload =
       `promotion:${orderId}`;
 
+
     const {
-      error: orderError
+      error:
+        orderError
     } =
       await supabase
+
         .from(
           "promotion_payment_orders"
         )
+
         .insert(
           {
-            id: orderId,
+            id:
+              orderId,
 
             seller_telegram_id:
               auth.user.telegram_id,
@@ -2905,7 +4217,11 @@ app.post(
           }
         );
 
-    if (orderError) {
+
+    if (
+      orderError
+    ) {
+
       return res
         .status(500)
         .json(
@@ -2917,22 +4233,37 @@ app.post(
         );
     }
 
+
     const labels = {
-      bump: "Bump",
-      hot: "HOT",
-      vip: "VIP"
+
+      bump:
+        "Bump",
+
+      hot:
+        "HOT",
+
+      vip:
+        "VIP"
     };
+
 
     const durationLabel =
       durationHours === 24
+
         ? "24 hours"
+
         : durationHours === 72
+
           ? "3 days"
+
           : "7 days";
 
+
     try {
+
       const invoiceLink =
         await createStarsInvoice(
+
           `${labels[type]} Listing`,
 
           `${labels[type]} promotion for @${listing.whatsapp_username} · ${durationLabel}`,
@@ -2941,6 +4272,7 @@ app.post(
 
           amountStars
         );
+
 
       res.json(
         {
@@ -2962,20 +4294,27 @@ app.post(
             durationHours
         }
       );
+
     } catch {
+
       await supabase
+
         .from(
           "promotion_payment_orders"
         )
+
         .update(
           {
-            status: "failed"
+            status:
+              "failed"
           }
         )
+
         .eq(
           "id",
           orderId
         );
+
 
       res
         .status(500)
@@ -2997,22 +4336,32 @@ app.post(
 
 app.post(
   "/promotion-payment/status",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const orderId =
       String(
@@ -3020,31 +4369,41 @@ app.post(
         ""
       ).trim();
 
+
     const {
-      data: order,
+      data:
+        order,
+
       error
     } =
       await supabase
+
         .from(
           "promotion_payment_orders"
         )
+
         .select(
           "id,listing_id,promotion_type,duration_hours,amount_stars,status,applied_until,paid_at,completed_at"
         )
+
         .eq(
           "id",
           orderId
         )
+
         .eq(
           "seller_telegram_id",
           auth.user.telegram_id
         )
+
         .maybeSingle();
+
 
     if (
       error ||
       !order
     ) {
+
       return res
         .status(404)
         .json(
@@ -3055,6 +4414,7 @@ app.post(
           }
         );
     }
+
 
     res.json(
       {
@@ -3067,27 +4427,37 @@ app.post(
 
 
 /* =========================================================
-   LISTING CONTACT
+   CONTACT
    ========================================================= */
 
 app.post(
   "/listing-contact",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const listingId =
       String(
@@ -3095,25 +4465,35 @@ app.post(
         ""
       ).trim();
 
+
     const {
-      data: listing,
-      error: listingError
+      data:
+        listing,
+
+      error:
+        listingError
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,status,is_paused,is_frozen"
         )
+
         .eq(
           "id",
           listingId
         )
+
         .maybeSingle();
+
 
     if (
       listingError ||
       !listing
     ) {
+
       return res
         .status(404)
         .json(
@@ -3125,23 +4505,32 @@ app.post(
         );
     }
 
+
     const buyerId =
       Number(
         auth.user.telegram_id
       );
+
 
     const sellerId =
       Number(
         listing.seller_telegram_id
       );
 
+
     const owner =
-      buyerId === sellerId;
+      buyerId ===
+      sellerId;
+
 
     let unlocked =
       owner;
 
-    if (!unlocked) {
+
+    if (
+      !unlocked
+    ) {
+
       unlocked =
         await buyerHasContactAccess(
           buyerId,
@@ -3149,15 +4538,20 @@ app.post(
         );
     }
 
+
     if (
-      !unlocked &&
+      !unlocked
+      &&
       (
         listing.status !==
-          "active" ||
-        listing.is_paused ||
+          "active"
+        ||
+        listing.is_paused
+        ||
         listing.is_frozen
       )
     ) {
+
       return res
         .status(404)
         .json(
@@ -3169,12 +4563,14 @@ app.post(
         );
     }
 
+
     if (!unlocked) {
+
       return res.json(
         {
           ok: true,
-
-          unlocked: false,
+          unlocked:
+            false,
 
           price_stars:
             CONTACT_UNLOCK_PRICE_STARS
@@ -3182,25 +4578,37 @@ app.post(
       );
     }
 
+
     const {
-      data: contact,
-      error: contactError
+      data:
+        contact,
+
+      error:
+        contactError
     } =
       await supabase
-        .from("listing_contacts")
+
+        .from(
+          "listing_contacts"
+        )
+
         .select(
           "contact_type,contact_value"
         )
+
         .eq(
           "listing_id",
           listingId
         )
+
         .maybeSingle();
+
 
     if (
       contactError ||
       !contact
     ) {
+
       return res
         .status(404)
         .json(
@@ -3212,13 +4620,18 @@ app.post(
         );
     }
 
+
     res.json(
       {
         ok: true,
-        unlocked: true,
+
+        unlocked:
+          true,
+
         owner,
 
         contact: {
+
           type:
             contact.contact_type,
 
@@ -3237,27 +4650,38 @@ app.post(
 
 app.post(
   "/contact-unlock/create",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const buyerId =
       Number(
         auth.user.telegram_id
       );
+
 
     const listingId =
       String(
@@ -3265,29 +4689,43 @@ app.post(
         ""
       ).trim();
 
+
     const {
-      data: listing,
-      error: listingError
+      data:
+        listing,
+
+      error:
+        listingError
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen"
         )
+
         .eq(
           "id",
           listingId
         )
+
         .maybeSingle();
 
+
     if (
-      listingError ||
-      !listing ||
+      listingError
+      ||
+      !listing
+      ||
       listing.status !==
-        "active" ||
-      listing.is_paused ||
+        "active"
+      ||
+      listing.is_paused
+      ||
       listing.is_frozen
     ) {
+
       return res
         .status(404)
         .json(
@@ -3299,19 +4737,24 @@ app.post(
         );
     }
 
+
     if (
       Number(
         listing.seller_telegram_id
-      ) ===
+      )
+      ===
       buyerId
     ) {
+
       return res.json(
         {
           ok: true,
-          already_unlocked: true
+          already_unlocked:
+            true
         }
       );
     }
+
 
     if (
       await buyerHasContactAccess(
@@ -3319,27 +4762,41 @@ app.post(
         listingId
       )
     ) {
+
       return res.json(
         {
           ok: true,
-          already_unlocked: true
+          already_unlocked:
+            true
         }
       );
     }
 
+
     const {
-      data: contact
+      data:
+        contact
     } =
       await supabase
-        .from("listing_contacts")
-        .select("listing_id")
+
+        .from(
+          "listing_contacts"
+        )
+
+        .select(
+          "listing_id"
+        )
+
         .eq(
           "listing_id",
           listingId
         )
+
         .maybeSingle();
 
+
     if (!contact) {
+
       return res
         .status(404)
         .json(
@@ -3351,35 +4808,57 @@ app.post(
         );
     }
 
+
     const {
-      data: existingUnlock
+      data:
+        existingUnlock
     } =
       await supabase
-        .from("contact_unlocks")
+
+        .from(
+          "contact_unlocks"
+        )
+
         .select("*")
+
         .eq(
           "buyer_telegram_id",
           buyerId
         )
+
         .eq(
           "listing_id",
           listingId
         )
+
         .maybeSingle();
+
 
     const orderId =
       existingUnlock?.id ||
       crypto.randomUUID();
 
+
     const payload =
       `contact:${orderId}:${crypto.randomBytes(8).toString("hex")}`;
 
+
     let databaseError;
 
-    if (existingUnlock) {
-      const { error } =
+
+    if (
+      existingUnlock
+    ) {
+
+      const {
+        error
+      } =
         await supabase
-          .from("contact_unlocks")
+
+          .from(
+            "contact_unlocks"
+          )
+
           .update(
             {
               invoice_payload:
@@ -3394,24 +4873,38 @@ app.post(
               telegram_payment_charge_id:
                 null,
 
-              status: "pending",
-              paid_at: null
+              status:
+                "pending",
+
+              paid_at:
+                null
             }
           )
+
           .eq(
             "id",
             orderId
           );
 
+
       databaseError =
         error;
+
     } else {
-      const { error } =
+
+      const {
+        error
+      } =
         await supabase
-          .from("contact_unlocks")
+
+          .from(
+            "contact_unlocks"
+          )
+
           .insert(
             {
-              id: orderId,
+              id:
+                orderId,
 
               buyer_telegram_id:
                 buyerId,
@@ -3433,11 +4926,16 @@ app.post(
             }
           );
 
+
       databaseError =
         error;
     }
 
-    if (databaseError) {
+
+    if (
+      databaseError
+    ) {
+
       return res
         .status(500)
         .json(
@@ -3449,9 +4947,12 @@ app.post(
         );
     }
 
+
     try {
+
       const invoiceLink =
         await createStarsInvoice(
+
           "Unlock Seller Contact",
 
           `Unlock contact for @${listing.whatsapp_username}`,
@@ -3461,10 +4962,13 @@ app.post(
           CONTACT_UNLOCK_PRICE_STARS
         );
 
+
       res.json(
         {
           ok: true,
-          order_id: orderId,
+
+          order_id:
+            orderId,
 
           amount_stars:
             CONTACT_UNLOCK_PRICE_STARS,
@@ -3473,18 +4977,27 @@ app.post(
             invoiceLink
         }
       );
+
     } catch {
+
       await supabase
-        .from("contact_unlocks")
+
+        .from(
+          "contact_unlocks"
+        )
+
         .update(
           {
-            status: "failed"
+            status:
+              "failed"
           }
         )
+
         .eq(
           "id",
           orderId
         );
+
 
       res
         .status(500)
@@ -3500,24 +5013,38 @@ app.post(
 );
 
 
+/* =========================================================
+   CONTACT UNLOCK STATUS
+   ========================================================= */
+
 app.post(
   "/contact-unlock/status",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const orderId =
       String(
@@ -3525,29 +5052,41 @@ app.post(
         ""
       ).trim();
 
+
     const {
-      data: order,
+      data:
+        order,
+
       error
     } =
       await supabase
-        .from("contact_unlocks")
+
+        .from(
+          "contact_unlocks"
+        )
+
         .select(
           "id,listing_id,amount_stars,status,paid_at"
         )
+
         .eq(
           "id",
           orderId
         )
+
         .eq(
           "buyer_telegram_id",
           auth.user.telegram_id
         )
+
         .maybeSingle();
+
 
     if (
       error ||
       !order
     ) {
+
       return res
         .status(404)
         .json(
@@ -3558,6 +5097,7 @@ app.post(
           }
         );
     }
+
 
     res.json(
       {
@@ -3575,22 +5115,32 @@ app.post(
 
 app.post(
   "/watchlist/toggle",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const listingId =
       String(
@@ -3598,19 +5148,27 @@ app.post(
         ""
       ).trim();
 
+
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
+
         .from("listings")
+
         .select("id")
+
         .eq(
           "id",
           listingId
         )
+
         .maybeSingle();
 
+
     if (!listing) {
+
       return res
         .status(404)
         .json(
@@ -3622,46 +5180,76 @@ app.post(
         );
     }
 
+
     const {
-      data: existing
+      data:
+        existing
     } =
       await supabase
-        .from("watchlist")
-        .select("listing_id")
+
+        .from(
+          "watchlist"
+        )
+
+        .select(
+          "listing_id"
+        )
+
         .eq(
           "telegram_id",
           auth.user.telegram_id
         )
+
         .eq(
           "listing_id",
           listingId
         )
+
         .maybeSingle();
 
-    if (existing) {
+
+    if (
+      existing
+    ) {
+
       await supabase
-        .from("watchlist")
+
+        .from(
+          "watchlist"
+        )
+
         .delete()
+
         .eq(
           "telegram_id",
           auth.user.telegram_id
         )
+
         .eq(
           "listing_id",
           listingId
         );
 
+
       return res.json(
         {
           ok: true,
-          watched: false
+          watched:
+            false
         }
       );
     }
 
-    const { error } =
+
+    const {
+      error
+    } =
       await supabase
-        .from("watchlist")
+
+        .from(
+          "watchlist"
+        )
+
         .insert(
           {
             telegram_id:
@@ -3672,7 +5260,9 @@ app.post(
           }
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -3684,10 +5274,12 @@ app.post(
         );
     }
 
+
     res.json(
       {
         ok: true,
-        watched: true
+        watched:
+          true
       }
     );
   }
@@ -3696,36 +5288,57 @@ app.post(
 
 app.post(
   "/watchlist/list",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
 
+
     const {
-      data: watched,
+      data:
+        watched,
+
       error
     } =
       await supabase
-        .from("watchlist")
-        .select("listing_id")
+
+        .from(
+          "watchlist"
+        )
+
+        .select(
+          "listing_id"
+        )
+
         .eq(
           "telegram_id",
           auth.user.telegram_id
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -3737,16 +5350,21 @@ app.post(
         );
     }
 
+
     const listingIds =
       (
         watched ||
         []
       ).map(
-        row =>
-          row.listing_id
+        x =>
+          x.listing_id
       );
 
-    if (!listingIds.length) {
+
+    if (
+      !listingIds.length
+    ) {
+
       return res.json(
         {
           ok: true,
@@ -3756,43 +5374,56 @@ app.post(
       );
     }
 
+
     const {
-      data: listings
+      data:
+        listings
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at"
         )
+
         .in(
           "id",
           listingIds
         )
+
         .eq(
           "status",
           "active"
         )
+
         .eq(
           "is_paused",
           false
         )
+
         .eq(
           "is_frozen",
           false
         );
 
+
     const publicRows =
       await attachPublicSellerProfiles(
         sortListingsByPromotion(
-          listings || []
+          listings ||
+          []
         )
       );
+
 
     res.json(
       {
         ok: true,
+
         listing_ids:
           listingIds,
+
         listings:
           publicRows
       }
@@ -3802,34 +5433,50 @@ app.post(
 
 
 /* =========================================================
-   WANTED PUBLIC
+   WANTED
    ========================================================= */
 
 app.get(
   "/wanted",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const {
-      data: posts,
+      data:
+        posts,
+
       error
     } =
       await supabase
-        .from("wanted_requests")
+
+        .from(
+          "wanted_requests"
+        )
+
         .select(
           "id,buyer_telegram_id,desired_username,budget,currency,category,description,status,created_at"
         )
+
         .eq(
           "status",
           "active"
         )
+
         .order(
           "created_at",
           {
-            ascending: false
+            ascending:
+              false
           }
         )
+
         .limit(100);
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -3841,47 +5488,62 @@ app.get(
         );
     }
 
+
     const buyerIds = [
       ...new Set(
         (
           posts ||
           []
         ).map(
-          row =>
-            row.buyer_telegram_id
+          x =>
+            x.buyer_telegram_id
         )
       )
     ];
 
+
     let buyers = [];
 
-    if (buyerIds.length) {
-      const { data } =
+
+    if (
+      buyerIds.length
+    ) {
+
+      const {
+        data
+      } =
         await supabase
+
           .from("users")
+
           .select(
             "telegram_id,first_name,telegram_username"
           )
+
           .in(
             "telegram_id",
             buyerIds
           );
 
+
       buyers =
-        data || [];
+        data ||
+        [];
     }
+
 
     const map =
       new Map(
         buyers.map(
-          row => [
+          x => [
             String(
-              row.telegram_id
+              x.telegram_id
             ),
-            row
+            x
           ]
         )
       );
+
 
     res.json(
       {
@@ -3892,13 +5554,13 @@ app.get(
             posts ||
             []
           ).map(
-            row => ({
-              ...row,
+            x => ({
+              ...x,
 
               buyer:
                 map.get(
                   String(
-                    row.buyer_telegram_id
+                    x.buyer_telegram_id
                   )
                 ) ||
                 null
@@ -3916,44 +5578,63 @@ app.get(
 
 app.post(
   "/my-wanted",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const {
       data,
       error
     } =
       await supabase
-        .from("wanted_requests")
+
+        .from(
+          "wanted_requests"
+        )
+
         .select(
           "id,desired_username,budget,currency,category,description,status,created_at,updated_at"
         )
+
         .eq(
           "buyer_telegram_id",
           auth.user.telegram_id
         )
+
         .order(
           "created_at",
           {
-            ascending: false
+            ascending:
+              false
           }
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -3965,11 +5646,13 @@ app.post(
         );
     }
 
+
     res.json(
       {
         ok: true,
         posts:
-          data || []
+          data ||
+          []
       }
     );
   }
@@ -3982,22 +5665,32 @@ app.post(
 
 app.post(
   "/wanted/close",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const wantedId =
       String(
@@ -4005,38 +5698,52 @@ app.post(
         ""
       ).trim();
 
+
     const {
       data,
       error
     } =
       await supabase
-        .from("wanted_requests")
+
+        .from(
+          "wanted_requests"
+        )
+
         .update(
           {
-            status: "closed",
+            status:
+              "closed",
+
             updated_at:
               nowIso()
           }
         )
+
         .eq(
           "id",
           wantedId
         )
+
         .eq(
           "buyer_telegram_id",
           auth.user.telegram_id
         )
+
         .eq(
           "status",
           "active"
         )
+
         .select()
+
         .maybeSingle();
+
 
     if (
       error ||
       !data
     ) {
+
       return res
         .status(404)
         .json(
@@ -4047,6 +5754,7 @@ app.post(
           }
         );
     }
+
 
     res.json(
       {
@@ -4064,49 +5772,65 @@ app.post(
 
 app.post(
   "/wanted-payment/create",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
 
+
     if (
-      !auth.user.telegram_username
+      !auth.user
+        .telegram_username
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-
             error:
               "public_telegram_username_required"
           }
         );
     }
 
+
     const username =
       normalizeWantedUsername(
-        req.body.desired_username
+        req.body
+          .desired_username
       );
+
 
     const budget =
       Number(
         req.body.budget
       );
 
+
     if (!username) {
+
       return res
         .status(400)
         .json(
@@ -4118,11 +5842,18 @@ app.post(
         );
     }
 
+
     if (
-      !Number.isFinite(budget) ||
-      budget <= 0 ||
-      budget > 100000000
+      !Number.isFinite(
+        budget
+      )
+      ||
+      budget <= 0
+      ||
+      budget >
+        100000000
     ) {
+
       return res
         .status(400)
         .json(
@@ -4134,10 +5865,12 @@ app.post(
         );
     }
 
+
     const category =
       normalizeCategory(
         req.body.category
       );
+
 
     const description =
       String(
@@ -4145,29 +5878,46 @@ app.post(
         ""
       )
         .trim()
-        .slice(0, 500);
+        .slice(
+          0,
+          500
+        );
+
 
     const {
-      data: duplicate
+      data:
+        duplicate
     } =
       await supabase
-        .from("wanted_requests")
+
+        .from(
+          "wanted_requests"
+        )
+
         .select("id")
+
         .eq(
           "buyer_telegram_id",
           auth.user.telegram_id
         )
+
         .ilike(
           "desired_username",
           username
         )
+
         .eq(
           "status",
           "active"
         )
+
         .limit(1);
 
-    if (duplicate?.length) {
+
+    if (
+      duplicate?.length
+    ) {
+
       return res
         .status(409)
         .json(
@@ -4179,20 +5929,28 @@ app.post(
         );
     }
 
+
     const orderId =
       crypto.randomUUID();
+
 
     const payload =
       `wanted:${orderId}`;
 
-    const { error } =
+
+    const {
+      error
+    } =
       await supabase
+
         .from(
           "wanted_payment_orders"
         )
+
         .insert(
           {
-            id: orderId,
+            id:
+              orderId,
 
             buyer_telegram_id:
               auth.user.telegram_id,
@@ -4207,7 +5965,9 @@ app.post(
               username,
 
             budget,
+
             category,
+
             description,
 
             status:
@@ -4215,22 +5975,26 @@ app.post(
           }
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
           {
             ok: false,
-
             error:
               "wanted_payment_order_failed"
           }
         );
     }
 
+
     try {
+
       const invoiceLink =
         await createStarsInvoice(
+
           "Publish Wanted Request",
 
           `Publish Wanted request for @${username}`,
@@ -4240,10 +6004,13 @@ app.post(
           WANTED_PRICE_STARS
         );
 
+
       res.json(
         {
           ok: true,
-          order_id: orderId,
+
+          order_id:
+            orderId,
 
           amount_stars:
             WANTED_PRICE_STARS,
@@ -4252,20 +6019,27 @@ app.post(
             invoiceLink
         }
       );
+
     } catch {
+
       await supabase
+
         .from(
           "wanted_payment_orders"
         )
+
         .update(
           {
-            status: "failed"
+            status:
+              "failed"
           }
         )
+
         .eq(
           "id",
           orderId
         );
+
 
       res
         .status(500)
@@ -4281,24 +6055,38 @@ app.post(
 );
 
 
+/* =========================================================
+   WANTED PAYMENT STATUS
+   ========================================================= */
+
 app.post(
   "/wanted-payment/status",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const orderId =
       String(
@@ -4306,31 +6094,41 @@ app.post(
         ""
       ).trim();
 
+
     const {
-      data: order,
+      data:
+        order,
+
       error
     } =
       await supabase
+
         .from(
           "wanted_payment_orders"
         )
+
         .select(
           "id,amount_stars,status,wanted_post_id"
         )
+
         .eq(
           "id",
           orderId
         )
+
         .eq(
           "buyer_telegram_id",
           auth.user.telegram_id
         )
+
         .maybeSingle();
+
 
     if (
       error ||
       !order
     ) {
+
       return res
         .status(404)
         .json(
@@ -4341,6 +6139,7 @@ app.post(
           }
         );
     }
+
 
     res.json(
       {
@@ -4358,28 +6157,41 @@ app.post(
 
 app.post(
   "/seller-profile/mine",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
 
+
     const profile =
-      auth.user.seller_profile ||
+      auth.user
+        .seller_profile
+      ||
       await ensureSellerProfile(
         auth.user.telegram_id
       );
+
 
     const payload =
       await buildSellerProfilePayload(
@@ -4387,7 +6199,9 @@ app.post(
         true
       );
 
+
     if (!payload) {
+
       return res
         .status(404)
         .json(
@@ -4399,10 +6213,12 @@ app.post(
         );
     }
 
+
     res.json(
       {
         ok: true,
-        profile: payload
+        profile:
+          payload
       }
     );
   }
@@ -4415,22 +6231,32 @@ app.post(
 
 app.post(
   "/seller-profile/update",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const bio =
       String(
@@ -4438,21 +6264,30 @@ app.post(
         ""
       ).trim();
 
-    if (bio.length > 300) {
+
+    if (
+      bio.length > 300
+    ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-            error: "bio_too_long"
+            error:
+              "bio_too_long"
           }
         );
     }
 
+
     if (
-      typeof req.body.is_public !==
+      typeof
+        req.body.is_public
+      !==
       "boolean"
     ) {
+
       return res
         .status(400)
         .json(
@@ -4464,16 +6299,24 @@ app.post(
         );
     }
 
+
     const {
-      data: profile,
+      data:
+        profile,
+
       error
     } =
       await supabase
-        .from("seller_profiles")
+
+        .from(
+          "seller_profiles"
+        )
+
         .update(
           {
             bio:
-              bio || null,
+              bio ||
+              null,
 
             is_public:
               req.body.is_public,
@@ -4482,27 +6325,32 @@ app.post(
               nowIso()
           }
         )
+
         .eq(
           "telegram_id",
           auth.user.telegram_id
         )
+
         .select(
           "id,telegram_id,bio,is_public,created_at,updated_at"
         )
+
         .single();
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
           {
             ok: false,
-
             error:
               "seller_profile_update_failed"
           }
         );
     }
+
 
     const payload =
       await buildSellerProfilePayload(
@@ -4510,10 +6358,12 @@ app.post(
         true
       );
 
+
     res.json(
       {
         ok: true,
-        profile: payload
+        profile:
+          payload
       }
     );
   }
@@ -4526,18 +6376,24 @@ app.post(
 
 app.get(
   "/seller-profile/:profileId",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const profileId =
       String(
         req.params.profileId ||
         ""
       ).trim();
 
+
     if (
       !/^[0-9a-fA-F-]{36}$/.test(
         profileId
       )
     ) {
+
       return res
         .status(400)
         .json(
@@ -4549,29 +6405,41 @@ app.get(
         );
     }
 
+
     const {
-      data: profile,
+      data:
+        profile,
+
       error
     } =
       await supabase
-        .from("seller_profiles")
+
+        .from(
+          "seller_profiles"
+        )
+
         .select(
           "id,telegram_id,bio,is_public,created_at,updated_at"
         )
+
         .eq(
           "id",
           profileId
         )
+
         .eq(
           "is_public",
           true
         )
+
         .maybeSingle();
+
 
     if (
       error ||
       !profile
     ) {
+
       return res
         .status(404)
         .json(
@@ -4582,6 +6450,7 @@ app.get(
           }
         );
     }
+
 
     const payload =
       await buildSellerProfilePayload(
@@ -4589,7 +6458,9 @@ app.get(
         false
       );
 
+
     if (!payload) {
+
       return res
         .status(404)
         .json(
@@ -4601,10 +6472,12 @@ app.get(
         );
     }
 
+
     res.json(
       {
         ok: true,
-        profile: payload
+        profile:
+          payload
       }
     );
   }
@@ -4612,32 +6485,43 @@ app.get(
 
 
 /* =========================================================
-   CREATE OFFER
+   OFFERS CREATE
    ========================================================= */
 
 app.post(
   "/offers/create",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const buyerId =
       Number(
         auth.user.telegram_id
       );
+
 
     const listingId =
       String(
@@ -4645,10 +6529,12 @@ app.post(
         ""
       ).trim();
 
+
     const amount =
       Number(
         req.body.amount
       );
+
 
     const message =
       String(
@@ -4656,75 +6542,104 @@ app.post(
         ""
       )
         .trim()
-        .slice(0, 500);
+        .slice(
+          0,
+          500
+        );
+
 
     if (
-      !listingId ||
-      !Number.isFinite(amount) ||
-      amount <= 0 ||
-      amount > 100000000
+      !listingId
+      ||
+      !Number.isFinite(
+        amount
+      )
+      ||
+      amount <= 0
+      ||
+      amount >
+        100000000
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-            error: "invalid_offer"
+            error:
+              "invalid_offer"
           }
         );
     }
 
+
     const {
-      data: listing,
-      error: listingError
+      data:
+        listing,
+
+      error:
+        listingError
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen"
         )
+
         .eq(
           "id",
           listingId
         )
+
         .maybeSingle();
 
+
     if (
-      listingError ||
-      !listing ||
+      listingError
+      ||
+      !listing
+      ||
       listing.status !==
-        "active" ||
-      listing.is_paused ||
+        "active"
+      ||
+      listing.is_paused
+      ||
       listing.is_frozen
     ) {
+
       return res
         .status(404)
         .json(
           {
             ok: false,
-
             error:
               "listing_not_available"
           }
         );
     }
 
+
     if (
       Number(
         listing.seller_telegram_id
-      ) === buyerId
+      )
+      ===
+      buyerId
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-
             error:
               "cannot_offer_own_listing"
           }
         );
     }
+
 
     if (
       !await buyerHasContactAccess(
@@ -4732,63 +6647,80 @@ app.post(
         listingId
       )
     ) {
+
       return res
         .status(403)
         .json(
           {
             ok: false,
-
             error:
               "contact_unlock_required"
           }
         );
     }
 
+
     const {
-      data: acceptedOffer
+      data:
+        acceptedOffer
     } =
       await supabase
+
         .from("offers")
+
         .select("id")
+
         .eq(
           "listing_id",
           listingId
         )
+
         .eq(
           "status",
           "accepted"
         )
+
         .limit(1);
 
-    if (acceptedOffer?.length) {
+
+    if (
+      acceptedOffer?.length
+    ) {
+
       return res
         .status(409)
         .json(
           {
             ok: false,
-
             error:
               "listing_has_agreement"
           }
         );
     }
 
+
     const {
-      data: existingOffer
+      data:
+        existingOffer
     } =
       await supabase
+
         .from("offers")
+
         .select(
           "id,status"
         )
+
         .eq(
           "listing_id",
           listingId
         )
+
         .eq(
           "buyer_telegram_id",
           buyerId
         )
+
         .in(
           "status",
           [
@@ -4796,27 +6728,36 @@ app.post(
             "countered"
           ]
         )
+
         .limit(1);
 
-    if (existingOffer?.length) {
+
+    if (
+      existingOffer?.length
+    ) {
+
       return res
         .status(409)
         .json(
           {
             ok: false,
-
             error:
               "open_offer_already_exists"
           }
         );
     }
 
+
     const {
-      data: offer,
+      data:
+        offer,
+
       error
     } =
       await supabase
+
         .from("offers")
+
         .insert(
           {
             listing_id:
@@ -4826,19 +6767,27 @@ app.post(
               buyerId,
 
             amount,
-            currency: "USD",
+
+            currency:
+              "USD",
+
             message,
 
             seller_counter_amount:
               null,
 
-            status: "pending"
+            status:
+              "pending"
           }
         )
+
         .select()
+
         .single();
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -4850,11 +6799,14 @@ app.post(
         );
     }
 
+
     safeSendMessage(
+
       listing.seller_telegram_id,
 
       `💬 New offer for @${listing.whatsapp_username}\n\nOffer: $${amount.toLocaleString("en-US")}${message ? `\n\nMessage: ${message}` : ""}\n\nOpen Handle Market → Profile → Offers.`
     );
+
 
     res.json(
       {
@@ -4872,44 +6824,63 @@ app.post(
 
 app.post(
   "/offers/sent",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
 
+
     const {
-      data: offers,
+      data:
+        offers,
+
       error
     } =
       await supabase
+
         .from("offers")
+
         .select(
           "id,listing_id,amount,currency,message,seller_counter_amount,status,created_at,updated_at"
         )
+
         .eq(
           "buyer_telegram_id",
           auth.user.telegram_id
         )
+
         .order(
           "created_at",
           {
-            ascending: false
+            ascending:
+              false
           }
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -4921,45 +6892,62 @@ app.post(
         );
     }
 
+
     const listingIds = [
       ...new Set(
         (
           offers ||
           []
         ).map(
-          offer =>
-            offer.listing_id
+          x =>
+            x.listing_id
         )
       )
     ];
 
+
     let listings = [];
 
-    if (listingIds.length) {
-      const { data } =
+
+    if (
+      listingIds.length
+    ) {
+
+      const {
+        data
+      } =
         await supabase
+
           .from("listings")
+
           .select(
             "id,whatsapp_username,asking_price,category,is_frozen,is_paused,status"
           )
+
           .in(
             "id",
             listingIds
           );
 
+
       listings =
-        data || [];
+        data ||
+        [];
     }
+
 
     const listingMap =
       new Map(
         listings.map(
-          listing => [
-            String(listing.id),
-            listing
+          x => [
+            String(
+              x.id
+            ),
+            x
           ]
         )
       );
+
 
     res.json(
       {
@@ -4970,13 +6958,13 @@ app.post(
             offers ||
             []
           ).map(
-            offer => ({
-              ...offer,
+            x => ({
+              ...x,
 
               listing:
                 listingMap.get(
                   String(
-                    offer.listing_id
+                    x.listing_id
                   )
                 ) ||
                 null
@@ -4994,43 +6982,64 @@ app.post(
 
 app.post(
   "/offers/received",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const sellerId =
       Number(
         auth.user.telegram_id
       );
 
+
     const {
-      data: sellerListings,
-      error: listingsError
+      data:
+        sellerListings,
+
+      error:
+        listingsError
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,whatsapp_username,asking_price,category,is_frozen,is_paused,status"
         )
+
         .eq(
           "seller_telegram_id",
           sellerId
         );
 
-    if (listingsError) {
+
+    if (
+      listingsError
+    ) {
+
       return res
         .status(500)
         .json(
@@ -5042,16 +7051,21 @@ app.post(
         );
     }
 
+
     const listingIds =
       (
         sellerListings ||
         []
       ).map(
-        listing =>
-          listing.id
+        x =>
+          x.id
       );
 
-    if (!listingIds.length) {
+
+    if (
+      !listingIds.length
+    ) {
+
       return res.json(
         {
           ok: true,
@@ -5060,27 +7074,37 @@ app.post(
       );
     }
 
+
     const {
-      data: offers,
+      data:
+        offers,
+
       error
     } =
       await supabase
+
         .from("offers")
+
         .select(
           "id,listing_id,buyer_telegram_id,amount,currency,message,seller_counter_amount,status,created_at,updated_at"
         )
+
         .in(
           "listing_id",
           listingIds
         )
+
         .order(
           "created_at",
           {
-            ascending: false
+            ascending:
+              false
           }
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -5092,35 +7116,49 @@ app.post(
         );
     }
 
+
     const buyerIds = [
       ...new Set(
         (
           offers ||
           []
         ).map(
-          offer =>
-            offer.buyer_telegram_id
+          x =>
+            x.buyer_telegram_id
         )
       )
     ];
 
+
     let buyers = [];
 
-    if (buyerIds.length) {
-      const { data } =
+
+    if (
+      buyerIds.length
+    ) {
+
+      const {
+        data
+      } =
         await supabase
+
           .from("users")
+
           .select(
             "telegram_id,first_name,last_name,telegram_username"
           )
+
           .in(
             "telegram_id",
             buyerIds
           );
 
+
       buyers =
-        data || [];
+        data ||
+        [];
     }
+
 
     const listingMap =
       new Map(
@@ -5128,24 +7166,28 @@ app.post(
           sellerListings ||
           []
         ).map(
-          listing => [
-            String(listing.id),
-            listing
+          x => [
+            String(
+              x.id
+            ),
+            x
           ]
         )
       );
 
+
     const buyerMap =
       new Map(
         buyers.map(
-          buyer => [
+          x => [
             String(
-              buyer.telegram_id
+              x.telegram_id
             ),
-            buyer
+            x
           ]
         )
       );
+
 
     res.json(
       {
@@ -5156,13 +7198,13 @@ app.post(
             offers ||
             []
           ).map(
-            offer => ({
-              ...offer,
+            x => ({
+              ...x,
 
               listing:
                 listingMap.get(
                   String(
-                    offer.listing_id
+                    x.listing_id
                   )
                 ) ||
                 null,
@@ -5170,7 +7212,7 @@ app.post(
               buyer:
                 buyerMap.get(
                   String(
-                    offer.buyer_telegram_id
+                    x.buyer_telegram_id
                   )
                 ) ||
                 null
@@ -5188,27 +7230,38 @@ app.post(
 
 app.post(
   "/offers/seller-action",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const sellerId =
       Number(
         auth.user.telegram_id
       );
+
 
     const offerId =
       String(
@@ -5216,54 +7269,70 @@ app.post(
         ""
       ).trim();
 
+
     const action =
       String(
         req.body.action ||
         ""
       ).trim();
 
+
     const counterAmount =
       Number(
         req.body.counter_amount
       );
 
+
     if (
-      !offerId ||
+      !offerId
+      ||
       ![
         "accept",
         "decline",
         "counter"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-
             error:
               "invalid_offer_action"
           }
         );
     }
 
+
     const {
-      data: offer,
-      error: offerError
+      data:
+        offer,
+
+      error:
+        offerError
     } =
       await supabase
+
         .from("offers")
+
         .select("*")
+
         .eq(
           "id",
           offerId
         )
+
         .maybeSingle();
+
 
     if (
       offerError ||
       !offer
     ) {
+
       return res
         .status(404)
         .json(
@@ -5275,26 +7344,37 @@ app.post(
         );
     }
 
+
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,is_frozen"
         )
+
         .eq(
           "id",
           offer.listing_id
         )
+
         .maybeSingle();
 
+
     if (
-      !listing ||
+      !listing
+      ||
       Number(
         listing.seller_telegram_id
-      ) !== sellerId
+      )
+      !==
+      sellerId
     ) {
+
       return res
         .status(403)
         .json(
@@ -5306,6 +7386,7 @@ app.post(
         );
     }
 
+
     if (
       ![
         "pending",
@@ -5314,6 +7395,7 @@ app.post(
         offer.status
       )
     ) {
+
       return res
         .status(409)
         .json(
@@ -5325,13 +7407,18 @@ app.post(
         );
     }
 
+
     if (
-      listing.is_frozen &&
+      listing.is_frozen
+      &&
       [
         "accept",
         "counter"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
+
       return res
         .status(409)
         .json(
@@ -5343,59 +7430,77 @@ app.post(
         );
     }
 
+
     if (
-      action === "counter" &&
+      action ===
+        "counter"
+      &&
       (
         !Number.isFinite(
           counterAmount
-        ) ||
-        counterAmount <= 0 ||
+        )
+        ||
+        counterAmount <= 0
+        ||
         counterAmount >
           100000000
       )
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-
             error:
               "invalid_counter_amount"
           }
         );
     }
 
+
     if (
-      action === "accept"
+      action ===
+      "accept"
     ) {
+
       const {
-        data: accepted
+        data:
+          accepted
       } =
         await supabase
+
           .from("offers")
+
           .select("id")
+
           .eq(
             "listing_id",
             offer.listing_id
           )
+
           .eq(
             "status",
             "accepted"
           )
+
           .neq(
             "id",
             offer.id
           )
+
           .limit(1);
 
-      if (accepted?.length) {
+
+      if (
+        accepted?.length
+      ) {
+
         return res
           .status(409)
           .json(
             {
               ok: false,
-
               error:
                 "listing_has_agreement"
             }
@@ -5403,50 +7508,75 @@ app.post(
       }
     }
 
+
     const updateData = {
+
       updated_at:
         nowIso()
     };
 
+
     if (
-      action === "accept"
+      action ===
+      "accept"
     ) {
+
       updateData.status =
         "accepted";
     }
 
+
     if (
-      action === "decline"
+      action ===
+      "decline"
     ) {
+
       updateData.status =
         "declined";
     }
 
+
     if (
-      action === "counter"
+      action ===
+      "counter"
     ) {
+
       updateData.status =
         "countered";
 
-      updateData.seller_counter_amount =
-        counterAmount;
+
+      updateData
+        .seller_counter_amount =
+          counterAmount;
     }
 
+
     const {
-      data: updatedOffer,
+      data:
+        updatedOffer,
+
       error
     } =
       await supabase
+
         .from("offers")
-        .update(updateData)
+
+        .update(
+          updateData
+        )
+
         .eq(
           "id",
           offer.id
         )
+
         .select()
+
         .single();
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -5456,28 +7586,39 @@ app.post(
             error:
               error.code ===
               "23505"
+
                 ? "listing_has_agreement"
+
                 : "offer_update_failed"
           }
         );
     }
 
+
     if (
-      action === "accept"
+      action ===
+      "accept"
     ) {
+
       await supabase
+
         .from("listings")
+
         .update(
           {
-            is_paused: true,
+            is_paused:
+              true,
+
             updated_at:
               nowIso()
           }
         )
+
         .eq(
           "id",
           offer.listing_id
         );
+
 
       const others =
         await closeOtherOpenOffers(
@@ -5485,11 +7626,14 @@ app.post(
           offer.id
         );
 
+
       for (
         const other of
         others
       ) {
+
         safeSendMessage(
+
           other.buyer_telegram_id,
 
           `❌ Another offer for @${listing.whatsapp_username} was accepted. Your open offer was closed.`
@@ -5497,37 +7641,50 @@ app.post(
       }
     }
 
+
     let text =
       `Update for @${listing.whatsapp_username}\n\n`;
 
+
     if (
-      action === "accept"
+      action ===
+      "accept"
     ) {
+
       text +=
         `✅ Seller accepted your offer of $${Number(offer.amount).toLocaleString("en-US")}.`;
     }
 
+
     if (
-      action === "decline"
+      action ===
+      "decline"
     ) {
+
       text +=
         "❌ Seller declined your offer.";
     }
 
+
     if (
-      action === "counter"
+      action ===
+      "counter"
     ) {
+
       text +=
         `💬 Seller countered with $${counterAmount.toLocaleString("en-US")}.`;
     }
 
+
     text +=
       "\n\nOpen Handle Market → Profile → Offers.";
+
 
     safeSendMessage(
       offer.buyer_telegram_id,
       text
     );
+
 
     res.json(
       {
@@ -5546,27 +7703,38 @@ app.post(
 
 app.post(
   "/offers/buyer-action",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const buyerId =
       Number(
         auth.user.telegram_id
       );
+
 
     const offerId =
       String(
@@ -5574,52 +7742,68 @@ app.post(
         ""
       ).trim();
 
+
     const action =
       String(
         req.body.action ||
         ""
       ).trim();
 
+
     if (
-      !offerId ||
+      !offerId
+      ||
       ![
         "accept_counter",
         "cancel"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-
             error:
               "invalid_offer_action"
           }
         );
     }
 
+
     const {
-      data: offer,
-      error: offerError
+      data:
+        offer,
+
+      error:
+        offerError
     } =
       await supabase
+
         .from("offers")
+
         .select("*")
+
         .eq(
           "id",
           offerId
         )
+
         .eq(
           "buyer_telegram_id",
           buyerId
         )
+
         .maybeSingle();
+
 
     if (
       offerError ||
       !offer
     ) {
+
       return res
         .status(404)
         .json(
@@ -5631,21 +7815,29 @@ app.post(
         );
     }
 
+
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,is_frozen"
         )
+
         .eq(
           "id",
           offer.listing_id
         )
+
         .maybeSingle();
 
+
     if (!listing) {
+
       return res
         .status(404)
         .json(
@@ -5657,11 +7849,16 @@ app.post(
         );
     }
 
+
     if (
       action ===
       "accept_counter"
     ) {
-      if (listing.is_frozen) {
+
+      if (
+        listing.is_frozen
+      ) {
+
         return res
           .status(409)
           .json(
@@ -5673,84 +7870,110 @@ app.post(
           );
       }
 
+
       if (
         offer.status !==
-          "countered" ||
+          "countered"
+        ||
         !Number.isFinite(
           Number(
             offer.seller_counter_amount
           )
-        ) ||
+        )
+        ||
         Number(
           offer.seller_counter_amount
         ) <= 0
       ) {
+
         return res
           .status(409)
           .json(
             {
               ok: false,
-
               error:
                 "counter_not_available"
             }
           );
       }
 
+
       const {
-        data: accepted
+        data:
+          accepted
       } =
         await supabase
+
           .from("offers")
+
           .select("id")
+
           .eq(
             "listing_id",
             offer.listing_id
           )
+
           .eq(
             "status",
             "accepted"
           )
+
           .neq(
             "id",
             offer.id
           )
+
           .limit(1);
 
-      if (accepted?.length) {
+
+      if (
+        accepted?.length
+      ) {
+
         return res
           .status(409)
           .json(
             {
               ok: false,
-
               error:
                 "listing_has_agreement"
             }
           );
       }
 
+
       const {
-        data: updatedOffer,
+        data:
+          updatedOffer,
+
         error
       } =
         await supabase
+
           .from("offers")
+
           .update(
             {
-              status: "accepted",
+              status:
+                "accepted",
+
               updated_at:
                 nowIso()
             }
           )
+
           .eq(
             "id",
             offer.id
           )
+
           .select()
+
           .single();
 
+
       if (error) {
+
         return res
           .status(500)
           .json(
@@ -5760,25 +7983,34 @@ app.post(
               error:
                 error.code ===
                 "23505"
+
                   ? "listing_has_agreement"
+
                   : "offer_update_failed"
             }
           );
       }
 
+
       await supabase
+
         .from("listings")
+
         .update(
           {
-            is_paused: true,
+            is_paused:
+              true,
+
             updated_at:
               nowIso()
           }
         )
+
         .eq(
           "id",
           offer.listing_id
         );
+
 
       const others =
         await closeOtherOpenOffers(
@@ -5786,22 +8018,28 @@ app.post(
           offer.id
         );
 
+
       for (
         const other of
         others
       ) {
+
         safeSendMessage(
+
           other.buyer_telegram_id,
 
           `❌ Another offer for @${listing.whatsapp_username} was accepted. Your open offer was closed.`
         );
       }
 
+
       safeSendMessage(
+
         listing.seller_telegram_id,
 
         `✅ Buyer accepted your counter offer for @${listing.whatsapp_username}: $${Number(offer.seller_counter_amount).toLocaleString("en-US")}.\n\nOpen Handle Market → Profile → Offers.`
       );
+
 
       return res.json(
         {
@@ -5812,6 +8050,7 @@ app.post(
       );
     }
 
+
     if (
       ![
         "pending",
@@ -5820,6 +8059,7 @@ app.post(
         offer.status
       )
     ) {
+
       return res
         .status(409)
         .json(
@@ -5831,44 +8071,58 @@ app.post(
         );
     }
 
+
     const {
-      data: updatedOffer,
+      data:
+        updatedOffer,
+
       error
     } =
       await supabase
+
         .from("offers")
+
         .update(
           {
-            status: "cancelled",
+            status:
+              "cancelled",
+
             updated_at:
               nowIso()
           }
         )
+
         .eq(
           "id",
           offer.id
         )
+
         .select()
+
         .single();
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
           {
             ok: false,
-
             error:
               "offer_update_failed"
           }
         );
     }
 
+
     safeSendMessage(
+
       listing.seller_telegram_id,
 
       `↩️ Buyer cancelled their offer for @${listing.whatsapp_username}.`
     );
+
 
     res.json(
       {
@@ -5887,47 +8141,64 @@ app.post(
 
 app.post(
   "/reports/mine",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const {
       data,
       error
     } =
       await supabase
+
         .from("reports")
-        .select("listing_id")
+
+        .select(
+          "listing_id"
+        )
+
         .eq(
           "reporter_telegram_id",
           auth.user.telegram_id
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
           {
             ok: false,
-
             error:
               "reports_load_failed"
           }
         );
     }
+
 
     res.json(
       {
@@ -5938,8 +8209,8 @@ app.post(
             data ||
             []
           ).map(
-            row =>
-              row.listing_id
+            x =>
+              x.listing_id
           )
       }
     );
@@ -5949,22 +8220,32 @@ app.post(
 
 app.post(
   "/reports/create",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const auth =
       await getDatabaseUser(
         req.body.initData
       );
 
+
     if (!auth.ok) {
+
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
+
 
     const listingId =
       String(
@@ -5972,20 +8253,30 @@ app.post(
         ""
       ).trim();
 
+
     const allowedReasons = [
+
       "suspected_scam",
+
       "false_information",
+
       "spam",
+
       "misleading",
+
       "other"
     ];
+
 
     const reason =
       allowedReasons.includes(
         req.body.reason
       )
+
         ? req.body.reason
+
         : "other";
+
 
     const details =
       String(
@@ -5993,23 +8284,34 @@ app.post(
         ""
       )
         .trim()
-        .slice(0, 1000);
+        .slice(
+          0,
+          1000
+        );
+
 
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen"
         )
+
         .eq(
           "id",
           listingId
         )
+
         .maybeSingle();
 
+
     if (!listing) {
+
       return res
         .status(404)
         .json(
@@ -6021,32 +8323,39 @@ app.post(
         );
     }
 
+
     if (
       Number(
         listing.seller_telegram_id
-      ) ===
+      )
+      ===
       Number(
         auth.user.telegram_id
       )
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-
             error:
               "cannot_report_own_listing"
           }
         );
     }
 
+
     const {
-      data: report,
+      data:
+        report,
+
       error
     } =
       await supabase
+
         .from("reports")
+
         .insert(
           {
             reporter_telegram_id:
@@ -6058,19 +8367,26 @@ app.post(
             reason,
 
             details:
-              details || null,
+              details ||
+              null,
 
-            status: "open"
+            status:
+              "open"
           }
         )
+
         .select()
+
         .single();
 
+
     if (error) {
+
       if (
         error.code ===
         "23505"
       ) {
+
         return res
           .status(409)
           .json(
@@ -6082,21 +8398,24 @@ app.post(
           );
       }
 
+
       return res
         .status(500)
         .json(
           {
             ok: false,
-
             error:
               "report_create_failed"
           }
         );
     }
 
+
     notifyAdmins(
+
       `🚩 New report for @${listing.whatsapp_username}\nReason: ${reason}${details ? `\nDetails: ${details}` : ""}\n\nOpen Handle Market → Admin Panel.`
     );
+
 
     res.json(
       {
@@ -6109,49 +8428,68 @@ app.post(
 
 
 /* =========================================================
-   ADMIN PENDING
+   ADMIN PENDING LISTINGS
    ========================================================= */
 
 app.post(
   "/admin/pending-listings",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const admin =
       await requireAdmin(
         req.body.initData
       );
 
+
     if (!admin.ok) {
+
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
 
+
     const {
-      data: listings,
+      data:
+        listings,
+
       error
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,created_at"
         )
+
         .eq(
           "status",
           "pending"
         )
+
         .order(
           "created_at",
           {
-            ascending: true
+            ascending:
+              true
           }
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -6163,47 +8501,62 @@ app.post(
         );
     }
 
+
     const sellerIds = [
       ...new Set(
         (
           listings ||
           []
         ).map(
-          listing =>
-            listing.seller_telegram_id
+          x =>
+            x.seller_telegram_id
         )
       )
     ];
 
+
     let users = [];
 
-    if (sellerIds.length) {
-      const { data } =
+
+    if (
+      sellerIds.length
+    ) {
+
+      const {
+        data
+      } =
         await supabase
+
           .from("users")
+
           .select(
             "telegram_id,first_name,telegram_username"
           )
+
           .in(
             "telegram_id",
             sellerIds
           );
 
+
       users =
-        data || [];
+        data ||
+        [];
     }
+
 
     const map =
       new Map(
         users.map(
-          user => [
+          x => [
             String(
-              user.telegram_id
+              x.telegram_id
             ),
-            user
+            x
           ]
         )
       );
+
 
     res.json(
       {
@@ -6214,13 +8567,13 @@ app.post(
             listings ||
             []
           ).map(
-            listing => ({
-              ...listing,
+            x => ({
+              ...x,
 
               seller:
                 map.get(
                   String(
-                    listing.seller_telegram_id
+                    x.seller_telegram_id
                   )
                 ) ||
                 null
@@ -6233,27 +8586,37 @@ app.post(
 
 
 /* =========================================================
-   ADMIN APPROVE / REJECT
+   ADMIN LISTING STATUS
    ========================================================= */
 
 app.post(
   "/admin/listing-status",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const admin =
       await requireAdmin(
         req.body.initData
       );
 
+
     if (!admin.ok) {
+
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
+
 
     const listingId =
       String(
@@ -6261,81 +8624,102 @@ app.post(
         ""
       ).trim();
 
+
     const newStatus =
       req.body.status;
+
 
     if (
       ![
         "active",
         "rejected"
-      ].includes(newStatus)
+      ].includes(
+        newStatus
+      )
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-
             error:
               "invalid_admin_action"
           }
         );
     }
 
+
     const {
       data,
       error
     } =
       await supabase
+
         .from("listings")
+
         .update(
           {
-            status: newStatus,
+            status:
+              newStatus,
+
             updated_at:
               nowIso()
           }
         )
+
         .eq(
           "id",
           listingId
         )
+
         .eq(
           "status",
           "pending"
         )
+
         .select(
           "id,seller_telegram_id,whatsapp_username,status,is_premium_name"
         )
+
         .maybeSingle();
+
 
     if (
       error ||
       !data
     ) {
+
       return res
         .status(404)
         .json(
           {
             ok: false,
-
             error:
               "pending_listing_not_found"
           }
         );
     }
 
+
     safeSendMessage(
+
       data.seller_telegram_id,
 
-      newStatus === "active"
+      newStatus ===
+      "active"
+
         ? `✅ @${data.whatsapp_username} was approved and is now live.${data.is_premium_name ? "\n\n⭐ Premium status awarded by Handle Market." : ""}`
+
         : `❌ @${data.whatsapp_username} was rejected by moderation.`
     );
+
 
     res.json(
       {
         ok: true,
-        listing: data
+        listing:
+          data
       }
     );
   }
@@ -6348,22 +8732,32 @@ app.post(
 
 app.post(
   "/admin/listing-premium",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const admin =
       await requireAdmin(
         req.body.initData
       );
 
+
     if (!admin.ok) {
+
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
+
 
     const listingId =
       String(
@@ -6371,56 +8765,69 @@ app.post(
         ""
       ).trim();
 
+
     const isPremium =
       req.body.is_premium;
 
+
     if (
-      !listingId ||
+      !listingId
+      ||
       typeof isPremium !==
         "boolean"
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-
             error:
               "invalid_premium_action"
           }
         );
     }
 
+
     const {
-      data: existing,
-      error: existingError
+      data:
+        existing,
+
+      error:
+        existingError
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,status,is_premium_name"
         )
+
         .eq(
           "id",
           listingId
         )
+
         .maybeSingle();
+
 
     if (
       existingError ||
       !existing
     ) {
+
       return res
         .status(404)
         .json(
           {
             ok: false,
-
             error:
               "listing_not_found"
           }
         );
     }
+
 
     if (
       ![
@@ -6431,20 +8838,22 @@ app.post(
         existing.status
       )
     ) {
+
       return res
         .status(409)
         .json(
           {
             ok: false,
-
             error:
               "listing_not_premium_eligible"
           }
         );
     }
 
+
     const update =
       isPremium
+
         ? {
             is_premium_name:
               true,
@@ -6460,6 +8869,7 @@ app.post(
             updated_at:
               nowIso()
           }
+
         : {
             is_premium_name:
               false,
@@ -6474,52 +8884,68 @@ app.post(
               nowIso()
           };
 
+
     const {
       data,
       error
     } =
       await supabase
+
         .from("listings")
-        .update(update)
+
+        .update(
+          update
+        )
+
         .eq(
           "id",
           listingId
         )
+
         .select(
           "id,seller_telegram_id,whatsapp_username,status,is_premium_name,premium_marked_at"
         )
+
         .single();
 
+
     if (error) {
+
       console.error(
         "Premium update failed:",
         error
       );
+
 
       return res
         .status(500)
         .json(
           {
             ok: false,
-
             error:
               "premium_update_failed"
           }
         );
     }
 
+
     safeSendMessage(
+
       data.seller_telegram_id,
 
       isPremium
+
         ? `⭐ @${data.whatsapp_username} is now Premium on Handle Market.`
+
         : `☆ Premium status was removed from @${data.whatsapp_username}.`
     );
+
 
     res.json(
       {
         ok: true,
-        listing: data
+        listing:
+          data
       }
     );
   }
@@ -6532,44 +8958,63 @@ app.post(
 
 app.post(
   "/admin/reports",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const admin =
       await requireAdmin(
         req.body.initData
       );
 
+
     if (!admin.ok) {
+
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
 
+
     const {
-      data: reports,
+      data:
+        reports,
+
       error
     } =
       await supabase
+
         .from("reports")
+
         .select(
           "id,reporter_telegram_id,listing_id,reason,details,status,created_at"
         )
+
         .eq(
           "status",
           "open"
         )
+
         .order(
           "created_at",
           {
-            ascending: true
+            ascending:
+              true
           }
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
@@ -6581,47 +9026,62 @@ app.post(
         );
     }
 
+
     const listingIds = [
       ...new Set(
         (
           reports ||
           []
         ).map(
-          report =>
-            report.listing_id
+          x =>
+            x.listing_id
         )
       )
     ];
 
+
     let listings = [];
 
-    if (listingIds.length) {
-      const { data } =
+
+    if (
+      listingIds.length
+    ) {
+
+      const {
+        data
+      } =
         await supabase
+
           .from("listings")
+
           .select(
             "id,seller_telegram_id,whatsapp_username,asking_price,category,status,is_premium_name,is_paused,is_frozen,frozen_reason"
           )
+
           .in(
             "id",
             listingIds
           );
 
+
       listings =
-        data || [];
+        data ||
+        [];
     }
+
 
     const map =
       new Map(
         listings.map(
-          listing => [
+          x => [
             String(
-              listing.id
+              x.id
             ),
-            listing
+            x
           ]
         )
       );
+
 
     res.json(
       {
@@ -6632,13 +9092,13 @@ app.post(
             reports ||
             []
           ).map(
-            report => ({
-              ...report,
+            x => ({
+              ...x,
 
               listing:
                 map.get(
                   String(
-                    report.listing_id
+                    x.listing_id
                   )
                 ) ||
                 null
@@ -6651,65 +9111,84 @@ app.post(
 
 
 /* =========================================================
-   ADMIN FROZEN
+   ADMIN FROZEN LISTINGS
    ========================================================= */
 
 app.post(
   "/admin/frozen-listings",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const admin =
       await requireAdmin(
         req.body.initData
       );
 
+
     if (!admin.ok) {
+
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
+
 
     const {
       data,
       error
     } =
       await supabase
+
         .from("listings")
+
         .select(
           "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,is_paused,is_frozen,frozen_reason,frozen_at,frozen_by,created_at"
         )
+
         .eq(
           "is_frozen",
           true
         )
+
         .order(
           "frozen_at",
           {
-            ascending: false
+            ascending:
+              false
           }
         );
 
+
     if (error) {
+
       return res
         .status(500)
         .json(
           {
             ok: false,
-
             error:
               "frozen_load_failed"
           }
         );
     }
 
+
     res.json(
       {
         ok: true,
-        listings: data || []
+        listings:
+          data ||
+          []
       }
     );
   }
@@ -6725,35 +9204,47 @@ async function freezeListing(
   adminId,
   reason
 ) {
+
   const {
-    data: listing
+    data:
+      listing
   } =
     await supabase
+
       .from("listings")
+
       .select(
         "id,seller_telegram_id,whatsapp_username,status,is_frozen"
       )
+
       .eq(
         "id",
         listingId
       )
+
       .maybeSingle();
 
+
   if (!listing) {
+
     throw new Error(
       "listing_not_found"
     );
   }
+
 
   const {
     data,
     error
   } =
     await supabase
+
       .from("listings")
+
       .update(
         {
-          is_frozen: true,
+          is_frozen:
+            true,
 
           frozen_reason:
             String(
@@ -6768,28 +9259,38 @@ async function freezeListing(
             nowIso(),
 
           frozen_by:
-            Number(adminId),
+            Number(
+              adminId
+            ),
 
           updated_at:
             nowIso()
         }
       )
+
       .eq(
         "id",
         listingId
       )
+
       .select()
+
       .single();
 
+
   if (error) {
+
     throw error;
   }
 
+
   safeSendMessage(
+
     listing.seller_telegram_id,
 
     `🧊 @${listing.whatsapp_username} was temporarily frozen by moderation.${reason ? `\n\nReason: ${reason}` : ""}`
   );
+
 
   return data;
 }
@@ -6798,143 +9299,206 @@ async function freezeListing(
 async function unfreezeListing(
   listingId
 ) {
+
   const {
     data,
     error
   } =
     await supabase
+
       .from("listings")
+
       .update(
         {
-          is_frozen: false,
-          frozen_reason: null,
-          frozen_at: null,
-          frozen_by: null,
+          is_frozen:
+            false,
+
+          frozen_reason:
+            null,
+
+          frozen_at:
+            null,
+
+          frozen_by:
+            null,
+
           updated_at:
             nowIso()
         }
       )
+
       .eq(
         "id",
         listingId
       )
+
       .eq(
         "is_frozen",
         true
       )
+
       .select(
         "id,seller_telegram_id,whatsapp_username"
       )
+
       .maybeSingle();
+
 
   if (
     error ||
     !data
   ) {
+
     throw new Error(
       "listing_not_frozen"
     );
   }
 
+
   safeSendMessage(
+
     data.seller_telegram_id,
 
     `✅ @${data.whatsapp_username} was unfrozen by moderation.`
   );
+
 
   return data;
 }
 
 
 /* =========================================================
-   ADMIN REMOVE
+   ADMIN REMOVE LISTING
    ========================================================= */
 
 async function adminRemoveListingInternal(
   listingId
 ) {
+
   const {
-    data: listing
+    data:
+      listing
   } =
     await supabase
+
       .from("listings")
+
       .select(
         "id,seller_telegram_id,whatsapp_username"
       )
+
       .eq(
         "id",
         listingId
       )
+
       .maybeSingle();
 
+
   if (!listing) {
+
     throw new Error(
       "listing_not_found"
     );
   }
 
-  const { error } =
+
+  const {
+    error
+  } =
     await supabase
+
       .from("listings")
+
       .update(
         {
-          status: "removed",
-          is_paused: true,
-          is_frozen: false,
-          frozen_reason: null,
-          frozen_at: null,
-          frozen_by: null,
+          status:
+            "removed",
+
+          is_paused:
+            true,
+
+          is_frozen:
+            false,
+
+          frozen_reason:
+            null,
+
+          frozen_at:
+            null,
+
+          frozen_by:
+            null,
+
           updated_at:
             nowIso()
         }
       )
+
       .eq(
         "id",
         listingId
       );
 
+
   if (error) {
+
     throw error;
   }
 
+
   await closeListingOpenOffers(
+
     listingId,
 
     `❌ @${listing.whatsapp_username} was removed by moderation. Your open offer was closed.`
   );
 
+
   safeSendMessage(
+
     listing.seller_telegram_id,
 
     `❌ @${listing.whatsapp_username} was removed by Handle Market moderation.`
   );
+
 
   return listing;
 }
 
 
 /* =========================================================
-   REPORT ACTION
+   ADMIN REPORT ACTION
    ========================================================= */
 
 app.post(
   "/admin/report-action",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const admin =
       await requireAdmin(
         req.body.initData
       );
 
+
     if (!admin.ok) {
+
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
+
 
     const reportId =
       String(
@@ -6942,48 +9506,61 @@ app.post(
         ""
       ).trim();
 
+
     const action =
       String(
         req.body.action ||
         ""
       ).trim();
 
+
     if (
       ![
         "dismiss",
         "freeze",
         "remove"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-
             error:
               "invalid_admin_action"
           }
         );
     }
 
+
     const {
-      data: report
+      data:
+        report
     } =
       await supabase
+
         .from("reports")
+
         .select("*")
+
         .eq(
           "id",
           reportId
         )
+
         .eq(
           "status",
           "open"
         )
+
         .maybeSingle();
 
+
     if (!report) {
+
       return res
         .status(404)
         .json(
@@ -6995,12 +9572,18 @@ app.post(
         );
     }
 
+
     try {
+
       if (
-        action === "freeze"
+        action ===
+        "freeze"
       ) {
+
         await freezeListing(
+
           report.listing_id,
+
           admin.user.telegram_id,
 
           report.details ||
@@ -7008,24 +9591,35 @@ app.post(
         );
       }
 
+
       if (
-        action === "remove"
+        action ===
+        "remove"
       ) {
+
         await adminRemoveListingInternal(
           report.listing_id
         );
       }
 
+
       const newStatus =
-        action === "dismiss"
+        action ===
+        "dismiss"
+
           ? "dismissed"
+
           : "resolved";
 
+
       await supabase
+
         .from("reports")
+
         .update(
           {
-            status: newStatus,
+            status:
+              newStatus,
 
             reviewed_at:
               nowIso(),
@@ -7034,17 +9628,21 @@ app.post(
               admin.user.telegram_id
           }
         )
+
         .eq(
           "id",
           reportId
         );
+
 
       res.json(
         {
           ok: true
         }
       );
+
     } catch (error) {
+
       res
         .status(500)
         .json(
@@ -7062,27 +9660,37 @@ app.post(
 
 
 /* =========================================================
-   FREEZE / UNFREEZE ROUTE
+   ADMIN FREEZE / UNFREEZE
    ========================================================= */
 
 app.post(
   "/admin/listing-freeze",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const admin =
       await requireAdmin(
         req.body.initData
       );
 
+
     if (!admin.ok) {
+
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
+
 
     const listingId =
       String(
@@ -7090,43 +9698,51 @@ app.post(
         ""
       ).trim();
 
+
     const action =
       String(
         req.body.action ||
         ""
       ).trim();
 
+
     if (
       ![
         "freeze",
         "unfreeze"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
+
       return res
         .status(400)
         .json(
           {
             ok: false,
-
             error:
               "invalid_admin_action"
           }
         );
     }
 
+
     try {
+
       const listing =
-        action === "freeze"
+        action ===
+        "freeze"
+
           ? await freezeListing(
               listingId,
-
               admin.user.telegram_id,
-
               req.body.reason
             )
+
           : await unfreezeListing(
               listingId
             );
+
 
       res.json(
         {
@@ -7134,7 +9750,9 @@ app.post(
           listing
         }
       );
+
     } catch (error) {
+
       res
         .status(404)
         .json(
@@ -7152,27 +9770,37 @@ app.post(
 
 
 /* =========================================================
-   ADMIN REMOVE ROUTE
+   ADMIN REMOVE
    ========================================================= */
 
 app.post(
   "/admin/listing-remove",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const admin =
       await requireAdmin(
         req.body.initData
       );
 
+
     if (!admin.ok) {
+
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
+
 
     const listingId =
       String(
@@ -7180,11 +9808,14 @@ app.post(
         ""
       ).trim();
 
+
     try {
+
       const listing =
         await adminRemoveListingInternal(
           listingId
         );
+
 
       res.json(
         {
@@ -7192,7 +9823,9 @@ app.post(
           listing
         }
       );
+
     } catch (error) {
+
       res
         .status(404)
         .json(
@@ -7215,24 +9848,35 @@ app.post(
 
 app.post(
   "/telegram-webhook",
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
+
     const secret =
       req.get(
         "X-Telegram-Bot-Api-Secret-Token"
       );
 
+
     if (
-      !TELEGRAM_WEBHOOK_SECRET ||
+      !TELEGRAM_WEBHOOK_SECRET
+      ||
       secret !==
         TELEGRAM_WEBHOOK_SECRET
     ) {
-      return res.sendStatus(403);
+
+      return res
+        .sendStatus(403);
     }
+
 
     const update =
       req.body;
 
+
     res.sendStatus(200);
+
 
     try {
 
@@ -7243,8 +9887,10 @@ app.post(
       if (
         update.pre_checkout_query
       ) {
+
         const query =
           update.pre_checkout_query;
+
 
         const payload =
           String(
@@ -7260,72 +9906,105 @@ app.post(
             "listing:"
           )
         ) {
+
           const {
-            data: order
+            data:
+              order
           } =
             await supabase
+
               .from(
                 "listing_payment_orders"
               )
+
               .select("*")
+
               .eq(
                 "invoice_payload",
                 payload
               )
+
               .maybeSingle();
 
+
           let valid =
-            Boolean(order);
+            Boolean(
+              order
+            );
+
 
           if (
             valid &&
             order.status !==
               "created"
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (
-            valid &&
-            Number(query.from.id) !==
+            valid
+            &&
+            Number(
+              query.from.id
+            )
+            !==
             Number(
               order.seller_telegram_id
             )
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (
-            valid &&
+            valid
+            &&
             (
               query.currency !==
-                "XTR" ||
+                "XTR"
+              ||
               Number(
                 query.total_amount
-              ) !==
+              )
+              !==
               Number(
                 order.amount_stars
               )
             )
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (valid) {
+
             const {
-              data: duplicate
+              data:
+                duplicate
             } =
               await supabase
+
                 .from("listings")
+
                 .select("id")
+
                 .eq(
                   "seller_telegram_id",
                   order.seller_telegram_id
                 )
+
                 .ilike(
                   "whatsapp_username",
                   order.whatsapp_username
                 )
+
                 .in(
                   "status",
                   [
@@ -7334,35 +10013,46 @@ app.post(
                     "reserved"
                   ]
                 )
+
                 .limit(1);
+
 
             if (
               duplicate?.length
             ) {
-              valid = false;
+
+              valid =
+                false;
             }
           }
 
+
           await telegramApi(
+
             "answerPreCheckoutQuery",
 
             valid
+
               ? {
                   pre_checkout_query_id:
                     query.id,
 
-                  ok: true
+                  ok:
+                    true
                 }
+
               : {
                   pre_checkout_query_id:
                     query.id,
 
-                  ok: false,
+                  ok:
+                    false,
 
                   error_message:
                     "This listing payment is no longer valid."
                 }
           );
+
 
           return;
         }
@@ -7375,103 +10065,148 @@ app.post(
             "contact:"
           )
         ) {
+
           const {
-            data: order
+            data:
+              order
           } =
             await supabase
+
               .from(
                 "contact_unlocks"
               )
+
               .select("*")
+
               .eq(
                 "invoice_payload",
                 payload
               )
+
               .maybeSingle();
 
+
           let valid =
-            Boolean(order);
+            Boolean(
+              order
+            );
+
 
           if (
             valid &&
             order.status !==
               "pending"
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (
-            valid &&
-            Number(query.from.id) !==
+            valid
+            &&
+            Number(
+              query.from.id
+            )
+            !==
             Number(
               order.buyer_telegram_id
             )
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (
-            valid &&
+            valid
+            &&
             (
               query.currency !==
-                "XTR" ||
+                "XTR"
+              ||
               Number(
                 query.total_amount
-              ) !==
+              )
+              !==
               Number(
                 order.amount_stars
               )
             )
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (valid) {
+
             const {
-              data: listing
+              data:
+                listing
             } =
               await supabase
+
                 .from("listings")
+
                 .select(
                   "status,is_paused,is_frozen"
                 )
+
                 .eq(
                   "id",
                   order.listing_id
                 )
+
                 .maybeSingle();
 
+
             if (
-              !listing ||
+              !listing
+              ||
               listing.status !==
-                "active" ||
-              listing.is_paused ||
+                "active"
+              ||
+              listing.is_paused
+              ||
               listing.is_frozen
             ) {
-              valid = false;
+
+              valid =
+                false;
             }
           }
 
+
           await telegramApi(
+
             "answerPreCheckoutQuery",
 
             valid
+
               ? {
                   pre_checkout_query_id:
                     query.id,
 
-                  ok: true
+                  ok:
+                    true
                 }
+
               : {
                   pre_checkout_query_id:
                     query.id,
 
-                  ok: false,
+                  ok:
+                    false,
 
                   error_message:
                     "This contact unlock is no longer available."
                 }
           );
+
 
           return;
         }
@@ -7484,128 +10219,181 @@ app.post(
             "wanted:"
           )
         ) {
+
           const {
-            data: order
+            data:
+              order
           } =
             await supabase
+
               .from(
                 "wanted_payment_orders"
               )
+
               .select("*")
+
               .eq(
                 "invoice_payload",
                 payload
               )
+
               .maybeSingle();
 
+
           let valid =
-            Boolean(order);
+            Boolean(
+              order
+            );
+
 
           if (
             valid &&
             order.status !==
               "created"
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (
-            valid &&
-            Number(query.from.id) !==
+            valid
+            &&
+            Number(
+              query.from.id
+            )
+            !==
             Number(
               order.buyer_telegram_id
             )
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (
-            valid &&
+            valid
+            &&
             (
               query.currency !==
-                "XTR" ||
+                "XTR"
+              ||
               Number(
                 query.total_amount
-              ) !==
+              )
+              !==
               Number(
                 order.amount_stars
               )
             )
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (valid) {
+
             const {
-              data: user
+              data:
+                user
             } =
               await supabase
+
                 .from("users")
+
                 .select(
                   "telegram_username"
                 )
+
                 .eq(
                   "telegram_id",
                   order.buyer_telegram_id
                 )
+
                 .maybeSingle();
+
 
             if (
               !user
                 ?.telegram_username
             ) {
-              valid = false;
+
+              valid =
+                false;
             }
 
+
             const {
-              data: duplicate
+              data:
+                duplicate
             } =
               await supabase
+
                 .from(
                   "wanted_requests"
                 )
+
                 .select("id")
+
                 .eq(
                   "buyer_telegram_id",
                   order.buyer_telegram_id
                 )
+
                 .ilike(
                   "desired_username",
                   order.desired_username
                 )
+
                 .eq(
                   "status",
                   "active"
                 )
+
                 .limit(1);
+
 
             if (
               duplicate?.length
             ) {
-              valid = false;
+
+              valid =
+                false;
             }
           }
 
+
           await telegramApi(
+
             "answerPreCheckoutQuery",
 
             valid
+
               ? {
                   pre_checkout_query_id:
                     query.id,
 
-                  ok: true
+                  ok:
+                    true
                 }
+
               : {
                   pre_checkout_query_id:
                     query.id,
 
-                  ok: false,
+                  ok:
+                    false,
 
                   error_message:
                     "This Wanted payment is no longer valid."
                 }
           );
+
 
           return;
         }
@@ -7618,60 +10406,88 @@ app.post(
             "promotion:"
           )
         ) {
+
           const {
-            data: order
+            data:
+              order
           } =
             await supabase
+
               .from(
                 "promotion_payment_orders"
               )
+
               .select("*")
+
               .eq(
                 "invoice_payload",
                 payload
               )
+
               .maybeSingle();
 
+
           let valid =
-            Boolean(order);
+            Boolean(
+              order
+            );
+
 
           if (
             valid &&
             order.status !==
               "created"
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (
-            valid &&
-            Number(query.from.id) !==
+            valid
+            &&
+            Number(
+              query.from.id
+            )
+            !==
             Number(
               order.seller_telegram_id
             )
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (
-            valid &&
+            valid
+            &&
             (
               query.currency !==
-                "XTR" ||
+                "XTR"
+              ||
               Number(
                 query.total_amount
-              ) !==
+              )
+              !==
               Number(
                 order.amount_stars
               )
             )
           ) {
-            valid = false;
+
+            valid =
+              false;
           }
 
+
           if (valid) {
+
             const expectedPrice =
               promotionPrice(
+
                 order.promotion_type,
 
                 Number(
@@ -7679,109 +10495,151 @@ app.post(
                 )
               );
 
+
             if (
-              !expectedPrice ||
+              !expectedPrice
+              ||
               Number(
                 expectedPrice
-              ) !==
+              )
+              !==
               Number(
                 order.amount_stars
               )
             ) {
-              valid = false;
+
+              valid =
+                false;
             }
 
+
             const {
-              data: listing
+              data:
+                listing
             } =
               await supabase
+
                 .from("listings")
+
                 .select(
                   "seller_telegram_id,status,is_paused,is_frozen"
                 )
+
                 .eq(
                   "id",
                   order.listing_id
                 )
+
                 .maybeSingle();
 
+
             if (
-              !listing ||
+              !listing
+              ||
               Number(
                 listing.seller_telegram_id
-              ) !==
+              )
+              !==
               Number(
                 order.seller_telegram_id
-              ) ||
+              )
+              ||
               listing.status !==
-                "active" ||
-              listing.is_paused ||
+                "active"
+              ||
+              listing.is_paused
+              ||
               listing.is_frozen
             ) {
-              valid = false;
+
+              valid =
+                false;
             }
 
+
             if (valid) {
+
               const {
-                data: accepted
+                data:
+                  accepted
               } =
                 await supabase
+
                   .from("offers")
+
                   .select("id")
+
                   .eq(
                     "listing_id",
                     order.listing_id
                   )
+
                   .eq(
                     "status",
                     "accepted"
                   )
+
                   .limit(1);
+
 
               if (
                 accepted?.length
               ) {
-                valid = false;
+
+                valid =
+                  false;
               }
             }
           }
 
+
           await telegramApi(
+
             "answerPreCheckoutQuery",
 
             valid
+
               ? {
                   pre_checkout_query_id:
                     query.id,
 
-                  ok: true
+                  ok:
+                    true
                 }
+
               : {
                   pre_checkout_query_id:
                     query.id,
 
-                  ok: false,
+                  ok:
+                    false,
 
                   error_message:
                     "This promotion is no longer available."
                 }
           );
 
+
           return;
         }
 
+
         await telegramApi(
+
           "answerPreCheckoutQuery",
+
           {
             pre_checkout_query_id:
               query.id,
 
-            ok: false,
+            ok:
+              false,
 
             error_message:
               "Unknown payment."
           }
         );
+
 
         return;
       }
@@ -7794,13 +10652,17 @@ app.post(
       const message =
         update.message;
 
+
       const payment =
         message
           ?.successful_payment;
 
+
       if (!payment) {
+
         return;
       }
+
 
       const payload =
         String(
@@ -7808,39 +10670,51 @@ app.post(
           ""
         );
 
+
       const payerId =
         Number(
           message.from?.id
         );
+
 
       const chargeId =
         payment
           .telegram_payment_charge_id;
 
 
-      /* LISTING SUCCESS */
+      /* =====================================================
+         LISTING PAYMENT SUCCESS
+         ===================================================== */
 
       if (
         payload.startsWith(
           "listing:"
         )
       ) {
+
         const {
-          data: order
+          data:
+            order
         } =
           await supabase
+
             .from(
               "listing_payment_orders"
             )
+
             .select("*")
+
             .eq(
               "invoice_payload",
               payload
             )
+
             .maybeSingle();
 
+
         if (
-          !order ||
+          !order
+          ||
           [
             "completed",
             "refunded"
@@ -7848,36 +10722,50 @@ app.post(
             order.status
           )
         ) {
+
           return;
         }
 
+
         const valid =
+
           payerId ===
             Number(
               order.seller_telegram_id
             )
+
           &&
+
           payment.currency ===
             "XTR"
+
           &&
+
           Number(
             payment.total_amount
-          ) ===
-            Number(
-              order.amount_stars
-            );
+          )
+          ===
+          Number(
+            order.amount_stars
+          );
+
 
         if (!valid) {
+
           return;
         }
 
+
         await supabase
+
           .from(
             "listing_payment_orders"
           )
+
           .update(
             {
-              status: "paid",
+              status:
+                "paid",
 
               telegram_payment_charge_id:
                 chargeId,
@@ -7886,28 +10774,44 @@ app.post(
                 nowIso()
             }
           )
+
           .eq(
             "id",
             order.id
           );
 
+
         try {
+
           const {
-            data: alreadyCreated
+            data:
+              alreadyCreated
           } =
             await supabase
+
               .from("listings")
+
               .select("id")
+
               .eq(
                 "id",
                 order.id
               )
+
               .maybeSingle();
 
-          if (!alreadyCreated) {
-            const { error } =
+
+          if (
+            !alreadyCreated
+          ) {
+
+            const {
+              error
+            } =
               await supabase
+
                 .from("listings")
+
                 .insert(
                   {
                     id:
@@ -7953,22 +10857,29 @@ app.post(
                   }
                 );
 
+
             if (error) {
+
               throw error;
             }
           }
+
 
           await ensureSellerProfile(
             order.seller_telegram_id
           );
 
+
           const {
-            error: contactError
+            error:
+              contactError
           } =
             await supabase
+
               .from(
                 "listing_contacts"
               )
+
               .upsert(
                 {
                   listing_id:
@@ -7986,14 +10897,21 @@ app.post(
                 }
               );
 
-          if (contactError) {
+
+          if (
+            contactError
+          ) {
+
             throw contactError;
           }
 
+
           await supabase
+
             .from(
               "listing_payment_orders"
             )
+
             .update(
               {
                 status:
@@ -8006,61 +10924,84 @@ app.post(
                   nowIso()
               }
             )
+
             .eq(
               "id",
               order.id
             );
 
+
           safeSendMessage(
+
             order.seller_telegram_id,
 
             `✅ Payment received. @${order.whatsapp_username} was submitted for moderation.`
           );
+
         } catch (error) {
+
           console.error(
             "Listing fulfillment failed:",
             error
           );
 
+
           await supabase
-            .from("listing_contacts")
+
+            .from(
+              "listing_contacts"
+            )
+
             .delete()
+
             .eq(
               "listing_id",
               order.id
             );
 
+
           await supabase
+
             .from("listings")
+
             .delete()
+
             .eq(
               "id",
               order.id
             );
 
+
           try {
+
             await refundStars(
               payerId,
               chargeId
             );
 
+
             await supabase
+
               .from(
                 "listing_payment_orders"
               )
+
               .update(
                 {
                   status:
                     "refunded"
                 }
               )
+
               .eq(
                 "id",
                 order.id
               );
+
           } catch (
             refundError
           ) {
+
             console.error(
               "Listing refund failed:",
               refundError.message
@@ -8068,33 +11009,44 @@ app.post(
           }
         }
 
+
         return;
       }
 
 
-      /* CONTACT SUCCESS */
+      /* =====================================================
+         CONTACT PAYMENT SUCCESS
+         ===================================================== */
 
       if (
         payload.startsWith(
           "contact:"
         )
       ) {
+
         const {
-          data: order
+          data:
+            order
         } =
           await supabase
+
             .from(
               "contact_unlocks"
             )
+
             .select("*")
+
             .eq(
               "invoice_payload",
               payload
             )
+
             .maybeSingle();
 
+
         if (
-          !order ||
+          !order
+          ||
           [
             "paid",
             "refunded"
@@ -8102,105 +11054,148 @@ app.post(
             order.status
           )
         ) {
+
           return;
         }
 
+
         const valid =
+
           payerId ===
             Number(
               order.buyer_telegram_id
             )
+
           &&
+
           payment.currency ===
             "XTR"
+
           &&
+
           Number(
             payment.total_amount
-          ) ===
-            Number(
-              order.amount_stars
-            );
+          )
+          ===
+          Number(
+            order.amount_stars
+          );
+
 
         if (!valid) {
+
           return;
         }
 
+
         const {
-          data: listing
+          data:
+            listing
         } =
           await supabase
+
             .from("listings")
+
             .select(
               "status,is_paused,is_frozen"
             )
+
             .eq(
               "id",
               order.listing_id
             )
+
             .maybeSingle();
 
+
         const {
-          data: sellerContact
+          data:
+            sellerContact
         } =
           await supabase
+
             .from(
               "listing_contacts"
             )
-            .select("listing_id")
+
+            .select(
+              "listing_id"
+            )
+
             .eq(
               "listing_id",
               order.listing_id
             )
+
             .maybeSingle();
 
+
         if (
-          !listing ||
+          !listing
+          ||
           listing.status !==
-            "active" ||
-          listing.is_paused ||
-          listing.is_frozen ||
+            "active"
+          ||
+          listing.is_paused
+          ||
+          listing.is_frozen
+          ||
           !sellerContact
         ) {
+
           try {
+
             await refundStars(
               payerId,
               chargeId
             );
 
+
             await supabase
+
               .from(
                 "contact_unlocks"
               )
+
               .update(
                 {
                   status:
                     "refunded"
                 }
               )
+
               .eq(
                 "id",
                 order.id
               );
+
           } catch (error) {
+
             console.error(
               "Contact refund failed:",
               error.message
             );
           }
 
+
           return;
         }
 
+
         const {
-          error: unlockError
+          error:
+            unlockError
         } =
           await supabase
+
             .from(
               "contact_unlocks"
             )
+
             .update(
               {
-                status: "paid",
+                status:
+                  "paid",
 
                 telegram_payment_charge_id:
                   chargeId,
@@ -8209,49 +11204,68 @@ app.post(
                   nowIso()
               }
             )
+
             .eq(
               "id",
               order.id
             );
 
-        if (unlockError) {
+
+        if (
+          unlockError
+        ) {
+
           try {
+
             await refundStars(
               payerId,
               chargeId
             );
+
           } catch {}
+
 
           return;
         }
+
 
         return;
       }
 
 
-      /* WANTED SUCCESS */
+      /* =====================================================
+         WANTED PAYMENT SUCCESS
+         ===================================================== */
 
       if (
         payload.startsWith(
           "wanted:"
         )
       ) {
+
         const {
-          data: order
+          data:
+            order
         } =
           await supabase
+
             .from(
               "wanted_payment_orders"
             )
+
             .select("*")
+
             .eq(
               "invoice_payload",
               payload
             )
+
             .maybeSingle();
 
+
         if (
-          !order ||
+          !order
+          ||
           [
             "completed",
             "refunded"
@@ -8259,36 +11273,50 @@ app.post(
             order.status
           )
         ) {
+
           return;
         }
 
+
         const valid =
+
           payerId ===
             Number(
               order.buyer_telegram_id
             )
+
           &&
+
           payment.currency ===
             "XTR"
+
           &&
+
           Number(
             payment.total_amount
-          ) ===
-            Number(
-              order.amount_stars
-            );
+          )
+          ===
+          Number(
+            order.amount_stars
+          );
+
 
         if (!valid) {
+
           return;
         }
 
+
         await supabase
+
           .from(
             "wanted_payment_orders"
           )
+
           .update(
             {
-              status: "paid",
+              status:
+                "paid",
 
               telegram_payment_charge_id:
                 chargeId,
@@ -8297,89 +11325,124 @@ app.post(
                 nowIso()
             }
           )
+
           .eq(
             "id",
             order.id
           );
 
+
         try {
+
           const {
-            data: user
+            data:
+              user
           } =
             await supabase
+
               .from("users")
+
               .select(
                 "telegram_username"
               )
+
               .eq(
                 "telegram_id",
                 order.buyer_telegram_id
               )
+
               .maybeSingle();
+
 
           if (
             !user
               ?.telegram_username
           ) {
+
             throw new Error(
               "public_telegram_username_required"
             );
           }
 
+
           const {
-            data: duplicate
+            data:
+              duplicate
           } =
             await supabase
+
               .from(
                 "wanted_requests"
               )
+
               .select("id")
+
               .eq(
                 "buyer_telegram_id",
                 order.buyer_telegram_id
               )
+
               .ilike(
                 "desired_username",
                 order.desired_username
               )
+
               .eq(
                 "status",
                 "active"
               )
+
               .limit(1);
+
 
           if (
             duplicate?.length
           ) {
+
             throw new Error(
               "wanted_already_exists"
             );
           }
 
+
           const wantedId =
             order.wanted_post_id ||
             order.id;
 
+
           const {
-            data: existingPost
+            data:
+              existingPost
           } =
             await supabase
+
               .from(
                 "wanted_requests"
               )
+
               .select("id")
+
               .eq(
                 "id",
                 wantedId
               )
+
               .maybeSingle();
 
-          if (!existingPost) {
-            const { error } =
+
+          if (
+            !existingPost
+          ) {
+
+            const {
+              error
+            } =
               await supabase
+
                 .from(
                   "wanted_requests"
                 )
+
                 .insert(
                   {
                     id:
@@ -8410,15 +11473,20 @@ app.post(
                   }
                 );
 
+
             if (error) {
+
               throw error;
             }
           }
 
+
           await supabase
+
             .from(
               "wanted_payment_orders"
             )
+
             .update(
               {
                 status:
@@ -8431,45 +11499,58 @@ app.post(
                   nowIso()
               }
             )
+
             .eq(
               "id",
               order.id
             );
 
+
           safeSendMessage(
+
             order.buyer_telegram_id,
 
             `✅ Wanted request for @${order.desired_username} is now live.`
           );
+
         } catch (error) {
+
           console.error(
             "Wanted fulfillment failed:",
             error
           );
 
+
           try {
+
             await refundStars(
               payerId,
               chargeId
             );
 
+
             await supabase
+
               .from(
                 "wanted_payment_orders"
               )
+
               .update(
                 {
                   status:
                     "refunded"
                 }
               )
+
               .eq(
                 "id",
                 order.id
               );
+
           } catch (
             refundError
           ) {
+
             console.error(
               "Wanted refund failed:",
               refundError.message
@@ -8477,33 +11558,44 @@ app.post(
           }
         }
 
+
         return;
       }
 
 
-      /* PROMOTION SUCCESS */
+      /* =====================================================
+         PROMOTION PAYMENT SUCCESS
+         ===================================================== */
 
       if (
         payload.startsWith(
           "promotion:"
         )
       ) {
+
         const {
-          data: order
+          data:
+            order
         } =
           await supabase
+
             .from(
               "promotion_payment_orders"
             )
+
             .select("*")
+
             .eq(
               "invoice_payload",
               payload
             )
+
             .maybeSingle();
 
+
         if (
-          !order ||
+          !order
+          ||
           [
             "completed",
             "refunded"
@@ -8511,36 +11603,50 @@ app.post(
             order.status
           )
         ) {
+
           return;
         }
 
+
         const valid =
+
           payerId ===
             Number(
               order.seller_telegram_id
             )
+
           &&
+
           payment.currency ===
             "XTR"
+
           &&
+
           Number(
             payment.total_amount
-          ) ===
-            Number(
-              order.amount_stars
-            );
+          )
+          ===
+          Number(
+            order.amount_stars
+          );
+
 
         if (!valid) {
+
           return;
         }
 
+
         await supabase
+
           .from(
             "promotion_payment_orders"
           )
+
           .update(
             {
-              status: "paid",
+              status:
+                "paid",
 
               telegram_payment_charge_id:
                 chargeId,
@@ -8549,28 +11655,38 @@ app.post(
                 nowIso()
             }
           )
+
           .eq(
             "id",
             order.id
           );
 
+
         try {
+
           const {
-            data: listing
+            data:
+              listing
           } =
             await supabase
+
               .from("listings")
+
               .select(
                 "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,bump_until,hot_until,vip_until"
               )
+
               .eq(
                 "id",
                 order.listing_id
               )
+
               .maybeSingle();
+
 
           const expectedPrice =
             promotionPrice(
+
               order.promotion_type,
 
               Number(
@@ -8578,73 +11694,98 @@ app.post(
               )
             );
 
+
           if (
-            !listing ||
+            !listing
+            ||
             Number(
               listing.seller_telegram_id
-            ) !==
+            )
+            !==
             Number(
               order.seller_telegram_id
-            ) ||
+            )
+            ||
             listing.status !==
-              "active" ||
-            listing.is_paused ||
+              "active"
+            ||
+            listing.is_paused
+            ||
             listing.is_frozen
           ) {
+
             throw new Error(
               "listing_not_promotable"
             );
           }
 
+
           if (
-            !expectedPrice ||
+            !expectedPrice
+            ||
             Number(
               expectedPrice
-            ) !==
+            )
+            !==
             Number(
               order.amount_stars
             )
           ) {
+
             throw new Error(
               "promotion_price_changed"
             );
           }
 
+
           const {
-            data: accepted
+            data:
+              accepted
           } =
             await supabase
+
               .from("offers")
+
               .select("id")
+
               .eq(
                 "listing_id",
                 order.listing_id
               )
+
               .eq(
                 "status",
                 "accepted"
               )
+
               .limit(1);
+
 
           if (
             accepted?.length
           ) {
+
             throw new Error(
               "listing_has_agreement"
             );
           }
 
+
           const type =
             order.promotion_type;
+
 
           const untilField =
             `${type}_until`;
 
+
           const promotedAtField =
             `${type}_promoted_at`;
 
+
           const now =
             Date.now();
+
 
           const currentUntil =
             new Date(
@@ -8654,26 +11795,48 @@ app.post(
               0
             ).getTime();
 
+
           const baseMs =
+
             Number.isFinite(
               currentUntil
-            ) &&
-            currentUntil > now
+            )
+            &&
+            currentUntil >
+              now
+
               ? currentUntil
+
               : now;
+
 
           const appliedUntil =
             new Date(
-              baseMs +
+
+              baseMs
+
+              +
+
               Number(
                 order.duration_hours
-              ) *
-              60 *
-              60 *
+              )
+
+              *
+
+              60
+
+              *
+
+              60
+
+              *
+
               1000
             ).toISOString();
 
+
           const updateData = {
+
             [untilField]:
               appliedUntil,
 
@@ -8684,27 +11847,39 @@ app.post(
               nowIso()
           };
 
+
           const {
-            error: updateError
+            error:
+              updateError
           } =
             await supabase
+
               .from("listings")
+
               .update(
                 updateData
               )
+
               .eq(
                 "id",
                 order.listing_id
               );
 
-          if (updateError) {
+
+          if (
+            updateError
+          ) {
+
             throw updateError;
           }
 
+
           await supabase
+
             .from(
               "promotion_payment_orders"
             )
+
             .update(
               {
                 status:
@@ -8717,52 +11892,73 @@ app.post(
                   nowIso()
               }
             )
+
             .eq(
               "id",
               order.id
             );
 
+
           const label =
-            type === "vip"
+
+            type ===
+            "vip"
+
               ? "💎 VIP"
-              : type === "hot"
+
+              : type ===
+                "hot"
+
                 ? "🔥 HOT"
+
                 : "⬆️ Bump";
 
+
           safeSendMessage(
+
             order.seller_telegram_id,
 
             `${label} promotion activated for @${listing.whatsapp_username}.\n\nActive until: ${new Date(appliedUntil).toUTCString()}`
           );
+
         } catch (error) {
+
           console.error(
             "Promotion fulfillment failed:",
             error
           );
 
+
           try {
+
             await refundStars(
               payerId,
               chargeId
             );
 
+
             await supabase
+
               .from(
                 "promotion_payment_orders"
               )
+
               .update(
                 {
                   status:
                     "refunded"
                 }
               )
+
               .eq(
                 "id",
                 order.id
               );
+
           } catch (
             refundError
           ) {
+
             console.error(
               "Promotion refund failed:",
               refundError.message
@@ -8770,9 +11966,12 @@ app.post(
           }
         }
 
+
         return;
       }
+
     } catch (error) {
+
       console.error(
         "Webhook processing error:",
         error
@@ -8793,7 +11992,11 @@ app.use(
     res,
     next
   ) => {
-    console.error(error);
+
+    console.error(
+      error
+    );
+
 
     res
       .status(400)
@@ -8809,25 +12012,30 @@ app.use(
 
 
 /* =========================================================
-   START
+   START SERVER
    ========================================================= */
 
 const PORT =
   process.env.PORT ||
   3000;
 
+
 app.listen(
   PORT,
   "0.0.0.0",
   () => {
+
     console.log(
       `Handle Market API running on port ${PORT}`
     );
 
+
     setupTelegramWebhook()
       .catch(
         error =>
-          console.error(error)
+          console.error(
+            error
+          )
       );
   }
 );
