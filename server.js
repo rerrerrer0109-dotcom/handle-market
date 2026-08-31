@@ -92,17 +92,14 @@ if (
 
 
 // ======================================================
-// HELPERS
+// GENERAL HELPERS
 // ======================================================
 
 function sleep(ms) {
 
     return new Promise(
         resolve =>
-            setTimeout(
-                resolve,
-                ms
-            )
+            setTimeout(resolve, ms)
     );
 }
 
@@ -118,6 +115,7 @@ async function telegramApi(
         );
     }
 
+
     const response =
         await fetch(
             `https://api.telegram.org/bot${BOT_TOKEN}/${method}`,
@@ -130,14 +128,14 @@ async function telegramApi(
                 },
 
                 body:
-                    JSON.stringify(
-                        payload
-                    )
+                    JSON.stringify(payload)
             }
         );
 
+
     const data =
         await response.json();
+
 
     if (
         !response.ok ||
@@ -154,6 +152,7 @@ async function telegramApi(
             "telegram_api_error"
         );
     }
+
 
     return data.result;
 }
@@ -205,7 +204,9 @@ async function createStarsInvoice(
 
             prices: [
                 {
-                    label: title,
+                    label:
+                        title,
+
                     amount
                 }
             ]
@@ -250,12 +251,15 @@ async function setupTelegramWebhook() {
         return;
     }
 
+
     const webhookUrl =
         PUBLIC_BASE_URL +
         "/telegram-webhook";
 
+
     const MAX_ATTEMPTS =
         6;
+
 
     for (
         let attempt = 1;
@@ -268,6 +272,7 @@ async function setupTelegramWebhook() {
             console.log(
                 `Setting Telegram webhook — attempt ${attempt}/${MAX_ATTEMPTS}`
             );
+
 
             await telegramApi(
                 "setWebhook",
@@ -288,9 +293,11 @@ async function setupTelegramWebhook() {
                 }
             );
 
+
             console.log(
                 "Telegram webhook configured ✓"
             );
+
 
             return;
 
@@ -301,13 +308,15 @@ async function setupTelegramWebhook() {
                 error.message
             );
 
+
             if (
                 attempt <
                 MAX_ATTEMPTS
             ) {
 
                 await sleep(
-                    attempt * 5000
+                    attempt *
+                    5000
                 );
             }
         }
@@ -332,6 +341,7 @@ function validateInitData(
         };
     }
 
+
     if (
         !initData ||
         typeof initData !==
@@ -345,13 +355,16 @@ function validateInitData(
         };
     }
 
+
     const params =
         new URLSearchParams(
             initData
         );
 
+
     const receivedHash =
         params.get("hash");
+
 
     if (!receivedHash) {
 
@@ -362,7 +375,9 @@ function validateInitData(
         };
     }
 
+
     params.delete("hash");
+
 
     const dataCheckString =
         [...params.entries()]
@@ -376,6 +391,7 @@ function validateInitData(
             )
             .join("\n");
 
+
     const secretKey =
         crypto
             .createHmac(
@@ -386,6 +402,7 @@ function validateInitData(
                 BOT_TOKEN
             )
             .digest();
+
 
     const calculatedHash =
         crypto
@@ -398,6 +415,7 @@ function validateInitData(
             )
             .digest("hex");
 
+
     try {
 
         const receivedBuffer =
@@ -406,11 +424,13 @@ function validateInitData(
                 "hex"
             );
 
+
         const calculatedBuffer =
             Buffer.from(
                 calculatedHash,
                 "hex"
             );
+
 
         if (
             receivedBuffer.length !==
@@ -423,6 +443,7 @@ function validateInitData(
                     "invalid_signature"
             };
         }
+
 
         if (
             !crypto.timingSafeEqual(
@@ -447,6 +468,7 @@ function validateInitData(
         };
     }
 
+
     const authDate =
         Number(
             params.get(
@@ -454,11 +476,13 @@ function validateInitData(
             )
         );
 
+
     const now =
         Math.floor(
             Date.now() /
             1000
         );
+
 
     if (
         !Number.isFinite(
@@ -478,7 +502,9 @@ function validateInitData(
         };
     }
 
+
     let user;
+
 
     try {
 
@@ -496,6 +522,7 @@ function validateInitData(
         };
     }
 
+
     if (
         !user ||
         !user.id
@@ -508,12 +535,17 @@ function validateInitData(
         };
     }
 
+
     return {
         valid: true,
         user
     };
 }
 
+
+// ======================================================
+// DATABASE USER
+// ======================================================
 
 async function getDatabaseUser(
     initData
@@ -523,6 +555,7 @@ async function getDatabaseUser(
         validateInitData(
             initData
         );
+
 
     if (!result.valid) {
 
@@ -534,6 +567,7 @@ async function getDatabaseUser(
         };
     }
 
+
     if (!supabase) {
 
         return {
@@ -544,8 +578,10 @@ async function getDatabaseUser(
         };
     }
 
+
     const tgUser =
         result.user;
+
 
     const record = {
 
@@ -598,6 +634,7 @@ async function getDatabaseUser(
             error
         );
 
+
         return {
             ok: false,
             status: 500,
@@ -622,7 +659,8 @@ async function getDatabaseUser(
 
     return {
         ok: true,
-        user: data
+        user:
+            data
     };
 }
 
@@ -636,9 +674,11 @@ async function requireAdmin(
             initData
         );
 
+
     if (!auth.ok) {
         return auth;
     }
+
 
     if (
         !auth.user.is_admin
@@ -651,6 +691,7 @@ async function requireAdmin(
                 "admin_required"
         };
     }
+
 
     return auth;
 }
@@ -669,6 +710,7 @@ function validateListingInput(
             body.whatsapp_username ||
             ""
         ).trim();
+
 
     if (
         username.startsWith("@")
@@ -853,11 +895,14 @@ async function buyerHasContactAccess(
             error
         );
 
+
         return false;
     }
 
 
-    return Boolean(data);
+    return Boolean(
+        data
+    );
 }
 
 
@@ -1157,6 +1202,387 @@ app.post(
 
 
 // ======================================================
+// WATCHLIST - TOGGLE
+// ======================================================
+
+app.post(
+    "/watchlist/toggle",
+    async (
+        req,
+        res
+    ) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json({
+                    ok: false,
+                    error:
+                        auth.error
+                });
+        }
+
+
+        const telegramId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const listingId =
+            String(
+                req.body.listing_id ||
+                ""
+            ).trim();
+
+
+        if (!listingId) {
+
+            return res
+                .status(400)
+                .json({
+                    ok: false,
+                    error:
+                        "listing_id_required"
+                });
+        }
+
+
+        const {
+            data: listing,
+            error: listingError
+        } =
+            await supabase
+                .from("listings")
+                .select(`
+                    id,
+                    status
+                `)
+                .eq(
+                    "id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (
+            listingError ||
+            !listing ||
+            listing.status !==
+                "active"
+        ) {
+
+            return res
+                .status(404)
+                .json({
+                    ok: false,
+                    error:
+                        "listing_not_available"
+                });
+        }
+
+
+        const {
+            data: existing,
+            error: checkError
+        } =
+            await supabase
+                .from("watchlist")
+                .select(`
+                    telegram_id,
+                    listing_id
+                `)
+                .eq(
+                    "telegram_id",
+                    telegramId
+                )
+                .eq(
+                    "listing_id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (checkError) {
+
+            console.error(
+                "Watchlist check:",
+                checkError
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok: false,
+                    error:
+                        "watchlist_check_failed"
+                });
+        }
+
+
+        if (existing) {
+
+            const {
+                error
+            } =
+                await supabase
+                    .from("watchlist")
+                    .delete()
+                    .eq(
+                        "telegram_id",
+                        telegramId
+                    )
+                    .eq(
+                        "listing_id",
+                        listingId
+                    );
+
+
+            if (error) {
+
+                console.error(
+                    "Watchlist remove:",
+                    error
+                );
+
+
+                return res
+                    .status(500)
+                    .json({
+                        ok: false,
+                        error:
+                            "watchlist_update_failed"
+                    });
+            }
+
+
+            return res.json({
+                ok: true,
+                watched:
+                    false,
+                listing_id:
+                    listingId
+            });
+        }
+
+
+        const {
+            error: insertError
+        } =
+            await supabase
+                .from("watchlist")
+                .insert({
+                    telegram_id:
+                        telegramId,
+
+                    listing_id:
+                        listingId
+                });
+
+
+        if (insertError) {
+
+            console.error(
+                "Watchlist insert:",
+                insertError
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok: false,
+                    error:
+                        "watchlist_update_failed"
+                });
+        }
+
+
+        return res.json({
+            ok: true,
+            watched:
+                true,
+            listing_id:
+                listingId
+        });
+    }
+);
+
+
+// ======================================================
+// WATCHLIST - LIST
+// ======================================================
+
+app.post(
+    "/watchlist/list",
+    async (
+        req,
+        res
+    ) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json({
+                    ok: false,
+                    error:
+                        auth.error
+                });
+        }
+
+
+        const telegramId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const {
+            data: rows,
+            error: watchError
+        } =
+            await supabase
+                .from("watchlist")
+                .select(
+                    "listing_id"
+                )
+                .eq(
+                    "telegram_id",
+                    telegramId
+                );
+
+
+        if (watchError) {
+
+            console.error(
+                "Watchlist load:",
+                watchError
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok: false,
+                    error:
+                        "watchlist_load_failed"
+                });
+        }
+
+
+        const ids =
+            (rows || [])
+                .map(
+                    row =>
+                        row.listing_id
+                );
+
+
+        if (
+            ids.length === 0
+        ) {
+
+            return res.json({
+                ok: true,
+                listing_ids: [],
+                listings: []
+            });
+        }
+
+
+        const {
+            data: listings,
+            error: listingError
+        } =
+            await supabase
+                .from("listings")
+                .select(`
+                    id,
+                    whatsapp_username,
+                    asking_price,
+                    currency,
+                    category,
+                    description,
+                    is_featured,
+                    views_count,
+                    created_at
+                `)
+                .in(
+                    "id",
+                    ids
+                )
+                .eq(
+                    "status",
+                    "active"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                );
+
+
+        if (listingError) {
+
+            console.error(
+                "Watchlist listing load:",
+                listingError
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok: false,
+                    error:
+                        "watchlist_load_failed"
+                });
+        }
+
+
+        const activeListings =
+            listings || [];
+
+
+        const activeIds =
+            activeListings.map(
+                item =>
+                    item.id
+            );
+
+
+        return res.json({
+            ok: true,
+            listing_ids:
+                activeIds,
+            listings:
+                activeListings
+        });
+    }
+);
+
+
+// ======================================================
 // CREATE LISTING PAYMENT
 // ======================================================
 
@@ -1208,6 +1634,7 @@ app.post(
         const seller =
             auth.user;
 
+
         const input =
             validation.data;
 
@@ -1254,6 +1681,7 @@ app.post(
 
         const orderId =
             crypto.randomUUID();
+
 
         const payload =
             `listing:${orderId}`;
@@ -1308,6 +1736,7 @@ app.post(
             console.error(
                 error
             );
+
 
             return res
                 .status(500)
@@ -1523,6 +1952,7 @@ app.post(
                 auth.user.telegram_id
             );
 
+
         const sellerId =
             Number(
                 listing.seller_telegram_id
@@ -1665,6 +2095,7 @@ app.post(
             Number(
                 auth.user.telegram_id
             );
+
 
         const listingId =
             String(
@@ -1850,6 +2281,7 @@ app.post(
             console.error(
                 dbError
             );
+
 
             return res
                 .status(500)
@@ -2251,6 +2683,7 @@ app.post(
                 "Offer create:",
                 error
             );
+
 
             return res
                 .status(500)
@@ -2776,7 +3209,8 @@ app.post(
 
         let update = {
             updated_at:
-                new Date().toISOString()
+                new Date()
+                    .toISOString()
         };
 
 
@@ -2833,6 +3267,7 @@ app.post(
             update.status =
                 "countered";
 
+
             update.seller_counter_amount =
                 counterAmount;
         }
@@ -2859,6 +3294,7 @@ app.post(
                 error
             );
 
+
             return res
                 .status(500)
                 .json({
@@ -2879,6 +3315,7 @@ app.post(
                 .update({
                     status:
                         "declined",
+
                     updated_at:
                         new Date()
                             .toISOString()
@@ -3083,6 +3520,7 @@ app.post(
                 .update({
                     status:
                         "cancelled",
+
                     updated_at:
                         new Date()
                             .toISOString()
@@ -3096,6 +3534,7 @@ app.post(
             if (listing) {
 
                 safeSendMessage(
+
                     listing.seller_telegram_id,
 
                     `↩️ Buyer cancelled their offer for @${listing.whatsapp_username}.`
@@ -3139,6 +3578,7 @@ app.post(
                     .update({
                         status:
                             "accepted",
+
                         updated_at:
                             new Date()
                                 .toISOString()
@@ -3168,6 +3608,7 @@ app.post(
                 .update({
                     status:
                         "declined",
+
                     updated_at:
                         new Date()
                             .toISOString()
@@ -3324,7 +3765,9 @@ app.post(
             ![
                 "active",
                 "rejected"
-            ].includes(status)
+            ].includes(
+                status
+            )
         ) {
 
             return res
@@ -3344,6 +3787,7 @@ app.post(
                 .from("listings")
                 .update({
                     status,
+
                     updated_at:
                         new Date()
                             .toISOString()
@@ -3491,6 +3935,7 @@ app.post(
                                 ok:
                                     true
                             }
+
                             : {
                                 pre_checkout_query_id:
                                     query.id,
@@ -3589,6 +4034,7 @@ app.post(
                                 ok:
                                     true
                             }
+
                             : {
                                 pre_checkout_query_id:
                                     query.id,
@@ -4002,6 +4448,7 @@ app.post(
                             chargeId
                         );
 
+
                         await supabase
                             .from(
                                 "contact_unlocks"
@@ -4016,6 +4463,7 @@ app.post(
                             );
 
                     } catch {}
+
 
                     return;
                 }
@@ -4052,6 +4500,7 @@ app.post(
                         "Unlock error:",
                         error
                     );
+
 
                     return;
                 }
@@ -4090,6 +4539,7 @@ app.use(
             error
         );
 
+
         res
             .status(400)
             .json({
@@ -4118,6 +4568,7 @@ app.listen(
         console.log(
             `Handle Market API running on port ${PORT}`
         );
+
 
         setupTelegramWebhook()
             .catch(
