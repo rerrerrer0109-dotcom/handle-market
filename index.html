@@ -1,476 +1,526 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Handle Market</title>
-
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f5f7;color:#111;padding-bottom:85px}
+.app{max-width:650px;margin:auto}
+header{background:#fff;padding:18px;border-bottom:1px solid #e5e5e5}
+.logo{font-size:25px;font-weight:800}
+.subtitle{color:#777;font-size:13px;margin-top:5px}
+.auth-status{margin-top:10px;font-size:13px}
+.auth-ok{color:#139447}
+.auth-error{color:#d93025}
 
-* {
-    box-sizing: border-box;
+.page{display:none}
+.page.active{display:block}
+
+.search{padding:16px}
+
+.search input{
+    width:100%;
+    border:1px solid #ddd;
+    border-radius:14px;
+    padding:14px;
+    font-size:16px;
+    background:#fff
 }
 
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f5f7;
-    color: #111;
-    padding-bottom: 85px;
+.section{padding:0 16px 20px}
+
+.section-title{
+    font-size:20px;
+    font-weight:800;
+    margin-bottom:12px
 }
 
-.app {
-    max-width: 650px;
-    margin: auto;
+.categories{
+    display:flex;
+    gap:8px;
+    overflow-x:auto
 }
 
-header {
-    background: white;
-    padding: 18px;
-    border-bottom: 1px solid #e5e5e5;
+.category{
+    white-space:nowrap;
+    background:#fff;
+    border:1px solid #e8e8e8;
+    border-radius:20px;
+    padding:9px 14px
 }
 
-.logo {
-    font-size: 25px;
-    font-weight: 800;
+.card{
+    background:#fff;
+    padding:17px;
+    margin-bottom:12px;
+    border-radius:18px;
+    box-shadow:0 2px 9px rgba(0,0,0,.04)
 }
 
-.subtitle {
-    color: #777;
-    font-size: 13px;
-    margin-top: 5px;
+.username{
+    font-size:23px;
+    font-weight:800
 }
 
-.auth-status {
-    margin-top: 10px;
-    font-size: 13px;
+.price{
+    font-size:20px;
+    font-weight:700;
+    margin-top:13px
 }
 
-.auth-ok {
-    color: #139447;
+.meta{
+    color:#777;
+    margin-top:6px;
+    font-size:13px
 }
 
-.auth-error {
-    color: #d93025;
+.description{
+    color:#555;
+    margin-top:12px;
+    line-height:1.45
 }
 
-.page {
-    display: none;
+.badge{
+    display:inline-block;
+    margin-top:7px;
+    padding:5px 9px;
+    border-radius:10px;
+    font-size:12px
 }
 
-.page.active {
-    display: block;
+.badge-pending{
+    background:#fff7e0;
+    color:#9a6900
 }
 
-.search {
-    padding: 16px;
+.badge-active,
+.badge-accepted{
+    background:#ebf9ef;
+    color:#14863c
 }
 
-.search input {
-    width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 14px;
-    padding: 14px;
-    font-size: 16px;
-    background: white;
+.badge-rejected{
+    background:#fff0f0;
+    color:#c33
 }
 
-.section {
-    padding: 0 16px 20px;
+.badge-countered{
+    background:#eef6ff;
+    color:#1764a5
 }
 
-.section-title {
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 12px;
+.badge-declined,
+.badge-cancelled{
+    background:#f2f2f2;
+    color:#777
 }
 
-.categories {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
+.buttons{
+    display:flex;
+    gap:8px;
+    margin-top:14px
 }
 
-.category {
-    white-space: nowrap;
-    background: white;
-    border: 1px solid #e8e8e8;
-    border-radius: 20px;
-    padding: 9px 14px;
+button{
+    border:none;
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px;
+    cursor:pointer
 }
 
-.card {
-    background: white;
-    padding: 17px;
-    margin-bottom: 12px;
-    border-radius: 18px;
-    box-shadow: 0 2px 9px rgba(0,0,0,.04);
+button:disabled{
+    opacity:.55;
+    cursor:default
 }
 
-.username {
-    font-size: 23px;
-    font-weight: 800;
+.primary{
+    flex:1;
+    background:#1687e8;
+    color:#fff
 }
 
-.price {
-    font-size: 20px;
-    font-weight: 700;
-    margin-top: 13px;
+.secondary{
+    background:#eee
 }
 
-.meta {
-    color: #777;
-    margin-top: 6px;
-    font-size: 13px;
+.own-listing-button{
+    flex:1;
+    background:#ebf9ef;
+    color:#14863c;
+    font-weight:700
 }
 
-.description {
-    color: #555;
-    margin-top: 12px;
-    line-height: 1.45;
+.unlock-button{
+    width:100%;
+    margin-top:12px;
+    background:#f1f6ff;
+    border:1px solid #d8e7ff;
+    color:#1764a5;
+    font-weight:700
 }
 
-.badge {
-    display: inline-block;
-    margin-top: 7px;
-    padding: 5px 9px;
-    border-radius: 10px;
-    font-size: 12px;
+.contact-box{
+    margin-top:12px;
+    border-radius:14px;
+    padding:14px;
+    background:#edf9f1;
+    border:1px solid #caedd5
 }
 
-.badge-pending {
-    background: #fff7e0;
-    color: #9a6900;
+.owner-contact-box{
+    margin-top:12px;
+    border-radius:14px;
+    padding:14px;
+    background:#f5f5f5;
+    border:1px solid #dedede
 }
 
-.badge-active {
-    background: #ebf9ef;
-    color: #14863c;
+.contact-title{
+    font-weight:800;
+    color:#168344
 }
 
-.badge-rejected {
-    background: #fff0f0;
-    color: #c33;
+.owner-title{
+    font-weight:800;
+    color:#333
 }
 
-.buttons {
-    display: flex;
-    gap: 8px;
-    margin-top: 14px;
+.contact-value{
+    font-size:17px;
+    font-weight:700;
+    margin-top:8px;
+    word-break:break-word
 }
 
-button {
-    border: none;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 14px;
-    cursor: pointer;
+.contact-actions{
+    display:flex;
+    gap:8px;
+    margin-top:12px
 }
 
-button:disabled {
-    opacity: .55;
-    cursor: default;
+.contact-actions button{
+    flex:1
 }
 
-.primary {
-    flex: 1;
-    background: #1687e8;
-    color: white;
+.owner-note{
+    color:#777;
+    font-size:12px;
+    line-height:1.45;
+    margin-top:8px
 }
 
-.secondary {
-    background: #eee;
+.payment-wait{
+    margin-top:12px;
+    padding:12px;
+    border-radius:12px;
+    background:#eef6ff;
+    color:#1764a5;
+    font-size:13px
 }
 
-.own-listing-button {
-    flex: 1;
-    background: #ebf9ef;
-    color: #14863c;
-    font-weight: 700;
+.form-box{
+    margin:16px;
+    padding:18px;
+    background:#fff;
+    border-radius:18px
 }
 
-.unlock-button {
-    width: 100%;
-    margin-top: 12px;
-    background: #f1f6ff;
-    border: 1px solid #d8e7ff;
-    color: #1764a5;
-    font-weight: 700;
+.form-title{
+    font-size:22px;
+    font-weight:800
 }
 
-.contact-box {
-    margin-top: 12px;
-    border-radius: 14px;
-    padding: 14px;
-    background: #edf9f1;
-    border: 1px solid #caedd5;
+.form-subtitle{
+    color:#777;
+    font-size:13px;
+    margin:5px 0 20px
 }
 
-.owner-contact-box {
-    margin-top: 12px;
-    border-radius: 14px;
-    padding: 14px;
-    background: #f5f5f5;
-    border: 1px solid #dedede;
+.field{
+    margin-bottom:15px
 }
 
-.contact-title {
-    font-weight: 800;
-    color: #168344;
-}
-
-.owner-title {
-    font-weight: 800;
-    color: #333;
-}
-
-.contact-value {
-    font-size: 17px;
-    font-weight: 700;
-    margin-top: 8px;
-    word-break: break-word;
-}
-
-.contact-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-}
-
-.contact-actions button {
-    flex: 1;
-}
-
-.owner-note {
-    color: #777;
-    font-size: 12px;
-    line-height: 1.45;
-    margin-top: 8px;
-}
-
-.payment-wait {
-    margin-top: 12px;
-    padding: 12px;
-    border-radius: 12px;
-    background: #eef6ff;
-    color: #1764a5;
-    font-size: 13px;
-}
-
-.form-box {
-    margin: 16px;
-    padding: 18px;
-    background: white;
-    border-radius: 18px;
-}
-
-.form-title {
-    font-size: 22px;
-    font-weight: 800;
-}
-
-.form-subtitle {
-    color: #777;
-    font-size: 13px;
-    margin: 5px 0 20px;
-}
-
-.field {
-    margin-bottom: 15px;
-}
-
-.field label {
-    display: block;
-    font-weight: 700;
-    margin-bottom: 7px;
+.field label{
+    display:block;
+    font-weight:700;
+    margin-bottom:7px
 }
 
 .field input,
 .field select,
-.field textarea {
-    width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 12px;
-    font-size: 15px;
+.field textarea{
+    width:100%;
+    border:1px solid #ddd;
+    border-radius:12px;
+    padding:12px;
+    font-size:15px
 }
 
-.field textarea {
-    min-height: 90px;
+.field textarea{
+    min-height:90px
 }
 
-.field-hint {
-    color: #888;
-    font-size: 11px;
-    margin-top: 5px;
+.field-hint{
+    color:#888;
+    font-size:11px;
+    margin-top:5px
 }
 
-.payment-box {
-    background: #f3f8ff;
-    border: 1px solid #dbeaff;
-    border-radius: 14px;
-    padding: 15px;
-    margin-bottom: 15px;
+.payment-box{
+    background:#f3f8ff;
+    border:1px solid #dbeaff;
+    border-radius:14px;
+    padding:15px;
+    margin-bottom:15px
 }
 
-.payment-price {
-    font-size: 25px;
-    font-weight: 800;
+.payment-price{
+    font-size:25px;
+    font-weight:800
 }
 
-.payment-button {
-    width: 100%;
-    background: #1687e8;
-    color: white;
-    padding: 15px;
-    font-size: 16px;
-    font-weight: 800;
+.payment-button{
+    width:100%;
+    background:#1687e8;
+    color:#fff;
+    padding:15px;
+    font-size:16px;
+    font-weight:800
 }
 
-.message {
-    margin-top: 14px;
-    padding: 13px;
-    border-radius: 12px;
-    display: none;
+.message{
+    margin-top:14px;
+    padding:13px;
+    border-radius:12px;
+    display:none
 }
 
-.message.success {
-    display: block;
-    background: #eaf8ee;
-    color: #14823a;
+.message.success{
+    display:block;
+    background:#eaf8ee;
+    color:#14823a
 }
 
-.message.error {
-    display: block;
-    background: #fff0f0;
-    color: #c62828;
+.message.error{
+    display:block;
+    background:#fff0f0;
+    color:#c62828
 }
 
-.message.info {
-    display: block;
-    background: #eef6ff;
-    color: #1764a5;
+.message.info{
+    display:block;
+    background:#eef6ff;
+    color:#1764a5
 }
 
-.warning {
-    margin: 16px;
-    padding: 14px;
-    border-radius: 14px;
-    background: #fff8e7;
-    border: 1px solid #ffe09d;
-    font-size: 13px;
-    line-height: 1.5;
+.warning{
+    margin:16px;
+    padding:14px;
+    border-radius:14px;
+    background:#fff8e7;
+    border:1px solid #ffe09d;
+    font-size:13px;
+    line-height:1.5
 }
 
-.profile-card {
-    margin: 16px;
-    padding: 20px;
-    background: white;
-    border-radius: 18px;
+.profile-card{
+    margin:16px;
+    padding:20px;
+    background:#fff;
+    border-radius:18px
 }
 
-.profile-name {
-    font-size: 22px;
-    font-weight: 800;
+.profile-name{
+    font-size:22px;
+    font-weight:800
 }
 
-.profile-username {
-    color: #777;
-    margin-top: 5px;
+.profile-username{
+    color:#777;
+    margin-top:5px
 }
 
-.verified-box {
-    background: #edf9f1;
-    color: #138541;
-    padding: 14px;
-    border-radius: 14px;
-    margin-top: 17px;
+.verified-box{
+    background:#edf9f1;
+    color:#138541;
+    padding:14px;
+    border-radius:14px;
+    margin-top:17px
 }
 
-.admin-button {
-    width: 100%;
-    background: #222;
-    color: white;
-    margin-top: 16px;
-    font-weight: 700;
+.profile-action{
+    width:100%;
+    margin-top:12px;
+    background:#1687e8;
+    color:#fff;
+    font-weight:700
 }
 
-.admin-box {
-    margin: 16px;
+.admin-button{
+    width:100%;
+    background:#222;
+    color:#fff;
+    margin-top:12px;
+    font-weight:700
 }
 
-.admin-header {
-    background: #222;
-    color: white;
-    padding: 18px;
-    border-radius: 18px;
-    margin-bottom: 15px;
+.admin-box{
+    margin:16px
 }
 
-.admin-header h2 {
-    margin: 0;
+.admin-header{
+    background:#222;
+    color:#fff;
+    padding:18px;
+    border-radius:18px;
+    margin-bottom:15px
 }
 
-.approve-button {
-    flex: 1;
-    background: #19a651;
-    color: white;
+.admin-header h2{
+    margin:0
 }
 
-.reject-button {
-    flex: 1;
-    background: #e74747;
-    color: white;
+.approve-button{
+    flex:1;
+    background:#19a651;
+    color:#fff
 }
 
-.empty {
-    padding: 30px 15px;
-    text-align: center;
-    color: #777;
-    background: white;
-    border-radius: 16px;
+.reject-button{
+    flex:1;
+    background:#e74747;
+    color:#fff
 }
 
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 70px;
-    background: white;
-    border-top: 1px solid #ddd;
-    display: flex;
-    z-index: 100;
+.counter-button{
+    flex:1;
+    background:#f1f6ff;
+    color:#1764a5
 }
 
-.nav-item {
-    flex: 1;
-    text-align: center;
-    font-size: 11px;
-    padding-top: 9px;
-    color: #777;
+.empty{
+    padding:30px 15px;
+    text-align:center;
+    color:#777;
+    background:#fff;
+    border-radius:16px
 }
 
-.nav-icon {
-    display: block;
-    font-size: 23px;
-    margin-bottom: 3px;
+.offer-summary{
+    margin-top:12px;
+    background:#f7f7f7;
+    border-radius:12px;
+    padding:12px
 }
 
-.nav-item.active {
-    color: #1687e8;
-    font-weight: 700;
+.offer-label{
+    color:#777;
+    font-size:12px
 }
 
+.offer-big{
+    font-size:20px;
+    font-weight:800;
+    margin-top:3px
+}
+
+.offer-message{
+    margin-top:10px;
+    color:#555;
+    line-height:1.45
+}
+
+.buyer-box{
+    margin-top:12px;
+    background:#f5f5f5;
+    padding:11px;
+    border-radius:10px;
+    font-size:13px
+}
+
+.bottom-nav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:70px;
+    background:#fff;
+    border-top:1px solid #ddd;
+    display:flex;
+    z-index:100
+}
+
+.nav-item{
+    flex:1;
+    text-align:center;
+    font-size:11px;
+    padding-top:9px;
+    color:#777
+}
+
+.nav-icon{
+    display:block;
+    font-size:23px;
+    margin-bottom:3px
+}
+
+.nav-item.active{
+    color:#1687e8;
+    font-weight:700
+}
+
+/* MODALS */
+
+.modal-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    z-index:1000;
+    padding:20px;
+    align-items:center;
+    justify-content:center
+}
+
+.modal-backdrop.show{
+    display:flex
+}
+
+.modal{
+    width:100%;
+    max-width:430px;
+    background:#fff;
+    border-radius:20px;
+    padding:20px;
+    max-height:90vh;
+    overflow-y:auto
+}
+
+.modal-title{
+    font-size:22px;
+    font-weight:800
+}
+
+.modal-subtitle{
+    color:#777;
+    margin-top:5px;
+    margin-bottom:18px
+}
+
+.modal-actions{
+    display:flex;
+    gap:8px;
+    margin-top:15px
+}
+
+.modal-actions button{
+    flex:1
+}
 </style>
 
 </head>
@@ -512,6 +562,7 @@ Connecting...
 
 </div>
 
+
 <div class="section">
 
 <div class="section-title">
@@ -520,16 +571,34 @@ Categories
 
 <div class="categories">
 
-<div class="category">🔥 Premium</div>
-<div class="category">Business</div>
-<div class="category">AI</div>
-<div class="category">Short</div>
-<div class="category">Travel</div>
-<div class="category">Finance</div>
+<div class="category">
+🔥 Premium
+</div>
 
+<div class="category">
+Business
+</div>
+
+<div class="category">
+AI
+</div>
+
+<div class="category">
+Short
+</div>
+
+<div class="category">
+Travel
+</div>
+
+<div class="category">
+Finance
 </div>
 
 </div>
+
+</div>
+
 
 <div class="section">
 
@@ -547,17 +616,17 @@ Loading...
 
 </div>
 
+
 <div class="warning">
 
-⚠️ Handle Market does not control or guarantee
-the transfer of WhatsApp usernames.
+⚠️ Handle Market does not control or guarantee the transfer of WhatsApp usernames.
 
 </div>
 
 </div>
 
 
-<!-- MARKET -->
+<!-- MARKETPLACE -->
 
 <div id="marketplace" class="page">
 
@@ -589,7 +658,7 @@ Loading...
 </div>
 
 
-<!-- LIST -->
+<!-- LIST USERNAME -->
 
 <div id="list" class="page">
 
@@ -648,16 +717,45 @@ Category
 
 <select id="listingCategory">
 
-<option>Premium</option>
-<option>Business</option>
-<option>AI</option>
-<option>Short</option>
-<option>Travel</option>
-<option>Finance</option>
-<option>Gaming</option>
-<option>Crypto</option>
-<option>Media</option>
-<option>Other</option>
+<option>
+Premium
+</option>
+
+<option>
+Business
+</option>
+
+<option>
+AI
+</option>
+
+<option>
+Short
+</option>
+
+<option>
+Travel
+</option>
+
+<option>
+Finance
+</option>
+
+<option>
+Gaming
+</option>
+
+<option>
+Crypto
+</option>
+
+<option>
+Media
+</option>
+
+<option>
+Other
+</option>
 
 </select>
 
@@ -717,7 +815,9 @@ Seller contact
 >
 
 <div class="field-hint">
+
 Buyers cannot see this until they unlock it.
+
 </div>
 
 </div>
@@ -744,7 +844,9 @@ Listing fee
     class="payment-button"
     type="submit"
 >
+
 Pay 1 ⭐ & Submit
+
 </button>
 
 
@@ -804,7 +906,52 @@ Coming soon
     id="profileContent"
     class="profile-card"
 >
+
 Loading...
+
+</div>
+
+</div>
+
+
+<!-- OFFERS -->
+
+<div id="offers" class="page">
+
+<div
+    class="section"
+    style="padding-top:16px"
+>
+
+<div class="section-title">
+💬 Offers Sent
+</div>
+
+<div id="sentOffers">
+
+<div class="empty">
+Loading...
+</div>
+
+</div>
+
+</div>
+
+
+<div class="section">
+
+<div class="section-title">
+📥 Offers Received
+</div>
+
+<div id="receivedOffers">
+
+<div class="empty">
+Loading...
+</div>
+
+</div>
+
 </div>
 
 </div>
@@ -839,7 +986,7 @@ Loading...
 </div>
 
 
-<!-- NAVIGATION -->
+<!-- BOTTOM NAVIGATION -->
 
 <div class="bottom-nav">
 
@@ -847,40 +994,221 @@ Loading...
     class="nav-item active"
     onclick="openPage('home',this)"
 >
-<span class="nav-icon">🏠</span>
+
+<span class="nav-icon">
+🏠
+</span>
+
 Home
+
 </div>
+
 
 <div
     class="nav-item"
     onclick="openPage('marketplace',this)"
 >
-<span class="nav-icon">🔎</span>
+
+<span class="nav-icon">
+🔎
+</span>
+
 Market
+
 </div>
+
 
 <div
     class="nav-item"
     onclick="openPage('list',this);loadMyListings();"
 >
-<span class="nav-icon">➕</span>
+
+<span class="nav-icon">
+➕
+</span>
+
 List
+
 </div>
+
 
 <div
     class="nav-item"
     onclick="openPage('wanted',this)"
 >
-<span class="nav-icon">🎯</span>
+
+<span class="nav-icon">
+🎯
+</span>
+
 Wanted
+
 </div>
+
 
 <div
     class="nav-item"
     onclick="openPage('profile',this)"
 >
-<span class="nav-icon">👤</span>
+
+<span class="nav-icon">
+👤
+</span>
+
 Profile
+
+</div>
+
+</div>
+
+
+<!-- MAKE OFFER MODAL -->
+
+<div
+    id="offerModal"
+    class="modal-backdrop"
+    onclick="backdropClose(event,'offerModal')"
+>
+
+<div class="modal">
+
+<div class="modal-title">
+Make Offer
+</div>
+
+<div
+    id="offerModalSubtitle"
+    class="modal-subtitle"
+></div>
+
+
+<div class="field">
+
+<label>
+Your offer (USD)
+</label>
+
+<input
+    id="offerAmount"
+    type="number"
+    min="1"
+    step="0.01"
+    placeholder="3500"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Message (optional)
+</label>
+
+<textarea
+    id="offerMessage"
+    maxlength="500"
+    placeholder="Write a short message to the seller..."
+></textarea>
+
+</div>
+
+
+<div
+    id="offerModalMessage"
+    class="message"
+></div>
+
+
+<div class="modal-actions">
+
+<button
+    class="secondary"
+    onclick="closeModal('offerModal')"
+>
+
+Cancel
+
+</button>
+
+
+<button
+    id="sendOfferButton"
+    class="primary"
+    onclick="submitOffer()"
+>
+
+Send Offer
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- COUNTER OFFER MODAL -->
+
+<div
+    id="counterModal"
+    class="modal-backdrop"
+    onclick="backdropClose(event,'counterModal')"
+>
+
+<div class="modal">
+
+<div class="modal-title">
+Counter Offer
+</div>
+
+<div
+    id="counterModalSubtitle"
+    class="modal-subtitle"
+></div>
+
+
+<div class="field">
+
+<label>
+Counter amount (USD)
+</label>
+
+<input
+    id="counterAmount"
+    type="number"
+    min="1"
+    step="0.01"
+    placeholder="4200"
+>
+
+</div>
+
+
+<div class="modal-actions">
+
+<button
+    class="secondary"
+    onclick="closeModal('counterModal')"
+>
+
+Cancel
+
+</button>
+
+
+<button
+    class="primary"
+    onclick="submitCounterOffer()"
+>
+
+Send Counter
+
+</button>
+
+</div>
+
 </div>
 
 </div>
@@ -894,6 +1222,7 @@ const API_URL =
 const tg =
     window.Telegram?.WebApp;
 
+
 let authenticatedUser =
     null;
 
@@ -906,6 +1235,18 @@ let contactUnlockPriceStars =
 let marketplaceListings =
     [];
 
+let currentOfferListingId =
+    null;
+
+let currentOfferListingName =
+    "";
+
+let currentCounterOfferId =
+    null;
+
+let currentCounterUsername =
+    "";
+
 
 if (tg) {
 
@@ -916,7 +1257,64 @@ if (tg) {
 
 
 // ======================================================
-// AUTH
+// API HELPER
+// ======================================================
+
+async function api(
+    path,
+    body
+) {
+
+    const response =
+        await fetch(
+            API_URL + path,
+            {
+                method:
+                    "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify(
+                        body
+                    )
+            }
+        );
+
+
+    let data =
+        {};
+
+
+    try {
+
+        data =
+            await response.json();
+
+    } catch {}
+
+
+    if (
+        !response.ok ||
+        !data.ok
+    ) {
+
+        throw new Error(
+            data.error ||
+            "request_failed"
+        );
+    }
+
+
+    return data;
+}
+
+
+// ======================================================
+// AUTHENTICATE
 // ======================================================
 
 async function authenticate() {
@@ -929,39 +1327,14 @@ async function authenticate() {
 
     try {
 
-        const response =
-            await fetch(
-                API_URL + "/auth",
+        const data =
+            await api(
+                "/auth",
                 {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-                            initData:
-                                tg.initData
-                        })
+                    initData:
+                        tg.initData
                 }
             );
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-
-            throw new Error(
-                data.error
-            );
-        }
 
 
         authenticatedUser =
@@ -996,6 +1369,7 @@ async function authenticate() {
         status.textContent =
             "✓ Telegram account verified";
 
+
         status.className =
             "auth-status auth-ok";
 
@@ -1009,25 +1383,23 @@ async function authenticate() {
                 .join(" ");
 
 
-        let adminButton =
-            "";
-
-
-        if (
+        const adminButton =
             data.user.is_admin
-        ) {
 
-            adminButton = `
+                ? `
 
-                <button
-                    class="admin-button"
-                    onclick="openAdmin()"
-                >
-                    🛡 Open Admin Panel
-                </button>
+                    <button
+                        class="admin-button"
+                        onclick="openAdmin()"
+                    >
 
-            `;
-        }
+                        🛡 Open Admin Panel
+
+                    </button>
+
+                `
+
+                : "";
 
 
         document
@@ -1066,6 +1438,16 @@ async function authenticate() {
 
                 </div>
 
+
+                <button
+                    class="profile-action"
+                    onclick="openOffers()"
+                >
+
+                    💬 My Offers
+
+                </button>
+
                 ${adminButton}
 
             `;
@@ -1080,14 +1462,16 @@ async function authenticate() {
             marketplaceListings
         );
 
-    }
+    } catch (error) {
 
-    catch (error) {
+        console.error(
+            error
+        );
 
-        console.error(error);
 
         status.textContent =
             "✕ Authentication failed";
+
 
         status.className =
             "auth-status auth-error";
@@ -1096,7 +1480,7 @@ async function authenticate() {
 
 
 // ======================================================
-// MARKETPLACE
+// LOAD MARKETPLACE
 // ======================================================
 
 async function loadMarketplace() {
@@ -1126,7 +1510,8 @@ async function loadMarketplace() {
 
 
         marketplaceListings =
-            data.listings || [];
+            data.listings ||
+            [];
 
 
         renderMarketplace(
@@ -1143,11 +1528,11 @@ async function loadMarketplace() {
             );
         }
 
-    }
+    } catch (error) {
 
-    catch (error) {
-
-        console.error(error);
+        console.error(
+            error
+        );
 
 
         document
@@ -1234,14 +1619,16 @@ function renderMarketplace(
 
     const featured =
         listings.filter(
-            x =>
-                x.is_featured
+            item =>
+                item.is_featured
         );
 
 
     const homeItems =
         featured.length
+
             ? featured
+
             : listings.slice(
                 0,
                 5
@@ -1307,13 +1694,13 @@ function renderPublicListing(
 
                     ? `
 
-                    <div class="description">
+                        <div class="description">
 
-                        ${escapeHtml(
-                            listing.description
-                        )}
+                            ${escapeHtml(
+                                listing.description
+                            )}
 
-                    </div>
+                        </div>
 
                     `
 
@@ -1325,9 +1712,23 @@ function renderPublicListing(
 
                 <button
                     class="primary offer-button"
-                    onclick="futureOffer()"
+                    onclick="
+                        openOfferModal(
+                            '${escapeJs(
+                                listing.id
+                            )}',
+                            '${escapeJs(
+                                listing.whatsapp_username
+                            )}',
+                            '${escapeJs(
+                                listing.asking_price
+                            )}'
+                        )
+                    "
                 >
+
                     Make Offer
+
                 </button>
 
 
@@ -1335,7 +1736,9 @@ function renderPublicListing(
                     class="secondary"
                     onclick="futureWatch()"
                 >
+
                     ☆ Watch
+
                 </button>
 
             </div>
@@ -1361,7 +1764,7 @@ function renderPublicListing(
 
 
 // ======================================================
-// AUTO-CHECK ACCESS
+// AUTO CHECK CONTACT ACCESS
 // ======================================================
 
 async function checkUnlockedContacts(
@@ -1371,7 +1774,9 @@ async function checkUnlockedContacts(
     if (
         !authenticatedUser ||
         !tg?.initData ||
-        !Array.isArray(listings)
+        !Array.isArray(
+            listings
+        )
     ) {
 
         return;
@@ -1386,40 +1791,20 @@ async function checkUnlockedContacts(
 
                 try {
 
-                    const response =
-                        await fetch(
-                            API_URL +
+                    const data =
+                        await api(
                             "/listing-contact",
                             {
-                                method:
-                                    "POST",
+                                initData:
+                                    tg.initData,
 
-                                headers: {
-                                    "Content-Type":
-                                        "application/json"
-                                },
-
-                                body:
-                                    JSON.stringify({
-
-                                        initData:
-                                            tg.initData,
-
-                                        listing_id:
-                                            listing.id
-
-                                    })
+                                listing_id:
+                                    listing.id
                             }
                         );
 
 
-                    const data =
-                        await response.json();
-
-
                     if (
-                        response.ok &&
-                        data.ok &&
                         data.unlocked &&
                         data.contact
                     ) {
@@ -1433,15 +1818,7 @@ async function checkUnlockedContacts(
                         );
                     }
 
-                }
-
-                catch (error) {
-
-                    console.log(
-                        "Contact check failed:",
-                        listing.id
-                    );
-                }
+                } catch {}
             }
         )
     );
@@ -1476,45 +1853,17 @@ async function unlockSellerContact(
 
     try {
 
-        const response =
-            await fetch(
-                API_URL +
+        const data =
+            await api(
                 "/listing-contact",
                 {
-                    method:
-                        "POST",
+                    initData:
+                        tg.initData,
 
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            initData:
-                                tg.initData,
-
-                            listing_id:
-                                listingId
-                        })
+                    listing_id:
+                        listingId
                 }
             );
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-
-            throw new Error(
-                data.error
-            );
-        }
 
 
         if (
@@ -1537,9 +1886,7 @@ async function unlockSellerContact(
             listingId
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         restoreContactButton(
             listingId
@@ -1555,7 +1902,7 @@ async function unlockSellerContact(
 
 
 // ======================================================
-// CONTACT PAYMENT
+// START CONTACT PAYMENT
 // ======================================================
 
 async function startContactPayment(
@@ -1568,45 +1915,17 @@ async function startContactPayment(
     );
 
 
-    const response =
-        await fetch(
-            API_URL +
+    const data =
+        await api(
             "/contact-unlock/create",
             {
-                method: "POST",
+                initData:
+                    tg.initData,
 
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify({
-
-                        initData:
-                            tg.initData,
-
-                        listing_id:
-                            listingId
-                    })
+                listing_id:
+                    listingId
             }
         );
-
-
-    const data =
-        await response.json();
-
-
-    if (
-        !response.ok ||
-        !data.ok
-    ) {
-
-        throw new Error(
-            data.error ||
-            "Could not create payment"
-        );
-    }
 
 
     if (
@@ -1621,11 +1940,8 @@ async function startContactPayment(
     }
 
 
-    const orderId =
-        data.order_id;
-
-
     tg.openInvoice(
+
         data.invoice_link,
 
         async status => {
@@ -1657,6 +1973,7 @@ async function startContactPayment(
                     "Payment failed."
                 );
 
+
                 return;
             }
 
@@ -1669,7 +1986,7 @@ async function startContactPayment(
 
             await waitForContactPayment(
                 listingId,
-                orderId
+                data.order_id
             );
         }
     );
@@ -1693,39 +2010,22 @@ async function waitForContactPayment(
 
         try {
 
-            const response =
-                await fetch(
-                    API_URL +
+            const data =
+                await api(
                     "/contact-unlock/status",
                     {
-                        method: "POST",
+                        initData:
+                            tg.initData,
 
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body:
-                            JSON.stringify({
-
-                                initData:
-                                    tg.initData,
-
-                                order_id:
-                                    orderId
-                            })
+                        order_id:
+                            orderId
                     }
                 );
 
 
-            const data =
-                await response.json();
-
-
             if (
-                data.ok &&
                 data.order.status ===
-                    "paid"
+                "paid"
             ) {
 
                 await unlockSellerContact(
@@ -1737,9 +2037,8 @@ async function waitForContactPayment(
 
 
             if (
-                data.ok &&
                 data.order.status ===
-                    "refunded"
+                "refunded"
             ) {
 
                 restoreContactButton(
@@ -1751,26 +2050,25 @@ async function waitForContactPayment(
                     "Payment was refunded."
                 );
 
+
                 return;
             }
 
 
             if (
-                data.ok &&
                 data.order.status ===
-                    "failed"
+                "failed"
             ) {
 
                 restoreContactButton(
                     listingId
                 );
 
+
                 return;
             }
 
-        }
-
-        catch {}
+        } catch {}
 
 
         await sleep(
@@ -1786,7 +2084,7 @@ async function waitForContactPayment(
 
 
 // ======================================================
-// DISPLAY CONTACT / OWNER
+// SHOW SELLER CONTACT
 // ======================================================
 
 function showSellerContact(
@@ -1812,9 +2110,7 @@ function showSellerContact(
     let html;
 
 
-    if (
-        owner
-    ) {
+    if (owner) {
 
         html = `
 
@@ -1873,7 +2169,9 @@ function showSellerContact(
                                         )
                                     "
                                 >
+
                                     Open Telegram
+
                                 </button>
 
                             `
@@ -1892,7 +2190,9 @@ function showSellerContact(
                             )
                         "
                     >
+
                         Copy
+
                     </button>
 
                 </div>
@@ -1957,7 +2257,9 @@ function showSellerContact(
                                         )
                                     "
                                 >
+
                                     Open Telegram
+
                                 </button>
 
                             `
@@ -1976,7 +2278,9 @@ function showSellerContact(
                             )
                         "
                     >
+
                         Copy
+
                     </button>
 
                 </div>
@@ -1998,62 +2302,60 @@ function showSellerContact(
 
 
 // ======================================================
-// OWN LISTING UI
+// MARK OWN LISTING
 // ======================================================
 
 function markOwnListing(
     listingId
 ) {
 
-    const cards =
-        [
-            ...document.querySelectorAll(
-                ".listing-card"
-            )
-        ]
-            .filter(
-                card =>
-                    card.dataset
-                        .listingCardId ===
+    document
+        .querySelectorAll(
+            ".listing-card"
+        )
+        .forEach(
+            card => {
+
+                if (
+                    card.dataset.listingCardId ===
                     String(
                         listingId
                     )
-            );
+                ) {
+
+                    const button =
+                        card.querySelector(
+                            ".offer-button"
+                        );
 
 
-    cards.forEach(
-        card => {
+                    if (
+                        button
+                    ) {
 
-            const offerButton =
-                card.querySelector(
-                    ".offer-button"
-                );
+                        button.disabled =
+                            true;
 
 
-            if (
-                offerButton
-            ) {
+                        button.className =
+                            "own-listing-button";
 
-                offerButton.disabled =
-                    true;
 
-                offerButton.className =
-                    "own-listing-button";
-
-                offerButton.textContent =
-                    "Your Listing";
+                        button.textContent =
+                            "Your Listing";
+                    }
+                }
             }
-        }
-    );
+        );
 }
 
 
 // ======================================================
-// CONTACT UI HELPERS
+// CONTACT HELPERS
 // ======================================================
 
 function getContactAreas(
-    listingId
+    id
 ) {
 
     return [
@@ -2063,17 +2365,14 @@ function getContactAreas(
     ]
         .filter(
             area =>
-                area.dataset
-                    .contactListingId ===
-                String(
-                    listingId
-                )
+                area.dataset.contactListingId ===
+                String(id)
         );
 }
 
 
 function getLockedContactHtml(
-    listingId
+    id
 ) {
 
     return `
@@ -2083,7 +2382,7 @@ function getLockedContactHtml(
             onclick="
                 unlockSellerContact(
                     '${escapeJs(
-                        listingId
+                        id
                     )}'
                 )
             "
@@ -2099,12 +2398,12 @@ function getLockedContactHtml(
 
 
 function setContactLoading(
-    listingId,
+    id,
     text
 ) {
 
     getContactAreas(
-        listingId
+        id
     )
         .forEach(
             area => {
@@ -2126,17 +2425,17 @@ function setContactLoading(
 
 
 function restoreContactButton(
-    listingId
+    id
 ) {
 
     const html =
         getLockedContactHtml(
-            listingId
+            id
         );
 
 
     getContactAreas(
-        listingId
+        id
     )
         .forEach(
             area => {
@@ -2149,85 +2448,1088 @@ function restoreContactButton(
 
 
 // ======================================================
-// CONTACT ACTIONS
+// OPEN MAKE OFFER
 // ======================================================
 
-async function copyContact(
-    value
+async function openOfferModal(
+    listingId,
+    username,
+    askingPrice
 ) {
+
+    if (
+        !authenticatedUser
+    ) {
+
+        tg?.showAlert(
+            "Please wait for authentication."
+        );
+
+        return;
+    }
+
 
     try {
 
-        await navigator
-            .clipboard
-            .writeText(
-                value
+        const data =
+            await api(
+                "/listing-contact",
+                {
+                    initData:
+                        tg.initData,
+
+                    listing_id:
+                        listingId
+                }
             );
 
 
-        tg?.showAlert(
-            "Contact copied ✓"
+        if (
+            data.owner
+        ) {
+
+            tg?.showAlert(
+                "You cannot make an offer on your own listing."
+            );
+
+            return;
+        }
+
+
+        if (
+            !data.unlocked
+        ) {
+
+            tg?.showAlert(
+                `Unlock the seller contact for ${contactUnlockPriceStars} ⭐ before sending an offer.`
+            );
+
+            return;
+        }
+
+
+        currentOfferListingId =
+            listingId;
+
+
+        currentOfferListingName =
+            username;
+
+
+        document
+            .getElementById(
+                "offerModalSubtitle"
+            )
+            .textContent =
+                `@${username} · Asking price $${formatPrice(
+                    askingPrice
+                )}`;
+
+
+        document
+            .getElementById(
+                "offerAmount"
+            )
+            .value =
+                askingPrice;
+
+
+        document
+            .getElementById(
+                "offerMessage"
+            )
+            .value =
+                "";
+
+
+        hideOfferModalMessage();
+
+
+        showModal(
+            "offerModal"
         );
 
-    }
-
-    catch {
+    } catch (error) {
 
         tg?.showAlert(
-            value
+            "Error: " +
+            readableOfferError(
+                error.message
+            )
         );
     }
 }
 
 
-function openTelegramContact(
-    value
-) {
+// ======================================================
+// SUBMIT OFFER
+// ======================================================
 
-    const username =
-        String(value)
-            .trim()
-            .replace(/^@/, "");
-
+async function submitOffer() {
 
     if (
-        !username
+        !currentOfferListingId
     ) {
 
         return;
     }
 
 
-    tg.openTelegramLink(
-        "https://t.me/" +
-        encodeURIComponent(
-            username
-        )
+    const amount =
+        Number(
+            document
+                .getElementById(
+                    "offerAmount"
+                )
+                .value
+        );
+
+
+    const message =
+        document
+            .getElementById(
+                "offerMessage"
+            )
+            .value
+            .trim();
+
+
+    const button =
+        document.getElementById(
+            "sendOfferButton"
+        );
+
+
+    button.disabled =
+        true;
+
+
+    button.textContent =
+        "Sending...";
+
+
+    try {
+
+        await api(
+            "/offers/create",
+            {
+                initData:
+                    tg.initData,
+
+                listing_id:
+                    currentOfferListingId,
+
+                amount,
+
+                message
+            }
+        );
+
+
+        closeModal(
+            "offerModal"
+        );
+
+
+        tg?.showAlert(
+            `Offer sent for @${currentOfferListingName} ✓`
+        );
+
+
+        await loadOfferCenter();
+
+    } catch (error) {
+
+        showOfferModalMessage(
+            readableOfferError(
+                error.message
+            )
+        );
+
+    } finally {
+
+        button.disabled =
+            false;
+
+
+        button.textContent =
+            "Send Offer";
+    }
+}
+
+
+// ======================================================
+// OFFERS PAGE
+// ======================================================
+
+function openOffers() {
+
+    openPage(
+        "offers",
+        null
+    );
+
+
+    loadOfferCenter();
+}
+
+
+async function loadOfferCenter() {
+
+    await Promise.all(
+        [
+            loadSentOffers(),
+            loadReceivedOffers()
+        ]
     );
 }
 
 
-function formatContactType(
-    value
+// ======================================================
+// SENT OFFERS
+// ======================================================
+
+async function loadSentOffers() {
+
+    const container =
+        document.getElementById(
+            "sentOffers"
+        );
+
+
+    container.innerHTML = `
+
+        <div class="empty">
+            Loading...
+        </div>
+
+    `;
+
+
+    try {
+
+        const data =
+            await api(
+                "/offers/sent",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        if (
+            !data.offers.length
+        ) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+
+                    You have not sent any offers.
+
+                </div>
+
+            `;
+
+
+            return;
+        }
+
+
+        container.innerHTML =
+            data.offers
+                .map(
+                    renderSentOffer
+                )
+                .join("");
+
+    } catch {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                Failed to load sent offers.
+
+            </div>
+
+        `;
+    }
+}
+
+
+// ======================================================
+// RECEIVED OFFERS
+// ======================================================
+
+async function loadReceivedOffers() {
+
+    const container =
+        document.getElementById(
+            "receivedOffers"
+        );
+
+
+    container.innerHTML = `
+
+        <div class="empty">
+            Loading...
+        </div>
+
+    `;
+
+
+    try {
+
+        const data =
+            await api(
+                "/offers/received",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        if (
+            !data.offers.length
+        ) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+
+                    No offers received yet.
+
+                </div>
+
+            `;
+
+
+            return;
+        }
+
+
+        container.innerHTML =
+            data.offers
+                .map(
+                    renderReceivedOffer
+                )
+                .join("");
+
+    } catch {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                Failed to load received offers.
+
+            </div>
+
+        `;
+    }
+}
+
+
+// ======================================================
+// RENDER SENT OFFER
+// ======================================================
+
+function renderSentOffer(
+    offer
 ) {
 
+    const username =
+        offer.listing?.whatsapp_username ||
+        "username";
+
+
+    let extra =
+        "";
+
+
+    let actions =
+        "";
+
+
     if (
-        value === "telegram"
+        offer.status ===
+        "countered"
     ) {
 
-        return "Telegram";
+        extra = `
+
+            <div class="offer-summary">
+
+                <div class="offer-label">
+                    Seller counter
+                </div>
+
+                <div class="offer-big">
+
+                    $${formatPrice(
+                        offer.seller_counter_amount
+                    )}
+
+                </div>
+
+            </div>
+
+        `;
     }
 
 
     if (
-        value === "email"
+        offer.status ===
+        "accepted"
     ) {
 
-        return "Email";
+        const agreedPrice =
+            offer.seller_counter_amount ||
+            offer.amount;
+
+
+        extra = `
+
+            <div class="offer-summary">
+
+                <div class="offer-label">
+                    Agreed price
+                </div>
+
+                <div class="offer-big">
+
+                    $${formatPrice(
+                        agreedPrice
+                    )}
+
+                </div>
+
+            </div>
+
+        `;
     }
 
 
-    return "Contact";
+    if (
+        offer.status ===
+        "pending"
+    ) {
+
+        actions = `
+
+            <div class="buttons">
+
+                <button
+                    class="secondary"
+                    onclick="
+                        buyerOfferAction(
+                            '${offer.id}',
+                            'cancel'
+                        )
+                    "
+                >
+
+                    Cancel Offer
+
+                </button>
+
+            </div>
+
+        `;
+    }
+
+
+    if (
+        offer.status ===
+        "countered"
+    ) {
+
+        actions = `
+
+            <div class="buttons">
+
+                <button
+                    class="primary"
+                    onclick="
+                        buyerOfferAction(
+                            '${offer.id}',
+                            'accept_counter'
+                        )
+                    "
+                >
+
+                    Accept Counter
+
+                </button>
+
+
+                <button
+                    class="secondary"
+                    onclick="
+                        buyerOfferAction(
+                            '${offer.id}',
+                            'cancel'
+                        )
+                    "
+                >
+
+                    Cancel
+
+                </button>
+
+            </div>
+
+        `;
+    }
+
+
+    return `
+
+        <div class="card">
+
+            <div class="username">
+
+                @${escapeHtml(
+                    username
+                )}
+
+            </div>
+
+
+            <div
+                class="badge ${offerStatusClass(
+                    offer.status
+                )}"
+            >
+
+                ${escapeHtml(
+                    offer.status
+                        .toUpperCase()
+                )}
+
+            </div>
+
+
+            <div class="offer-summary">
+
+                <div class="offer-label">
+                    Your offer
+                </div>
+
+                <div class="offer-big">
+
+                    $${formatPrice(
+                        offer.amount
+                    )}
+
+                </div>
+
+            </div>
+
+
+            ${
+                offer.message
+
+                    ? `
+
+                        <div class="offer-message">
+
+                            ${escapeHtml(
+                                offer.message
+                            )}
+
+                        </div>
+
+                    `
+
+                    : ""
+            }
+
+
+            ${extra}
+
+            ${actions}
+
+        </div>
+
+    `;
+}
+
+
+// ======================================================
+// RENDER RECEIVED OFFER
+// ======================================================
+
+function renderReceivedOffer(
+    offer
+) {
+
+    const username =
+        offer.listing?.whatsapp_username ||
+        "username";
+
+
+    const buyerName =
+        [
+            offer.buyer?.first_name,
+            offer.buyer?.last_name
+        ]
+            .filter(Boolean)
+            .join(" ")
+        ||
+        "Telegram User";
+
+
+    const buyerUsername =
+        offer.buyer?.telegram_username
+
+            ? "@" +
+                offer.buyer.telegram_username
+
+            : "No public Telegram username";
+
+
+    const counterBox =
+        offer.seller_counter_amount
+
+            ? `
+
+                <div class="offer-summary">
+
+                    <div class="offer-label">
+                        Your counter
+                    </div>
+
+                    <div class="offer-big">
+
+                        $${formatPrice(
+                            offer.seller_counter_amount
+                        )}
+
+                    </div>
+
+                </div>
+
+            `
+
+            : "";
+
+
+    let actions =
+        "";
+
+
+    if (
+        offer.status ===
+        "pending"
+    ) {
+
+        actions = `
+
+            <div class="buttons">
+
+                <button
+                    class="approve-button"
+                    onclick="
+                        sellerOfferAction(
+                            '${offer.id}',
+                            'accept'
+                        )
+                    "
+                >
+
+                    ✓ Accept
+
+                </button>
+
+
+                <button
+                    class="counter-button"
+                    onclick="
+                        openCounterModal(
+                            '${offer.id}',
+                            '${escapeJs(
+                                username
+                            )}',
+                            '${escapeJs(
+                                offer.amount
+                            )}'
+                        )
+                    "
+                >
+
+                    Counter
+
+                </button>
+
+
+                <button
+                    class="reject-button"
+                    onclick="
+                        sellerOfferAction(
+                            '${offer.id}',
+                            'decline'
+                        )
+                    "
+                >
+
+                    ✕
+
+                </button>
+
+            </div>
+
+        `;
+    }
+
+
+    if (
+        offer.status ===
+        "countered"
+    ) {
+
+        actions = `
+
+            <div class="buttons">
+
+                <button
+                    class="reject-button"
+                    onclick="
+                        sellerOfferAction(
+                            '${offer.id}',
+                            'decline'
+                        )
+                    "
+                >
+
+                    Decline
+
+                </button>
+
+            </div>
+
+
+            <div class="meta">
+
+                Waiting for the buyer to accept or cancel your counter.
+
+            </div>
+
+        `;
+    }
+
+
+    return `
+
+        <div class="card">
+
+            <div class="username">
+
+                @${escapeHtml(
+                    username
+                )}
+
+            </div>
+
+
+            <div
+                class="badge ${offerStatusClass(
+                    offer.status
+                )}"
+            >
+
+                ${escapeHtml(
+                    offer.status
+                        .toUpperCase()
+                )}
+
+            </div>
+
+
+            <div class="buyer-box">
+
+                <b>
+                    Buyer
+                </b>
+
+                <br>
+
+                ${escapeHtml(
+                    buyerName
+                )}
+
+                <br>
+
+                ${escapeHtml(
+                    buyerUsername
+                )}
+
+            </div>
+
+
+            <div class="offer-summary">
+
+                <div class="offer-label">
+                    Buyer offer
+                </div>
+
+                <div class="offer-big">
+
+                    $${formatPrice(
+                        offer.amount
+                    )}
+
+                </div>
+
+            </div>
+
+
+            ${
+                offer.message
+
+                    ? `
+
+                        <div class="offer-message">
+
+                            ${escapeHtml(
+                                offer.message
+                            )}
+
+                        </div>
+
+                    `
+
+                    : ""
+            }
+
+
+            ${counterBox}
+
+            ${actions}
+
+        </div>
+
+    `;
+}
+
+
+// ======================================================
+// SELLER ACCEPT / DECLINE
+// ======================================================
+
+async function sellerOfferAction(
+    offerId,
+    action
+) {
+
+    const confirmed =
+        await askConfirm(
+
+            action ===
+                "accept"
+
+                ? "Accept this offer?"
+
+                : "Decline this offer?"
+        );
+
+
+    if (
+        !confirmed
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/offers/seller-action",
+            {
+                initData:
+                    tg.initData,
+
+                offer_id:
+                    offerId,
+
+                action
+            }
+        );
+
+
+        await loadOfferCenter();
+
+    } catch (error) {
+
+        tg?.showAlert(
+            readableOfferError(
+                error.message
+            )
+        );
+    }
+}
+
+
+// ======================================================
+// OPEN COUNTER OFFER
+// ======================================================
+
+function openCounterModal(
+    offerId,
+    username,
+    buyerAmount
+) {
+
+    currentCounterOfferId =
+        offerId;
+
+
+    currentCounterUsername =
+        username;
+
+
+    document
+        .getElementById(
+            "counterModalSubtitle"
+        )
+        .textContent =
+            `@${username} · Buyer offered $${formatPrice(
+                buyerAmount
+            )}`;
+
+
+    document
+        .getElementById(
+            "counterAmount"
+        )
+        .value =
+            buyerAmount;
+
+
+    showModal(
+        "counterModal"
+    );
+}
+
+
+// ======================================================
+// SUBMIT COUNTER
+// ======================================================
+
+async function submitCounterOffer() {
+
+    const amount =
+        Number(
+            document
+                .getElementById(
+                    "counterAmount"
+                )
+                .value
+        );
+
+
+    try {
+
+        await api(
+            "/offers/seller-action",
+            {
+                initData:
+                    tg.initData,
+
+                offer_id:
+                    currentCounterOfferId,
+
+                action:
+                    "counter",
+
+                counter_amount:
+                    amount
+            }
+        );
+
+
+        closeModal(
+            "counterModal"
+        );
+
+
+        tg?.showAlert(
+            `Counter offer sent for @${currentCounterUsername} ✓`
+        );
+
+
+        await loadOfferCenter();
+
+    } catch (error) {
+
+        tg?.showAlert(
+            readableOfferError(
+                error.message
+            )
+        );
+    }
+}
+
+
+// ======================================================
+// BUYER OFFER ACTION
+// ======================================================
+
+async function buyerOfferAction(
+    offerId,
+    action
+) {
+
+    const confirmed =
+        await askConfirm(
+
+            action ===
+                "accept_counter"
+
+                ? "Accept the seller's counter offer?"
+
+                : "Cancel this offer?"
+        );
+
+
+    if (
+        !confirmed
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/offers/buyer-action",
+            {
+                initData:
+                    tg.initData,
+
+                offer_id:
+                    offerId,
+
+                action
+            }
+        );
+
+
+        await loadOfferCenter();
+
+    } catch (error) {
+
+        tg?.showAlert(
+            readableOfferError(
+                error.message
+            )
+        );
+    }
 }
 
 
@@ -2260,87 +3562,60 @@ async function startListingPayment(
 
     try {
 
-        const response =
-            await fetch(
-                API_URL +
+        const data =
+            await api(
                 "/listing-payment/create",
                 {
-                    method:
-                        "POST",
+                    initData:
+                        tg.initData,
 
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
+                    whatsapp_username:
+                        document
+                            .getElementById(
+                                "listingUsername"
+                            )
+                            .value,
 
-                    body:
-                        JSON.stringify({
+                    asking_price:
+                        document
+                            .getElementById(
+                                "listingPrice"
+                            )
+                            .value,
 
-                            initData:
-                                tg.initData,
+                    category:
+                        document
+                            .getElementById(
+                                "listingCategory"
+                            )
+                            .value,
 
-                            whatsapp_username:
-                                document
-                                    .getElementById(
-                                        "listingUsername"
-                                    )
-                                    .value,
+                    description:
+                        document
+                            .getElementById(
+                                "listingDescription"
+                            )
+                            .value,
 
-                            asking_price:
-                                document
-                                    .getElementById(
-                                        "listingPrice"
-                                    )
-                                    .value,
+                    contact_type:
+                        document
+                            .getElementById(
+                                "contactType"
+                            )
+                            .value,
 
-                            category:
-                                document
-                                    .getElementById(
-                                        "listingCategory"
-                                    )
-                                    .value,
-
-                            description:
-                                document
-                                    .getElementById(
-                                        "listingDescription"
-                                    )
-                                    .value,
-
-                            contact_type:
-                                document
-                                    .getElementById(
-                                        "contactType"
-                                    )
-                                    .value,
-
-                            contact_value:
-                                document
-                                    .getElementById(
-                                        "contactValue"
-                                    )
-                                    .value
-                        })
+                    contact_value:
+                        document
+                            .getElementById(
+                                "contactValue"
+                            )
+                            .value
                 }
             );
 
 
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-
-            throw new Error(
-                data.error
-            );
-        }
-
-
         tg.openInvoice(
+
             data.invoice_link,
 
             async status => {
@@ -2370,9 +3645,7 @@ async function startListingPayment(
             }
         );
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         showListingMessage(
             "error",
@@ -2401,40 +3674,22 @@ async function waitListingPayment(
 
         try {
 
-            const response =
-                await fetch(
-                    API_URL +
+            const data =
+                await api(
                     "/listing-payment/status",
                     {
-                        method:
-                            "POST",
+                        initData:
+                            tg.initData,
 
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body:
-                            JSON.stringify({
-
-                                initData:
-                                    tg.initData,
-
-                                order_id:
-                                    orderId
-                            })
+                        order_id:
+                            orderId
                     }
                 );
 
 
-            const data =
-                await response.json();
-
-
             if (
-                data.ok &&
                 data.order.status ===
-                    "completed"
+                "completed"
             ) {
 
                 showListingMessage(
@@ -2459,9 +3714,7 @@ async function waitListingPayment(
                 return;
             }
 
-        }
-
-        catch {}
+        } catch {}
 
 
         await sleep(
@@ -2496,30 +3749,14 @@ async function loadMyListings() {
 
     try {
 
-        const response =
-            await fetch(
-                API_URL +
+        const data =
+            await api(
                 "/my-listings",
                 {
-                    method:
-                        "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-                            initData:
-                                tg.initData
-                        })
+                    initData:
+                        tg.initData
                 }
             );
-
-
-        const data =
-            await response.json();
 
 
         const container =
@@ -2614,11 +3851,11 @@ async function loadMyListings() {
                 )
                 .join("");
 
-    }
+    } catch (error) {
 
-    catch (error) {
-
-        console.error(error);
+        console.error(
+            error
+        );
     }
 }
 
@@ -2641,114 +3878,111 @@ function openAdmin() {
 
 async function loadPendingListings() {
 
-    const response =
-        await fetch(
-            API_URL +
-            "/admin/pending-listings",
-            {
-                method:
-                    "POST",
+    try {
 
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
+        const data =
+            await api(
+                "/admin/pending-listings",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
 
-                body:
-                    JSON.stringify({
-                        initData:
-                            tg.initData
-                    })
-            }
+
+        const container =
+            document.getElementById(
+                "pendingListings"
+            );
+
+
+        if (
+            !data.listings?.length
+        ) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+                    No pending listings
+                </div>
+
+            `;
+
+
+            return;
+        }
+
+
+        container.innerHTML =
+            data.listings
+                .map(
+                    listing => `
+
+                        <div class="card">
+
+                            <div class="username">
+
+                                @${escapeHtml(
+                                    listing.whatsapp_username
+                                )}
+
+                            </div>
+
+
+                            <div class="price">
+
+                                $${formatPrice(
+                                    listing.asking_price
+                                )}
+
+                            </div>
+
+
+                            <div class="buttons">
+
+                                <button
+                                    class="approve-button"
+                                    onclick="
+                                        adminStatus(
+                                            '${listing.id}',
+                                            'active'
+                                        )
+                                    "
+                                >
+
+                                    ✓ Approve
+
+                                </button>
+
+
+                                <button
+                                    class="reject-button"
+                                    onclick="
+                                        adminStatus(
+                                            '${listing.id}',
+                                            'rejected'
+                                        )
+                                    "
+                                >
+
+                                    ✕ Reject
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    `
+                )
+                .join("");
+
+    } catch (error) {
+
+        console.error(
+            error
         );
-
-
-    const data =
-        await response.json();
-
-
-    const container =
-        document.getElementById(
-            "pendingListings"
-        );
-
-
-    if (
-        !data.listings?.length
-    ) {
-
-        container.innerHTML = `
-
-            <div class="empty">
-                No pending listings
-            </div>
-
-        `;
-
-
-        return;
     }
-
-
-    container.innerHTML =
-        data.listings
-            .map(
-                listing => `
-
-                    <div class="card">
-
-                        <div class="username">
-
-                            @${escapeHtml(
-                                listing.whatsapp_username
-                            )}
-
-                        </div>
-
-
-                        <div class="price">
-
-                            $${formatPrice(
-                                listing.asking_price
-                            )}
-
-                        </div>
-
-
-                        <div class="buttons">
-
-                            <button
-                                class="approve-button"
-                                onclick="
-                                    adminStatus(
-                                        '${listing.id}',
-                                        'active'
-                                    )
-                                "
-                            >
-                                ✓ Approve
-                            </button>
-
-
-                            <button
-                                class="reject-button"
-                                onclick="
-                                    adminStatus(
-                                        '${listing.id}',
-                                        'rejected'
-                                    )
-                                "
-                            >
-                                ✕ Reject
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                `
-            )
-            .join("");
 }
 
 
@@ -2757,43 +3991,39 @@ async function adminStatus(
     status
 ) {
 
-    await fetch(
-        API_URL +
-        "/admin/listing-status",
-        {
-            method:
-                "POST",
+    try {
 
-            headers: {
-                "Content-Type":
-                    "application/json"
-            },
+        await api(
+            "/admin/listing-status",
+            {
+                initData:
+                    tg.initData,
 
-            body:
-                JSON.stringify({
+                listing_id:
+                    id,
 
-                    initData:
-                        tg.initData,
-
-                    listing_id:
-                        id,
-
-                    status
-                })
-        }
-    );
+                status
+            }
+        );
 
 
-    await loadPendingListings();
+        await loadPendingListings();
 
-    await loadMarketplace();
+        await loadMarketplace();
 
-    await loadMyListings();
+        await loadMyListings();
+
+    } catch (error) {
+
+        tg?.showAlert(
+            error.message
+        );
+    }
 }
 
 
 // ======================================================
-// SEARCH / NAVIGATION
+// SEARCH
 // ======================================================
 
 function filterMarketplace(
@@ -2805,7 +4035,10 @@ function filterMarketplace(
             value ||
             ""
         )
-            .replace("@","")
+            .replace(
+                "@",
+                ""
+            )
             .toLowerCase()
             .trim();
 
@@ -2817,9 +4050,9 @@ function filterMarketplace(
 
             : marketplaceListings
                 .filter(
-                    item =>
+                    listing =>
 
-                        item
+                        listing
                             .whatsapp_username
                             .toLowerCase()
                             .includes(
@@ -2829,7 +4062,7 @@ function filterMarketplace(
                         ||
 
                         String(
-                            item.category ||
+                            listing.category ||
                             ""
                         )
                             .toLowerCase()
@@ -2855,6 +4088,10 @@ function filterMarketplace(
 }
 
 
+// ======================================================
+// PAGE NAVIGATION
+// ======================================================
+
 function openPage(
     id,
     nav
@@ -2866,6 +4103,7 @@ function openPage(
         )
         .forEach(
             element =>
+
                 element
                     .classList
                     .remove(
@@ -2875,9 +4113,13 @@ function openPage(
 
 
     document
-        .getElementById(id)
+        .getElementById(
+            id
+        )
         .classList
-        .add("active");
+        .add(
+            "active"
+        );
 
 
     document
@@ -2886,6 +4128,7 @@ function openPage(
         )
         .forEach(
             element =>
+
                 element
                     .classList
                     .remove(
@@ -2899,13 +4142,187 @@ function openPage(
     ) {
 
         nav.classList
-            .add("active");
+            .add(
+                "active"
+            );
     }
 }
 
 
 // ======================================================
-// HELPERS
+// MODALS
+// ======================================================
+
+function showModal(
+    id
+) {
+
+    document
+        .getElementById(
+            id
+        )
+        .classList
+        .add(
+            "show"
+        );
+}
+
+
+function closeModal(
+    id
+) {
+
+    document
+        .getElementById(
+            id
+        )
+        .classList
+        .remove(
+            "show"
+        );
+}
+
+
+function backdropClose(
+    event,
+    id
+) {
+
+    if (
+        event.target.id ===
+        id
+    ) {
+
+        closeModal(
+            id
+        );
+    }
+}
+
+
+function showOfferModalMessage(
+    text
+) {
+
+    const box =
+        document.getElementById(
+            "offerModalMessage"
+        );
+
+
+    box.className =
+        "message error";
+
+
+    box.textContent =
+        text;
+}
+
+
+function hideOfferModalMessage() {
+
+    const box =
+        document.getElementById(
+            "offerModalMessage"
+        );
+
+
+    box.className =
+        "message";
+
+
+    box.textContent =
+        "";
+}
+
+
+// ======================================================
+// CONTACT ACTIONS
+// ======================================================
+
+async function copyContact(
+    value
+) {
+
+    try {
+
+        await navigator
+            .clipboard
+            .writeText(
+                value
+            );
+
+
+        tg?.showAlert(
+            "Contact copied ✓"
+        );
+
+    } catch {
+
+        tg?.showAlert(
+            value
+        );
+    }
+}
+
+
+function openTelegramContact(
+    value
+) {
+
+    const username =
+        String(
+            value
+        )
+            .trim()
+            .replace(
+                /^@/,
+                ""
+            );
+
+
+    if (
+        username
+    ) {
+
+        tg.openTelegramLink(
+            "https://t.me/" +
+            encodeURIComponent(
+                username
+            )
+        );
+    }
+}
+
+
+function formatContactType(
+    value
+) {
+
+    if (
+        value ===
+        "telegram"
+    ) {
+
+        return "Telegram";
+    }
+
+
+    if (
+        value ===
+        "email"
+    ) {
+
+        return "Email";
+    }
+
+
+    return "Contact";
+}
+
+
+// ======================================================
+// UI HELPERS
 // ======================================================
 
 function showListingMessage(
@@ -2945,14 +4362,6 @@ function resetListingButton() {
 }
 
 
-function futureOffer() {
-
-    tg?.showAlert(
-        "Make Offer will be connected next."
-    );
-}
-
-
 function futureWatch() {
 
     tg?.showAlert(
@@ -2961,10 +4370,13 @@ function futureWatch() {
 }
 
 
-function sleep(ms) {
+function sleep(
+    ms
+) {
 
     return new Promise(
         resolve =>
+
             setTimeout(
                 resolve,
                 ms
@@ -2978,10 +4390,15 @@ function formatPrice(
 ) {
 
     const number =
-        Number(value);
+        Number(
+            value
+        );
 
 
-    return Number.isFinite(number)
+    return Number.isFinite(
+        number
+    )
+
         ? number.toLocaleString(
             "en-US",
             {
@@ -2989,20 +4406,156 @@ function formatPrice(
                     2
             }
         )
+
         : "0";
 }
 
+
+function offerStatusClass(
+    status
+) {
+
+    const classes = {
+
+        pending:
+            "badge-pending",
+
+        countered:
+            "badge-countered",
+
+        accepted:
+            "badge-accepted",
+
+        declined:
+            "badge-declined",
+
+        cancelled:
+            "badge-cancelled"
+    };
+
+
+    return classes[
+        status
+    ] ||
+    "badge-pending";
+}
+
+
+function readableOfferError(
+    error
+) {
+
+    const errors = {
+
+        invalid_offer:
+            "Enter a valid offer amount.",
+
+        cannot_offer_own_listing:
+            "You cannot make an offer on your own listing.",
+
+        contact_unlock_required:
+            "Unlock the seller contact before sending an offer.",
+
+        open_offer_already_exists:
+            "You already have an open offer for this username.",
+
+        listing_has_agreement:
+            "This listing already has an accepted agreement.",
+
+        offer_create_failed:
+            "Could not create the offer.",
+
+        invalid_counter_amount:
+            "Enter a valid counter amount.",
+
+        offer_not_open:
+            "This offer is no longer open.",
+
+        counter_not_available:
+            "This counter offer is no longer available.",
+
+        not_listing_owner:
+            "You cannot manage this offer.",
+
+        offer_not_found:
+            "Offer not found."
+    };
+
+
+    return errors[
+        error
+    ] ||
+    error ||
+    "Something went wrong.";
+}
+
+
+function askConfirm(
+    text
+) {
+
+    return new Promise(
+
+        resolve => {
+
+            if (
+                tg?.showConfirm
+            ) {
+
+                tg.showConfirm(
+                    text,
+
+                    result =>
+                        resolve(
+                            result
+                        )
+                );
+
+            } else {
+
+                resolve(
+                    window.confirm(
+                        text
+                    )
+                );
+            }
+        }
+    );
+}
+
+
+// ======================================================
+// ESCAPING
+// ======================================================
 
 function escapeHtml(
     value
 ) {
 
-    return String(value ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+    return String(
+        value ??
+        ""
+    )
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 }
 
 
@@ -3010,14 +4563,23 @@ function escapeJs(
     value
 ) {
 
-    return String(value ?? "")
-        .replaceAll("\\","\\\\")
-        .replaceAll("'","\\'");
+    return String(
+        value ??
+        ""
+    )
+        .replaceAll(
+            "\\",
+            "\\\\"
+        )
+        .replaceAll(
+            "'",
+            "\\'"
+        );
 }
 
 
 // ======================================================
-// START
+// START APP
 // ======================================================
 
 authenticate();
@@ -3029,5 +4591,4 @@ loadMyListings();
 </script>
 
 </body>
-
 </html>
