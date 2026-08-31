@@ -1,14 +1,20 @@
 const express = require("express");
 const crypto = require("crypto");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 
-app.use(express.json({
-    limit: "50kb"
-}));
+app.use(
+    express.json({
+        limit: "50kb"
+    })
+);
 
 
-// CORS — разрешаем только нашу Mini App
+// ============================================
+// CORS
+// ============================================
+
 app.use((req, res, next) => {
 
     res.setHeader(
@@ -34,62 +40,144 @@ app.use((req, res, next) => {
 });
 
 
-const BOT_TOKEN = process.env.BOT_TOKEN;
+// ============================================
+// ENVIRONMENT
+// ============================================
+
+const BOT_TOKEN =
+    process.env.BOT_TOKEN;
+
+const SUPABASE_URL =
+    process.env.SUPABASE_URL;
+
+const SUPABASE_SECRET_KEY =
+    process.env.SUPABASE_SECRET_KEY;
 
 
-// Проверка Telegram initData
+// ============================================
+// SUPABASE
+// ============================================
+
+let supabase = null;
+
+if (
+    SUPABASE_URL &&
+    SUPABASE_SECRET_KEY
+) {
+
+    supabase = createClient(
+        SUPABASE_URL,
+        SUPABASE_SECRET_KEY,
+        {
+            auth: {
+                persistSession: false,
+                autoRefreshToken: false,
+                detectSessionInUrl: false
+            }
+        }
+    );
+
+}
+
+
+// ============================================
+// TELEGRAM INIT DATA VALIDATION
+// ============================================
+
 function validateInitData(initData) {
 
     if (!BOT_TOKEN) {
+
         return {
             valid: false,
             error: "server_not_configured"
         };
+
     }
 
-    const params = new URLSearchParams(initData);
 
-    const receivedHash = params.get("hash");
+    const params =
+        new URLSearchParams(initData);
+
+
+    const receivedHash =
+        params.get("hash");
+
 
     if (!receivedHash) {
+
         return {
             valid: false,
             error: "hash_missing"
         };
+
     }
+
 
     params.delete("hash");
 
 
-    const dataCheckString = [...params.entries()]
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([key, value]) => `${key}=${value}`)
-        .join("\n");
+    const dataCheckString =
+        [...params.entries()]
+            .sort(([a], [b]) =>
+                a.localeCompare(b)
+            )
+            .map(([key, value]) =>
+                `${key}=${value}`
+            )
+            .join("\n");
 
 
-    const secretKey = crypto
-        .createHmac("sha256", "WebAppData")
-        .update(BOT_TOKEN)
-        .digest();
+    const secretKey =
+        crypto
+            .createHmac(
+                "sha256",
+                "WebAppData"
+            )
+            .update(BOT_TOKEN)
+            .digest();
 
 
-    const calculatedHash = crypto
-        .createHmac("sha256", secretKey)
-        .update(dataCheckString)
-        .digest("hex");
+    const calculatedHash =
+        crypto
+            .createHmac(
+                "sha256",
+                secretKey
+            )
+            .update(dataCheckString)
+            .digest("hex");
 
 
     try {
 
         const receivedBuffer =
-            Buffer.from(receivedHash, "hex");
+            Buffer.from(
+                receivedHash,
+                "hex"
+            );
+
 
         const calculatedBuffer =
-            Buffer.from(calculatedHash, "hex");
+            Buffer.from(
+                calculatedHash,
+                "hex"
+            );
 
 
         if (
-            receivedBuffer.length !== calculatedBuffer.length ||
+            receivedBuffer.length !==
+            calculatedBuffer.length
+        ) {
+
+            return {
+                valid: false,
+                error: "invalid_signature"
+            };
+
+        }
+
+
+        if (
             !crypto.timingSafeEqual(
                 receivedBuffer,
                 calculatedBuffer
@@ -103,7 +191,9 @@ function validateInitData(initData) {
 
         }
 
-    } catch {
+    }
+
+    catch {
 
         return {
             valid: false,
@@ -113,20 +203,31 @@ function validateInitData(initData) {
     }
 
 
-    // Проверяем свежесть Telegram авторизации
+    // ========================================
+    // AUTH DATE
+    // ========================================
+
     const authDate =
-        Number(params.get("auth_date"));
+        Number(
+            params.get("auth_date")
+        );
+
 
     const now =
-        Math.floor(Date.now() / 1000);
+        Math.floor(
+            Date.now() / 1000
+        );
 
-    const MAX_AGE_SECONDS = 3600;
+
+    const MAX_AGE_SECONDS =
+        3600;
 
 
     if (
         !Number.isFinite(authDate) ||
         authDate <= 0 ||
-        now - authDate > MAX_AGE_SECONDS ||
+        now - authDate >
+            MAX_AGE_SECONDS ||
         authDate > now + 30
     ) {
 
@@ -138,18 +239,29 @@ function validateInitData(initData) {
     }
 
 
+    // ========================================
+    // TELEGRAM USER
+    // ========================================
+
     let user = null;
+
 
     try {
 
         const rawUser =
             params.get("user");
 
+
         if (rawUser) {
-            user = JSON.parse(rawUser);
+
+            user =
+                JSON.parse(rawUser);
+
         }
 
-    } catch {
+    }
+
+    catch {
 
         return {
             valid: false,
@@ -159,7 +271,10 @@ function validateInitData(initData) {
     }
 
 
-    if (!user || !user.id) {
+    if (
+        !user ||
+        !user.id
+    ) {
 
         return {
             valid: false,
@@ -176,95 +291,305 @@ function validateInitData(initData) {
 }
 
 
+// ============================================
+// HEALTH
+// ============================================
 
-// Проверка сервера
-app.get("/health", (req, res) => {
+app.get(
+    "/health",
 
-    res.json({
-        ok: true,
-        service: "Handle Market API"
-    });
+    async (req, res) => {
 
-});
+        if (!supabase) {
 
+            return res
+                .status(500)
+                .json({
+                    ok: false,
+                    service:
+                        "Handle Market API",
+                    database:
+                        "not_configured"
+                });
 
-
-// Telegram login
-app.post("/auth", (req, res) => {
-
-    const {
-        initData
-    } = req.body;
-
-
-    if (!initData) {
-
-        return res.status(400).json({
-            ok: false,
-            error: "initData_missing"
-        });
-
-    }
-
-
-    const result =
-        validateInitData(initData);
-
-
-    if (!result.valid) {
-
-        return res.status(401).json({
-            ok: false,
-            error: result.error
-        });
-
-    }
-
-
-    const user = result.user;
-
-
-    // Отдаём Mini App только необходимые данные
-    res.json({
-
-        ok: true,
-
-        user: {
-            id: user.id,
-            first_name: user.first_name || "",
-            last_name: user.last_name || "",
-            username: user.username || null,
-            language_code: user.language_code || null,
-            photo_url: user.photo_url || null
         }
 
-    });
 
-});
+        const {
+            error
+        } =
+            await supabase
+                .from("users")
+                .select(
+                    "telegram_id",
+                    {
+                        head: true,
+                        count: "exact"
+                    }
+                );
 
 
+        if (error) {
 
-// JSON-ошибка вместо HTML при плохом JSON
-app.use((error, req, res, next) => {
+            console.error(
+                "Supabase health error:",
+                error
+            );
 
-    console.error(error);
 
-    res.status(400).json({
-        ok: false,
-        error: "bad_request"
-    });
+            return res
+                .status(500)
+                .json({
+                    ok: false,
+                    service:
+                        "Handle Market API",
+                    database:
+                        "error"
+                });
 
-});
+        }
 
+
+        res.json({
+            ok: true,
+            service:
+                "Handle Market API",
+            database:
+                "connected"
+        });
+
+    }
+);
+
+
+// ============================================
+// TELEGRAM AUTH
+// ============================================
+
+app.post(
+    "/auth",
+
+    async (req, res) => {
+
+        const {
+            initData
+        } = req.body;
+
+
+        if (!initData) {
+
+            return res
+                .status(400)
+                .json({
+                    ok: false,
+                    error:
+                        "initData_missing"
+                });
+
+        }
+
+
+        const result =
+            validateInitData(initData);
+
+
+        if (!result.valid) {
+
+            return res
+                .status(401)
+                .json({
+                    ok: false,
+                    error:
+                        result.error
+                });
+
+        }
+
+
+        if (!supabase) {
+
+            return res
+                .status(500)
+                .json({
+                    ok: false,
+                    error:
+                        "database_not_configured"
+                });
+
+        }
+
+
+        const telegramUser =
+            result.user;
+
+
+        // ====================================
+        // CREATE OR UPDATE USER IN DATABASE
+        // ====================================
+
+        const userRecord = {
+
+            telegram_id:
+                telegramUser.id,
+
+            first_name:
+                telegramUser.first_name ||
+                "",
+
+            last_name:
+                telegramUser.last_name ||
+                "",
+
+            telegram_username:
+                telegramUser.username ||
+                null,
+
+            language_code:
+                telegramUser.language_code ||
+                null,
+
+            photo_url:
+                telegramUser.photo_url ||
+                null,
+
+            last_seen_at:
+                new Date().toISOString()
+
+        };
+
+
+        const {
+            data: databaseUser,
+            error: databaseError
+        } =
+            await supabase
+                .from("users")
+                .upsert(
+                    userRecord,
+                    {
+                        onConflict:
+                            "telegram_id"
+                    }
+                )
+                .select()
+                .single();
+
+
+        if (databaseError) {
+
+            console.error(
+                "Database error:",
+                databaseError
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok: false,
+                    error:
+                        "database_error"
+                });
+
+        }
+
+
+        if (
+            databaseUser.is_blocked
+        ) {
+
+            return res
+                .status(403)
+                .json({
+                    ok: false,
+                    error:
+                        "account_blocked"
+                });
+
+        }
+
+
+        // ====================================
+        // RESPONSE
+        // ====================================
+
+        res.json({
+
+            ok: true,
+
+            user: {
+
+                id:
+                    databaseUser.telegram_id,
+
+                first_name:
+                    databaseUser.first_name,
+
+                last_name:
+                    databaseUser.last_name,
+
+                username:
+                    databaseUser.telegram_username,
+
+                language_code:
+                    databaseUser.language_code,
+
+                photo_url:
+                    databaseUser.photo_url
+
+            }
+
+        });
+
+    }
+);
+
+
+// ============================================
+// BAD JSON / OTHER ERRORS
+// ============================================
+
+app.use(
+    (
+        error,
+        req,
+        res,
+        next
+    ) => {
+
+        console.error(error);
+
+
+        res
+            .status(400)
+            .json({
+                ok: false,
+                error:
+                    "bad_request"
+            });
+
+    }
+);
+
+
+// ============================================
+// START SERVER
+// ============================================
 
 const PORT =
-    process.env.PORT || 3000;
+    process.env.PORT ||
+    3000;
 
 
-app.listen(PORT, () => {
+app.listen(
+    PORT,
 
-    console.log(
-        `Handle Market API running on port ${PORT}`
-    );
+    () => {
 
-});
+        console.log(
+            `Handle Market API running on port ${PORT}`
+        );
+
+    }
+);
+
