@@ -1,601 +1,589 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Handle Market</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
+*{box-sizing:border-box}
 
-* {
-    box-sizing: border-box;
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#f4f5f7;
+    color:#111;
+    padding-bottom:85px
 }
 
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f5f7;
-    color: #111;
-    padding-bottom: 85px;
+.app{max-width:650px;margin:auto}
+
+header{
+    background:white;
+    padding:18px;
+    border-bottom:1px solid #e5e5e5
 }
 
-.app {
-    max-width: 650px;
-    margin: auto;
+.logo{font-size:25px;font-weight:800}
+.subtitle{color:#777;font-size:13px;margin-top:5px}
+.auth-status{margin-top:10px;font-size:13px}
+.auth-ok{color:#139447}
+.auth-error{color:#d93025}
+
+.page{display:none}
+.page.active{display:block}
+
+.search{padding:16px}
+
+.search input{
+    width:100%;
+    border:1px solid #ddd;
+    border-radius:14px;
+    padding:14px;
+    font-size:16px;
+    background:white
 }
 
-header {
-    background: white;
-    padding: 18px;
-    border-bottom: 1px solid #e5e5e5;
+.section{padding:0 16px 20px}
+
+.section-title{
+    font-size:20px;
+    font-weight:800;
+    margin-bottom:12px
 }
 
-.logo {
-    font-size: 25px;
-    font-weight: 800;
+.categories{
+    display:flex;
+    gap:8px;
+    overflow-x:auto
 }
 
-.subtitle {
-    color: #777;
-    font-size: 13px;
-    margin-top: 5px;
+.category{
+    white-space:nowrap;
+    background:white;
+    border:1px solid #e8e8e8;
+    border-radius:20px;
+    padding:9px 14px
 }
 
-.auth-status {
-    margin-top: 10px;
-    font-size: 13px;
+.card{
+    background:white;
+    padding:17px;
+    margin-bottom:12px;
+    border-radius:18px;
+    box-shadow:0 2px 9px rgba(0,0,0,.04)
 }
 
-.auth-ok {
-    color: #139447;
+.username{font-size:23px;font-weight:800}
+
+.price{
+    font-size:20px;
+    font-weight:700;
+    margin-top:13px
 }
 
-.auth-error {
-    color: #d93025;
+.meta{
+    color:#777;
+    margin-top:6px;
+    font-size:13px
 }
 
-.page {
-    display: none;
+.description{
+    color:#555;
+    margin-top:12px;
+    line-height:1.45
 }
 
-.page.active {
-    display: block;
+.badge{
+    display:inline-block;
+    margin-top:7px;
+    padding:5px 9px;
+    border-radius:10px;
+    font-size:12px
 }
 
-.search {
-    padding: 16px;
-}
-
-.search input {
-    width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 14px;
-    padding: 14px;
-    font-size: 16px;
-    background: white;
-}
-
-.section {
-    padding: 0 16px 20px;
-}
-
-.section-title {
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 12px;
-}
-
-.categories {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-}
-
-.category {
-    white-space: nowrap;
-    background: white;
-    border: 1px solid #e8e8e8;
-    border-radius: 20px;
-    padding: 9px 14px;
-}
-
-.card {
-    background: white;
-    padding: 17px;
-    margin-bottom: 12px;
-    border-radius: 18px;
-    box-shadow: 0 2px 9px rgba(0,0,0,.04);
-}
-
-.username {
-    font-size: 23px;
-    font-weight: 800;
-}
-
-.price {
-    font-size: 20px;
-    font-weight: 700;
-    margin-top: 13px;
-}
-
-.meta {
-    color: #777;
-    margin-top: 6px;
-    font-size: 13px;
-}
-
-.description {
-    color: #555;
-    margin-top: 12px;
-    line-height: 1.45;
-}
-
-.badge {
-    display: inline-block;
-    margin-top: 7px;
-    padding: 5px 9px;
-    border-radius: 10px;
-    font-size: 12px;
-}
-
-.badge-pending {
-    background: #fff7e0;
-    color: #9a6900;
+.badge-pending{
+    background:#fff7e0;
+    color:#9a6900
 }
 
 .badge-active,
-.badge-accepted {
-    background: #ebf9ef;
-    color: #14863c;
+.badge-accepted{
+    background:#ebf9ef;
+    color:#14863c
 }
 
-.badge-rejected {
-    background: #fff0f0;
-    color: #c33;
+.badge-rejected{
+    background:#fff0f0;
+    color:#c33
 }
 
-.badge-countered {
-    background: #eef6ff;
-    color: #1764a5;
+.badge-countered{
+    background:#eef6ff;
+    color:#1764a5
 }
 
 .badge-declined,
-.badge-cancelled {
-    background: #f2f2f2;
-    color: #777;
+.badge-cancelled,
+.badge-closed{
+    background:#f2f2f2;
+    color:#777
 }
 
-.buttons {
-    display: flex;
-    gap: 8px;
-    margin-top: 14px;
+.buttons{
+    display:flex;
+    gap:8px;
+    margin-top:14px
 }
 
-button {
-    border: none;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 14px;
-    cursor: pointer;
+button{
+    border:none;
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px;
+    cursor:pointer
 }
 
-button:disabled {
-    opacity: .55;
-    cursor: default;
+button:disabled{
+    opacity:.55;
+    cursor:default
 }
 
-.primary {
-    flex: 1;
-    background: #1687e8;
-    color: white;
+.primary{
+    flex:1;
+    background:#1687e8;
+    color:white
 }
 
-.secondary {
-    background: #eee;
+.secondary{background:#eee}
+
+.watch-button{
+    background:#eee;
+    min-width:100px
 }
 
-.watch-button {
-    background: #eee;
-    min-width: 100px;
+.watch-button.watching{
+    background:#fff4cc;
+    color:#805e00;
+    font-weight:700
 }
 
-.watch-button.watching {
-    background: #fff4cc;
-    color: #805e00;
-    font-weight: 700;
+.own-listing-button{
+    flex:1;
+    background:#ebf9ef;
+    color:#14863c;
+    font-weight:700
 }
 
-.own-listing-button {
-    flex: 1;
-    background: #ebf9ef;
-    color: #14863c;
-    font-weight: 700;
+.unlock-button{
+    width:100%;
+    margin-top:12px;
+    background:#f1f6ff;
+    border:1px solid #d8e7ff;
+    color:#1764a5;
+    font-weight:700
 }
 
-.unlock-button {
-    width: 100%;
-    margin-top: 12px;
-    background: #f1f6ff;
-    border: 1px solid #d8e7ff;
-    color: #1764a5;
-    font-weight: 700;
+.contact-box{
+    margin-top:12px;
+    border-radius:14px;
+    padding:14px;
+    background:#edf9f1;
+    border:1px solid #caedd5
 }
 
-.contact-box {
-    margin-top: 12px;
-    border-radius: 14px;
-    padding: 14px;
-    background: #edf9f1;
-    border: 1px solid #caedd5;
+.owner-contact-box{
+    margin-top:12px;
+    border-radius:14px;
+    padding:14px;
+    background:#f5f5f5;
+    border:1px solid #dedede
 }
 
-.owner-contact-box {
-    margin-top: 12px;
-    border-radius: 14px;
-    padding: 14px;
-    background: #f5f5f5;
-    border: 1px solid #dedede;
+.contact-title{
+    font-weight:800;
+    color:#168344
 }
 
-.contact-title {
-    font-weight: 800;
-    color: #168344;
+.owner-title{
+    font-weight:800;
+    color:#333
 }
 
-.owner-title {
-    font-weight: 800;
-    color: #333;
+.contact-value{
+    font-size:17px;
+    font-weight:700;
+    margin-top:8px;
+    word-break:break-word
 }
 
-.contact-value {
-    font-size: 17px;
-    font-weight: 700;
-    margin-top: 8px;
-    word-break: break-word;
+.contact-actions{
+    display:flex;
+    gap:8px;
+    margin-top:12px
 }
 
-.contact-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
+.contact-actions button{flex:1}
+
+.owner-note{
+    color:#777;
+    font-size:12px;
+    line-height:1.45;
+    margin-top:8px
 }
 
-.contact-actions button {
-    flex: 1;
+.payment-wait{
+    margin-top:12px;
+    padding:12px;
+    border-radius:12px;
+    background:#eef6ff;
+    color:#1764a5;
+    font-size:13px
 }
 
-.owner-note {
-    color: #777;
-    font-size: 12px;
-    line-height: 1.45;
-    margin-top: 8px;
+.form-box{
+    margin:16px;
+    padding:18px;
+    background:white;
+    border-radius:18px
 }
 
-.payment-wait {
-    margin-top: 12px;
-    padding: 12px;
-    border-radius: 12px;
-    background: #eef6ff;
-    color: #1764a5;
-    font-size: 13px;
+.form-title{
+    font-size:22px;
+    font-weight:800
 }
 
-.form-box {
-    margin: 16px;
-    padding: 18px;
-    background: white;
-    border-radius: 18px;
+.form-subtitle{
+    color:#777;
+    font-size:13px;
+    margin:5px 0 20px
 }
 
-.form-title {
-    font-size: 22px;
-    font-weight: 800;
-}
+.field{margin-bottom:15px}
 
-.form-subtitle {
-    color: #777;
-    font-size: 13px;
-    margin: 5px 0 20px;
-}
-
-.field {
-    margin-bottom: 15px;
-}
-
-.field label {
-    display: block;
-    font-weight: 700;
-    margin-bottom: 7px;
+.field label{
+    display:block;
+    font-weight:700;
+    margin-bottom:7px
 }
 
 .field input,
 .field select,
-.field textarea {
-    width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 12px;
-    font-size: 15px;
+.field textarea{
+    width:100%;
+    border:1px solid #ddd;
+    border-radius:12px;
+    padding:12px;
+    font-size:15px
 }
 
-.field textarea {
-    min-height: 90px;
+.field textarea{min-height:90px}
+
+.field-hint{
+    color:#888;
+    font-size:11px;
+    margin-top:5px
 }
 
-.field-hint {
-    color: #888;
-    font-size: 11px;
-    margin-top: 5px;
+.payment-box{
+    background:#f3f8ff;
+    border:1px solid #dbeaff;
+    border-radius:14px;
+    padding:15px;
+    margin-bottom:15px
 }
 
-.payment-box {
-    background: #f3f8ff;
-    border: 1px solid #dbeaff;
-    border-radius: 14px;
-    padding: 15px;
-    margin-bottom: 15px;
+.payment-price{
+    font-size:25px;
+    font-weight:800
 }
 
-.payment-price {
-    font-size: 25px;
-    font-weight: 800;
+.payment-button{
+    width:100%;
+    background:#1687e8;
+    color:white;
+    padding:15px;
+    font-size:16px;
+    font-weight:800
 }
 
-.payment-button {
-    width: 100%;
-    background: #1687e8;
-    color: white;
-    padding: 15px;
-    font-size: 16px;
-    font-weight: 800;
+.message{
+    margin-top:14px;
+    padding:13px;
+    border-radius:12px;
+    display:none
 }
 
-.message {
-    margin-top: 14px;
-    padding: 13px;
-    border-radius: 12px;
-    display: none;
+.message.success{
+    display:block;
+    background:#eaf8ee;
+    color:#14823a
 }
 
-.message.success {
-    display: block;
-    background: #eaf8ee;
-    color: #14823a;
+.message.error{
+    display:block;
+    background:#fff0f0;
+    color:#c62828
 }
 
-.message.error {
-    display: block;
-    background: #fff0f0;
-    color: #c62828;
+.message.info{
+    display:block;
+    background:#eef6ff;
+    color:#1764a5
 }
 
-.message.info {
-    display: block;
-    background: #eef6ff;
-    color: #1764a5;
+.warning{
+    margin:16px;
+    padding:14px;
+    border-radius:14px;
+    background:#fff8e7;
+    border:1px solid #ffe09d;
+    font-size:13px;
+    line-height:1.5
 }
 
-.warning {
-    margin: 16px;
-    padding: 14px;
-    border-radius: 14px;
-    background: #fff8e7;
-    border: 1px solid #ffe09d;
-    font-size: 13px;
-    line-height: 1.5;
+.profile-card{
+    margin:16px;
+    padding:20px;
+    background:white;
+    border-radius:18px
 }
 
-.profile-card {
-    margin: 16px;
-    padding: 20px;
-    background: white;
-    border-radius: 18px;
+.profile-name{
+    font-size:22px;
+    font-weight:800
 }
 
-.profile-name {
-    font-size: 22px;
-    font-weight: 800;
+.profile-username{
+    color:#777;
+    margin-top:5px
 }
 
-.profile-username {
-    color: #777;
-    margin-top: 5px;
+.verified-box{
+    background:#edf9f1;
+    color:#138541;
+    padding:14px;
+    border-radius:14px;
+    margin-top:17px
 }
 
-.verified-box {
-    background: #edf9f1;
-    color: #138541;
-    padding: 14px;
-    border-radius: 14px;
-    margin-top: 17px;
+.profile-action{
+    width:100%;
+    margin-top:12px;
+    background:#1687e8;
+    color:white;
+    font-weight:700
 }
 
-.profile-action {
-    width: 100%;
-    margin-top: 12px;
-    background: #1687e8;
-    color: white;
-    font-weight: 700;
+.watchlist-profile-button{
+    width:100%;
+    margin-top:10px;
+    background:#fff4cc;
+    color:#725500;
+    font-weight:700
 }
 
-.watchlist-profile-button {
-    width: 100%;
-    margin-top: 10px;
-    background: #fff4cc;
-    color: #725500;
-    font-weight: 700;
+.admin-button{
+    width:100%;
+    background:#222;
+    color:white;
+    margin-top:12px;
+    font-weight:700
 }
 
-.admin-button {
-    width: 100%;
-    background: #222;
-    color: white;
-    margin-top: 12px;
-    font-weight: 700;
+.admin-box{margin:16px}
+
+.admin-header{
+    background:#222;
+    color:white;
+    padding:18px;
+    border-radius:18px;
+    margin-bottom:15px
 }
 
-.admin-box {
-    margin: 16px;
+.admin-header h2{margin:0}
+
+.approve-button{
+    flex:1;
+    background:#19a651;
+    color:white
 }
 
-.admin-header {
-    background: #222;
-    color: white;
-    padding: 18px;
-    border-radius: 18px;
-    margin-bottom: 15px;
+.reject-button{
+    flex:1;
+    background:#e74747;
+    color:white
 }
 
-.admin-header h2 {
-    margin: 0;
+.counter-button{
+    flex:1;
+    background:#f1f6ff;
+    color:#1764a5
 }
 
-.approve-button {
-    flex: 1;
-    background: #19a651;
-    color: white;
+.empty{
+    padding:30px 15px;
+    text-align:center;
+    color:#777;
+    background:white;
+    border-radius:16px
 }
 
-.reject-button {
-    flex: 1;
-    background: #e74747;
-    color: white;
+.offer-summary{
+    margin-top:12px;
+    background:#f7f7f7;
+    border-radius:12px;
+    padding:12px
 }
 
-.counter-button {
-    flex: 1;
-    background: #f1f6ff;
-    color: #1764a5;
+.offer-label{
+    color:#777;
+    font-size:12px
 }
 
-.empty {
-    padding: 30px 15px;
-    text-align: center;
-    color: #777;
-    background: white;
-    border-radius: 16px;
+.offer-big{
+    font-size:20px;
+    font-weight:800;
+    margin-top:3px
 }
 
-.offer-summary {
-    margin-top: 12px;
-    background: #f7f7f7;
-    border-radius: 12px;
-    padding: 12px;
+.offer-message{
+    margin-top:10px;
+    color:#555;
+    line-height:1.45
 }
 
-.offer-label {
-    color: #777;
-    font-size: 12px;
+.buyer-box{
+    margin-top:12px;
+    background:#f5f5f5;
+    padding:11px;
+    border-radius:10px;
+    font-size:13px
 }
 
-.offer-big {
-    font-size: 20px;
-    font-weight: 800;
-    margin-top: 3px;
+.wanted-card{
+    border-left:4px solid #1687e8
 }
 
-.offer-message {
-    margin-top: 10px;
-    color: #555;
-    line-height: 1.45;
+.wanted-label{
+    color:#777;
+    font-size:12px;
+    margin-top:12px
 }
 
-.buyer-box {
-    margin-top: 12px;
-    background: #f5f5f5;
-    padding: 11px;
-    border-radius: 10px;
-    font-size: 13px;
+.wanted-budget{
+    font-size:22px;
+    font-weight:800;
+    margin-top:3px
 }
 
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 70px;
-    background: white;
-    border-top: 1px solid #ddd;
-    display: flex;
-    z-index: 100;
+.wanted-buyer{
+    margin-top:12px;
+    padding:11px;
+    border-radius:11px;
+    background:#f5f5f5;
+    font-size:13px
 }
 
-.nav-item {
-    flex: 1;
-    text-align: center;
-    font-size: 11px;
-    padding-top: 9px;
-    color: #777;
+.contact-buyer-button{
+    width:100%;
+    margin-top:14px;
+    background:#1687e8;
+    color:white;
+    font-weight:700
 }
 
-.nav-icon {
-    display: block;
-    font-size: 23px;
-    margin-bottom: 3px;
+.your-request-button{
+    width:100%;
+    margin-top:14px;
+    background:#edf9f1;
+    color:#138541;
+    font-weight:700
 }
 
-.nav-item.active {
-    color: #1687e8;
-    font-weight: 700;
+.close-request-button{
+    width:100%;
+    margin-top:13px;
+    background:#fff0f0;
+    color:#c62828;
+    font-weight:700
 }
 
-.modal-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.45);
-    z-index: 1000;
-    padding: 20px;
-    align-items: center;
-    justify-content: center;
+.bottom-nav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:70px;
+    background:white;
+    border-top:1px solid #ddd;
+    display:flex;
+    z-index:100
 }
 
-.modal-backdrop.show {
-    display: flex;
+.nav-item{
+    flex:1;
+    text-align:center;
+    font-size:11px;
+    padding-top:9px;
+    color:#777
 }
 
-.modal {
-    width: 100%;
-    max-width: 430px;
-    background: white;
-    border-radius: 20px;
-    padding: 20px;
-    max-height: 90vh;
-    overflow-y: auto;
+.nav-icon{
+    display:block;
+    font-size:23px;
+    margin-bottom:3px
 }
 
-.modal-title {
-    font-size: 22px;
-    font-weight: 800;
+.nav-item.active{
+    color:#1687e8;
+    font-weight:700
 }
 
-.modal-subtitle {
-    color: #777;
-    margin-top: 5px;
-    margin-bottom: 18px;
+.modal-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    z-index:1000;
+    padding:20px;
+    align-items:center;
+    justify-content:center
 }
 
-.modal-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 15px;
+.modal-backdrop.show{display:flex}
+
+.modal{
+    width:100%;
+    max-width:430px;
+    background:white;
+    border-radius:20px;
+    padding:20px;
+    max-height:90vh;
+    overflow-y:auto
 }
 
-.modal-actions button {
-    flex: 1;
+.modal-title{
+    font-size:22px;
+    font-weight:800
 }
 
+.modal-subtitle{
+    color:#777;
+    margin-top:5px;
+    margin-bottom:18px
+}
+
+.modal-actions{
+    display:flex;
+    gap:8px;
+    margin-top:15px
+}
+
+.modal-actions button{flex:1}
 </style>
-
 </head>
 
 <body>
@@ -603,22 +591,9 @@ button:disabled {
 <div class="app">
 
 <header>
-
-<div class="logo">
-Handle Market
-</div>
-
-<div class="subtitle">
-Discover premium WhatsApp usernames
-</div>
-
-<div
-    id="authStatus"
-    class="auth-status"
->
-Connecting...
-</div>
-
+<div class="logo">Handle Market</div>
+<div class="subtitle">Discover premium WhatsApp usernames</div>
+<div id="authStatus" class="auth-status">Connecting...</div>
 </header>
 
 
@@ -627,53 +602,35 @@ Connecting...
 <div id="home" class="page active">
 
 <div class="search">
-
 <input
     placeholder="Search @username"
     oninput="filterMarketplace(this.value)"
 >
-
 </div>
 
 <div class="section">
-
-<div class="section-title">
-Categories
-</div>
+<div class="section-title">Categories</div>
 
 <div class="categories">
-
 <div class="category">🔥 Premium</div>
 <div class="category">Business</div>
 <div class="category">AI</div>
 <div class="category">Short</div>
 <div class="category">Travel</div>
 <div class="category">Finance</div>
-
 </div>
-
 </div>
 
 <div class="section">
-
-<div class="section-title">
-Featured usernames
-</div>
+<div class="section-title">Featured usernames</div>
 
 <div id="homeListings">
-
-<div class="empty">
-Loading...
+<div class="empty">Loading...</div>
 </div>
-
-</div>
-
 </div>
 
 <div class="warning">
-
 ⚠️ Handle Market does not control or guarantee the transfer of WhatsApp usernames.
-
 </div>
 
 </div>
@@ -684,30 +641,20 @@ Loading...
 <div id="marketplace" class="page">
 
 <div class="search">
-
 <input
     placeholder="Search Marketplace"
     oninput="filterMarketplace(this.value)"
 >
-
 </div>
 
 <div class="section">
-
-<div class="section-title">
-Marketplace
-</div>
+<div class="section-title">Marketplace</div>
 
 <div id="marketListings">
-
-<div class="empty">
-Loading...
+<div class="empty">Loading...</div>
 </div>
 
 </div>
-
-</div>
-
 </div>
 
 
@@ -717,40 +664,22 @@ Loading...
 
 <div class="form-box">
 
-<div class="form-title">
-List Username
-</div>
+<div class="form-title">List Username</div>
+<div class="form-subtitle">Submit username for moderation.</div>
 
-<div class="form-subtitle">
-Submit username for moderation.
-</div>
-
-<form
-    id="listingForm"
-    onsubmit="startListingPayment(event)"
->
+<form id="listingForm" onsubmit="startListingPayment(event)">
 
 <div class="field">
-
-<label>
-WhatsApp username
-</label>
-
+<label>WhatsApp username</label>
 <input
     id="listingUsername"
     placeholder="@username"
     required
 >
-
 </div>
 
-
 <div class="field">
-
-<label>
-Asking price (USD)
-</label>
-
+<label>Asking price (USD)</label>
 <input
     id="listingPrice"
     type="number"
@@ -758,17 +687,146 @@ Asking price (USD)
     step="0.01"
     required
 >
+</div>
+
+<div class="field">
+<label>Category</label>
+
+<select id="listingCategory">
+<option>Premium</option>
+<option>Business</option>
+<option>AI</option>
+<option>Short</option>
+<option>Travel</option>
+<option>Finance</option>
+<option>Gaming</option>
+<option>Crypto</option>
+<option>Media</option>
+<option>Other</option>
+</select>
+
+</div>
+
+<div class="field">
+<label>Description</label>
+
+<textarea
+    id="listingDescription"
+    maxlength="500"
+></textarea>
+
+</div>
+
+<div class="field">
+<label>Contact method</label>
+
+<select id="contactType">
+<option value="telegram">Telegram</option>
+<option value="email">Email</option>
+<option value="other">Other</option>
+</select>
+
+</div>
+
+<div class="field">
+<label>Seller contact</label>
+
+<input
+    id="contactValue"
+    placeholder="@username"
+    maxlength="200"
+    required
+>
+
+<div class="field-hint">
+Buyers cannot see this until they unlock it.
+</div>
+</div>
+
+<div class="payment-box">
+<div>Listing fee</div>
+<div id="listingFee" class="payment-price">1 ⭐</div>
+</div>
+
+<button
+    id="listingButton"
+    class="payment-button"
+    type="submit"
+>
+Pay 1 ⭐ & Submit
+</button>
+
+<div id="listingMessage" class="message"></div>
+
+</form>
+</div>
+
+<div class="section">
+<div class="section-title">My Listings</div>
+
+<div id="myListings">
+<div class="empty">Loading...</div>
+</div>
+
+</div>
+</div>
+
+
+<!-- WANTED -->
+
+<div id="wanted" class="page">
+
+<div class="form-box">
+
+<div class="form-title">🎯 Post Wanted Request</div>
+
+<div class="form-subtitle">
+Looking for a specific WhatsApp username? Publish your request.
+</div>
+
+<form
+    id="wantedForm"
+    onsubmit="startWantedPayment(event)"
+>
+
+<div class="field">
+
+<label>Desired username</label>
+
+<input
+    id="wantedUsername"
+    placeholder="@username"
+    required
+>
+
+<div class="field-hint">
+Enter the WhatsApp username you want to buy.
+</div>
 
 </div>
 
 
 <div class="field">
 
-<label>
-Category
-</label>
+<label>Budget (USD)</label>
 
-<select id="listingCategory">
+<input
+    id="wantedBudget"
+    type="number"
+    min="1"
+    step="0.01"
+    placeholder="3000"
+    required
+>
+
+</div>
+
+
+<div class="field">
+
+<label>Category</label>
+
+<select id="wantedCategory">
 
 <option>Premium</option>
 <option>Business</option>
@@ -788,73 +846,23 @@ Category
 
 <div class="field">
 
-<label>
-Description
-</label>
+<label>Description</label>
 
 <textarea
-    id="listingDescription"
+    id="wantedDescription"
     maxlength="500"
+    placeholder="Example: Looking for this exact username. Ready to negotiate."
 ></textarea>
-
-</div>
-
-
-<div class="field">
-
-<label>
-Contact method
-</label>
-
-<select id="contactType">
-
-<option value="telegram">
-Telegram
-</option>
-
-<option value="email">
-Email
-</option>
-
-<option value="other">
-Other
-</option>
-
-</select>
-
-</div>
-
-
-<div class="field">
-
-<label>
-Seller contact
-</label>
-
-<input
-    id="contactValue"
-    placeholder="@username"
-    maxlength="200"
-    required
->
-
-<div class="field-hint">
-
-Buyers cannot see this until they unlock it.
-
-</div>
 
 </div>
 
 
 <div class="payment-box">
 
-<div>
-Listing fee
-</div>
+<div>Wanted publication fee</div>
 
 <div
-    id="listingFee"
+    id="wantedFee"
     class="payment-price"
 >
 1 ⭐
@@ -864,18 +872,16 @@ Listing fee
 
 
 <button
-    id="listingButton"
+    id="wantedButton"
     class="payment-button"
     type="submit"
 >
-
-Pay 1 ⭐ & Submit
-
+Pay 1 ⭐ & Publish
 </button>
 
 
 <div
-    id="listingMessage"
+    id="wantedMessage"
     class="message"
 ></div>
 
@@ -887,10 +893,10 @@ Pay 1 ⭐ & Submit
 <div class="section">
 
 <div class="section-title">
-My Listings
+🎯 Wanted Requests
 </div>
 
-<div id="myListings">
+<div id="wantedPosts">
 
 <div class="empty">
 Loading...
@@ -900,21 +906,19 @@ Loading...
 
 </div>
 
+
+<div class="section">
+
+<div class="section-title">
+My Wanted Posts
 </div>
 
-
-<!-- WANTED -->
-
-<div id="wanted" class="page">
-
-<div class="form-box">
-
-<div class="form-title">
-🎯 Wanted
-</div>
+<div id="myWantedPosts">
 
 <div class="empty">
-Coming soon
+Loading...
+</div>
+
 </div>
 
 </div>
@@ -930,9 +934,7 @@ Coming soon
     id="profileContent"
     class="profile-card"
 >
-
 Loading...
-
 </div>
 
 </div>
@@ -1014,17 +1016,11 @@ Loading...
 <div class="admin-box">
 
 <div class="admin-header">
-
-<h2>
-🛡 Admin Panel
-</h2>
-
+<h2>🛡 Admin Panel</h2>
 </div>
 
 <div id="pendingListings">
-
-<div class="empty">
-Loading...
+<div class="empty">Loading...</div>
 </div>
 
 </div>
@@ -1033,10 +1029,8 @@ Loading...
 
 </div>
 
-</div>
 
-
-<!-- NAV -->
+<!-- NAVIGATION -->
 
 <div class="bottom-nav">
 
@@ -1044,75 +1038,46 @@ Loading...
     class="nav-item active"
     onclick="openPage('home',this)"
 >
-
-<span class="nav-icon">
-🏠
-</span>
-
+<span class="nav-icon">🏠</span>
 Home
-
 </div>
-
 
 <div
     class="nav-item"
     onclick="openPage('marketplace',this)"
 >
-
-<span class="nav-icon">
-🔎
-</span>
-
+<span class="nav-icon">🔎</span>
 Market
-
 </div>
-
 
 <div
     class="nav-item"
     onclick="openPage('list',this);loadMyListings();"
 >
-
-<span class="nav-icon">
-➕
-</span>
-
+<span class="nav-icon">➕</span>
 List
-
 </div>
-
 
 <div
     class="nav-item"
-    onclick="openPage('wanted',this)"
+    onclick="openWantedPage(this)"
 >
-
-<span class="nav-icon">
-🎯
-</span>
-
+<span class="nav-icon">🎯</span>
 Wanted
-
 </div>
-
 
 <div
     class="nav-item"
     onclick="openPage('profile',this)"
 >
-
-<span class="nav-icon">
-👤
-</span>
-
+<span class="nav-icon">👤</span>
 Profile
-
 </div>
 
 </div>
 
 
-<!-- OFFER MODAL -->
+<!-- MAKE OFFER MODAL -->
 
 <div
     id="offerModal"
@@ -1131,44 +1096,34 @@ Make Offer
     class="modal-subtitle"
 ></div>
 
-
 <div class="field">
 
-<label>
-Your offer (USD)
-</label>
+<label>Your offer (USD)</label>
 
 <input
     id="offerAmount"
     type="number"
     min="1"
     step="0.01"
-    placeholder="3500"
 >
 
 </div>
 
-
 <div class="field">
 
-<label>
-Message (optional)
-</label>
+<label>Message (optional)</label>
 
 <textarea
     id="offerMessage"
     maxlength="500"
-    placeholder="Write a short message to the seller..."
 ></textarea>
 
 </div>
-
 
 <div
     id="offerModalMessage"
     class="message"
 ></div>
-
 
 <div class="modal-actions">
 
@@ -1213,23 +1168,18 @@ Counter Offer
     class="modal-subtitle"
 ></div>
 
-
 <div class="field">
 
-<label>
-Counter amount (USD)
-</label>
+<label>Counter amount (USD)</label>
 
 <input
     id="counterAmount"
     type="number"
     min="1"
     step="0.01"
-    placeholder="4200"
 >
 
 </div>
-
 
 <div class="modal-actions">
 
@@ -1262,7 +1212,6 @@ const API_URL =
 const tg =
     window.Telegram?.WebApp;
 
-
 let authenticatedUser =
     null;
 
@@ -1270,6 +1219,9 @@ let listingPriceStars =
     1;
 
 let contactUnlockPriceStars =
+    1;
+
+let wantedPriceStars =
     1;
 
 let marketplaceListings =
@@ -1299,6 +1251,7 @@ if (tg) {
     tg.ready();
 
     tg.expand();
+
 }
 
 
@@ -1315,7 +1268,8 @@ async function api(
         await fetch(
             API_URL + path,
             {
-                method: "POST",
+                method:
+                    "POST",
 
                 headers: {
                     "Content-Type":
@@ -1330,8 +1284,7 @@ async function api(
         );
 
 
-    let data =
-        {};
+    let data = {};
 
 
     try {
@@ -1400,6 +1353,13 @@ async function authenticate() {
             );
 
 
+        wantedPriceStars =
+            Number(
+                data.wanted_price_stars ||
+                1
+            );
+
+
         document
             .getElementById(
                 "listingFee"
@@ -1408,7 +1368,17 @@ async function authenticate() {
                 `${listingPriceStars} ⭐`;
 
 
+        document
+            .getElementById(
+                "wantedFee"
+            )
+            .textContent =
+                `${wantedPriceStars} ⭐`;
+
+
         resetListingButton();
+
+        resetWantedButton();
 
 
         status.textContent =
@@ -1476,7 +1446,7 @@ async function authenticate() {
                                     data.user.username
                                 )
 
-                            : ""
+                            : "No public Telegram username"
                     }
 
                 </div>
@@ -1524,6 +1494,9 @@ async function authenticate() {
             marketplaceListings
         );
 
+
+        await loadMyWanted();
+
     } catch (error) {
 
         console.error(
@@ -1542,7 +1515,945 @@ async function authenticate() {
 
 
 // ======================================================
-// WATCHLIST STATE
+// WANTED PAGE
+// ======================================================
+
+function openWantedPage(
+    nav
+) {
+
+    openPage(
+        "wanted",
+        nav
+    );
+
+
+    loadWanted();
+
+    loadMyWanted();
+}
+
+
+// ======================================================
+// PUBLIC WANTED
+// ======================================================
+
+async function loadWanted() {
+
+    const container =
+        document.getElementById(
+            "wantedPosts"
+        );
+
+
+    container.innerHTML = `
+
+        <div class="empty">
+            Loading...
+        </div>
+
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL +
+                "/wanted"
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                data.error ||
+                "wanted_load_failed"
+            );
+        }
+
+
+        const posts =
+            data.posts ||
+            [];
+
+
+        if (
+            !posts.length
+        ) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+
+                    No active Wanted requests yet.
+
+                </div>
+
+            `;
+
+
+            return;
+        }
+
+
+        container.innerHTML =
+            posts
+                .map(
+                    renderWantedPost
+                )
+                .join("");
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                Failed to load Wanted requests.
+
+            </div>
+
+        `;
+    }
+}
+
+
+// ======================================================
+// RENDER PUBLIC WANTED
+// ======================================================
+
+function renderWantedPost(
+    post
+) {
+
+    const buyer =
+        post.buyer ||
+        {};
+
+
+    const buyerName =
+        [
+            buyer.first_name,
+            buyer.last_name
+        ]
+            .filter(Boolean)
+            .join(" ")
+        ||
+        "Telegram User";
+
+
+    const buyerUsername =
+        buyer.telegram_username ||
+        "";
+
+
+    const isOwn =
+        authenticatedUser &&
+        Number(
+            post.buyer_telegram_id
+        ) ===
+        Number(
+            authenticatedUser.id
+        );
+
+
+    let actionHtml;
+
+
+    if (
+        isOwn
+    ) {
+
+        actionHtml = `
+
+            <button
+                class="your-request-button"
+                disabled
+            >
+
+                👤 Your Request
+
+            </button>
+
+        `;
+
+    } else if (
+        buyerUsername
+    ) {
+
+        actionHtml = `
+
+            <button
+                class="contact-buyer-button"
+                onclick="
+                    openTelegramContact(
+                        '${escapeJs(
+                            buyerUsername
+                        )}'
+                    )
+                "
+            >
+
+                💬 Contact Buyer
+
+            </button>
+
+        `;
+
+    } else {
+
+        actionHtml = `
+
+            <button
+                class="secondary"
+                style="width:100%;margin-top:14px"
+                disabled
+            >
+
+                Buyer has no public Telegram username
+
+            </button>
+
+        `;
+    }
+
+
+    return `
+
+        <div class="card wanted-card">
+
+            <div class="meta">
+                LOOKING FOR
+            </div>
+
+
+            <div class="username">
+
+                @${escapeHtml(
+                    post.desired_username
+                )}
+
+            </div>
+
+
+            <div class="wanted-label">
+                Buyer budget
+            </div>
+
+
+            <div class="wanted-budget">
+
+                $${formatPrice(
+                    post.budget
+                )}
+
+            </div>
+
+
+            <div class="meta">
+
+                ${escapeHtml(
+                    post.category ||
+                    "Other"
+                )}
+
+            </div>
+
+
+            ${
+                post.description
+
+                    ? `
+
+                        <div class="description">
+
+                            ${escapeHtml(
+                                post.description
+                            )}
+
+                        </div>
+
+                    `
+
+                    : ""
+            }
+
+
+            <div class="wanted-buyer">
+
+                <b>Buyer</b>
+
+                <br>
+
+                ${escapeHtml(
+                    buyerName
+                )}
+
+                ${
+                    buyerUsername
+
+                        ? `<br>@${escapeHtml(
+                            buyerUsername
+                        )}`
+
+                        : ""
+                }
+
+            </div>
+
+
+            ${actionHtml}
+
+        </div>
+
+    `;
+}
+
+
+// ======================================================
+// START WANTED PAYMENT
+// ======================================================
+
+async function startWantedPayment(
+    event
+) {
+
+    event.preventDefault();
+
+
+    if (
+        !authenticatedUser
+    ) {
+
+        tg?.showAlert(
+            "Please wait for Telegram authentication."
+        );
+
+
+        return;
+    }
+
+
+    const button =
+        document.getElementById(
+            "wantedButton"
+        );
+
+
+    button.disabled =
+        true;
+
+
+    showWantedMessage(
+        "info",
+        "Creating Stars invoice..."
+    );
+
+
+    try {
+
+        const data =
+            await api(
+                "/wanted-payment/create",
+                {
+                    initData:
+                        tg.initData,
+
+                    desired_username:
+                        document
+                            .getElementById(
+                                "wantedUsername"
+                            )
+                            .value,
+
+                    budget:
+                        document
+                            .getElementById(
+                                "wantedBudget"
+                            )
+                            .value,
+
+                    category:
+                        document
+                            .getElementById(
+                                "wantedCategory"
+                            )
+                            .value,
+
+                    description:
+                        document
+                            .getElementById(
+                                "wantedDescription"
+                            )
+                            .value
+                }
+            );
+
+
+        tg.openInvoice(
+
+            data.invoice_link,
+
+            async paymentStatus => {
+
+                if (
+                    paymentStatus ===
+                    "cancelled"
+                ) {
+
+                    showWantedMessage(
+                        "info",
+                        "Payment cancelled."
+                    );
+
+
+                    resetWantedButton();
+
+
+                    return;
+                }
+
+
+                if (
+                    paymentStatus ===
+                    "failed"
+                ) {
+
+                    showWantedMessage(
+                        "error",
+                        "Payment failed."
+                    );
+
+
+                    resetWantedButton();
+
+
+                    return;
+                }
+
+
+                showWantedMessage(
+                    "info",
+                    "Payment sent. Waiting for secure confirmation..."
+                );
+
+
+                await waitWantedPayment(
+                    data.order_id
+                );
+            }
+        );
+
+    } catch (error) {
+
+        showWantedMessage(
+            "error",
+            readableWantedError(
+                error.message
+            )
+        );
+
+
+        resetWantedButton();
+    }
+}
+
+
+// ======================================================
+// WAIT WANTED PAYMENT
+// ======================================================
+
+async function waitWantedPayment(
+    orderId
+) {
+
+    for (
+        let attempt = 1;
+        attempt <= 15;
+        attempt++
+    ) {
+
+        try {
+
+            const data =
+                await api(
+                    "/wanted-payment/status",
+                    {
+                        initData:
+                            tg.initData,
+
+                        order_id:
+                            orderId
+                    }
+                );
+
+
+            if (
+                data.order.status ===
+                "completed"
+            ) {
+
+                showWantedMessage(
+                    "success",
+                    "✓ Payment confirmed. Wanted request published."
+                );
+
+
+                document
+                    .getElementById(
+                        "wantedForm"
+                    )
+                    .reset();
+
+
+                resetWantedButton();
+
+
+                await loadWanted();
+
+                await loadMyWanted();
+
+
+                return;
+            }
+
+
+            if (
+                data.order.status ===
+                "refunded"
+            ) {
+
+                showWantedMessage(
+                    "error",
+                    "Payment was refunded. Wanted request was not published."
+                );
+
+
+                resetWantedButton();
+
+
+                return;
+            }
+
+
+            if (
+                data.order.status ===
+                "failed"
+            ) {
+
+                showWantedMessage(
+                    "error",
+                    "Wanted publication failed."
+                );
+
+
+                resetWantedButton();
+
+
+                return;
+            }
+
+        } catch {}
+
+
+        await sleep(
+            2000
+        );
+    }
+
+
+    showWantedMessage(
+        "info",
+        "Confirmation is taking longer. Do not pay again."
+    );
+
+
+    resetWantedButton();
+}
+
+
+// ======================================================
+// MY WANTED
+// ======================================================
+
+async function loadMyWanted() {
+
+    if (
+        !tg?.initData
+    ) {
+
+        return;
+    }
+
+
+    const container =
+        document.getElementById(
+            "myWantedPosts"
+        );
+
+
+    if (
+        !container
+    ) {
+
+        return;
+    }
+
+
+    container.innerHTML = `
+
+        <div class="empty">
+            Loading...
+        </div>
+
+    `;
+
+
+    try {
+
+        const data =
+            await api(
+                "/my-wanted",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const posts =
+            data.posts ||
+            [];
+
+
+        if (
+            !posts.length
+        ) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+
+                    You have no Wanted posts.
+
+                </div>
+
+            `;
+
+
+            return;
+        }
+
+
+        container.innerHTML =
+            posts
+                .map(
+                    renderMyWantedPost
+                )
+                .join("");
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                Failed to load your Wanted posts.
+
+            </div>
+
+        `;
+    }
+}
+
+
+// ======================================================
+// RENDER MY WANTED
+// ======================================================
+
+function renderMyWantedPost(
+    post
+) {
+
+    const badgeClass =
+        post.status ===
+            "active"
+
+            ? "badge-active"
+
+            : "badge-closed";
+
+
+    return `
+
+        <div class="card">
+
+            <div class="username">
+
+                @${escapeHtml(
+                    post.desired_username
+                )}
+
+            </div>
+
+
+            <div
+                class="badge ${badgeClass}"
+            >
+
+                ${escapeHtml(
+                    String(
+                        post.status
+                    )
+                        .toUpperCase()
+                )}
+
+            </div>
+
+
+            <div class="wanted-label">
+                Budget
+            </div>
+
+
+            <div class="wanted-budget">
+
+                $${formatPrice(
+                    post.budget
+                )}
+
+            </div>
+
+
+            <div class="meta">
+
+                ${escapeHtml(
+                    post.category ||
+                    "Other"
+                )}
+
+            </div>
+
+
+            ${
+                post.description
+
+                    ? `
+
+                        <div class="description">
+
+                            ${escapeHtml(
+                                post.description
+                            )}
+
+                        </div>
+
+                    `
+
+                    : ""
+            }
+
+
+            ${
+                post.status ===
+                "active"
+
+                    ? `
+
+                        <button
+                            class="close-request-button"
+                            onclick="
+                                closeWantedRequest(
+                                    '${escapeJs(
+                                        post.id
+                                    )}'
+                                )
+                            "
+                        >
+
+                            Close Request
+
+                        </button>
+
+                    `
+
+                    : ""
+            }
+
+        </div>
+
+    `;
+}
+
+
+// ======================================================
+// CLOSE WANTED
+// ======================================================
+
+async function closeWantedRequest(
+    wantedId
+) {
+
+    const confirmed =
+        await askConfirm(
+            "Close this Wanted request?"
+        );
+
+
+    if (
+        !confirmed
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/wanted/close",
+            {
+                initData:
+                    tg.initData,
+
+                wanted_id:
+                    wantedId
+            }
+        );
+
+
+        tg?.showAlert(
+            "Wanted request closed ✓"
+        );
+
+
+        await loadWanted();
+
+        await loadMyWanted();
+
+    } catch (error) {
+
+        tg?.showAlert(
+            readableWantedError(
+                error.message
+            )
+        );
+    }
+}
+
+
+// ======================================================
+// WANTED HELPERS
+// ======================================================
+
+function showWantedMessage(
+    type,
+    text
+) {
+
+    const element =
+        document.getElementById(
+            "wantedMessage"
+        );
+
+
+    element.className =
+        `message ${type}`;
+
+
+    element.textContent =
+        text;
+}
+
+
+function resetWantedButton() {
+
+    const button =
+        document.getElementById(
+            "wantedButton"
+        );
+
+
+    if (
+        !button
+    ) {
+
+        return;
+    }
+
+
+    button.disabled =
+        false;
+
+
+    button.textContent =
+        `Pay ${wantedPriceStars} ⭐ & Publish`;
+}
+
+
+function readableWantedError(
+    error
+) {
+
+    const errors = {
+
+        invalid_wanted_username:
+            "Enter a valid WhatsApp username.",
+
+        invalid_budget:
+            "Enter a valid budget.",
+
+        telegram_username_required:
+            "You need a public Telegram username before publishing a Wanted request.",
+
+        wanted_already_exists:
+            "You already have an active Wanted request for this username.",
+
+        wanted_payment_order_failed:
+            "Could not create Wanted payment.",
+
+        wanted_order_not_found:
+            "Wanted payment was not found.",
+
+        wanted_load_failed:
+            "Could not load Wanted requests.",
+
+        wanted_close_failed:
+            "Could not close this request.",
+
+        active_wanted_not_found:
+            "This Wanted request is no longer active."
+    };
+
+
+    return errors[
+        error
+    ] ||
+    error ||
+    "Something went wrong.";
+}
+
+
+// ======================================================
+// WATCHLIST
 // ======================================================
 
 async function loadWatchlistState() {
@@ -1586,7 +2497,6 @@ async function loadWatchlistState() {
 
         updateWatchlistCount();
 
-
         updateAllWatchButtons();
 
     } catch (error) {
@@ -1598,10 +2508,6 @@ async function loadWatchlistState() {
     }
 }
 
-
-// ======================================================
-// TOGGLE WATCH
-// ======================================================
 
 async function toggleWatch(
     listingId
@@ -1615,23 +2521,21 @@ async function toggleWatch(
             "Please wait for authentication."
         );
 
+
         return;
     }
 
 
-    const buttons =
-        getWatchButtons(
-            listingId
+    getWatchButtons(
+        listingId
+    )
+        .forEach(
+            button => {
+
+                button.disabled =
+                    true;
+            }
         );
-
-
-    buttons.forEach(
-        button => {
-
-            button.disabled =
-                true;
-        }
-    );
 
 
     try {
@@ -1714,18 +2618,15 @@ async function toggleWatch(
 }
 
 
-// ======================================================
-// WATCH BUTTON HELPERS
-// ======================================================
-
 function getWatchButtons(
     listingId
 ) {
 
     return [
-        ...document.querySelectorAll(
-            ".watch-button"
-        )
+        ...document
+            .querySelectorAll(
+                ".watch-button"
+            )
     ]
         .filter(
             button =>
@@ -1807,10 +2708,6 @@ function updateWatchlistCount() {
     }
 }
 
-
-// ======================================================
-// WATCHLIST PAGE
-// ======================================================
 
 function openWatchlist() {
 
@@ -1936,7 +2833,7 @@ async function loadWatchlistPage() {
 
 
 // ======================================================
-// LOAD MARKETPLACE
+// MARKETPLACE
 // ======================================================
 
 async function loadMarketplace() {
@@ -2022,10 +2919,6 @@ async function loadMarketplace() {
 }
 
 
-// ======================================================
-// RENDER MARKETPLACE
-// ======================================================
-
 function renderMarketplace(
     listings
 ) {
@@ -2105,10 +2998,6 @@ function renderMarketplace(
     updateAllWatchButtons();
 }
 
-
-// ======================================================
-// PUBLIC LISTING
-// ======================================================
 
 function renderPublicListing(
     listing
@@ -2247,7 +3136,7 @@ function renderPublicListing(
 
 
 // ======================================================
-// CONTACT ACCESS CHECK
+// CONTACT ACCESS
 // ======================================================
 
 async function checkUnlockedContacts(
@@ -2308,10 +3197,6 @@ async function checkUnlockedContacts(
 }
 
 
-// ======================================================
-// UNLOCK CONTACT
-// ======================================================
-
 async function unlockSellerContact(
     listingId
 ) {
@@ -2323,6 +3208,7 @@ async function unlockSellerContact(
         tg?.showAlert(
             "Please wait for Telegram authentication."
         );
+
 
         return;
     }
@@ -2384,10 +3270,6 @@ async function unlockSellerContact(
     }
 }
 
-
-// ======================================================
-// CONTACT PAYMENT
-// ======================================================
 
 async function startContactPayment(
     listingId
@@ -2479,10 +3361,6 @@ async function startContactPayment(
 }
 
 
-// ======================================================
-// WAIT CONTACT PAYMENT
-// ======================================================
-
 async function waitForContactPayment(
     listingId,
     orderId
@@ -2570,10 +3448,6 @@ async function waitForContactPayment(
 }
 
 
-// ======================================================
-// SHOW CONTACT
-// ======================================================
-
 function showSellerContact(
     listingId,
     contact,
@@ -2597,26 +3471,21 @@ function showSellerContact(
     let html;
 
 
-    if (owner) {
+    if (
+        owner
+    ) {
 
         html = `
 
             <div class="owner-contact-box">
 
                 <div class="owner-title">
-
                     👤 Your Listing
-
                 </div>
-
 
                 <div class="owner-note">
-
-                    This is your own listing.
-                    No contact unlock payment is required.
-
+                    This is your own listing. No contact unlock payment is required.
                 </div>
-
 
                 <div class="meta">
 
@@ -2628,7 +3497,6 @@ function showSellerContact(
 
                 </div>
 
-
                 <div class="contact-value">
 
                     ${escapeHtml(
@@ -2636,7 +3504,6 @@ function showSellerContact(
                     )}
 
                 </div>
-
 
                 <div class="contact-actions">
 
@@ -2656,16 +3523,13 @@ function showSellerContact(
                                         )
                                     "
                                 >
-
                                     Open Telegram
-
                                 </button>
 
                             `
 
                             : ""
                     }
-
 
                     <button
                         class="secondary"
@@ -2677,9 +3541,7 @@ function showSellerContact(
                             )
                         "
                     >
-
                         Copy
-
                     </button>
 
                 </div>
@@ -2700,11 +3562,8 @@ function showSellerContact(
             <div class="contact-box">
 
                 <div class="contact-title">
-
                     🔓 Seller Contact Unlocked
-
                 </div>
-
 
                 <div class="meta">
 
@@ -2716,7 +3575,6 @@ function showSellerContact(
 
                 </div>
 
-
                 <div class="contact-value">
 
                     ${escapeHtml(
@@ -2724,7 +3582,6 @@ function showSellerContact(
                     )}
 
                 </div>
-
 
                 <div class="contact-actions">
 
@@ -2744,16 +3601,13 @@ function showSellerContact(
                                         )
                                     "
                                 >
-
                                     Open Telegram
-
                                 </button>
 
                             `
 
                             : ""
                     }
-
 
                     <button
                         class="secondary"
@@ -2765,9 +3619,7 @@ function showSellerContact(
                             )
                         "
                     >
-
                         Copy
-
                     </button>
 
                 </div>
@@ -2787,10 +3639,6 @@ function showSellerContact(
     );
 }
 
-
-// ======================================================
-// OWN LISTING
-// ======================================================
 
 function markOwnListing(
     listingId
@@ -2838,18 +3686,15 @@ function markOwnListing(
 }
 
 
-// ======================================================
-// CONTACT HELPERS
-// ======================================================
-
 function getContactAreas(
     listingId
 ) {
 
     return [
-        ...document.querySelectorAll(
-            ".contact-area"
-        )
+        ...document
+            .querySelectorAll(
+                ".contact-area"
+            )
     ]
         .filter(
             area =>
@@ -2940,7 +3785,7 @@ function restoreContactButton(
 
 
 // ======================================================
-// MAKE OFFER
+// OFFERS
 // ======================================================
 
 async function openOfferModal(
@@ -3055,10 +3900,6 @@ async function openOfferModal(
 }
 
 
-// ======================================================
-// SUBMIT OFFER
-// ======================================================
-
 async function submitOffer() {
 
     if (
@@ -3152,10 +3993,6 @@ async function submitOffer() {
 }
 
 
-// ======================================================
-// OFFER CENTER
-// ======================================================
-
 function openOffers() {
 
     openPage(
@@ -3179,10 +4016,6 @@ async function loadOfferCenter() {
 }
 
 
-// ======================================================
-// SENT OFFERS
-// ======================================================
-
 async function loadSentOffers() {
 
     const container =
@@ -3191,13 +4024,8 @@ async function loadSentOffers() {
         );
 
 
-    container.innerHTML = `
-
-        <div class="empty">
-            Loading...
-        </div>
-
-    `;
+    container.innerHTML =
+        `<div class="empty">Loading...</div>`;
 
 
     try {
@@ -3216,15 +4044,8 @@ async function loadSentOffers() {
             !data.offers.length
         ) {
 
-            container.innerHTML = `
-
-                <div class="empty">
-
-                    You have not sent any offers.
-
-                </div>
-
-            `;
+            container.innerHTML =
+                `<div class="empty">You have not sent any offers.</div>`;
 
 
             return;
@@ -3240,22 +4061,11 @@ async function loadSentOffers() {
 
     } catch {
 
-        container.innerHTML = `
-
-            <div class="empty">
-
-                Failed to load sent offers.
-
-            </div>
-
-        `;
+        container.innerHTML =
+            `<div class="empty">Failed to load sent offers.</div>`;
     }
 }
 
-
-// ======================================================
-// RECEIVED OFFERS
-// ======================================================
 
 async function loadReceivedOffers() {
 
@@ -3265,13 +4075,8 @@ async function loadReceivedOffers() {
         );
 
 
-    container.innerHTML = `
-
-        <div class="empty">
-            Loading...
-        </div>
-
-    `;
+    container.innerHTML =
+        `<div class="empty">Loading...</div>`;
 
 
     try {
@@ -3290,15 +4095,8 @@ async function loadReceivedOffers() {
             !data.offers.length
         ) {
 
-            container.innerHTML = `
-
-                <div class="empty">
-
-                    No offers received yet.
-
-                </div>
-
-            `;
+            container.innerHTML =
+                `<div class="empty">No offers received yet.</div>`;
 
 
             return;
@@ -3314,22 +4112,11 @@ async function loadReceivedOffers() {
 
     } catch {
 
-        container.innerHTML = `
-
-            <div class="empty">
-
-                Failed to load received offers.
-
-            </div>
-
-        `;
+        container.innerHTML =
+            `<div class="empty">Failed to load received offers.</div>`;
     }
 }
 
-
-// ======================================================
-// RENDER SENT OFFER
-// ======================================================
 
 function renderSentOffer(
     offer
@@ -3341,12 +4128,9 @@ function renderSentOffer(
         "username";
 
 
-    let extra =
-        "";
+    let extra = "";
 
-
-    let actions =
-        "";
+    let actions = "";
 
 
     if (
@@ -3528,17 +4312,9 @@ function renderSentOffer(
             ${
                 offer.message
 
-                    ? `
-
-                        <div class="offer-message">
-
-                            ${escapeHtml(
-                                offer.message
-                            )}
-
-                        </div>
-
-                    `
+                    ? `<div class="offer-message">${escapeHtml(
+                        offer.message
+                    )}</div>`
 
                     : ""
             }
@@ -3553,10 +4329,6 @@ function renderSentOffer(
     `;
 }
 
-
-// ======================================================
-// RENDER RECEIVED OFFER
-// ======================================================
 
 function renderReceivedOffer(
     offer
@@ -3616,8 +4388,7 @@ function renderReceivedOffer(
             : "";
 
 
-    let actions =
-        "";
+    let actions = "";
 
 
     if (
@@ -3638,9 +4409,7 @@ function renderReceivedOffer(
                         )
                     "
                 >
-
                     ✓ Accept
-
                 </button>
 
 
@@ -3658,9 +4427,7 @@ function renderReceivedOffer(
                         )
                     "
                 >
-
                     Counter
-
                 </button>
 
 
@@ -3673,9 +4440,7 @@ function renderReceivedOffer(
                         )
                     "
                 >
-
                     ✕
-
                 </button>
 
             </div>
@@ -3702,9 +4467,7 @@ function renderReceivedOffer(
                         )
                     "
                 >
-
                     Decline
-
                 </button>
 
             </div>
@@ -3786,17 +4549,9 @@ function renderReceivedOffer(
             ${
                 offer.message
 
-                    ? `
-
-                        <div class="offer-message">
-
-                            ${escapeHtml(
-                                offer.message
-                            )}
-
-                        </div>
-
-                    `
+                    ? `<div class="offer-message">${escapeHtml(
+                        offer.message
+                    )}</div>`
 
                     : ""
             }
@@ -3811,10 +4566,6 @@ function renderReceivedOffer(
     `;
 }
 
-
-// ======================================================
-// SELLER ACTION
-// ======================================================
 
 async function sellerOfferAction(
     offerId,
@@ -3869,10 +4620,6 @@ async function sellerOfferAction(
     }
 }
 
-
-// ======================================================
-// COUNTER
-// ======================================================
 
 function openCounterModal(
     offerId,
@@ -3966,10 +4713,6 @@ async function submitCounterOffer() {
     }
 }
 
-
-// ======================================================
-// BUYER ACTION
-// ======================================================
 
 async function buyerOfferAction(
     offerId,
@@ -4151,10 +4894,6 @@ async function startListingPayment(
 }
 
 
-// ======================================================
-// WAIT LISTING PAYMENT
-// ======================================================
-
 async function waitListingPayment(
     orderId
 ) {
@@ -4226,10 +4965,6 @@ async function waitListingPayment(
 }
 
 
-// ======================================================
-// MY LISTINGS
-// ======================================================
-
 async function loadMyListings() {
 
     if (
@@ -4262,13 +4997,8 @@ async function loadMyListings() {
             !data.listings?.length
         ) {
 
-            container.innerHTML = `
-
-                <div class="empty">
-                    No listings
-                </div>
-
-            `;
+            container.innerHTML =
+                `<div class="empty">No listings</div>`;
 
 
             return;
@@ -4316,7 +5046,6 @@ async function loadMyListings() {
 
                                 </div>
 
-
                                 <div
                                     class="badge ${badgeClass}"
                                 >
@@ -4327,7 +5056,6 @@ async function loadMyListings() {
                                     )}
 
                                 </div>
-
 
                                 <div class="price">
 
@@ -4393,13 +5121,8 @@ async function loadPendingListings() {
             !data.listings?.length
         ) {
 
-            container.innerHTML = `
-
-                <div class="empty">
-                    No pending listings
-                </div>
-
-            `;
+            container.innerHTML =
+                `<div class="empty">No pending listings</div>`;
 
 
             return;
@@ -4421,7 +5144,6 @@ async function loadPendingListings() {
 
                             </div>
 
-
                             <div class="price">
 
                                 $${formatPrice(
@@ -4429,7 +5151,6 @@ async function loadPendingListings() {
                                 )}
 
                             </div>
-
 
                             <div class="buttons">
 
@@ -4442,11 +5163,8 @@ async function loadPendingListings() {
                                         )
                                     "
                                 >
-
                                     ✓ Approve
-
                                 </button>
-
 
                                 <button
                                     class="reject-button"
@@ -4457,9 +5175,7 @@ async function loadPendingListings() {
                                         )
                                     "
                                 >
-
                                     ✕ Reject
-
                                 </button>
 
                             </div>
@@ -4775,16 +5491,19 @@ function openTelegramContact(
 
 
     if (
-        username
+        !username
     ) {
 
-        tg.openTelegramLink(
-            "https://t.me/" +
-            encodeURIComponent(
-                username
-            )
-        );
+        return;
     }
+
+
+    tg?.openTelegramLink(
+        "https://t.me/" +
+        encodeURIComponent(
+            username
+        )
+    );
 }
 
 
@@ -4861,7 +5580,6 @@ function sleep(
 
     return new Promise(
         resolve =>
-
             setTimeout(
                 resolve,
                 ms
@@ -5073,8 +5791,9 @@ loadMarketplace();
 
 loadMyListings();
 
+loadWanted();
+
 </script>
 
 </body>
-
 </html>
