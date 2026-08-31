@@ -79,10 +79,8 @@ header {
     width: 100%;
     border: 1px solid #ddd;
     border-radius: 14px;
-    background: white;
-    padding: 14px 15px;
+    padding: 14px;
     font-size: 16px;
-    outline: none;
 }
 
 .section {
@@ -99,7 +97,6 @@ header {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding-bottom: 6px;
 }
 
 .category {
@@ -137,9 +134,8 @@ header {
 
 .description {
     color: #555;
-    line-height: 1.45;
     margin-top: 12px;
-    font-size: 14px;
+    line-height: 1.45;
 }
 
 .badge {
@@ -162,13 +158,13 @@ header {
 
 .badge-rejected {
     background: #fff0f0;
-    color: #cc3333;
+    color: #c33;
 }
 
 .buttons {
-    margin-top: 14px;
     display: flex;
     gap: 8px;
+    margin-top: 14px;
 }
 
 button {
@@ -181,64 +177,64 @@ button {
 
 button:disabled {
     opacity: .55;
-    cursor: not-allowed;
 }
 
 .primary {
     flex: 1;
-    color: white;
     background: #1687e8;
+    color: white;
 }
 
 .secondary {
     background: #eee;
 }
 
-.big-button {
+.unlock-button {
     width: 100%;
-    background: #1687e8;
-    color: white;
-    padding: 15px;
+    margin-top: 12px;
+    background: #f1f6ff;
+    border: 1px solid #d8e7ff;
+    color: #1764a5;
     font-weight: 700;
-    font-size: 16px;
 }
 
-.payment-button {
-    width: 100%;
-    background: #1687e8;
-    color: white;
-    padding: 16px;
-    font-size: 17px;
+.contact-box {
+    margin-top: 12px;
+    border-radius: 14px;
+    padding: 14px;
+    background: #edf9f1;
+    border: 1px solid #caedd5;
+}
+
+.contact-title {
     font-weight: 800;
+    color: #168344;
 }
 
-.admin-button {
-    width: 100%;
-    background: #222;
-    color: white;
-    margin-top: 16px;
-    font-size: 16px;
+.contact-value {
+    font-size: 17px;
     font-weight: 700;
+    margin-top: 8px;
+    word-break: break-word;
 }
 
-.approve-button {
+.contact-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.contact-actions button {
     flex: 1;
-    background: #19a651;
-    color: white;
-    font-weight: 700;
 }
 
-.reject-button {
-    flex: 1;
-    background: #e74747;
-    color: white;
-    font-weight: 700;
-}
-
-.refresh-button {
-    background: #eee;
-    width: 100%;
-    margin-bottom: 15px;
+.payment-wait {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #eef6ff;
+    color: #1764a5;
+    font-size: 13px;
 }
 
 .form-box {
@@ -251,13 +247,12 @@ button:disabled {
 .form-title {
     font-size: 22px;
     font-weight: 800;
-    margin-bottom: 5px;
 }
 
 .form-subtitle {
     color: #777;
     font-size: 13px;
-    margin-bottom: 20px;
+    margin: 5px 0 20px;
 }
 
 .field {
@@ -268,7 +263,6 @@ button:disabled {
     display: block;
     font-weight: 700;
     margin-bottom: 7px;
-    font-size: 14px;
 }
 
 .field input,
@@ -277,15 +271,12 @@ button:disabled {
     width: 100%;
     border: 1px solid #ddd;
     border-radius: 12px;
-    padding: 12px 13px;
+    padding: 12px;
     font-size: 15px;
-    background: white;
-    outline: none;
 }
 
 .field textarea {
-    min-height: 95px;
-    resize: vertical;
+    min-height: 90px;
 }
 
 .field-hint {
@@ -299,25 +290,21 @@ button:disabled {
     border: 1px solid #dbeaff;
     border-radius: 14px;
     padding: 15px;
-    margin-bottom: 16px;
-}
-
-.payment-title {
-    font-size: 14px;
-    color: #666;
+    margin-bottom: 15px;
 }
 
 .payment-price {
     font-size: 25px;
     font-weight: 800;
-    margin-top: 5px;
 }
 
-.payment-note {
-    color: #777;
-    font-size: 12px;
-    line-height: 1.45;
-    margin-top: 7px;
+.payment-button {
+    width: 100%;
+    background: #1687e8;
+    color: white;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 800;
 }
 
 .message {
@@ -351,7 +338,6 @@ button:disabled {
     border-radius: 14px;
     background: #fff8e7;
     border: 1px solid #ffe09d;
-    color: #66521f;
     font-size: 13px;
     line-height: 1.5;
 }
@@ -359,8 +345,8 @@ button:disabled {
 .profile-card {
     margin: 16px;
     padding: 20px;
-    border-radius: 18px;
     background: white;
+    border-radius: 18px;
 }
 
 .profile-name {
@@ -379,7 +365,14 @@ button:disabled {
     padding: 14px;
     border-radius: 14px;
     margin-top: 17px;
-    line-height: 1.5;
+}
+
+.admin-button {
+    width: 100%;
+    background: #222;
+    color: white;
+    margin-top: 16px;
+    font-weight: 700;
 }
 
 .admin-box {
@@ -395,22 +388,19 @@ button:disabled {
 }
 
 .admin-header h2 {
-    margin: 0 0 6px;
-}
-
-.admin-header p {
     margin: 0;
-    opacity: .7;
-    font-size: 13px;
 }
 
-.seller-info {
-    margin-top: 12px;
-    background: #f6f6f6;
-    padding: 11px;
-    border-radius: 10px;
-    font-size: 13px;
-    line-height: 1.5;
+.approve-button {
+    flex: 1;
+    background: #19a651;
+    color: white;
+}
+
+.reject-button {
+    flex: 1;
+    background: #e74747;
+    color: white;
 }
 
 .empty {
@@ -439,7 +429,6 @@ button:disabled {
     font-size: 11px;
     padding-top: 9px;
     color: #777;
-    cursor: pointer;
 }
 
 .nav-icon {
@@ -459,7 +448,6 @@ button:disabled {
 
 <body>
 
-
 <div class="app">
 
 <header>
@@ -476,7 +464,7 @@ Discover premium WhatsApp usernames
     id="authStatus"
     class="auth-status"
 >
-Connecting to Telegram...
+Connecting...
 </div>
 
 </header>
@@ -484,21 +472,16 @@ Connecting to Telegram...
 
 <!-- HOME -->
 
-<div
-    id="home"
-    class="page active"
->
+<div id="home" class="page active">
 
 <div class="search">
 
 <input
-    type="text"
     placeholder="Search @username"
     oninput="filterMarketplace(this.value)"
 >
 
 </div>
-
 
 <div class="section">
 
@@ -519,7 +502,6 @@ Categories
 
 </div>
 
-
 <div class="section">
 
 <div class="section-title">
@@ -529,23 +511,17 @@ Featured usernames
 <div id="homeListings">
 
 <div class="empty">
-Loading marketplace...
+Loading...
 </div>
 
 </div>
 
 </div>
-
 
 <div class="warning">
 
-⚠️ WhatsApp currently does not provide an official
-person-to-person username transfer mechanism.
-
-<br><br>
-
-Handle Market provides discovery and communication
-between users but does not guarantee username transfer.
+⚠️ Handle Market does not control or guarantee
+the transfer of WhatsApp usernames.
 
 </div>
 
@@ -554,21 +530,16 @@ between users but does not guarantee username transfer.
 
 <!-- MARKET -->
 
-<div
-    id="marketplace"
-    class="page"
->
+<div id="marketplace" class="page">
 
 <div class="search">
 
 <input
-    type="text"
     placeholder="Search Marketplace"
     oninput="filterMarketplace(this.value)"
 >
 
 </div>
-
 
 <div class="section">
 
@@ -576,13 +547,7 @@ between users but does not guarantee username transfer.
 Marketplace
 </div>
 
-<div id="marketListings">
-
-<div class="empty">
-Loading...
-</div>
-
-</div>
+<div id="marketListings"></div>
 
 </div>
 
@@ -591,10 +556,7 @@ Loading...
 
 <!-- LIST -->
 
-<div
-    id="list"
-    class="page"
->
+<div id="list" class="page">
 
 <div class="form-box">
 
@@ -603,21 +565,17 @@ List Username
 </div>
 
 <div class="form-subtitle">
-Submit your WhatsApp username for marketplace review.
+Submit username for moderation.
 </div>
-
 
 <form
     id="listingForm"
     onsubmit="startListingPayment(event)"
 >
 
-
 <div class="field">
 
-<label>
-WhatsApp username
-</label>
+<label>WhatsApp username</label>
 
 <input
     id="listingUsername"
@@ -627,30 +585,23 @@ WhatsApp username
 
 </div>
 
-
 <div class="field">
 
-<label>
-Asking price (USD)
-</label>
+<label>Asking price (USD)</label>
 
 <input
     id="listingPrice"
     type="number"
     min="1"
     step="0.01"
-    placeholder="5000"
     required
 >
 
 </div>
 
-
 <div class="field">
 
-<label>
-Category
-</label>
+<label>Category</label>
 
 <select id="listingCategory">
 
@@ -669,27 +620,20 @@ Category
 
 </div>
 
-
 <div class="field">
 
-<label>
-Description
-</label>
+<label>Description</label>
 
 <textarea
     id="listingDescription"
     maxlength="500"
-    placeholder="Tell buyers about this username..."
 ></textarea>
 
 </div>
 
-
 <div class="field">
 
-<label>
-Contact method
-</label>
+<label>Contact method</label>
 
 <select id="contactType">
 
@@ -709,22 +653,19 @@ Other
 
 </div>
 
-
 <div class="field">
 
-<label>
-Seller contact
-</label>
+<label>Seller contact</label>
 
 <input
     id="contactValue"
+    placeholder="@username"
     maxlength="200"
-    placeholder="@telegram_username"
     required
 >
 
 <div class="field-hint">
-Stored privately. Not visible in the public Marketplace.
+Buyers cannot see this until they unlock it.
 </div>
 
 </div>
@@ -732,7 +673,7 @@ Stored privately. Not visible in the public Marketplace.
 
 <div class="payment-box">
 
-<div class="payment-title">
+<div>
 Listing fee
 </div>
 
@@ -743,16 +684,11 @@ Listing fee
 1 ⭐
 </div>
 
-<div class="payment-note">
-The listing is created only after Telegram confirms
-the Stars payment. It will then be sent for admin review.
-</div>
-
 </div>
 
 
 <button
-    id="submitListingButton"
+    id="listingButton"
     class="payment-button"
     type="submit"
 >
@@ -765,7 +701,6 @@ Pay 1 ⭐ & Submit
     class="message"
 ></div>
 
-
 </form>
 
 </div>
@@ -777,13 +712,7 @@ Pay 1 ⭐ & Submit
 My Listings
 </div>
 
-<div id="myListings">
-
-<div class="empty">
-Loading...
-</div>
-
-</div>
+<div id="myListings"></div>
 
 </div>
 
@@ -792,19 +721,12 @@ Loading...
 
 <!-- WANTED -->
 
-<div
-    id="wanted"
-    class="page"
->
+<div id="wanted" class="page">
 
 <div class="form-box">
 
 <div class="form-title">
 🎯 Wanted
-</div>
-
-<div class="form-subtitle">
-Wanted posts will be connected later.
 </div>
 
 <div class="empty">
@@ -818,19 +740,14 @@ Coming soon
 
 <!-- PROFILE -->
 
-<div
-    id="profile"
-    class="page"
->
+<div id="profile" class="page">
 
 <div
     id="profileContent"
     class="profile-card"
 >
 
-<div class="profile-name">
 Loading...
-</div>
 
 </div>
 
@@ -839,10 +756,7 @@ Loading...
 
 <!-- ADMIN -->
 
-<div
-    id="admin"
-    class="page"
->
+<div id="admin" class="page">
 
 <div class="admin-box">
 
@@ -852,28 +766,9 @@ Loading...
 🛡 Admin Panel
 </h2>
 
-<p>
-Only marketplace administrators can access this section.
-</p>
-
 </div>
 
-
-<button
-    class="refresh-button"
-    onclick="loadPendingListings()"
->
-↻ Refresh pending listings
-</button>
-
-
-<div id="pendingListings">
-
-<div class="empty">
-Loading...
-</div>
-
-</div>
+<div id="pendingListings"></div>
 
 </div>
 
@@ -882,49 +777,45 @@ Loading...
 </div>
 
 
-<!-- BOTTOM NAVIGATION -->
+<!-- NAVIGATION -->
 
 <div class="bottom-nav">
 
 <div
     class="nav-item active"
-    onclick="openPage('home', this)"
+    onclick="openPage('home',this)"
 >
 <span class="nav-icon">🏠</span>
 Home
 </div>
 
-
 <div
     class="nav-item"
-    onclick="openPage('marketplace', this)"
+    onclick="openPage('marketplace',this)"
 >
 <span class="nav-icon">🔎</span>
 Market
 </div>
 
-
 <div
     class="nav-item"
-    onclick="openPage('list', this); loadMyListings();"
+    onclick="openPage('list',this);loadMyListings();"
 >
 <span class="nav-icon">➕</span>
 List
 </div>
 
-
 <div
     class="nav-item"
-    onclick="openPage('wanted', this)"
+    onclick="openPage('wanted',this)"
 >
 <span class="nav-icon">🎯</span>
 Wanted
 </div>
 
-
 <div
     class="nav-item"
-    onclick="openPage('profile', this)"
+    onclick="openPage('profile',this)"
 >
 <span class="nav-icon">👤</span>
 Profile
@@ -948,16 +839,16 @@ let authenticatedUser =
     null;
 
 
-let marketplaceListings =
-    [];
-
-
 let listingPriceStars =
     1;
 
 
-let activePaymentOrderId =
-    null;
+let contactUnlockPriceStars =
+    1;
+
+
+let marketplaceListings =
+    [];
 
 
 if (tg) {
@@ -965,7 +856,6 @@ if (tg) {
     tg.ready();
 
     tg.expand();
-
 }
 
 
@@ -973,33 +863,12 @@ if (tg) {
 // AUTH
 // ======================================================
 
-async function authenticateTelegramUser() {
+async function authenticate() {
 
     const status =
         document.getElementById(
             "authStatus"
         );
-
-
-    const profile =
-        document.getElementById(
-            "profileContent"
-        );
-
-
-    if (
-        !tg ||
-        !tg.initData
-    ) {
-
-        status.textContent =
-            "⚠ Open inside Telegram";
-
-        status.className =
-            "auth-status auth-error";
-
-        return;
-    }
 
 
     try {
@@ -1008,8 +877,7 @@ async function authenticateTelegramUser() {
             await fetch(
                 API_URL + "/auth",
                 {
-                    method:
-                        "POST",
+                    method: "POST",
 
                     headers: {
                         "Content-Type":
@@ -1035,8 +903,7 @@ async function authenticateTelegramUser() {
         ) {
 
             throw new Error(
-                data.error ||
-                "authentication_failed"
+                data.error
             );
         }
 
@@ -1052,7 +919,22 @@ async function authenticateTelegramUser() {
             );
 
 
-        updateListingPrice();
+        contactUnlockPriceStars =
+            Number(
+                data.contact_unlock_price_stars ||
+                1
+            );
+
+
+        document
+            .getElementById(
+                "listingFee"
+            )
+            .textContent =
+                `${listingPriceStars} ⭐`;
+
+
+        resetListingButton();
 
 
         status.textContent =
@@ -1071,13 +953,6 @@ async function authenticateTelegramUser() {
                 .join(" ");
 
 
-        const username =
-            data.user.username
-                ? "@" +
-                    data.user.username
-                : "No Telegram username";
-
-
         let adminButton =
             "";
 
@@ -1090,50 +965,60 @@ async function authenticateTelegramUser() {
 
                 <button
                     class="admin-button"
-                    onclick="openAdminPanel()"
+                    onclick="openAdmin()"
                 >
-                    🛡 Open Admin Panel
+                🛡 Open Admin Panel
                 </button>
 
             `;
         }
 
 
-        profile.innerHTML = `
+        document
+            .getElementById(
+                "profileContent"
+            )
+            .innerHTML = `
 
-            <div class="profile-name">
+                <div class="profile-name">
 
-                ${escapeHtml(
-                    fullName ||
-                    "Telegram User"
-                )}
+                    ${escapeHtml(
+                        fullName ||
+                        "Telegram User"
+                    )}
 
-            </div>
+                </div>
 
-            <div class="profile-username">
+                <div class="profile-username">
 
-                ${escapeHtml(
-                    username
-                )}
+                    ${
+                        data.user.username
 
-            </div>
+                            ? "@" +
+                                escapeHtml(
+                                    data.user.username
+                                )
 
-            <div class="verified-box">
+                            : ""
+                    }
 
-                ✓ Authenticated by Handle Market server
+                </div>
 
-                <br><br>
+                <div class="verified-box">
 
-                Telegram account cryptographically verified.
+                    ✓ Authenticated by Handle Market
 
-            </div>
+                </div>
 
-            ${adminButton}
+                ${adminButton}
 
-        `;
+            `;
 
 
-        await loadMyListings();
+        // price may have loaded after listings
+        renderMarketplace(
+            marketplaceListings
+        );
 
     }
 
@@ -1144,52 +1029,767 @@ async function authenticateTelegramUser() {
 
         status.className =
             "auth-status auth-error";
-
-
-        profile.innerHTML = `
-
-            <div class="profile-name">
-                Authentication failed
-            </div>
-
-            <div class="profile-username">
-
-                ${escapeHtml(
-                    error.message
-                )}
-
-            </div>
-
-        `;
     }
 }
 
 
 // ======================================================
-// DISPLAY LISTING PRICE
+// MARKET
 // ======================================================
 
-function updateListingPrice() {
+async function loadMarketplace() {
 
-    document
-        .getElementById(
-            "listingFee"
-        )
-        .textContent =
-            `${listingPriceStars} ⭐`;
+    try {
+
+        const response =
+            await fetch(
+                API_URL + "/listings"
+            );
 
 
-    document
-        .getElementById(
-            "submitListingButton"
-        )
-        .textContent =
-            `Pay ${listingPriceStars} ⭐ & Submit`;
+        const data =
+            await response.json();
+
+
+        marketplaceListings =
+            data.listings || [];
+
+
+        renderMarketplace(
+            marketplaceListings
+        );
+
+    }
+
+    catch {
+
+        document
+            .getElementById(
+                "marketListings"
+            )
+            .innerHTML = `
+
+                <div class="empty">
+                Marketplace unavailable
+                </div>
+
+            `;
+    }
+}
+
+
+function renderMarketplace(
+    listings
+) {
+
+    const market =
+        document.getElementById(
+            "marketListings"
+        );
+
+
+    const home =
+        document.getElementById(
+            "homeListings"
+        );
+
+
+    if (!listings.length) {
+
+        market.innerHTML =
+            `<div class="empty">No listings</div>`;
+
+        home.innerHTML =
+            `<div class="empty">No listings</div>`;
+
+        return;
+    }
+
+
+    market.innerHTML =
+        listings
+            .map(
+                renderPublicListing
+            )
+            .join("");
+
+
+    const featured =
+        listings
+            .filter(
+                x =>
+                    x.is_featured
+            );
+
+
+    const homeItems =
+        featured.length
+            ? featured
+            : listings.slice(0,5);
+
+
+    home.innerHTML =
+        homeItems
+            .map(
+                renderPublicListing
+            )
+            .join("");
+}
+
+
+function renderPublicListing(
+    listing
+) {
+
+    const id =
+        escapeHtml(
+            listing.id
+        );
+
+
+    return `
+
+        <div class="card">
+
+            <div class="username">
+
+                @${escapeHtml(
+                    listing.whatsapp_username
+                )}
+
+            </div>
+
+            <div class="price">
+
+                $${formatPrice(
+                    listing.asking_price
+                )}
+
+            </div>
+
+            <div class="meta">
+
+                ${escapeHtml(
+                    listing.category ||
+                    "Other"
+                )}
+
+            </div>
+
+            ${
+                listing.description
+
+                    ? `
+
+                    <div class="description">
+
+                    ${escapeHtml(
+                        listing.description
+                    )}
+
+                    </div>
+
+                    `
+
+                    : ""
+            }
+
+
+            <div class="buttons">
+
+                <button
+                    class="primary"
+                    onclick="futureOffer()"
+                >
+                Make Offer
+                </button>
+
+                <button
+                    class="secondary"
+                >
+                ☆ Watch
+                </button>
+
+            </div>
+
+
+            <div
+                id="contact-${id}"
+            >
+
+                <button
+                    class="unlock-button"
+                    onclick="
+                        unlockSellerContact(
+                            '${id}'
+                        )
+                    "
+                >
+
+                🔒 Unlock Seller Contact ·
+                ${contactUnlockPriceStars} ⭐
+
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
 }
 
 
 // ======================================================
-// START LISTING PAYMENT
+// CONTACT ACCESS
+// ======================================================
+
+async function unlockSellerContact(
+    listingId
+) {
+
+    if (
+        !authenticatedUser
+    ) {
+
+        tg?.showAlert(
+            "Please wait for Telegram authentication."
+        );
+
+        return;
+    }
+
+
+    setContactLoading(
+        listingId,
+        "Checking access..."
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL +
+                "/listing-contact",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            initData:
+                                tg.initData,
+
+                            listing_id:
+                                listingId
+                        })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                data.error
+            );
+        }
+
+
+        if (
+            data.unlocked
+        ) {
+
+            showSellerContact(
+                listingId,
+                data.contact
+            );
+
+            return;
+        }
+
+
+        await startContactPayment(
+            listingId
+        );
+
+    }
+
+    catch (error) {
+
+        restoreContactButton(
+            listingId
+        );
+
+
+        tg?.showAlert(
+            "Error: " +
+            error.message
+        );
+    }
+}
+
+
+// ======================================================
+// START CONTACT PAYMENT
+// ======================================================
+
+async function startContactPayment(
+    listingId
+) {
+
+    setContactLoading(
+        listingId,
+        "Creating Stars invoice..."
+    );
+
+
+    const response =
+        await fetch(
+            API_URL +
+            "/contact-unlock/create",
+            {
+                method:
+                    "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+
+                        initData:
+                            tg.initData,
+
+                        listing_id:
+                            listingId
+                    })
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (
+        !response.ok ||
+        !data.ok
+    ) {
+
+        throw new Error(
+            data.error ||
+            "Could not create payment"
+        );
+    }
+
+
+    if (
+        data.already_unlocked
+    ) {
+
+        await unlockSellerContact(
+            listingId
+        );
+
+        return;
+    }
+
+
+    const orderId =
+        data.order_id;
+
+
+    tg.openInvoice(
+        data.invoice_link,
+
+        async status => {
+
+            if (
+                status ===
+                "cancelled"
+            ) {
+
+                restoreContactButton(
+                    listingId
+                );
+
+                return;
+            }
+
+
+            if (
+                status ===
+                "failed"
+            ) {
+
+                restoreContactButton(
+                    listingId
+                );
+
+                tg.showAlert(
+                    "Payment failed."
+                );
+
+                return;
+            }
+
+
+            setContactLoading(
+                listingId,
+                "Payment sent. Waiting for secure confirmation..."
+            );
+
+
+            await waitForContactPayment(
+                listingId,
+                orderId
+            );
+        }
+    );
+}
+
+
+// ======================================================
+// WAIT CONTACT PAYMENT
+// ======================================================
+
+async function waitForContactPayment(
+    listingId,
+    orderId
+) {
+
+    for (
+        let attempt = 1;
+        attempt <= 15;
+        attempt++
+    ) {
+
+        try {
+
+            const response =
+                await fetch(
+                    API_URL +
+                    "/contact-unlock/status",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                initData:
+                                    tg.initData,
+
+                                order_id:
+                                    orderId
+                            })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                data.ok &&
+                data.order.status ===
+                    "paid"
+            ) {
+
+                await unlockSellerContact(
+                    listingId
+                );
+
+                return;
+            }
+
+
+            if (
+                data.ok &&
+                data.order.status ===
+                    "refunded"
+            ) {
+
+                restoreContactButton(
+                    listingId
+                );
+
+
+                tg.showAlert(
+                    "Payment was refunded."
+                );
+
+                return;
+            }
+
+
+            if (
+                data.ok &&
+                data.order.status ===
+                    "failed"
+            ) {
+
+                restoreContactButton(
+                    listingId
+                );
+
+                return;
+            }
+
+        }
+
+        catch {}
+
+
+        await sleep(2000);
+    }
+
+
+    setContactLoading(
+        listingId,
+        "Confirmation is taking longer. Do not pay again. Tap here later to check access."
+    );
+
+
+    setTimeout(
+        () =>
+            restoreContactButton(
+                listingId
+            ),
+        5000
+    );
+}
+
+
+// ======================================================
+// DISPLAY CONTACT
+// ======================================================
+
+function showSellerContact(
+    listingId,
+    contact
+) {
+
+    const area =
+        document.getElementById(
+            `contact-${listingId}`
+        );
+
+
+    if (!area) {
+        return;
+    }
+
+
+    const telegramButton =
+        contact.type ===
+        "telegram"
+
+            ? `
+
+            <button
+                class="primary"
+                onclick="
+                    openTelegramContact(
+                        '${escapeJs(
+                            contact.value
+                        )}'
+                    )
+                "
+            >
+            Open Telegram
+            </button>
+
+            `
+
+            : "";
+
+
+    area.innerHTML = `
+
+        <div class="contact-box">
+
+            <div class="contact-title">
+            🔓 Seller Contact Unlocked
+            </div>
+
+            <div class="meta">
+
+                ${escapeHtml(
+                    contact.type
+                )}
+
+            </div>
+
+            <div class="contact-value">
+
+                ${escapeHtml(
+                    contact.value
+                )}
+
+            </div>
+
+            <div class="contact-actions">
+
+                ${telegramButton}
+
+                <button
+                    class="secondary"
+                    onclick="
+                        copyContact(
+                            '${escapeJs(
+                                contact.value
+                            )}'
+                        )
+                    "
+                >
+                Copy
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+}
+
+
+function setContactLoading(
+    listingId,
+    text
+) {
+
+    const area =
+        document.getElementById(
+            `contact-${listingId}`
+        );
+
+
+    if (!area) {
+        return;
+    }
+
+
+    area.innerHTML = `
+
+        <div class="payment-wait">
+
+            ${escapeHtml(text)}
+
+        </div>
+
+    `;
+}
+
+
+function restoreContactButton(
+    listingId
+) {
+
+    const area =
+        document.getElementById(
+            `contact-${listingId}`
+        );
+
+
+    if (!area) {
+        return;
+    }
+
+
+    area.innerHTML = `
+
+        <button
+            class="unlock-button"
+            onclick="
+                unlockSellerContact(
+                    '${listingId}'
+                )
+            "
+        >
+        🔒 Unlock Seller Contact ·
+        ${contactUnlockPriceStars} ⭐
+        </button>
+
+    `;
+}
+
+
+async function copyContact(
+    value
+) {
+
+    try {
+
+        await navigator
+            .clipboard
+            .writeText(
+                value
+            );
+
+
+        tg?.showAlert(
+            "Contact copied ✓"
+        );
+
+    }
+
+    catch {
+
+        tg?.showAlert(
+            value
+        );
+    }
+}
+
+
+function openTelegramContact(
+    value
+) {
+
+    const username =
+        String(value)
+            .trim()
+            .replace(/^@/, "");
+
+
+    if (!username) {
+        return;
+    }
+
+
+    tg.openTelegramLink(
+        "https://t.me/" +
+        encodeURIComponent(
+            username
+        )
+    );
+}
+
+
+// ======================================================
+// LISTING PAYMENT
 // ======================================================
 
 async function startListingPayment(
@@ -1199,23 +1799,9 @@ async function startListingPayment(
     event.preventDefault();
 
 
-    if (
-        !tg ||
-        !tg.initData
-    ) {
-
-        showListingMessage(
-            "error",
-            "Open Handle Market inside Telegram."
-        );
-
-        return;
-    }
-
-
     const button =
         document.getElementById(
-            "submitListingButton"
+            "listingButton"
         );
 
 
@@ -1223,13 +1809,9 @@ async function startListingPayment(
         true;
 
 
-    button.textContent =
-        "Creating invoice...";
-
-
     showListingMessage(
         "info",
-        "Preparing Telegram Stars payment..."
+        "Creating invoice..."
     );
 
 
@@ -1240,8 +1822,7 @@ async function startListingPayment(
                 API_URL +
                 "/listing-payment/create",
                 {
-                    method:
-                        "POST",
+                    method: "POST",
 
                     headers: {
                         "Content-Type":
@@ -1310,96 +1891,24 @@ async function startListingPayment(
         ) {
 
             throw new Error(
-                readableError(
-                    data.error
-                )
+                data.error
             );
         }
 
 
-        activePaymentOrderId =
-            data.order_id;
-
-
-        const invoiceLink =
-            data.invoice_link;
-
-
-        if (
-            !invoiceLink
-        ) {
-
-            throw new Error(
-                "Invoice link was not received."
-            );
-        }
-
-
-        showListingMessage(
-            "info",
-            `Invoice created. Complete payment of ${data.amount_stars} ⭐.`
-        );
-
-
-        // Telegram officially supports opening
-        // an invoice directly above the Mini App.
         tg.openInvoice(
-            invoiceLink,
+            data.invoice_link,
 
             async status => {
 
-                console.log(
-                    "Invoice closed:",
-                    status
-                );
-
-
                 if (
                     status ===
-                    "cancelled"
-                ) {
-
-                    showListingMessage(
-                        "error",
-                        "Payment cancelled."
-                    );
-
-                    resetListingButton();
-
-                    return;
-                }
-
-
-                if (
+                    "cancelled" ||
                     status ===
                     "failed"
                 ) {
 
-                    showListingMessage(
-                        "error",
-                        "Telegram reported that the payment failed."
-                    );
-
                     resetListingButton();
-
-                    return;
-                }
-
-
-                if (
-                    status === "paid" ||
-                    status === "pending"
-                ) {
-
-                    showListingMessage(
-                        "info",
-                        "Payment sent. Waiting for secure server confirmation..."
-                    );
-
-
-                    await waitForPaymentCompletion(
-                        activePaymentOrderId
-                    );
 
                     return;
                 }
@@ -1407,12 +1916,12 @@ async function startListingPayment(
 
                 showListingMessage(
                     "info",
-                    "Checking payment status..."
+                    "Waiting for payment confirmation..."
                 );
 
 
-                await waitForPaymentCompletion(
-                    activePaymentOrderId
+                await waitListingPayment(
+                    data.order_id
                 );
             }
         );
@@ -1420,11 +1929,6 @@ async function startListingPayment(
     }
 
     catch (error) {
-
-        console.error(
-            error
-        );
-
 
         showListingMessage(
             "error",
@@ -1437,21 +1941,13 @@ async function startListingPayment(
 }
 
 
-// ======================================================
-// WAIT FOR SERVER CONFIRMATION
-// ======================================================
-
-async function waitForPaymentCompletion(
+async function waitListingPayment(
     orderId
 ) {
 
-    const MAX_ATTEMPTS =
-        15;
-
-
     for (
         let attempt = 1;
-        attempt <= MAX_ATTEMPTS;
+        attempt <= 15;
         attempt++
     ) {
 
@@ -1478,7 +1974,6 @@ async function waitForPaymentCompletion(
 
                                 order_id:
                                     orderId
-
                             })
                     }
                 );
@@ -1489,29 +1984,14 @@ async function waitForPaymentCompletion(
 
 
             if (
-                !response.ok ||
-                !data.ok
-            ) {
-
-                throw new Error(
-                    data.error ||
-                    "payment_status_failed"
-                );
-            }
-
-
-            const status =
-                data.order.status;
-
-
-            if (
-                status ===
-                "completed"
+                data.ok &&
+                data.order.status ===
+                    "completed"
             ) {
 
                 showListingMessage(
                     "success",
-                    "✓ Payment confirmed. Listing submitted for admin review."
+                    "✓ Payment confirmed. Listing sent for moderation."
                 );
 
 
@@ -1522,79 +2002,26 @@ async function waitForPaymentCompletion(
                     .reset();
 
 
-                activePaymentOrderId =
-                    null;
-
-
                 await loadMyListings();
 
 
                 resetListingButton();
 
-
                 return;
             }
-
-
-            if (
-                status ===
-                "refunded"
-            ) {
-
-                showListingMessage(
-                    "error",
-                    "Payment was refunded because the listing could not be created."
-                );
-
-
-                resetListingButton();
-
-                return;
-            }
-
-
-            if (
-                status ===
-                "failed"
-            ) {
-
-                showListingMessage(
-                    "error",
-                    "Payment order failed."
-                );
-
-
-                resetListingButton();
-
-                return;
-            }
-
-
-            showListingMessage(
-                "info",
-                `Payment status: ${status}. Waiting for Telegram confirmation...`
-            );
 
         }
 
-        catch (error) {
-
-            console.error(
-                "Status check:",
-                error
-            );
-        }
+        catch {}
 
 
-        await sleep(
-            2000
-        );
+        await sleep(2000);
     }
 
 
     showListingMessage(
         "info",
-        "Payment confirmation is taking longer than expected. Do not pay again. Reopen Handle Market in a moment and check My Listings."
+        "Confirmation is taking longer. Do not pay again."
     );
 
 
@@ -1608,18 +2035,9 @@ async function waitForPaymentCompletion(
 
 async function loadMyListings() {
 
-    if (
-        !tg?.initData
-    ) {
-
+    if (!tg?.initData) {
         return;
     }
-
-
-    const container =
-        document.getElementById(
-            "myListings"
-        );
 
 
     try {
@@ -1629,8 +2047,7 @@ async function loadMyListings() {
                 API_URL +
                 "/my-listings",
                 {
-                    method:
-                        "POST",
+                    method: "POST",
 
                     headers: {
                         "Content-Type":
@@ -1650,28 +2067,16 @@ async function loadMyListings() {
             await response.json();
 
 
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-
-            throw new Error(
-                data.error
+        const container =
+            document.getElementById(
+                "myListings"
             );
-        }
 
 
-        if (
-            !data.listings.length
-        ) {
+        if (!data.listings?.length) {
 
-            container.innerHTML = `
-
-                <div class="empty">
-                    You have no listings yet.
-                </div>
-
-            `;
+            container.innerHTML =
+                `<div class="empty">No listings</div>`;
 
             return;
         }
@@ -1680,110 +2085,66 @@ async function loadMyListings() {
         container.innerHTML =
             data.listings
                 .map(
-                    renderMyListing
+                    listing => `
+
+                    <div class="card">
+
+                        <div class="username">
+
+                        @${escapeHtml(
+                            listing.whatsapp_username
+                        )}
+
+                        </div>
+
+                        <div
+                            class="badge ${
+                                listing.status ===
+                                "active"
+
+                                    ? "badge-active"
+
+                                    : listing.status ===
+                                      "rejected"
+
+                                        ? "badge-rejected"
+
+                                        : "badge-pending"
+                            }"
+                        >
+
+                        ${escapeHtml(
+                            listing.status
+                                .toUpperCase()
+                        )}
+
+                        </div>
+
+                        <div class="price">
+
+                        $${formatPrice(
+                            listing.asking_price
+                        )}
+
+                        </div>
+
+                    </div>
+
+                    `
                 )
                 .join("");
 
     }
 
-    catch {
-
-        container.innerHTML = `
-
-            <div class="empty">
-                Failed to load listings.
-            </div>
-
-        `;
-    }
+    catch {}
 }
 
 
 // ======================================================
-// MARKETPLACE
+// ADMIN
 // ======================================================
 
-async function loadMarketplace() {
-
-    try {
-
-        const response =
-            await fetch(
-                API_URL +
-                "/listings"
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-
-            throw new Error(
-                "marketplace_error"
-            );
-        }
-
-
-        marketplaceListings =
-            data.listings ||
-            [];
-
-
-        renderMarketplace(
-            marketplaceListings
-        );
-
-    }
-
-    catch {
-
-        document
-            .getElementById(
-                "marketListings"
-            )
-            .innerHTML = `
-
-                <div class="empty">
-                    Marketplace unavailable.
-                </div>
-
-            `;
-
-
-        document
-            .getElementById(
-                "homeListings"
-            )
-            .innerHTML = `
-
-                <div class="empty">
-                    Marketplace unavailable.
-                </div>
-
-            `;
-    }
-}
-
-
-// ======================================================
-// ADMIN PANEL
-// ======================================================
-
-function openAdminPanel() {
-
-    if (
-        !authenticatedUser ||
-        !authenticatedUser.is_admin
-    ) {
-
-        return;
-    }
-
+function openAdmin() {
 
     openPage(
         "admin",
@@ -1797,12 +2158,29 @@ function openAdminPanel() {
 
 async function loadPendingListings() {
 
-    if (
-        !authenticatedUser?.is_admin
-    ) {
+    const response =
+        await fetch(
+            API_URL +
+            "/admin/pending-listings",
+            {
+                method: "POST",
 
-        return;
-    }
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        initData:
+                            tg.initData
+                    })
+            }
+        );
+
+
+    const data =
+        await response.json();
 
 
     const container =
@@ -1811,597 +2189,111 @@ async function loadPendingListings() {
         );
 
 
-    container.innerHTML = `
-
-        <div class="empty">
-            Loading pending listings...
-        </div>
-
-    `;
-
-
-    try {
-
-        const response =
-            await fetch(
-                API_URL +
-                "/admin/pending-listings",
-                {
-                    method:
-                        "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-                            initData:
-                                tg.initData
-                        })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-
-            throw new Error(
-                data.error
-            );
-        }
-
-
-        if (
-            !data.listings.length
-        ) {
-
-            container.innerHTML = `
-
-                <div class="empty">
-                    ✓ No pending listings.
-                </div>
-
-            `;
-
-            return;
-        }
-
+    if (!data.listings?.length) {
 
         container.innerHTML =
-            data.listings
-                .map(
-                    renderAdminListing
-                )
-                .join("");
-
-    }
-
-    catch (error) {
-
-        container.innerHTML = `
-
-            <div class="empty">
-                Failed to load pending listings.
-            </div>
-
-        `;
-    }
-}
-
-
-// ======================================================
-// ADMIN APPROVE / REJECT
-// ======================================================
-
-async function adminSetStatus(
-    listingId,
-    username,
-    newStatus
-) {
-
-    const text =
-        newStatus === "active"
-
-            ? `Approve @${username} and publish it?`
-
-            : `Reject @${username}?`;
-
-
-    const confirmed =
-        await askConfirm(
-            text
-        );
-
-
-    if (
-        !confirmed
-    ) {
+            `<div class="empty">No pending listings</div>`;
 
         return;
     }
 
 
-    try {
-
-        const response =
-            await fetch(
-                API_URL +
-                "/admin/listing-status",
-                {
-                    method:
-                        "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            initData:
-                                tg.initData,
-
-                            listing_id:
-                                listingId,
-
-                            status:
-                                newStatus
-
-                        })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-
-            throw new Error(
-                data.error
-            );
-        }
-
-
-        tg?.showAlert(
-            newStatus === "active"
-
-                ? "Listing approved ✓"
-
-                : "Listing rejected"
-        );
-
-
-        await loadPendingListings();
-
-        await loadMarketplace();
-
-        await loadMyListings();
-
-    }
-
-    catch (error) {
-
-        tg?.showAlert(
-            "Error: " +
-            error.message
-        );
-    }
-}
-
-
-// ======================================================
-// RENDER PUBLIC MARKETPLACE
-// ======================================================
-
-function renderMarketplace(
-    listings
-) {
-
-    const market =
-        document.getElementById(
-            "marketListings"
-        );
-
-
-    const home =
-        document.getElementById(
-            "homeListings"
-        );
-
-
-    if (
-        !listings.length
-    ) {
-
-        market.innerHTML = `
-
-            <div class="empty">
-                No active listings yet.
-            </div>
-
-        `;
-
-
-        home.innerHTML = `
-
-            <div class="empty">
-                Featured usernames will appear here.
-            </div>
-
-        `;
-
-
-        return;
-    }
-
-
-    market.innerHTML =
-        listings
+    container.innerHTML =
+        data.listings
             .map(
-                renderPublicListing
-            )
-            .join("");
+                listing => `
 
+                <div class="card">
 
-    const featured =
-        listings.filter(
-            item =>
-                item.is_featured
-        );
-
-
-    const homeItems =
-        featured.length
-
-            ? featured
-
-            : listings.slice(
-                0,
-                5
-            );
-
-
-    home.innerHTML =
-        homeItems
-            .map(
-                renderPublicListing
-            )
-            .join("");
-}
-
-
-function renderPublicListing(
-    listing
-) {
-
-    return `
-
-        <div class="card">
-
-            <div class="username">
-
+                <div class="username">
                 @${escapeHtml(
                     listing.whatsapp_username
                 )}
+                </div>
 
-            </div>
-
-
-            <div class="price">
-
+                <div class="price">
                 $${formatPrice(
                     listing.asking_price
                 )}
+                </div>
 
-            </div>
-
-
-            <div class="meta">
-
-                ${escapeHtml(
-                    listing.category ||
-                    "Other"
-                )}
-
-            </div>
-
-
-            ${
-                listing.description
-
-                    ? `
-
-                        <div class="description">
-
-                            ${escapeHtml(
-                                listing.description
-                            )}
-
-                        </div>
-
-                    `
-
-                    : ""
-            }
-
-
-            <div class="buttons">
-
-                <button
-                    class="primary"
-                    onclick="futureOffer()"
-                >
-                    Make Offer
-                </button>
-
-
-                <button
-                    class="secondary"
-                    onclick="futureWatch()"
-                >
-                    ☆ Watch
-                </button>
-
-            </div>
-
-        </div>
-
-    `;
-}
-
-
-// ======================================================
-// RENDER MY LISTING
-// ======================================================
-
-function renderMyListing(
-    listing
-) {
-
-    let badgeClass =
-        "badge-pending";
-
-
-    if (
-        listing.status ===
-        "active"
-    ) {
-
-        badgeClass =
-            "badge-active";
-    }
-
-
-    if (
-        listing.status ===
-        "rejected"
-    ) {
-
-        badgeClass =
-            "badge-rejected";
-    }
-
-
-    return `
-
-        <div class="card">
-
-            <div class="username">
-
-                @${escapeHtml(
-                    listing.whatsapp_username
-                )}
-
-            </div>
-
-
-            <div
-                class="badge ${badgeClass}"
-            >
-
-                ${escapeHtml(
-                    listing.status
-                        .toUpperCase()
-                )}
-
-            </div>
-
-
-            <div class="price">
-
-                $${formatPrice(
-                    listing.asking_price
-                )}
-
-            </div>
-
-
-            <div class="meta">
-
-                ${escapeHtml(
-                    listing.category ||
-                    "Other"
-                )}
-
-            </div>
-
-        </div>
-
-    `;
-}
-
-
-// ======================================================
-// RENDER ADMIN LISTING
-// ======================================================
-
-function renderAdminListing(
-    listing
-) {
-
-    let sellerText =
-        "Unknown seller";
-
-
-    if (
-        listing.seller
-    ) {
-
-        const sellerUsername =
-            listing.seller
-                .telegram_username
-
-                ? "@" +
-                    listing.seller
-                        .telegram_username
-
-                : "No Telegram username";
-
-
-        sellerText = `
-
-            ${escapeHtml(
-                listing.seller
-                    .first_name ||
-                "Telegram User"
-            )}
-
-            <br>
-
-            ${escapeHtml(
-                sellerUsername
-            )}
-
-        `;
-    }
-
-
-    return `
-
-        <div class="card">
-
-            <div class="username">
-
-                @${escapeHtml(
-                    listing.whatsapp_username
-                )}
-
-            </div>
-
-
-            <div class="badge badge-pending">
-                PENDING
-            </div>
-
-
-            <div class="price">
-
-                $${formatPrice(
-                    listing.asking_price
-                )}
-
-            </div>
-
-
-            <div class="meta">
-
-                ${escapeHtml(
-                    listing.category ||
-                    "Other"
-                )}
-
-            </div>
-
-
-            ${
-                listing.description
-
-                    ? `
-
-                        <div class="description">
-
-                            ${escapeHtml(
-                                listing.description
-                            )}
-
-                        </div>
-
-                    `
-
-                    : ""
-            }
-
-
-            <div class="seller-info">
-
-                <b>Seller</b>
-
-                <br>
-
-                ${sellerText}
-
-            </div>
-
-
-            <div class="buttons">
+                <div class="buttons">
 
                 <button
                     class="approve-button"
-
                     onclick="
-                        adminSetStatus(
+                        adminStatus(
                             '${listing.id}',
-                            '${escapeJs(
-                                listing.whatsapp_username
-                            )}',
                             'active'
                         )
                     "
                 >
-                    ✓ Approve
+                ✓ Approve
                 </button>
-
 
                 <button
                     class="reject-button"
-
                     onclick="
-                        adminSetStatus(
+                        adminStatus(
                             '${listing.id}',
-                            '${escapeJs(
-                                listing.whatsapp_username
-                            )}',
                             'rejected'
                         )
                     "
                 >
-                    ✕ Reject
+                ✕ Reject
                 </button>
 
-            </div>
+                </div>
 
-        </div>
+                </div>
 
-    `;
+                `
+            )
+            .join("");
+}
+
+
+async function adminStatus(
+    id,
+    status
+) {
+
+    await fetch(
+        API_URL +
+        "/admin/listing-status",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+
+            body:
+                JSON.stringify({
+
+                    initData:
+                        tg.initData,
+
+                    listing_id:
+                        id,
+
+                    status
+                })
+        }
+    );
+
+
+    await loadPendingListings();
+
+    await loadMarketplace();
+
+    await loadMyListings();
 }
 
 
 // ======================================================
-// SEARCH
+// SEARCH / NAV
 // ======================================================
 
 function filterMarketplace(
@@ -2409,21 +2301,13 @@ function filterMarketplace(
 ) {
 
     const query =
-        String(
-            value ||
-            ""
-        )
-            .replace(
-                "@",
-                ""
-            )
-            .trim()
-            .toLowerCase();
+        String(value || "")
+            .replace("@","")
+            .toLowerCase()
+            .trim();
 
 
-    if (
-        !query
-    ) {
+    if (!query) {
 
         renderMarketplace(
             marketplaceListings
@@ -2433,44 +2317,30 @@ function filterMarketplace(
     }
 
 
-    const filtered =
+    renderMarketplace(
+
         marketplaceListings
             .filter(
-                item =>
-
-                    item
-                        .whatsapp_username
+                x =>
+                    x.whatsapp_username
                         .toLowerCase()
-                        .includes(
-                            query
-                        )
+                        .includes(query)
 
                     ||
 
                     String(
-                        item.category ||
-                        ""
+                        x.category || ""
                     )
                         .toLowerCase()
-                        .includes(
-                            query
-                        )
-            );
-
-
-    renderMarketplace(
-        filtered
+                        .includes(query)
+            )
     );
 }
 
 
-// ======================================================
-// NAVIGATION
-// ======================================================
-
 function openPage(
-    pageId,
-    navElement
+    id,
+    nav
 ) {
 
     document
@@ -2478,9 +2348,8 @@ function openPage(
             ".page"
         )
         .forEach(
-            page =>
-
-                page
+            element =>
+                element
                     .classList
                     .remove(
                         "active"
@@ -2489,13 +2358,9 @@ function openPage(
 
 
     document
-        .getElementById(
-            pageId
-        )
+        .getElementById(id)
         .classList
-        .add(
-            "active"
-        );
+        .add("active");
 
 
     document
@@ -2503,9 +2368,8 @@ function openPage(
             ".nav-item"
         )
         .forEach(
-            item =>
-
-                item
+            element =>
+                element
                     .classList
                     .remove(
                         "active"
@@ -2513,21 +2377,16 @@ function openPage(
         );
 
 
-    if (
-        navElement
-    ) {
+    if (nav) {
 
-        navElement
-            .classList
-            .add(
-                "active"
-            );
+        nav.classList
+            .add("active");
     }
 }
 
 
 // ======================================================
-// MESSAGES
+// UI HELPERS
 // ======================================================
 
 function showListingMessage(
@@ -2535,17 +2394,17 @@ function showListingMessage(
     text
 ) {
 
-    const box =
+    const element =
         document.getElementById(
             "listingMessage"
         );
 
 
-    box.className =
+    element.className =
         `message ${type}`;
 
 
-    box.textContent =
+    element.textContent =
         text;
 }
 
@@ -2554,7 +2413,7 @@ function resetListingButton() {
 
     const button =
         document.getElementById(
-            "submitListingButton"
+            "listingButton"
         );
 
 
@@ -2567,58 +2426,35 @@ function resetListingButton() {
 }
 
 
-// ======================================================
-// CONFIRM
-// ======================================================
+function futureOffer() {
 
-function askConfirm(
-    text
-) {
-
-    return new Promise(
-        resolve => {
-
-            if (
-                tg?.showConfirm
-            ) {
-
-                tg.showConfirm(
-                    text,
-
-                    result =>
-                        resolve(
-                            result
-                        )
-                );
-
-            } else {
-
-                resolve(
-                    window.confirm(
-                        text
-                    )
-                );
-            }
-        }
+    tg?.showAlert(
+        "Make Offer will be connected next."
     );
 }
 
 
-// ======================================================
-// HELPERS
-// ======================================================
-
-function sleep(
-    ms
-) {
+function sleep(ms) {
 
     return new Promise(
         resolve =>
-            setTimeout(
-                resolve,
-                ms
-            )
+            setTimeout(resolve,ms)
     );
+}
+
+
+function formatPrice(
+    value
+) {
+
+    return Number(value)
+        .toLocaleString(
+            "en-US",
+            {
+                maximumFractionDigits:
+                    2
+            }
+        );
 }
 
 
@@ -2626,30 +2462,12 @@ function escapeHtml(
     value
 ) {
 
-    return String(
-        value ??
-        ""
-    )
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
+    return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
 }
 
 
@@ -2657,10 +2475,7 @@ function escapeJs(
     value
 ) {
 
-    return String(
-        value ??
-        ""
-    )
+    return String(value ?? "")
         .replaceAll(
             "\\",
             "\\\\"
@@ -2672,111 +2487,15 @@ function escapeJs(
 }
 
 
-function formatPrice(
-    value
-) {
-
-    const number =
-        Number(
-            value
-        );
-
-
-    if (
-        !Number.isFinite(
-            number
-        )
-    ) {
-
-        return "0";
-    }
-
-
-    return number
-        .toLocaleString(
-            "en-US",
-            {
-                maximumFractionDigits:
-                    2
-            }
-        );
-}
-
-
-function readableError(
-    error
-) {
-
-    const map = {
-
-        invalid_username:
-            "Enter a valid username.",
-
-        invalid_price:
-            "Enter a valid asking price.",
-
-        invalid_contact_type:
-            "Select a valid contact method.",
-
-        contact_required:
-            "Seller contact is required.",
-
-        listing_already_exists:
-            "You already have this username listed or pending.",
-
-        listing_check_failed:
-            "Could not check existing listings.",
-
-        payment_order_failed:
-            "Could not create payment order.",
-
-        invoice_create_failed:
-            "Could not create Telegram Stars invoice.",
-
-        initData_expired:
-            "Telegram session expired. Close and reopen Handle Market.",
-
-        account_blocked:
-            "Your Handle Market account is blocked."
-
-    };
-
-
-    return (
-        map[error] ||
-        error ||
-        "Something went wrong."
-    );
-}
-
-
-// ======================================================
-// FUTURE FEATURES
-// ======================================================
-
-function futureOffer() {
-
-    tg?.showAlert(
-        "Make Offer will be connected soon."
-    );
-}
-
-
-function futureWatch() {
-
-    tg?.showAlert(
-        "Watchlist will be connected soon."
-    );
-}
-
-
 // ======================================================
 // START
 // ======================================================
 
-authenticateTelegramUser();
+authenticate();
 
 loadMarketplace();
+
+loadMyListings();
 
 
 </script>
