@@ -1,92 +1,1577 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
 
-    <title>Telegram Storage Isolation Lab</title>
+<meta charset="UTF-8">
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
+<title>Handle Market</title>
 
-        button {
-            display: block;
-            width: 100%;
-            margin: 10px 0;
-            padding: 13px;
-            font-size: 16px;
-            cursor: pointer;
-        }
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-        pre {
-            white-space: pre-wrap;
-            word-break: break-word;
-            background: #eee;
-            padding: 15px;
-            border-radius: 8px;
-        }
-    </style>
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f5f7;
+    color: #111;
+    padding-bottom: 85px;
+}
+
+.app {
+    max-width: 650px;
+    margin: auto;
+}
+
+header {
+    background: white;
+    padding: 18px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.subtitle {
+    color: #777;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.auth-status {
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+.auth-ok {
+    color: #139447;
+}
+
+.auth-error {
+    color: #d93025;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+.search {
+    padding: 16px;
+}
+
+.search input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 16px;
+    background: white;
+}
+
+.section {
+    padding: 0 16px 20px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.categories {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+}
+
+.category {
+    white-space: nowrap;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 20px;
+    padding: 9px 14px;
+}
+
+.card {
+    background: white;
+    padding: 17px;
+    margin-bottom: 12px;
+    border-radius: 18px;
+    box-shadow: 0 2px 9px rgba(0,0,0,.04);
+}
+
+.username {
+    font-size: 23px;
+    font-weight: 800;
+}
+
+.price {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 13px;
+}
+
+.meta {
+    color: #777;
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+.description {
+    color: #555;
+    margin-top: 12px;
+    line-height: 1.45;
+}
+
+.badge {
+    display: inline-block;
+    margin-top: 7px;
+    padding: 5px 9px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.badge-pending {
+    background: #fff7e0;
+    color: #9a6900;
+}
+
+.badge-active {
+    background: #ebf9ef;
+    color: #14863c;
+}
+
+.badge-rejected {
+    background: #fff0f0;
+    color: #c33;
+}
+
+.buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+button {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: .55;
+    cursor: default;
+}
+
+.primary {
+    flex: 1;
+    background: #1687e8;
+    color: white;
+}
+
+.secondary {
+    background: #eee;
+}
+
+.own-listing-button {
+    flex: 1;
+    background: #ebf9ef;
+    color: #14863c;
+    font-weight: 700;
+}
+
+.unlock-button {
+    width: 100%;
+    margin-top: 12px;
+    background: #f1f6ff;
+    border: 1px solid #d8e7ff;
+    color: #1764a5;
+    font-weight: 700;
+}
+
+.contact-box {
+    margin-top: 12px;
+    border-radius: 14px;
+    padding: 14px;
+    background: #edf9f1;
+    border: 1px solid #caedd5;
+}
+
+.owner-contact-box {
+    margin-top: 12px;
+    border-radius: 14px;
+    padding: 14px;
+    background: #f5f5f5;
+    border: 1px solid #dedede;
+}
+
+.contact-title {
+    font-weight: 800;
+    color: #168344;
+}
+
+.owner-title {
+    font-weight: 800;
+    color: #333;
+}
+
+.contact-value {
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 8px;
+    word-break: break-word;
+}
+
+.contact-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.contact-actions button {
+    flex: 1;
+}
+
+.owner-note {
+    color: #777;
+    font-size: 12px;
+    line-height: 1.45;
+    margin-top: 8px;
+}
+
+.payment-wait {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #eef6ff;
+    color: #1764a5;
+    font-size: 13px;
+}
+
+.form-box {
+    margin: 16px;
+    padding: 18px;
+    background: white;
+    border-radius: 18px;
+}
+
+.form-title {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.form-subtitle {
+    color: #777;
+    font-size: 13px;
+    margin: 5px 0 20px;
+}
+
+.field {
+    margin-bottom: 15px;
+}
+
+.field label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 7px;
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 15px;
+}
+
+.field textarea {
+    min-height: 90px;
+}
+
+.field-hint {
+    color: #888;
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+.payment-box {
+    background: #f3f8ff;
+    border: 1px solid #dbeaff;
+    border-radius: 14px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.payment-price {
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.payment-button {
+    width: 100%;
+    background: #1687e8;
+    color: white;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.message {
+    margin-top: 14px;
+    padding: 13px;
+    border-radius: 12px;
+    display: none;
+}
+
+.message.success {
+    display: block;
+    background: #eaf8ee;
+    color: #14823a;
+}
+
+.message.error {
+    display: block;
+    background: #fff0f0;
+    color: #c62828;
+}
+
+.message.info {
+    display: block;
+    background: #eef6ff;
+    color: #1764a5;
+}
+
+.warning {
+    margin: 16px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #fff8e7;
+    border: 1px solid #ffe09d;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.profile-card {
+    margin: 16px;
+    padding: 20px;
+    background: white;
+    border-radius: 18px;
+}
+
+.profile-name {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.profile-username {
+    color: #777;
+    margin-top: 5px;
+}
+
+.verified-box {
+    background: #edf9f1;
+    color: #138541;
+    padding: 14px;
+    border-radius: 14px;
+    margin-top: 17px;
+}
+
+.admin-button {
+    width: 100%;
+    background: #222;
+    color: white;
+    margin-top: 16px;
+    font-weight: 700;
+}
+
+.admin-box {
+    margin: 16px;
+}
+
+.admin-header {
+    background: #222;
+    color: white;
+    padding: 18px;
+    border-radius: 18px;
+    margin-bottom: 15px;
+}
+
+.admin-header h2 {
+    margin: 0;
+}
+
+.approve-button {
+    flex: 1;
+    background: #19a651;
+    color: white;
+}
+
+.reject-button {
+    flex: 1;
+    background: #e74747;
+    color: white;
+}
+
+.empty {
+    padding: 30px 15px;
+    text-align: center;
+    color: #777;
+    background: white;
+    border-radius: 16px;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: white;
+    border-top: 1px solid #ddd;
+    display: flex;
+    z-index: 100;
+}
+
+.nav-item {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    padding-top: 9px;
+    color: #777;
+}
+
+.nav-icon {
+    display: block;
+    font-size: 23px;
+    margin-bottom: 3px;
+}
+
+.nav-item.active {
+    color: #1687e8;
+    font-weight: 700;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<h1>Telegram Storage Isolation Lab</h1>
+<div class="app">
 
-<p id="status">Проверяем...</p>
+<header>
 
-<button id="write">
-    WRITE markers for current account
+<div class="logo">
+Handle Market
+</div>
+
+<div class="subtitle">
+Discover premium WhatsApp usernames
+</div>
+
+<div
+    id="authStatus"
+    class="auth-status"
+>
+Connecting...
+</div>
+
+</header>
+
+
+<!-- HOME -->
+
+<div id="home" class="page active">
+
+<div class="search">
+
+<input
+    placeholder="Search @username"
+    oninput="filterMarketplace(this.value)"
+>
+
+</div>
+
+<div class="section">
+
+<div class="section-title">
+Categories
+</div>
+
+<div class="categories">
+
+<div class="category">🔥 Premium</div>
+<div class="category">Business</div>
+<div class="category">AI</div>
+<div class="category">Short</div>
+<div class="category">Travel</div>
+<div class="category">Finance</div>
+
+</div>
+
+</div>
+
+<div class="section">
+
+<div class="section-title">
+Featured usernames
+</div>
+
+<div id="homeListings">
+
+<div class="empty">
+Loading...
+</div>
+
+</div>
+
+</div>
+
+<div class="warning">
+
+⚠️ Handle Market does not control or guarantee
+the transfer of WhatsApp usernames.
+
+</div>
+
+</div>
+
+
+<!-- MARKET -->
+
+<div id="marketplace" class="page">
+
+<div class="search">
+
+<input
+    placeholder="Search Marketplace"
+    oninput="filterMarketplace(this.value)"
+>
+
+</div>
+
+<div class="section">
+
+<div class="section-title">
+Marketplace
+</div>
+
+<div id="marketListings">
+
+<div class="empty">
+Loading...
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- LIST -->
+
+<div id="list" class="page">
+
+<div class="form-box">
+
+<div class="form-title">
+List Username
+</div>
+
+<div class="form-subtitle">
+Submit username for moderation.
+</div>
+
+<form
+    id="listingForm"
+    onsubmit="startListingPayment(event)"
+>
+
+<div class="field">
+
+<label>
+WhatsApp username
+</label>
+
+<input
+    id="listingUsername"
+    placeholder="@username"
+    required
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Asking price (USD)
+</label>
+
+<input
+    id="listingPrice"
+    type="number"
+    min="1"
+    step="0.01"
+    required
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Category
+</label>
+
+<select id="listingCategory">
+
+<option>Premium</option>
+<option>Business</option>
+<option>AI</option>
+<option>Short</option>
+<option>Travel</option>
+<option>Finance</option>
+<option>Gaming</option>
+<option>Crypto</option>
+<option>Media</option>
+<option>Other</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Description
+</label>
+
+<textarea
+    id="listingDescription"
+    maxlength="500"
+></textarea>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Contact method
+</label>
+
+<select id="contactType">
+
+<option value="telegram">
+Telegram
+</option>
+
+<option value="email">
+Email
+</option>
+
+<option value="other">
+Other
+</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Seller contact
+</label>
+
+<input
+    id="contactValue"
+    placeholder="@username"
+    maxlength="200"
+    required
+>
+
+<div class="field-hint">
+Buyers cannot see this until they unlock it.
+</div>
+
+</div>
+
+
+<div class="payment-box">
+
+<div>
+Listing fee
+</div>
+
+<div
+    id="listingFee"
+    class="payment-price"
+>
+1 ⭐
+</div>
+
+</div>
+
+
+<button
+    id="listingButton"
+    class="payment-button"
+    type="submit"
+>
+Pay 1 ⭐ & Submit
 </button>
 
-<button id="read">
-    READ ONLY — do not overwrite
-</button>
 
-<button id="clear">
-    CLEAR test markers
-</button>
+<div
+    id="listingMessage"
+    class="message"
+></div>
 
-<pre id="result">
-Аккаунт №1: нажми WRITE
-</pre>
+</form>
+
+</div>
+
+
+<div class="section">
+
+<div class="section-title">
+My Listings
+</div>
+
+<div id="myListings">
+
+<div class="empty">
+Loading...
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- WANTED -->
+
+<div id="wanted" class="page">
+
+<div class="form-box">
+
+<div class="form-title">
+🎯 Wanted
+</div>
+
+<div class="empty">
+Coming soon
+</div>
+
+</div>
+
+</div>
+
+
+<!-- PROFILE -->
+
+<div id="profile" class="page">
+
+<div
+    id="profileContent"
+    class="profile-card"
+>
+Loading...
+</div>
+
+</div>
+
+
+<!-- ADMIN -->
+
+<div id="admin" class="page">
+
+<div class="admin-box">
+
+<div class="admin-header">
+
+<h2>
+🛡 Admin Panel
+</h2>
+
+</div>
+
+<div id="pendingListings">
+
+<div class="empty">
+Loading...
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- NAVIGATION -->
+
+<div class="bottom-nav">
+
+<div
+    class="nav-item active"
+    onclick="openPage('home',this)"
+>
+<span class="nav-icon">🏠</span>
+Home
+</div>
+
+<div
+    class="nav-item"
+    onclick="openPage('marketplace',this)"
+>
+<span class="nav-icon">🔎</span>
+Market
+</div>
+
+<div
+    class="nav-item"
+    onclick="openPage('list',this);loadMyListings();"
+>
+<span class="nav-icon">➕</span>
+List
+</div>
+
+<div
+    class="nav-item"
+    onclick="openPage('wanted',this)"
+>
+<span class="nav-icon">🎯</span>
+Wanted
+</div>
+
+<div
+    class="nav-item"
+    onclick="openPage('profile',this)"
+>
+<span class="nav-icon">👤</span>
+Profile
+</div>
+
+</div>
+
 
 <script>
 
-const tg = window.Telegram.WebApp;
+const API_URL =
+    "https://handle-market.onrender.com";
 
-tg.ready();
-tg.expand();
+const tg =
+    window.Telegram?.WebApp;
 
-const result =
-    document.getElementById("result");
+let authenticatedUser =
+    null;
 
-const KEY =
-    "account_isolation_test_2026";
+let listingPriceStars =
+    1;
 
+let contactUnlockPriceStars =
+    1;
 
-document.getElementById("status").textContent =
-    "Telegram WebApp version: " +
-    tg.version +
-    "\nDeviceStorage: " +
-    (tg.DeviceStorage ? "YES" : "NO") +
-    "\nSecureStorage: " +
-    (tg.SecureStorage ? "YES" : "NO");
+let marketplaceListings =
+    [];
 
 
-async function getAccountFingerprint() {
+if (tg) {
+
+    tg.ready();
+
+    tg.expand();
+}
+
+
+// ======================================================
+// AUTH
+// ======================================================
+
+async function authenticate() {
+
+    const status =
+        document.getElementById(
+            "authStatus"
+        );
+
 
     try {
 
-        const response = await fetch(
-            "https://telegram-bug-lab.onrender.com/lab-check",
+        const response =
+            await fetch(
+                API_URL + "/auth",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            initData:
+                                tg.initData
+                        })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                data.error
+            );
+        }
+
+
+        authenticatedUser =
+            data.user;
+
+
+        listingPriceStars =
+            Number(
+                data.listing_price_stars ||
+                1
+            );
+
+
+        contactUnlockPriceStars =
+            Number(
+                data.contact_unlock_price_stars ||
+                1
+            );
+
+
+        document
+            .getElementById(
+                "listingFee"
+            )
+            .textContent =
+                `${listingPriceStars} ⭐`;
+
+
+        resetListingButton();
+
+
+        status.textContent =
+            "✓ Telegram account verified";
+
+        status.className =
+            "auth-status auth-ok";
+
+
+        const fullName =
+            [
+                data.user.first_name,
+                data.user.last_name
+            ]
+                .filter(Boolean)
+                .join(" ");
+
+
+        let adminButton =
+            "";
+
+
+        if (
+            data.user.is_admin
+        ) {
+
+            adminButton = `
+
+                <button
+                    class="admin-button"
+                    onclick="openAdmin()"
+                >
+                    🛡 Open Admin Panel
+                </button>
+
+            `;
+        }
+
+
+        document
+            .getElementById(
+                "profileContent"
+            )
+            .innerHTML = `
+
+                <div class="profile-name">
+
+                    ${escapeHtml(
+                        fullName ||
+                        "Telegram User"
+                    )}
+
+                </div>
+
+                <div class="profile-username">
+
+                    ${
+                        data.user.username
+
+                            ? "@" +
+                                escapeHtml(
+                                    data.user.username
+                                )
+
+                            : ""
+                    }
+
+                </div>
+
+                <div class="verified-box">
+
+                    ✓ Authenticated by Handle Market
+
+                </div>
+
+                ${adminButton}
+
+            `;
+
+
+        renderMarketplace(
+            marketplaceListings
+        );
+
+
+        await checkUnlockedContacts(
+            marketplaceListings
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "✕ Authentication failed";
+
+        status.className =
+            "auth-status auth-error";
+    }
+}
+
+
+// ======================================================
+// MARKETPLACE
+// ======================================================
+
+async function loadMarketplace() {
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL +
+                "/listings"
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                "marketplace_error"
+            );
+        }
+
+
+        marketplaceListings =
+            data.listings || [];
+
+
+        renderMarketplace(
+            marketplaceListings
+        );
+
+
+        if (
+            authenticatedUser
+        ) {
+
+            await checkUnlockedContacts(
+                marketplaceListings
+            );
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+
+        document
+            .getElementById(
+                "marketListings"
+            )
+            .innerHTML = `
+
+                <div class="empty">
+                    Marketplace unavailable
+                </div>
+
+            `;
+
+
+        document
+            .getElementById(
+                "homeListings"
+            )
+            .innerHTML = `
+
+                <div class="empty">
+                    Marketplace unavailable
+                </div>
+
+            `;
+    }
+}
+
+
+// ======================================================
+// RENDER MARKETPLACE
+// ======================================================
+
+function renderMarketplace(
+    listings
+) {
+
+    const market =
+        document.getElementById(
+            "marketListings"
+        );
+
+
+    const home =
+        document.getElementById(
+            "homeListings"
+        );
+
+
+    if (
+        !listings.length
+    ) {
+
+        market.innerHTML = `
+
+            <div class="empty">
+                No listings
+            </div>
+
+        `;
+
+
+        home.innerHTML = `
+
+            <div class="empty">
+                No listings
+            </div>
+
+        `;
+
+
+        return;
+    }
+
+
+    market.innerHTML =
+        listings
+            .map(
+                renderPublicListing
+            )
+            .join("");
+
+
+    const featured =
+        listings.filter(
+            x =>
+                x.is_featured
+        );
+
+
+    const homeItems =
+        featured.length
+            ? featured
+            : listings.slice(
+                0,
+                5
+            );
+
+
+    home.innerHTML =
+        homeItems
+            .map(
+                renderPublicListing
+            )
+            .join("");
+}
+
+
+// ======================================================
+// PUBLIC LISTING
+// ======================================================
+
+function renderPublicListing(
+    listing
+) {
+
+    return `
+
+        <div
+            class="card listing-card"
+            data-listing-card-id="${escapeHtml(
+                listing.id
+            )}"
+        >
+
+            <div class="username">
+
+                @${escapeHtml(
+                    listing.whatsapp_username
+                )}
+
+            </div>
+
+
+            <div class="price">
+
+                $${formatPrice(
+                    listing.asking_price
+                )}
+
+            </div>
+
+
+            <div class="meta">
+
+                ${escapeHtml(
+                    listing.category ||
+                    "Other"
+                )}
+
+            </div>
+
+
+            ${
+                listing.description
+
+                    ? `
+
+                    <div class="description">
+
+                        ${escapeHtml(
+                            listing.description
+                        )}
+
+                    </div>
+
+                    `
+
+                    : ""
+            }
+
+
+            <div class="buttons">
+
+                <button
+                    class="primary offer-button"
+                    onclick="futureOffer()"
+                >
+                    Make Offer
+                </button>
+
+
+                <button
+                    class="secondary"
+                    onclick="futureWatch()"
+                >
+                    ☆ Watch
+                </button>
+
+            </div>
+
+
+            <div
+                class="contact-area"
+                data-contact-listing-id="${escapeHtml(
+                    listing.id
+                )}"
+            >
+
+                ${getLockedContactHtml(
+                    listing.id
+                )}
+
+            </div>
+
+        </div>
+
+    `;
+}
+
+
+// ======================================================
+// AUTO-CHECK ACCESS
+// ======================================================
+
+async function checkUnlockedContacts(
+    listings
+) {
+
+    if (
+        !authenticatedUser ||
+        !tg?.initData ||
+        !Array.isArray(listings)
+    ) {
+
+        return;
+    }
+
+
+    await Promise.all(
+
+        listings.map(
+
+            async listing => {
+
+                try {
+
+                    const response =
+                        await fetch(
+                            API_URL +
+                            "/listing-contact",
+                            {
+                                method:
+                                    "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify({
+
+                                        initData:
+                                            tg.initData,
+
+                                        listing_id:
+                                            listing.id
+
+                                    })
+                            }
+                        );
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (
+                        response.ok &&
+                        data.ok &&
+                        data.unlocked &&
+                        data.contact
+                    ) {
+
+                        showSellerContact(
+                            listing.id,
+                            data.contact,
+                            Boolean(
+                                data.owner
+                            )
+                        );
+                    }
+
+                }
+
+                catch (error) {
+
+                    console.log(
+                        "Contact check failed:",
+                        listing.id
+                    );
+                }
+            }
+        )
+    );
+}
+
+
+// ======================================================
+// UNLOCK CONTACT
+// ======================================================
+
+async function unlockSellerContact(
+    listingId
+) {
+
+    if (
+        !authenticatedUser
+    ) {
+
+        tg?.showAlert(
+            "Please wait for Telegram authentication."
+        );
+
+        return;
+    }
+
+
+    setContactLoading(
+        listingId,
+        "Checking access..."
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL +
+                "/listing-contact",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            initData:
+                                tg.initData,
+
+                            listing_id:
+                                listingId
+                        })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                data.error
+            );
+        }
+
+
+        if (
+            data.unlocked
+        ) {
+
+            showSellerContact(
+                listingId,
+                data.contact,
+                Boolean(
+                    data.owner
+                )
+            );
+
+            return;
+        }
+
+
+        await startContactPayment(
+            listingId
+        );
+
+    }
+
+    catch (error) {
+
+        restoreContactButton(
+            listingId
+        );
+
+
+        tg?.showAlert(
+            "Error: " +
+            error.message
+        );
+    }
+}
+
+
+// ======================================================
+// CONTACT PAYMENT
+// ======================================================
+
+async function startContactPayment(
+    listingId
+) {
+
+    setContactLoading(
+        listingId,
+        "Creating Stars invoice..."
+    );
+
+
+    const response =
+        await fetch(
+            API_URL +
+            "/contact-unlock/create",
             {
                 method: "POST",
 
@@ -95,372 +1580,1454 @@ async function getAccountFingerprint() {
                         "application/json"
                 },
 
-                body: JSON.stringify({
-                    initData: tg.initData,
-                    sessionToken: null
-                })
+                body:
+                    JSON.stringify({
+
+                        initData:
+                            tg.initData,
+
+                        listing_id:
+                            listingId
+                    })
             }
         );
 
-        const data =
-            await response.json();
 
-        return (
-            data.current_telegram_account
-            || "UNKNOWN"
+    const data =
+        await response.json();
+
+
+    if (
+        !response.ok ||
+        !data.ok
+    ) {
+
+        throw new Error(
+            data.error ||
+            "Could not create payment"
+        );
+    }
+
+
+    if (
+        data.already_unlocked
+    ) {
+
+        await unlockSellerContact(
+            listingId
         );
 
-    } catch (e) {
+        return;
+    }
 
-        return "ERROR";
+
+    const orderId =
+        data.order_id;
+
+
+    tg.openInvoice(
+        data.invoice_link,
+
+        async status => {
+
+            if (
+                status ===
+                "cancelled"
+            ) {
+
+                restoreContactButton(
+                    listingId
+                );
+
+                return;
+            }
+
+
+            if (
+                status ===
+                "failed"
+            ) {
+
+                restoreContactButton(
+                    listingId
+                );
+
+
+                tg.showAlert(
+                    "Payment failed."
+                );
+
+                return;
+            }
+
+
+            setContactLoading(
+                listingId,
+                "Payment sent. Waiting for secure confirmation..."
+            );
+
+
+            await waitForContactPayment(
+                listingId,
+                orderId
+            );
+        }
+    );
+}
+
+
+// ======================================================
+// WAIT CONTACT PAYMENT
+// ======================================================
+
+async function waitForContactPayment(
+    listingId,
+    orderId
+) {
+
+    for (
+        let attempt = 1;
+        attempt <= 15;
+        attempt++
+    ) {
+
+        try {
+
+            const response =
+                await fetch(
+                    API_URL +
+                    "/contact-unlock/status",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                initData:
+                                    tg.initData,
+
+                                order_id:
+                                    orderId
+                            })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                data.ok &&
+                data.order.status ===
+                    "paid"
+            ) {
+
+                await unlockSellerContact(
+                    listingId
+                );
+
+                return;
+            }
+
+
+            if (
+                data.ok &&
+                data.order.status ===
+                    "refunded"
+            ) {
+
+                restoreContactButton(
+                    listingId
+                );
+
+
+                tg.showAlert(
+                    "Payment was refunded."
+                );
+
+                return;
+            }
+
+
+            if (
+                data.ok &&
+                data.order.status ===
+                    "failed"
+            ) {
+
+                restoreContactButton(
+                    listingId
+                );
+
+                return;
+            }
+
+        }
+
+        catch {}
+
+
+        await sleep(
+            2000
+        );
+    }
+
+
+    restoreContactButton(
+        listingId
+    );
+}
+
+
+// ======================================================
+// DISPLAY CONTACT / OWNER
+// ======================================================
+
+function showSellerContact(
+    listingId,
+    contact,
+    owner = false
+) {
+
+    const areas =
+        getContactAreas(
+            listingId
+        );
+
+
+    if (
+        !areas.length
+    ) {
+
+        return;
+    }
+
+
+    let html;
+
+
+    if (
+        owner
+    ) {
+
+        html = `
+
+            <div class="owner-contact-box">
+
+                <div class="owner-title">
+
+                    👤 Your Listing
+
+                </div>
+
+
+                <div class="owner-note">
+
+                    This is your own listing.
+                    No contact unlock payment is required.
+
+                </div>
+
+
+                <div class="meta">
+
+                    ${escapeHtml(
+                        formatContactType(
+                            contact.type
+                        )
+                    )}
+
+                </div>
+
+
+                <div class="contact-value">
+
+                    ${escapeHtml(
+                        contact.value
+                    )}
+
+                </div>
+
+
+                <div class="contact-actions">
+
+                    ${
+                        contact.type ===
+                        "telegram"
+
+                            ? `
+
+                                <button
+                                    class="primary"
+                                    onclick="
+                                        openTelegramContact(
+                                            '${escapeJs(
+                                                contact.value
+                                            )}'
+                                        )
+                                    "
+                                >
+                                    Open Telegram
+                                </button>
+
+                            `
+
+                            : ""
+                    }
+
+
+                    <button
+                        class="secondary"
+                        onclick="
+                            copyContact(
+                                '${escapeJs(
+                                    contact.value
+                                )}'
+                            )
+                        "
+                    >
+                        Copy
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        markOwnListing(
+            listingId
+        );
+
+    } else {
+
+        html = `
+
+            <div class="contact-box">
+
+                <div class="contact-title">
+
+                    🔓 Seller Contact Unlocked
+
+                </div>
+
+
+                <div class="meta">
+
+                    ${escapeHtml(
+                        formatContactType(
+                            contact.type
+                        )
+                    )}
+
+                </div>
+
+
+                <div class="contact-value">
+
+                    ${escapeHtml(
+                        contact.value
+                    )}
+
+                </div>
+
+
+                <div class="contact-actions">
+
+                    ${
+                        contact.type ===
+                        "telegram"
+
+                            ? `
+
+                                <button
+                                    class="primary"
+                                    onclick="
+                                        openTelegramContact(
+                                            '${escapeJs(
+                                                contact.value
+                                            )}'
+                                        )
+                                    "
+                                >
+                                    Open Telegram
+                                </button>
+
+                            `
+
+                            : ""
+                    }
+
+
+                    <button
+                        class="secondary"
+                        onclick="
+                            copyContact(
+                                '${escapeJs(
+                                    contact.value
+                                )}'
+                            )
+                        "
+                    >
+                        Copy
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+    }
+
+
+    areas.forEach(
+        area => {
+
+            area.innerHTML =
+                html;
+        }
+    );
+}
+
+
+// ======================================================
+// OWN LISTING UI
+// ======================================================
+
+function markOwnListing(
+    listingId
+) {
+
+    const cards =
+        [
+            ...document.querySelectorAll(
+                ".listing-card"
+            )
+        ]
+            .filter(
+                card =>
+                    card.dataset
+                        .listingCardId ===
+                    String(
+                        listingId
+                    )
+            );
+
+
+    cards.forEach(
+        card => {
+
+            const offerButton =
+                card.querySelector(
+                    ".offer-button"
+                );
+
+
+            if (
+                offerButton
+            ) {
+
+                offerButton.disabled =
+                    true;
+
+                offerButton.className =
+                    "own-listing-button";
+
+                offerButton.textContent =
+                    "Your Listing";
+            }
+        }
+    );
+}
+
+
+// ======================================================
+// CONTACT UI HELPERS
+// ======================================================
+
+function getContactAreas(
+    listingId
+) {
+
+    return [
+        ...document.querySelectorAll(
+            ".contact-area"
+        )
+    ]
+        .filter(
+            area =>
+                area.dataset
+                    .contactListingId ===
+                String(
+                    listingId
+                )
+        );
+}
+
+
+function getLockedContactHtml(
+    listingId
+) {
+
+    return `
+
+        <button
+            class="unlock-button"
+            onclick="
+                unlockSellerContact(
+                    '${escapeJs(
+                        listingId
+                    )}'
+                )
+            "
+        >
+
+            🔒 Unlock Seller Contact ·
+            ${contactUnlockPriceStars} ⭐
+
+        </button>
+
+    `;
+}
+
+
+function setContactLoading(
+    listingId,
+    text
+) {
+
+    getContactAreas(
+        listingId
+    )
+        .forEach(
+            area => {
+
+                area.innerHTML = `
+
+                    <div class="payment-wait">
+
+                        ${escapeHtml(
+                            text
+                        )}
+
+                    </div>
+
+                `;
+            }
+        );
+}
+
+
+function restoreContactButton(
+    listingId
+) {
+
+    const html =
+        getLockedContactHtml(
+            listingId
+        );
+
+
+    getContactAreas(
+        listingId
+    )
+        .forEach(
+            area => {
+
+                area.innerHTML =
+                    html;
+            }
+        );
+}
+
+
+// ======================================================
+// CONTACT ACTIONS
+// ======================================================
+
+async function copyContact(
+    value
+) {
+
+    try {
+
+        await navigator
+            .clipboard
+            .writeText(
+                value
+            );
+
+
+        tg?.showAlert(
+            "Contact copied ✓"
+        );
+
+    }
+
+    catch {
+
+        tg?.showAlert(
+            value
+        );
     }
 }
 
 
-function deviceSet(key, value) {
+function openTelegramContact(
+    value
+) {
 
-    return new Promise((resolve) => {
+    const username =
+        String(value)
+            .trim()
+            .replace(/^@/, "");
 
-        if (!tg.DeviceStorage) {
 
-            resolve({
-                supported: false
-            });
+    if (
+        !username
+    ) {
 
-            return;
-        }
+        return;
+    }
 
-        tg.DeviceStorage.setItem(
-            key,
-            value,
-            (error, success) => {
 
-                resolve({
-                    supported: true,
-                    error:
-                        error || null,
-                    success:
-                        Boolean(success)
-                });
-            }
-        );
-    });
+    tg.openTelegramLink(
+        "https://t.me/" +
+        encodeURIComponent(
+            username
+        )
+    );
 }
 
 
-function deviceGet(key) {
+function formatContactType(
+    value
+) {
 
-    return new Promise((resolve) => {
+    if (
+        value === "telegram"
+    ) {
 
-        if (!tg.DeviceStorage) {
+        return "Telegram";
+    }
 
-            resolve({
-                supported: false,
-                value: null
-            });
 
-            return;
-        }
+    if (
+        value === "email"
+    ) {
 
-        tg.DeviceStorage.getItem(
-            key,
-            (error, value) => {
+        return "Email";
+    }
 
-                resolve({
-                    supported: true,
-                    error:
-                        error || null,
-                    value:
-                        value ?? null
-                });
-            }
-        );
-    });
+
+    return "Contact";
 }
 
 
-function deviceRemove(key) {
+// ======================================================
+// LISTING PAYMENT
+// ======================================================
 
-    return new Promise((resolve) => {
+async function startListingPayment(
+    event
+) {
 
-        if (!tg.DeviceStorage) {
+    event.preventDefault();
 
-            resolve(false);
 
-            return;
-        }
-
-        tg.DeviceStorage.removeItem(
-            key,
-            () => resolve(true)
+    const button =
+        document.getElementById(
+            "listingButton"
         );
-    });
-}
 
 
-function secureSet(key, value) {
-
-    return new Promise((resolve) => {
-
-        if (!tg.SecureStorage) {
-
-            resolve({
-                supported: false
-            });
-
-            return;
-        }
-
-        tg.SecureStorage.setItem(
-            key,
-            value,
-            (error, success) => {
-
-                resolve({
-                    supported: true,
-                    error:
-                        error || null,
-                    success:
-                        Boolean(success)
-                });
-            }
-        );
-    });
-}
+    button.disabled =
+        true;
 
 
-function secureGet(key) {
-
-    return new Promise((resolve) => {
-
-        if (!tg.SecureStorage) {
-
-            resolve({
-                supported: false,
-                value: null,
-                canRestore: false
-            });
-
-            return;
-        }
-
-        tg.SecureStorage.getItem(
-            key,
-            (
-                error,
-                value,
-                canRestore
-            ) => {
-
-                resolve({
-                    supported: true,
-
-                    error:
-                        error || null,
-
-                    value:
-                        value ?? null,
-
-                    canRestore:
-                        Boolean(canRestore)
-                });
-            }
-        );
-    });
-}
-
-
-function secureRemove(key) {
-
-    return new Promise((resolve) => {
-
-        if (!tg.SecureStorage) {
-
-            resolve(false);
-
-            return;
-        }
-
-        tg.SecureStorage.removeItem(
-            key,
-            () => resolve(true)
-        );
-    });
-}
-
-
-
-document.getElementById("write").onclick =
-    async () => {
-
-    result.textContent =
-        "Writing...";
-
-    const account =
-        await getAccountFingerprint();
-
-    const marker =
-        "OWNER-" +
-        account +
-        "-" +
-        Date.now() +
-        "-" +
-        Math.random()
-            .toString(36)
-            .slice(2, 9);
-
-
-    localStorage.setItem(
-        KEY,
-        marker
+    showListingMessage(
+        "info",
+        "Creating invoice..."
     );
 
 
-    const device =
-        await deviceSet(
-            KEY,
-            marker
+    try {
+
+        const response =
+            await fetch(
+                API_URL +
+                "/listing-payment/create",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            initData:
+                                tg.initData,
+
+                            whatsapp_username:
+                                document
+                                    .getElementById(
+                                        "listingUsername"
+                                    )
+                                    .value,
+
+                            asking_price:
+                                document
+                                    .getElementById(
+                                        "listingPrice"
+                                    )
+                                    .value,
+
+                            category:
+                                document
+                                    .getElementById(
+                                        "listingCategory"
+                                    )
+                                    .value,
+
+                            description:
+                                document
+                                    .getElementById(
+                                        "listingDescription"
+                                    )
+                                    .value,
+
+                            contact_type:
+                                document
+                                    .getElementById(
+                                        "contactType"
+                                    )
+                                    .value,
+
+                            contact_value:
+                                document
+                                    .getElementById(
+                                        "contactValue"
+                                    )
+                                    .value
+                        })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                data.error
+            );
+        }
+
+
+        tg.openInvoice(
+            data.invoice_link,
+
+            async status => {
+
+                if (
+                    status ===
+                        "cancelled" ||
+                    status ===
+                        "failed"
+                ) {
+
+                    resetListingButton();
+
+                    return;
+                }
+
+
+                showListingMessage(
+                    "info",
+                    "Waiting for payment confirmation..."
+                );
+
+
+                await waitListingPayment(
+                    data.order_id
+                );
+            }
+        );
+
+    }
+
+    catch (error) {
+
+        showListingMessage(
+            "error",
+            error.message
         );
 
 
-    const secure =
-        await secureSet(
-            KEY,
-            marker
+        resetListingButton();
+    }
+}
+
+
+// ======================================================
+// WAIT LISTING PAYMENT
+// ======================================================
+
+async function waitListingPayment(
+    orderId
+) {
+
+    for (
+        let attempt = 1;
+        attempt <= 15;
+        attempt++
+    ) {
+
+        try {
+
+            const response =
+                await fetch(
+                    API_URL +
+                    "/listing-payment/status",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                initData:
+                                    tg.initData,
+
+                                order_id:
+                                    orderId
+                            })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                data.ok &&
+                data.order.status ===
+                    "completed"
+            ) {
+
+                showListingMessage(
+                    "success",
+                    "✓ Payment confirmed. Listing sent for moderation."
+                );
+
+
+                document
+                    .getElementById(
+                        "listingForm"
+                    )
+                    .reset();
+
+
+                await loadMyListings();
+
+
+                resetListingButton();
+
+
+                return;
+            }
+
+        }
+
+        catch {}
+
+
+        await sleep(
+            2000
         );
+    }
 
 
-    result.textContent =
-`
-✅ WRITE COMPLETE
-
-Current Telegram account:
-${account}
-
-Test marker:
-${marker}
-
-Browser localStorage:
-WRITTEN
-
-DeviceStorage:
-${JSON.stringify(device, null, 2)}
-
-SecureStorage:
-${JSON.stringify(secure, null, 2)}
-
-
-NEXT:
-
-1. Закрой Mini App
-2. Переключись на аккаунт №2
-3. Открой тот же Mini App
-4. НЕ нажимай WRITE
-5. Нажми READ ONLY
-`;
-};
-
-
-
-document.getElementById("read").onclick =
-    async () => {
-
-    result.textContent =
-        "Reading...";
-
-    const account =
-        await getAccountFingerprint();
-
-
-    const localValue =
-        localStorage.getItem(
-            KEY
-        );
-
-
-    const device =
-        await deviceGet(
-            KEY
-        );
-
-
-    const secure =
-        await secureGet(
-            KEY
-        );
-
-
-    result.textContent =
-`
-CURRENT TELEGRAM ACCOUNT:
-${account}
-
-
-======== localStorage ========
-
-${localValue ?? "NONE"}
-
-
-======== DeviceStorage ========
-
-Supported:
-${device.supported}
-
-Error:
-${device.error ?? "NONE"}
-
-Value:
-${device.value ?? "NONE"}
-
-
-======== SecureStorage ========
-
-Supported:
-${secure.supported}
-
-Error:
-${secure.error ?? "NONE"}
-
-Value:
-${secure.value ?? "NONE"}
-
-Can restore:
-${secure.canRestore}
-
-
-==============================
-
-ВАЖНО:
-
-Если DeviceStorage или SecureStorage
-содержит OWNER другого аккаунта,
-НЕ нажимай CLEAR.
-Сохрани этот результат.
-`;
-};
-
-
-
-document.getElementById("clear").onclick =
-    async () => {
-
-    localStorage.removeItem(
-        KEY
+    showListingMessage(
+        "info",
+        "Confirmation is taking longer. Do not pay again."
     );
 
-    await deviceRemove(
-        KEY
+
+    resetListingButton();
+}
+
+
+// ======================================================
+// MY LISTINGS
+// ======================================================
+
+async function loadMyListings() {
+
+    if (
+        !tg?.initData
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL +
+                "/my-listings",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            initData:
+                                tg.initData
+                        })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        const container =
+            document.getElementById(
+                "myListings"
+            );
+
+
+        if (
+            !data.listings?.length
+        ) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+                    No listings
+                </div>
+
+            `;
+
+
+            return;
+        }
+
+
+        container.innerHTML =
+            data.listings
+                .map(
+                    listing => {
+
+                        let badgeClass =
+                            "badge-pending";
+
+
+                        if (
+                            listing.status ===
+                            "active"
+                        ) {
+
+                            badgeClass =
+                                "badge-active";
+                        }
+
+
+                        if (
+                            listing.status ===
+                            "rejected"
+                        ) {
+
+                            badgeClass =
+                                "badge-rejected";
+                        }
+
+
+                        return `
+
+                            <div class="card">
+
+                                <div class="username">
+
+                                    @${escapeHtml(
+                                        listing.whatsapp_username
+                                    )}
+
+                                </div>
+
+
+                                <div
+                                    class="badge ${badgeClass}"
+                                >
+
+                                    ${escapeHtml(
+                                        listing.status
+                                            .toUpperCase()
+                                    )}
+
+                                </div>
+
+
+                                <div class="price">
+
+                                    $${formatPrice(
+                                        listing.asking_price
+                                    )}
+
+                                </div>
+
+                            </div>
+
+                        `;
+                    }
+                )
+                .join("");
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+    }
+}
+
+
+// ======================================================
+// ADMIN
+// ======================================================
+
+function openAdmin() {
+
+    openPage(
+        "admin",
+        null
     );
 
-    await secureRemove(
-        KEY
+
+    loadPendingListings();
+}
+
+
+async function loadPendingListings() {
+
+    const response =
+        await fetch(
+            API_URL +
+            "/admin/pending-listings",
+            {
+                method:
+                    "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        initData:
+                            tg.initData
+                    })
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    const container =
+        document.getElementById(
+            "pendingListings"
+        );
+
+
+    if (
+        !data.listings?.length
+    ) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+                No pending listings
+            </div>
+
+        `;
+
+
+        return;
+    }
+
+
+    container.innerHTML =
+        data.listings
+            .map(
+                listing => `
+
+                    <div class="card">
+
+                        <div class="username">
+
+                            @${escapeHtml(
+                                listing.whatsapp_username
+                            )}
+
+                        </div>
+
+
+                        <div class="price">
+
+                            $${formatPrice(
+                                listing.asking_price
+                            )}
+
+                        </div>
+
+
+                        <div class="buttons">
+
+                            <button
+                                class="approve-button"
+                                onclick="
+                                    adminStatus(
+                                        '${listing.id}',
+                                        'active'
+                                    )
+                                "
+                            >
+                                ✓ Approve
+                            </button>
+
+
+                            <button
+                                class="reject-button"
+                                onclick="
+                                    adminStatus(
+                                        '${listing.id}',
+                                        'rejected'
+                                    )
+                                "
+                            >
+                                ✕ Reject
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                `
+            )
+            .join("");
+}
+
+
+async function adminStatus(
+    id,
+    status
+) {
+
+    await fetch(
+        API_URL +
+        "/admin/listing-status",
+        {
+            method:
+                "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+
+            body:
+                JSON.stringify({
+
+                    initData:
+                        tg.initData,
+
+                    listing_id:
+                        id,
+
+                    status
+                })
+        }
     );
 
-    result.textContent =
-        "✅ Test markers cleared";
-};
+
+    await loadPendingListings();
+
+    await loadMarketplace();
+
+    await loadMyListings();
+}
+
+
+// ======================================================
+// SEARCH / NAVIGATION
+// ======================================================
+
+function filterMarketplace(
+    value
+) {
+
+    const query =
+        String(
+            value ||
+            ""
+        )
+            .replace("@","")
+            .toLowerCase()
+            .trim();
+
+
+    const filtered =
+        !query
+
+            ? marketplaceListings
+
+            : marketplaceListings
+                .filter(
+                    item =>
+
+                        item
+                            .whatsapp_username
+                            .toLowerCase()
+                            .includes(
+                                query
+                            )
+
+                        ||
+
+                        String(
+                            item.category ||
+                            ""
+                        )
+                            .toLowerCase()
+                            .includes(
+                                query
+                            )
+                );
+
+
+    renderMarketplace(
+        filtered
+    );
+
+
+    if (
+        authenticatedUser
+    ) {
+
+        checkUnlockedContacts(
+            filtered
+        );
+    }
+}
+
+
+function openPage(
+    id,
+    nav
+) {
+
+    document
+        .querySelectorAll(
+            ".page"
+        )
+        .forEach(
+            element =>
+                element
+                    .classList
+                    .remove(
+                        "active"
+                    )
+        );
+
+
+    document
+        .getElementById(id)
+        .classList
+        .add("active");
+
+
+    document
+        .querySelectorAll(
+            ".nav-item"
+        )
+        .forEach(
+            element =>
+                element
+                    .classList
+                    .remove(
+                        "active"
+                    )
+        );
+
+
+    if (
+        nav
+    ) {
+
+        nav.classList
+            .add("active");
+    }
+}
+
+
+// ======================================================
+// HELPERS
+// ======================================================
+
+function showListingMessage(
+    type,
+    text
+) {
+
+    const element =
+        document.getElementById(
+            "listingMessage"
+        );
+
+
+    element.className =
+        `message ${type}`;
+
+
+    element.textContent =
+        text;
+}
+
+
+function resetListingButton() {
+
+    const button =
+        document.getElementById(
+            "listingButton"
+        );
+
+
+    button.disabled =
+        false;
+
+
+    button.textContent =
+        `Pay ${listingPriceStars} ⭐ & Submit`;
+}
+
+
+function futureOffer() {
+
+    tg?.showAlert(
+        "Make Offer will be connected next."
+    );
+}
+
+
+function futureWatch() {
+
+    tg?.showAlert(
+        "Watchlist will be connected later."
+    );
+}
+
+
+function sleep(ms) {
+
+    return new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                ms
+            )
+    );
+}
+
+
+function formatPrice(
+    value
+) {
+
+    const number =
+        Number(value);
+
+
+    return Number.isFinite(number)
+        ? number.toLocaleString(
+            "en-US",
+            {
+                maximumFractionDigits:
+                    2
+            }
+        )
+        : "0";
+}
+
+
+function escapeHtml(
+    value
+) {
+
+    return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+}
+
+
+function escapeJs(
+    value
+) {
+
+    return String(value ?? "")
+        .replaceAll("\\","\\\\")
+        .replaceAll("'","\\'");
+}
+
+
+// ======================================================
+// START
+// ======================================================
+
+authenticate();
+
+loadMarketplace();
+
+loadMyListings();
 
 </script>
 
 </body>
+
 </html>
