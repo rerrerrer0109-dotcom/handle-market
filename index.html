@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Handle Market</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6f8;
+            color: #111;
+            padding-bottom: 90px;
+        }
+
+        .app {
+            max-width: 600px;
+            margin: auto;
+        }
+
+        header {
+            background: white;
+            padding: 18px 16px;
+            border-bottom: 1px solid #e8e8e8;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            color: #777;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .search {
+            margin: 16px;
+        }
+
+        .search input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            outline: none;
+            background: white;
+        }
+
+        .section {
+            padding: 0 16px 20px;
+        }
+
+        .section-title {
+            font-size: 19px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .categories {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .category {
+            background: white;
+            padding: 9px 14px;
+            border-radius: 20px;
+            white-space: nowrap;
+            font-size: 14px;
+            border: 1px solid #eee;
+        }
+
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+
+        .username {
+            font-size: 23px;
+            font-weight: 800;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #eef6ff;
+            color: #1687e8;
+            padding: 5px 9px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-top: 7px;
+        }
+
+        .price {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 14px;
+        }
+
+        .meta {
+            color: #777;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 11px 13px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .primary {
+            background: #1687e8;
+            color: white;
+            flex: 1;
+        }
+
+        .secondary {
+            background: #f0f1f3;
+            color: #222;
+        }
+
+        .warning {
+            background: #fff8e8;
+            border: 1px solid #ffe0a3;
+            border-radius: 14px;
+            padding: 13px;
+            font-size: 13px;
+            line-height: 1.45;
+            margin: 0 16px 20px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .placeholder {
+            background: white;
+            margin: 16px;
+            padding: 30px 20px;
+            border-radius: 18px;
+            text-align: center;
+        }
+
+        .placeholder h2 {
+            margin-bottom: 10px;
+        }
+
+        .placeholder p {
+            color: #777;
+            line-height: 1.5;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: white;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-around;
+            z-index: 20;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding-top: 10px;
+            font-size: 11px;
+            color: #777;
+            cursor: pointer;
+        }
+
+        .nav-icon {
+            font-size: 23px;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .nav-item.active {
+            color: #1687e8;
+            font-weight: 700;
+        }
+
+        .sell-button {
+            background: #1687e8;
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <header>
+        <div class="logo">Handle Market</div>
+        <div class="subtitle">Discover premium WhatsApp usernames</div>
+    </header>
+
+
+    <!-- HOME -->
+
+    <div id="home" class="page active">
+
+        <div class="search">
+            <input type="text" placeholder="Search @username">
+        </div>
+
+        <div class="section">
+
+            <div class="section-title">
+                Categories
+            </div>
+
+            <div class="categories">
+                <div class="category">🔥 Premium</div>
+                <div class="category">Business</div>
+                <div class="category">AI</div>
+                <div class="category">Short</div>
+                <div class="category">Travel</div>
+                <div class="category">Finance</div>
+            </div>
+
+        </div>
+
+
+        <div class="section">
+
+            <div class="section-title">
+                Featured usernames
+            </div>
+
+
+            <div class="card">
+
+                <div class="username">
+                    @centers
+                </div>
+
+                <div class="badge">
+                    ✓ Owner verified
+                </div>
+
+                <div class="price">
+                    $5,000
+                </div>
+
+                <div class="meta">
+                    Business · Premium
+                </div>
+
+                <div class="buttons">
+
+                    <button class="primary">
+                        Make Offer
+                    </button>
+
+                    <button class="secondary">
+                        ☆ Watch
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="username">
+                    @zoneai
+                </div>
+
+                <div class="badge">
+                    ✓ Owner verified
+                </div>
+
+                <div class="price">
+                    $2,500
+                </div>
+
+                <div class="meta">
+                    AI · Technology
+                </div>
+
+                <div class="buttons">
+
+                    <button class="primary">
+                        Make Offer
+                    </button>
+
+                    <button class="secondary">
+                        ☆ Watch
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="warning">
+
+            ⚠️ WhatsApp currently does not provide an official
+            person-to-person username transfer system.
+
+            Handle Market does not guarantee username transfer.
+            Buyers and sellers may negotiate and wait for a safer
+            or official transfer mechanism.
+
+        </div>
+
+    </div>
+
+
+    <!-- MARKETPLACE -->
+
+    <div id="marketplace" class="page">
+
+        <div class="placeholder">
+
+            <h2>🔎 Marketplace</h2>
+
+            <p>
+                Browse usernames, filter categories,
+                view prices and contact verified owners.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- LIST -->
+
+    <div id="list" class="page">
+
+        <div class="placeholder">
+
+            <h2>➕ List Username</h2>
+
+            <p>
+                Add your WhatsApp username to the marketplace.
+            </p>
+
+            <button class="sell-button">
+                Create Listing
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- WANTED -->
+
+    <div id="wanted" class="page">
+
+        <div class="placeholder">
+
+            <h2>🎯 Wanted</h2>
+
+            <p>
+                Tell the community which username
+                you are looking for.
+            </p>
+
+            <button class="sell-button">
+                Create Wanted Post
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- PROFILE -->
+
+    <div id="profile" class="page">
+
+        <div class="placeholder">
+
+            <h2>👤 Profile</h2>
+
+            <p id="telegramUser">
+                Loading Telegram profile...
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- NAVIGATION -->
+
+<div class="bottom-nav">
+
+    <div class="nav-item active" onclick="openPage('home', this)">
+        <span class="nav-icon">🏠</span>
+        Home
+    </div>
+
+    <div class="nav-item" onclick="openPage('marketplace', this)">
+        <span class="nav-icon">🔎</span>
+        Market
+    </div>
+
+    <div class="nav-item" onclick="openPage('list', this)">
+        <span class="nav-icon">➕</span>
+        List
+    </div>
+
+    <div class="nav-item" onclick="openPage('wanted', this)">
+        <span class="nav-icon">🎯</span>
+        Wanted
+    </div>
+
+    <div class="nav-item" onclick="openPage('profile', this)">
+        <span class="nav-icon">👤</span>
+        Profile
+    </div>
+
+</div>
+
+
+<script>
+
+    const tg = window.Telegram.WebApp;
+
+    tg.ready();
+    tg.expand();
+
+
+    const user = tg.initDataUnsafe?.user;
+
+    if (user) {
+
+        document.getElementById("telegramUser").innerHTML =
+            "<b>" +
+            (user.first_name || "Telegram User") +
+            "</b><br><br>" +
+            (user.username
+                ? "@" + user.username
+                : "Telegram account connected");
+
+    }
+
+
+    function openPage(pageId, element) {
+
+        document
+            .querySelectorAll(".page")
+            .forEach(page => {
+                page.classList.remove("active");
+            });
+
+
+        document
+            .getElementById(pageId)
+            .classList
+            .add("active");
+
+
+        document
+            .querySelectorAll(".nav-item")
+            .forEach(item => {
+                item.classList.remove("active");
+            });
+
+
+        element.classList.add("active");
+    }
+
+</script>
+
+</body>
+</html>
