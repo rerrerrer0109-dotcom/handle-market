@@ -17,47 +17,30 @@
 
 <style>
 
-/* =========================================================
-   HANDLE MARKET v20
-   MARKETPLACE SEARCH + FILTERS + SORTING
-   ========================================================= */
-
 :root {
-
     --bg:#f5f7fa;
-
     --surface:#ffffff;
     --surface-2:#f8f9fb;
     --surface-3:#eef1f5;
-
     --text:#11141a;
     --text-2:#525966;
     --muted:#89909d;
-
     --border:#e5e9ef;
-
     --blue:#1688e8;
     --blue-dark:#0872ce;
     --blue-soft:#edf6ff;
-
     --green:#15954a;
     --green-soft:#eaf8ef;
-
     --red:#df4545;
     --red-soft:#fff0f0;
-
     --yellow:#9c7000;
     --yellow-soft:#fff5d9;
-
     --purple:#6848c9;
     --purple-soft:#f2efff;
-
     --orange:#ed6c20;
     --orange-soft:#fff2e8;
-
     --cyan:#087fa8;
     --cyan-soft:#e8f8ff;
-
     --gold:#c9972e;
     --gold-light:#f5d878;
     --gold-soft:#fff7df;
@@ -71,7 +54,6 @@
     --radius-xl:24px;
     --radius-lg:18px;
     --radius-md:14px;
-
     --nav-height:64px;
 }
 
@@ -79,19 +61,14 @@
 @media (prefers-color-scheme:dark) {
 
     :root {
-
         --bg:#101216;
-
         --surface:#181b20;
         --surface-2:#202329;
         --surface-3:#292d34;
-
         --text:#f4f5f7;
         --text-2:#c2c7cf;
         --muted:#9299a5;
-
         --border:#292d34;
-
         --blue-soft:rgba(22,136,232,.14);
         --green-soft:rgba(21,149,74,.14);
         --red-soft:rgba(223,69,69,.14);
@@ -110,18 +87,16 @@
 }
 
 
-/* =========================================================
-   BASE
-   ========================================================= */
-
 * {
     box-sizing:border-box;
     -webkit-tap-highlight-color:transparent;
 }
 
+
 html {
     scroll-behavior:smooth;
 }
+
 
 body {
 
@@ -145,13 +120,11 @@ body {
         );
 
     background:
-
         radial-gradient(
             circle at 95% 0%,
             rgba(22,136,232,.07),
             transparent 28%
         ),
-
         var(
             --tg-theme-bg-color,
             var(--bg)
@@ -169,6 +142,7 @@ body {
     line-height:1.45;
 }
 
+
 button,
 input,
 textarea,
@@ -176,16 +150,19 @@ select {
     font:inherit;
 }
 
+
 button {
     border:0;
     cursor:pointer;
     touch-action:manipulation;
 }
 
+
 button:disabled {
     cursor:default;
     opacity:.5;
 }
+
 
 .app {
     width:100%;
@@ -194,16 +171,10 @@ button:disabled {
 }
 
 
-/* =========================================================
-   HEADER
-   ========================================================= */
-
 header {
 
     position:sticky;
-
     top:0;
-
     z-index:80;
 
     padding:
@@ -231,7 +202,6 @@ header {
 @media (prefers-color-scheme:dark) {
 
     header {
-
         background:
             rgba(24,27,32,.93);
     }
@@ -239,11 +209,8 @@ header {
 
 
 .header-main {
-
     display:flex;
-
     align-items:center;
-
     gap:11px;
 }
 
@@ -252,13 +219,10 @@ header {
 
     width:40px;
     height:40px;
-
     flex:0 0 40px;
 
     display:flex;
-
     align-items:center;
-
     justify-content:center;
 
     border-radius:13px;
@@ -266,11 +230,9 @@ header {
     color:#fff;
 
     font-size:18px;
-
     font-weight:900;
 
     background:
-
         linear-gradient(
             145deg,
             #2da0f5,
@@ -278,20 +240,15 @@ header {
         );
 
     box-shadow:
-
         0 8px 20px
         rgba(22,136,232,.23);
 }
 
 
 .brand-title {
-
     font-size:22px;
-
     font-weight:900;
-
     line-height:1.05;
-
     letter-spacing:-.7px;
 }
 
@@ -313,44 +270,34 @@ header {
 .auth-status {
 
     display:inline-flex;
-
     align-items:center;
 
     margin-top:9px;
-
     padding:5px 9px;
 
     border-radius:999px;
 
     font-size:10px;
-
     font-weight:800;
 }
 
 
 .auth-ok {
-
     color:var(--green);
-
     background:var(--green-soft);
 }
 
 
 .auth-error {
-
     color:var(--red);
-
     background:var(--red-soft);
 }
 
 
-/* =========================================================
-   PAGE
-   ========================================================= */
-
 .page {
     display:none;
 }
+
 
 .page.active {
 
@@ -364,35 +311,23 @@ header {
 @keyframes page-in {
 
     from {
-
         opacity:0;
-
-        transform:
-            translateY(3px);
+        transform:translateY(3px);
     }
 
     to {
-
         opacity:1;
-
-        transform:
-            translateY(0);
+        transform:translateY(0);
     }
 }
 
 
-/* =========================================================
-   HERO
-   ========================================================= */
-
 .hero {
 
     margin:16px;
-
     padding:22px;
 
     position:relative;
-
     overflow:hidden;
 
     border-radius:25px;
@@ -400,7 +335,6 @@ header {
     color:#fff;
 
     background:
-
         linear-gradient(
             135deg,
             #1688e8 0%,
@@ -409,7 +343,6 @@ header {
         );
 
     box-shadow:
-
         0 16px 40px
         rgba(22,136,232,.19);
 }
@@ -422,11 +355,9 @@ header {
     position:absolute;
 
     width:180px;
-
     height:180px;
 
     top:-85px;
-
     right:-45px;
 
     border-radius:50%;
@@ -439,15 +370,11 @@ header {
 .hero-label {
 
     position:relative;
-
     z-index:2;
 
     font-size:10px;
-
     font-weight:900;
-
     letter-spacing:1px;
-
     opacity:.78;
 }
 
@@ -455,7 +382,6 @@ header {
 .hero-title {
 
     position:relative;
-
     z-index:2;
 
     max-width:560px;
@@ -463,11 +389,8 @@ header {
     margin-top:8px;
 
     font-size:27px;
-
     font-weight:900;
-
     line-height:1.08;
-
     letter-spacing:-1px;
 }
 
@@ -475,7 +398,6 @@ header {
 .hero-text {
 
     position:relative;
-
     z-index:2;
 
     max-width:560px;
@@ -483,25 +405,17 @@ header {
     margin-top:9px;
 
     font-size:11.5px;
-
     line-height:1.55;
-
     opacity:.91;
 }
 
 
-/* =========================================================
-   HERO PREMIUM
-   ========================================================= */
-
 .hero-premium-info {
 
     position:relative;
-
     z-index:3;
 
     margin-top:17px;
-
     padding:12px 13px;
 
     border:
@@ -518,24 +432,14 @@ header {
 
     -webkit-backdrop-filter:
         blur(10px);
-
-    box-shadow:
-
-        inset 0 1px 0
-        rgba(255,255,255,.09);
 }
 
 
 .hero-premium-title {
-
     display:flex;
-
     align-items:center;
-
     gap:6px;
-
     font-size:10.5px;
-
     font-weight:900;
 }
 
@@ -548,7 +452,6 @@ header {
         rgba(255,255,255,.89);
 
     font-size:9px;
-
     line-height:1.5;
 }
 
@@ -556,7 +459,6 @@ header {
 .hero-promotion-text {
 
     margin-top:7px;
-
     padding-top:7px;
 
     border-top:
@@ -567,28 +469,18 @@ header {
         rgba(255,255,255,.75);
 
     font-size:8px;
-
     line-height:1.45;
 }
 
 
-/* =========================================================
-   HEADINGS
-   ========================================================= */
-
 .page-heading {
-
-    padding:
-        19px 16px 9px;
+    padding:19px 16px 9px;
 }
 
 
 .page-title {
-
     font-size:21px;
-
     font-weight:900;
-
     letter-spacing:-.55px;
 }
 
@@ -608,18 +500,13 @@ header {
 
 
 .section {
-
-    padding:
-        0 16px 24px;
+    padding:0 16px 24px;
 }
 
 
 .section-title {
-
     font-size:18px;
-
     font-weight:900;
-
     letter-spacing:-.4px;
 }
 
@@ -627,7 +514,6 @@ header {
 .section-subtitle {
 
     margin-top:-5px;
-
     margin-bottom:13px;
 
     color:
@@ -637,24 +523,16 @@ header {
         );
 
     font-size:10.5px;
-
     line-height:1.45;
 }
 
 
-/* =========================================================
-   SEARCH
-   ========================================================= */
-
 .search {
-
-    padding:
-        0 16px 14px;
+    padding:0 16px 14px;
 }
 
 
 .search-wrap {
-
     position:relative;
 }
 
@@ -664,11 +542,9 @@ header {
     position:absolute;
 
     left:15px;
-
     top:50%;
 
     width:17px;
-
     height:17px;
 
     transform:
@@ -683,9 +559,7 @@ header {
         );
 
     stroke-width:2;
-
     stroke-linecap:round;
-
     pointer-events:none;
 }
 
@@ -735,22 +609,15 @@ header {
         rgba(22,136,232,.45);
 
     box-shadow:
-
         0 0 0 4px
         rgba(22,136,232,.07),
-
         var(--shadow);
 }
 
 
-/* =========================================================
-   HOME CATEGORIES
-   ========================================================= */
-
 .categories {
 
     display:flex;
-
     gap:8px;
 
     overflow-x:auto;
@@ -791,31 +658,13 @@ header {
         );
 
     font-size:10.5px;
-
     font-weight:750;
-
-    transition:
-        transform .1s,
-        border-color .1s;
 }
 
-
-.category:active {
-
-    transform:
-        scale(.96);
-}
-
-
-/* =========================================================
-   MARKET PREMIUM NOTE
-   ========================================================= */
 
 .market-premium-note {
 
-    margin:
-        4px 16px 14px;
-
+    margin:4px 16px 14px;
     padding:12px 13px;
 
     border:
@@ -825,28 +674,16 @@ header {
     border-radius:15px;
 
     background:
-
         linear-gradient(
             135deg,
             #fffaf0 0%,
             #fff4ce 100%
         );
 
-    box-shadow:
-
-        0 6px 20px
-        rgba(171,120,18,.06);
-
     color:#6d5112;
 
     font-size:9.5px;
-
     line-height:1.5;
-}
-
-
-.market-premium-note strong {
-    font-weight:900;
 }
 
 
@@ -865,15 +702,9 @@ header {
 }
 
 
-/* =========================================================
-   NEW MARKETPLACE TOOLBAR
-   ========================================================= */
-
 .market-tools {
 
-    margin:
-        0 16px 14px;
-
+    margin:0 16px 14px;
     padding:12px;
 
     border:
@@ -895,11 +726,8 @@ header {
 .market-tools-top {
 
     display:flex;
-
     align-items:center;
-
     justify-content:space-between;
-
     gap:9px;
 }
 
@@ -907,7 +735,6 @@ header {
 .market-result-count {
 
     min-width:0;
-
     flex:1;
 
     color:
@@ -917,7 +744,6 @@ header {
         );
 
     font-size:10px;
-
     font-weight:800;
 }
 
@@ -925,7 +751,6 @@ header {
 .market-sort-select {
 
     min-width:135px;
-
     max-width:165px;
 
     padding:
@@ -950,7 +775,6 @@ header {
         var(--surface-2);
 
     font-size:9.5px;
-
     font-weight:800;
 }
 
@@ -959,8 +783,7 @@ header {
 
     min-width:86px;
 
-    padding:
-        9px 11px;
+    padding:9px 11px;
 
     border:
         1px solid
@@ -969,14 +792,10 @@ header {
     border-radius:12px;
 
     color:var(--blue);
-
-    background:
-        var(--blue-soft);
+    background:var(--blue-soft);
 
     font-size:9.5px;
-
     font-weight:900;
-
     white-space:nowrap;
 }
 
@@ -985,11 +804,9 @@ header {
 
     color:#fff;
 
-    border-color:
-        transparent;
+    border-color:transparent;
 
     background:
-
         linear-gradient(
             135deg,
             #1688e8,
@@ -1003,7 +820,6 @@ header {
     display:none;
 
     margin-top:12px;
-
     padding-top:12px;
 
     border-top:
@@ -1013,36 +829,11 @@ header {
 
 
 .filter-panel.show {
-
     display:block;
-
-    animation:
-        filter-open .15s ease;
-}
-
-
-@keyframes filter-open {
-
-    from {
-
-        opacity:0;
-
-        transform:
-            translateY(-3px);
-    }
-
-    to {
-
-        opacity:1;
-
-        transform:
-            translateY(0);
-    }
 }
 
 
 .filter-section {
-
     margin-bottom:14px;
 }
 
@@ -1058,11 +849,8 @@ header {
         );
 
     font-size:8.5px;
-
     font-weight:900;
-
     letter-spacing:.55px;
-
     text-transform:uppercase;
 }
 
@@ -1091,7 +879,6 @@ header {
         var(--surface-2);
 
     font-size:10.5px;
-
     font-weight:750;
 }
 
@@ -1099,7 +886,6 @@ header {
 .filter-promotion-row {
 
     display:flex;
-
     gap:6px;
 
     overflow-x:auto;
@@ -1119,8 +905,7 @@ header {
 
     flex:0 0 auto;
 
-    padding:
-        8px 11px;
+    padding:8px 11px;
 
     border:
         1px solid
@@ -1138,9 +923,7 @@ header {
         var(--surface-2);
 
     font-size:9px;
-
     font-weight:850;
-
     white-space:nowrap;
 }
 
@@ -1149,21 +932,14 @@ header {
 
     color:#fff;
 
-    border-color:
-        transparent;
+    border-color:transparent;
 
     background:
-
         linear-gradient(
             135deg,
             #1688e8,
             #6a4fd2
         );
-
-    box-shadow:
-
-        0 5px 14px
-        rgba(37,116,213,.15);
 }
 
 
@@ -1213,11 +989,8 @@ header {
     width:100%;
 
     display:flex;
-
     align-items:center;
-
     justify-content:space-between;
-
     gap:12px;
 
     padding:11px 12px;
@@ -1241,16 +1014,8 @@ header {
 }
 
 
-.premium-toggle-left {
-
-    min-width:0;
-}
-
-
 .premium-toggle-title {
-
     font-size:10.5px;
-
     font-weight:900;
 }
 
@@ -1274,7 +1039,6 @@ header {
     position:relative;
 
     width:38px;
-
     height:22px;
 
     flex:0 0 38px;
@@ -1283,9 +1047,6 @@ header {
 
     background:
         rgba(110,115,125,.22);
-
-    transition:
-        background .15s;
 }
 
 
@@ -1296,11 +1057,9 @@ header {
     position:absolute;
 
     width:18px;
-
     height:18px;
 
     top:2px;
-
     left:2px;
 
     border-radius:50%;
@@ -1330,20 +1089,15 @@ header {
 
 .premium-toggle.active
 .toggle-switch::after {
-
-    transform:
-        translateX(16px);
+    transform:translateX(16px);
 }
 
 
 .filter-footer {
 
     display:flex;
-
     align-items:center;
-
     justify-content:space-between;
-
     gap:8px;
 
     margin-top:4px;
@@ -1351,47 +1105,28 @@ header {
 
 
 .filter-reset {
-
     flex:1;
-
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
-
-    background:
-        var(--surface-3);
+    color:var(--muted);
+    background:var(--surface-3);
 }
 
 
 .filter-done {
-
     flex:1;
-
     color:#fff;
-
-    background:
-        var(--blue);
+    background:var(--blue);
 }
 
-
-/* =========================================================
-   ACTIVE FILTER SUMMARY
-   ========================================================= */
 
 .active-filter-bar {
 
     display:none;
-
     align-items:center;
-
     gap:6px;
 
     overflow-x:auto;
 
-    margin:
-        -2px 16px 13px;
+    margin:-2px 16px 13px;
 
     padding-bottom:2px;
 
@@ -1413,43 +1148,27 @@ header {
 
     flex:0 0 auto;
 
-    display:inline-flex;
-
-    align-items:center;
-
-    gap:5px;
-
-    padding:
-        6px 9px;
+    padding:6px 9px;
 
     border-radius:999px;
 
     color:var(--blue);
-
     background:var(--blue-soft);
 
     font-size:8.5px;
-
     font-weight:850;
 }
 
 
 .active-filter-pill.gold {
-
     color:#85600a;
-
     background:var(--gold-soft);
 }
 
 
-/* =========================================================
-   BASIC CARDS
-   ========================================================= */
-
 .card {
 
     margin-bottom:12px;
-
     padding:18px;
 
     border:
@@ -1473,36 +1192,16 @@ header {
 .username {
 
     font-size:21px;
-
     font-weight:900;
-
     line-height:1.12;
-
     letter-spacing:-.55px;
-
     word-break:break-word;
 }
 
 
 .price {
-
     font-size:20px;
-
     font-weight:900;
-}
-
-
-.meta {
-
-    margin-top:5px;
-
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
-
-    font-size:10.5px;
 }
 
 
@@ -1513,24 +1212,79 @@ header {
     color:var(--text-2);
 
     font-size:11.5px;
-
     line-height:1.55;
-
     word-break:break-word;
 }
 
 
 /* =========================================================
-   PREMIUM
+   LISTING STATS - NEW v21
    ========================================================= */
+
+.listing-stats {
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(0,1fr)
+        );
+
+    gap:7px;
+
+    margin-top:13px;
+}
+
+
+.listing-stat {
+
+    min-width:0;
+
+    padding:10px 5px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius:13px;
+
+    background:
+        var(--surface-2);
+
+    text-align:center;
+}
+
+
+.listing-stat-number {
+
+    font-size:15px;
+    font-weight:900;
+    line-height:1.1;
+}
+
+
+.listing-stat-label {
+
+    margin-top:4px;
+
+    color:
+        var(
+            --tg-theme-hint-color,
+            var(--muted)
+        );
+
+    font-size:7.5px;
+    font-weight:800;
+    white-space:nowrap;
+}
+
 
 .premium-name-badge {
 
     display:inline-flex;
 
     align-items:center;
-
-    gap:5px;
 
     padding:5px 9px;
 
@@ -1543,7 +1297,6 @@ header {
     color:#755104;
 
     background:
-
         linear-gradient(
             120deg,
             #fff7d3 0%,
@@ -1553,43 +1306,22 @@ header {
             #fff2b4 100%
         );
 
-    box-shadow:
-
-        0 4px 12px
-        rgba(160,110,15,.10),
-
-        inset 0 1px 0
-        rgba(255,255,255,.55);
-
     font-size:9px;
-
     font-weight:900;
-
-    white-space:nowrap;
 }
 
-
-/* =========================================================
-   PROMOTION BADGES
-   ========================================================= */
 
 .promotion-badge {
 
     display:inline-flex;
-
     align-items:center;
-
-    gap:5px;
 
     padding:5px 9px;
 
     border-radius:999px;
 
     font-size:9.5px;
-
     font-weight:900;
-
-    white-space:nowrap;
 }
 
 
@@ -1602,23 +1334,11 @@ header {
         rgba(250,215,107,.38);
 
     background:
-
         linear-gradient(
             135deg,
             rgba(120,12,38,.96),
             rgba(58,7,24,.96)
         );
-
-    box-shadow:
-
-        inset 0 1px 0
-        rgba(255,255,255,.10),
-
-        inset 0 0 12px
-        rgba(255,41,70,.13),
-
-        0 5px 15px
-        rgba(0,0,0,.26);
 }
 
 
@@ -1627,38 +1347,25 @@ header {
     color:#fff;
 
     background:
-
         linear-gradient(
             135deg,
             #e43b25,
             #ff8427
         );
-
-    box-shadow:
-
-        0 5px 14px
-        rgba(240,90,30,.24);
 }
 
 
 .promotion-badge-bump {
 
     color:var(--blue);
-
-    background:
-        var(--blue-soft);
+    background:var(--blue-soft);
 }
 
-
-/* =========================================================
-   VIP
-   ========================================================= */
 
 .listing-card.promotion-vip,
 .detail-card.promotion-vip {
 
     position:relative;
-
     overflow:hidden;
 
     border:
@@ -1666,7 +1373,6 @@ header {
         transparent;
 
     background:
-
         radial-gradient(
             circle at 14% 18%,
             rgba(214,22,48,.42) 0%,
@@ -1681,13 +1387,6 @@ header {
             rgba(190,14,40,.35) 0%,
             rgba(102,6,23,.18) 27%,
             transparent 54%
-        )
-        padding-box,
-
-        radial-gradient(
-            ellipse at 52% 48%,
-            rgba(116,8,27,.18) 0%,
-            transparent 58%
         )
         padding-box,
 
@@ -1716,137 +1415,41 @@ header {
         border-box;
 
     box-shadow:
-
         0 18px 45px
         rgba(0,0,0,.28),
-
         0 8px 30px
-        rgba(130,4,25,.19),
-
-        0 0 0 1px
-        rgba(244,207,100,.05),
-
-        inset 0 1px 0
-        rgba(255,240,178,.06),
-
-        inset 0 -30px 70px
-        rgba(61,0,12,.11);
-}
-
-
-.listing-card.promotion-vip::before,
-.detail-card.promotion-vip::before {
-
-    content:"";
-
-    position:absolute;
-
-    z-index:0;
-
-    width:360px;
-
-    height:260px;
-
-    left:-150px;
-
-    top:-115px;
-
-    border-radius:50%;
-
-    background:
-
-        radial-gradient(
-            circle,
-            rgba(240,24,55,.34) 0%,
-            rgba(169,10,36,.22) 30%,
-            rgba(90,3,20,.08) 52%,
-            transparent 72%
-        );
-
-    filter:
-        blur(15px);
-
-    pointer-events:none;
-}
-
-
-.listing-card.promotion-vip::after,
-.detail-card.promotion-vip::after {
-
-    content:"";
-
-    position:absolute;
-
-    z-index:0;
-
-    width:340px;
-
-    height:250px;
-
-    right:-165px;
-
-    bottom:-125px;
-
-    border-radius:50%;
-
-    background:
-
-        radial-gradient(
-            circle,
-            rgba(216,18,48,.29) 0%,
-            rgba(129,4,28,.17) 34%,
-            transparent 70%
-        );
-
-    filter:
-        blur(18px);
-
-    pointer-events:none;
+        rgba(130,4,25,.19);
 }
 
 
 .listing-card.promotion-vip > *,
 .detail-card.promotion-vip > * {
-
     position:relative;
-
     z-index:3;
 }
 
 
 .promotion-vip .username,
 .promotion-vip .detail-username {
-
     color:#fff;
-
-    text-shadow:
-
-        0 2px 8px
-        rgba(0,0,0,.75);
 }
 
 
 .promotion-vip .listing-price,
 .promotion-vip .detail-price {
-
     color:#fffaf0;
 }
 
 
 .promotion-vip .listing-price-label,
 .promotion-vip .detail-label {
-
     color:#d9b852;
-
-    font-weight:800;
 }
 
 
 .promotion-vip .description,
 .promotion-vip .detail-description {
-
-    color:
-        rgba(255,255,255,.72);
+    color:rgba(255,255,255,.72);
 }
 
 
@@ -1854,62 +1457,33 @@ header {
 
     color:#171004;
 
-    border:
-        1px solid
-        rgba(255,238,161,.45);
-
     background:
-
         linear-gradient(
             115deg,
-            #93610d 0%,
-            #dbae35 18%,
-            #ffe68b 38%,
-            #fff3b0 52%,
-            #d8a42c 70%,
-            #f2d571 84%,
-            #9b680d 100%
+            #93610d,
+            #dbae35,
+            #ffe68b,
+            #fff3b0,
+            #d8a42c
         );
-
-    box-shadow:
-
-        0 5px 16px
-        rgba(218,168,44,.17),
-
-        inset 0 1px 0
-        rgba(255,255,255,.40);
 }
 
 
 .promotion-vip .category-badge {
-
-    color:
-        rgba(255,255,255,.73);
-
-    border:
-        1px solid
-        rgba(255,255,255,.075);
-
-    background:
-        rgba(255,255,255,.065);
+    color:rgba(255,255,255,.73);
+    background:rgba(255,255,255,.065);
 }
 
 
 .promotion-vip .seller-link {
-
     color:#e2d1ff;
-
-    background:
-        rgba(98,52,139,.19);
+    background:rgba(98,52,139,.19);
 }
 
 
 .promotion-vip .listing-view-link {
-
     color:#b9ddff;
-
-    background:
-        rgba(39,96,141,.20);
+    background:rgba(39,96,141,.20);
 }
 
 
@@ -1918,24 +1492,14 @@ header {
     color:#171004;
 
     background:
-
         linear-gradient(
             105deg,
-            #916008 0%,
-            #c99420 18%,
-            #f0cb55 39%,
-            #ffe48a 56%,
-            #d7a632 74%,
-            #ae760e 100%
+            #916008,
+            #c99420,
+            #f0cb55,
+            #ffe48a,
+            #d7a632
         );
-
-    box-shadow:
-
-        0 8px 22px
-        rgba(208,154,31,.14),
-
-        inset 0 1px 0
-        rgba(255,255,255,.35);
 
     font-weight:900;
 }
@@ -1945,21 +1509,8 @@ header {
 
     color:#f1d16b;
 
-    border:
-        1px solid
-        rgba(239,203,92,.13);
-
     background:
         rgba(255,255,255,.055);
-}
-
-
-.promotion-vip .watch-button.watching {
-
-    color:#ffe690;
-
-    background:
-        rgba(172,117,13,.20);
 }
 
 
@@ -1972,82 +1523,13 @@ header {
 }
 
 
-.promotion-vip .contact-lock-card {
-
-    border:
-        1px solid
-        rgba(222,180,63,.30);
-
-    color:#fff;
-
-    background:
-
-        linear-gradient(
-            135deg,
-            rgba(255,255,255,.070),
-            rgba(255,255,255,.035)
-        );
-}
-
-
-.promotion-vip .contact-lock-title {
-    color:#fff;
-}
-
-
-.promotion-vip .contact-lock-subtitle {
-
-    color:
-        rgba(255,255,255,.52);
-}
-
-
-.promotion-vip .contact-lock-price {
-    color:#f3d26b;
-}
-
-
-.promotion-vip .owner-contact-box {
-
-    color:#fff;
-
-    border:
-        1px solid
-        rgba(221,178,58,.26);
-
-    background:
-        rgba(255,255,255,.055);
-}
-
-
-.promotion-vip .owner-title {
-    color:#efd06d;
-}
-
-
-/* =========================================================
-   HOT
-   ========================================================= */
-
 .listing-card.promotion-hot,
 .detail-card.promotion-hot {
-
-    position:relative;
-
-    overflow:hidden;
 
     border:
         1.5px solid transparent;
 
     background:
-
-        radial-gradient(
-            circle at 85% 15%,
-            rgba(255,90,31,.23),
-            transparent 38%
-        )
-        padding-box,
-
         linear-gradient(
             140deg,
             #fff5ec 0%,
@@ -2064,17 +1546,8 @@ header {
             #e45125
         )
         border-box;
-
-    box-shadow:
-
-        0 14px 34px
-        rgba(218,72,23,.13);
 }
 
-
-/* =========================================================
-   BUMP
-   ========================================================= */
 
 .listing-card.promotion-bump,
 .detail-card.promotion-bump {
@@ -2083,66 +1556,38 @@ header {
         rgba(22,136,232,.22);
 
     background:
-
         linear-gradient(
             135deg,
             var(--surface),
             #f1f8ff
         );
-
-    box-shadow:
-
-        0 12px 32px
-        rgba(22,136,232,.09);
 }
 
-
-/* =========================================================
-   LISTINGS
-   ========================================================= */
 
 .listing-card {
-
     position:relative;
-
     overflow:hidden;
-
     padding:17px;
-}
-
-
-.listing-card > * {
-
-    position:relative;
-
-    z-index:2;
 }
 
 
 .listing-header {
 
     display:flex;
-
     align-items:flex-start;
-
     justify-content:space-between;
-
     gap:14px;
 }
 
 
 .listing-main {
-
     min-width:0;
-
     flex:1;
 }
 
 
 .listing-price-box {
-
     flex:0 0 auto;
-
     text-align:right;
 }
 
@@ -2150,9 +1595,7 @@ header {
 .listing-price {
 
     font-size:19px;
-
     font-weight:900;
-
     letter-spacing:-.45px;
 }
 
@@ -2161,30 +1604,18 @@ header {
 
     margin-top:3px;
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
+    color:var(--muted);
 
     font-size:8.5px;
-
     font-weight:700;
-
-    text-transform:uppercase;
-
-    letter-spacing:.5px;
 }
 
 
 .listing-info-row {
 
     display:flex;
-
     align-items:center;
-
     flex-wrap:wrap;
-
     gap:7px;
 
     margin-top:9px;
@@ -2196,49 +1627,32 @@ header {
 .seller-link {
 
     display:inline-flex;
-
     align-items:center;
-
-    gap:5px;
 
     padding:5px 8px;
 
     border-radius:999px;
 
     font-size:9.5px;
-
     font-weight:800;
 }
 
 
 .category-badge {
-
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
-
-    background:
-        var(--surface-3);
+    color:var(--muted);
+    background:var(--surface-3);
 }
 
 
 .seller-link {
-
     color:var(--purple);
-
-    background:
-        var(--purple-soft);
+    background:var(--purple-soft);
 }
 
 
 .listing-view-link {
-
     color:var(--blue);
-
-    background:
-        var(--blue-soft);
+    background:var(--blue-soft);
 }
 
 
@@ -2262,80 +1676,48 @@ header {
     min-width:48px;
 
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
-    gap:5px;
 
     padding:11px 12px;
 
     border-radius:13px;
-
-    white-space:nowrap;
 }
 
 
 .watch-button {
 
-    color:
-        var(
-            --tg-theme-text-color,
-            var(--text)
-        );
-
-    background:
-        var(--surface-3);
+    color:var(--text);
+    background:var(--surface-3);
 }
 
 
 .watch-button.watching {
 
     color:var(--yellow);
-
-    background:
-        var(--yellow-soft);
+    background:var(--yellow-soft);
 }
 
 
 .report-button {
 
     color:var(--red);
-
-    background:
-        var(--red-soft);
+    background:var(--red-soft);
 }
 
 
-/* =========================================================
-   DETAIL
-   ========================================================= */
-
 .listing-detail-page {
-
     padding:16px;
 }
 
 
 .detail-back-button {
 
-    display:inline-flex;
-
-    align-items:center;
-
-    gap:7px;
-
     margin-bottom:12px;
 
-    color:
-        var(
-            --tg-theme-text-color,
-            var(--text)
-        );
+    color:var(--text);
 
-    background:
-        var(--surface);
+    background:var(--surface);
 
     border:
         1px solid
@@ -2347,8 +1729,6 @@ header {
 
     position:relative;
 
-    overflow:hidden;
-
     padding:22px;
 
     border-radius:26px;
@@ -2358,27 +1738,12 @@ header {
 }
 
 
-.detail-card > * {
-
-    position:relative;
-
-    z-index:2;
-}
-
-
 .detail-label {
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
+    color:var(--muted);
 
     font-size:9px;
-
     font-weight:900;
-
-    letter-spacing:.8px;
 }
 
 
@@ -2387,14 +1752,9 @@ header {
     margin-top:7px;
 
     font-size:30px;
-
     font-weight:900;
-
     line-height:1.08;
-
     letter-spacing:-1px;
-
-    word-break:break-word;
 }
 
 
@@ -2403,7 +1763,6 @@ header {
     margin-top:13px;
 
     font-size:28px;
-
     font-weight:900;
 }
 
@@ -2411,11 +1770,8 @@ header {
 .detail-info {
 
     display:flex;
-
     align-items:center;
-
     flex-wrap:wrap;
-
     gap:7px;
 
     margin-top:12px;
@@ -2425,7 +1781,6 @@ header {
 .detail-description {
 
     margin-top:17px;
-
     padding-top:15px;
 
     border-top:
@@ -2435,7 +1790,6 @@ header {
     color:var(--text-2);
 
     font-size:12px;
-
     line-height:1.6;
 }
 
@@ -2472,22 +1826,15 @@ header {
 .share-listing-button {
 
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
-    gap:8px;
 
     padding:13px;
 
     color:var(--blue);
-
-    background:
-        var(--blue-soft);
+    background:var(--blue-soft);
 
     font-size:11px;
-
     font-weight:900;
 }
 
@@ -2496,14 +1843,8 @@ header {
 
     min-width:48px;
 
-    color:
-        var(
-            --tg-theme-text-color,
-            var(--text)
-        );
-
-    background:
-        var(--surface-3);
+    color:var(--text);
+    background:var(--surface-3);
 }
 
 
@@ -2511,36 +1852,23 @@ header {
 
     margin-top:8px;
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
+    color:var(--muted);
 
     font-size:9px;
-
     text-align:center;
 }
 
-
-/* =========================================================
-   CONTACT
-   ========================================================= */
 
 .contact-lock-card {
 
     width:100%;
 
     display:flex;
-
     align-items:center;
-
     justify-content:space-between;
-
     gap:12px;
 
     margin-top:10px;
-
     padding:12px 13px;
 
     border:
@@ -2549,14 +1877,8 @@ header {
 
     border-radius:14px;
 
-    color:
-        var(
-            --tg-theme-text-color,
-            var(--text)
-        );
-
-    background:
-        var(--blue-soft);
+    color:var(--text);
+    background:var(--blue-soft);
 
     text-align:left;
 }
@@ -2565,61 +1887,27 @@ header {
 .contact-lock-left {
 
     display:flex;
-
     align-items:center;
-
     gap:9px;
 }
 
 
-.contact-lock-icon {
-
-    width:31px;
-
-    height:31px;
-
-    flex:0 0 31px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    border-radius:10px;
-
-    color:var(--blue);
-}
-
-
 .contact-lock-title {
-
     font-size:10.5px;
-
     font-weight:850;
 }
 
 
 .contact-lock-subtitle {
-
     margin-top:1px;
-
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
-
+    color:var(--muted);
     font-size:8.5px;
 }
 
 
 .contact-lock-price {
-
     color:var(--blue);
-
     font-size:11px;
-
     font-weight:900;
 }
 
@@ -2628,11 +1916,11 @@ header {
 .owner-contact-box {
 
     margin-top:10px;
-
     padding:13px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
     border-radius:14px;
 }
@@ -2649,19 +1937,14 @@ header {
 
 
 .contact-title {
-
     color:var(--green);
-
     font-size:10.5px;
-
     font-weight:900;
 }
 
 
 .owner-title {
-
     font-size:10.5px;
-
     font-weight:900;
 }
 
@@ -2671,9 +1954,7 @@ header {
     margin-top:7px;
 
     font-size:14px;
-
     font-weight:800;
-
     word-break:break-word;
 }
 
@@ -2681,7 +1962,6 @@ header {
 .contact-actions {
 
     display:flex;
-
     gap:8px;
 
     margin-top:10px;
@@ -2693,10 +1973,6 @@ header {
 }
 
 
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-
 button {
 
     padding:11px 13px;
@@ -2704,19 +1980,7 @@ button {
     border-radius:13px;
 
     font-size:10.5px;
-
     font-weight:800;
-
-    transition:
-        transform .1s,
-        opacity .1s;
-}
-
-
-button:active:not(:disabled) {
-
-    transform:
-        scale(.97);
 }
 
 
@@ -2725,95 +1989,61 @@ button:active:not(:disabled) {
     color:#fff;
 
     background:
-
         linear-gradient(
             135deg,
             var(--blue),
             var(--blue-dark)
         );
-
-    box-shadow:
-
-        0 7px 17px
-        rgba(22,136,232,.16);
 }
 
 
 .secondary {
 
-    color:
-        var(
-            --tg-theme-text-color,
-            var(--text)
-        );
-
-    background:
-        var(--surface-3);
+    color:var(--text);
+    background:var(--surface-3);
 }
 
 
 .danger {
-
     color:#fff;
-
-    background:
-        var(--red);
+    background:var(--red);
 }
 
 
 .buttons {
 
     display:flex;
-
     flex-wrap:wrap;
-
     gap:8px;
 
     margin-top:14px;
 }
 
 
-/* =========================================================
-   PROMOTE
-   ========================================================= */
-
 .promote-launch-button {
 
     width:100%;
 
     margin-top:9px;
-
     padding:13px;
 
     color:#fff;
 
     background:
-
         linear-gradient(
             135deg,
             #6f45e8,
             #1f8fe8
         );
 
-    box-shadow:
-
-        0 8px 20px
-        rgba(82,82,225,.16);
-
     font-size:11px;
-
     font-weight:900;
 }
 
 
-/* =========================================================
-   FORM
-   ========================================================= */
-
 .form-box {
 
     margin:16px;
-
     padding:20px;
 
     border:
@@ -2831,32 +2061,23 @@ button:active:not(:disabled) {
 
 
 .form-title {
-
     font-size:21px;
-
     font-weight:900;
 }
 
 
 .form-subtitle {
 
-    margin:
-        5px 0 19px;
+    margin:5px 0 19px;
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
+    color:var(--muted);
 
     font-size:10.5px;
-
     line-height:1.5;
 }
 
 
 .field {
-
     margin-bottom:15px;
 }
 
@@ -2868,7 +2089,6 @@ button:active:not(:disabled) {
     margin-bottom:6px;
 
     font-size:10.5px;
-
     font-weight:800;
 }
 
@@ -2889,23 +2109,15 @@ button:active:not(:disabled) {
 
     outline:0;
 
-    color:
-        var(
-            --tg-theme-text-color,
-            var(--text)
-        );
-
-    background:
-        var(--surface-2);
+    color:var(--text);
+    background:var(--surface-2);
 
     font-size:12px;
 }
 
 
 .field textarea {
-
     min-height:92px;
-
     resize:vertical;
 }
 
@@ -2914,11 +2126,7 @@ button:active:not(:disabled) {
 
     margin-top:5px;
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
+    color:var(--muted);
 
     font-size:9px;
 }
@@ -2927,7 +2135,6 @@ button:active:not(:disabled) {
 .premium-form-info {
 
     margin-bottom:16px;
-
     padding:12px;
 
     border:
@@ -2937,12 +2144,9 @@ button:active:not(:disabled) {
     border-radius:14px;
 
     color:#755611;
-
-    background:
-        var(--gold-soft);
+    background:var(--gold-soft);
 
     font-size:9px;
-
     line-height:1.5;
 }
 
@@ -2950,26 +2154,17 @@ button:active:not(:disabled) {
 .payment-box {
 
     margin-bottom:14px;
-
     padding:14px;
 
     border-radius:15px;
 
-    background:
-        var(--blue-soft);
+    background:var(--blue-soft);
 }
 
 
 .payment-label {
-
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
-
+    color:var(--muted);
     font-size:9px;
-
     font-weight:800;
 }
 
@@ -2979,7 +2174,6 @@ button:active:not(:disabled) {
     margin-top:3px;
 
     font-size:23px;
-
     font-weight:900;
 }
 
@@ -2993,7 +2187,6 @@ button:active:not(:disabled) {
     color:#fff;
 
     background:
-
         linear-gradient(
             135deg,
             var(--blue),
@@ -3001,146 +2194,67 @@ button:active:not(:disabled) {
         );
 
     font-size:12px;
-
     font-weight:900;
-}
-
-
-/* =========================================================
-   MESSAGES
-   ========================================================= */
-
-.message {
-
-    display:none;
-
-    margin-top:12px;
-
-    padding:11px;
-
-    border-radius:12px;
-
-    font-size:10px;
-}
-
-
-.message.success {
-
-    display:block;
-
-    color:var(--green);
-
-    background:
-        var(--green-soft);
-}
-
-
-.message.error {
-
-    display:block;
-
-    color:var(--red);
-
-    background:
-        var(--red-soft);
-}
-
-
-.message.info {
-
-    display:block;
-
-    color:var(--blue);
-
-    background:
-        var(--blue-soft);
 }
 
 
 .warning {
 
-    margin:
-        0 16px 22px;
-
+    margin:0 16px 22px;
     padding:12px;
 
     border-radius:14px;
 
     color:var(--yellow);
-
-    background:
-        var(--yellow-soft);
+    background:var(--yellow-soft);
 
     font-size:9.5px;
-
     line-height:1.5;
 }
 
 
-/* =========================================================
-   BADGES
-   ========================================================= */
-
 .badge {
 
     display:inline-flex;
-
-    align-items:center;
 
     padding:5px 8px;
 
     border-radius:999px;
 
     font-size:9px;
-
     font-weight:900;
 }
 
 
 .badge-pending {
-
     color:var(--yellow);
-
-    background:
-        var(--yellow-soft);
+    background:var(--yellow-soft);
 }
 
 
 .badge-active,
 .badge-accepted {
-
     color:var(--green);
-
-    background:
-        var(--green-soft);
+    background:var(--green-soft);
 }
 
 
 .badge-paused,
 .badge-countered {
-
     color:var(--blue);
-
-    background:
-        var(--blue-soft);
+    background:var(--blue-soft);
 }
 
 
 .badge-frozen {
-
     color:var(--cyan);
-
-    background:
-        var(--cyan-soft);
+    background:var(--cyan-soft);
 }
 
 
 .badge-rejected {
-
     color:var(--red);
-
-    background:
-        var(--red-soft);
+    background:var(--red-soft);
 }
 
 
@@ -3149,23 +2263,12 @@ button:active:not(:disabled) {
 .badge-cancelled,
 .badge-closed {
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
-
-    background:
-        var(--surface-3);
+    color:var(--muted);
+    background:var(--surface-3);
 }
 
 
-/* =========================================================
-   PROFILE
-   ========================================================= */
-
 .profile-shell {
-
     margin:16px;
 }
 
@@ -3176,7 +2279,8 @@ button:active:not(:disabled) {
     padding:19px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
     border-radius:
         var(--radius-xl);
@@ -3193,9 +2297,7 @@ button:active:not(:disabled) {
 .seller-top {
 
     display:flex;
-
     align-items:center;
-
     gap:13px;
 }
 
@@ -3204,13 +2306,10 @@ button:active:not(:disabled) {
 .seller-avatar {
 
     width:54px;
-
     height:54px;
 
     display:flex;
-
     align-items:center;
-
     justify-content:center;
 
     border-radius:17px;
@@ -3218,7 +2317,6 @@ button:active:not(:disabled) {
     color:var(--purple);
 
     background:
-
         linear-gradient(
             135deg,
             var(--purple-soft),
@@ -3229,9 +2327,7 @@ button:active:not(:disabled) {
 
 .profile-name,
 .seller-name {
-
     font-size:20px;
-
     font-weight:900;
 }
 
@@ -3241,11 +2337,7 @@ button:active:not(:disabled) {
 
     margin-top:3px;
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
+    color:var(--muted);
 
     font-size:10px;
 }
@@ -3257,18 +2349,14 @@ button:active:not(:disabled) {
     display:inline-flex;
 
     margin-top:8px;
-
     padding:5px 8px;
 
     border-radius:999px;
 
     color:var(--green);
-
-    background:
-        var(--green-soft);
+    background:var(--green-soft);
 
     font-size:8.5px;
-
     font-weight:800;
 }
 
@@ -3294,11 +2382,8 @@ button:active:not(:disabled) {
     min-height:94px;
 
     display:flex;
-
     flex-direction:column;
-
     align-items:flex-start;
-
     justify-content:space-between;
 
     padding:13px;
@@ -3308,35 +2393,25 @@ button:active:not(:disabled) {
 
     border-radius:16px;
 
+    color:var(--text);
+    background:var(--surface-2);
+
     text-align:left;
-
-    color:
-        var(
-            --tg-theme-text-color,
-            var(--text)
-        );
-
-    background:
-        var(--surface-2);
 }
 
 
 .profile-tile-icon {
 
     width:32px;
-
     height:32px;
 
     display:flex;
-
     align-items:center;
-
     justify-content:center;
 
     border-radius:10px;
 
-    background:
-        var(--surface);
+    background:var(--surface);
 }
 
 
@@ -3345,7 +2420,6 @@ button:active:not(:disabled) {
     margin-top:10px;
 
     font-size:10.5px;
-
     font-weight:900;
 }
 
@@ -3354,22 +2428,13 @@ button:active:not(:disabled) {
 
     margin-top:2px;
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
+    color:var(--muted);
 
     font-size:8.5px;
 }
 
 
-/* =========================================================
-   SELLER
-   ========================================================= */
-
 .seller-page {
-
     padding:16px;
 }
 
@@ -3378,17 +2443,12 @@ button:active:not(:disabled) {
 
     margin-bottom:11px;
 
-    color:
-        var(
-            --tg-theme-text-color,
-            var(--text)
-        );
-
-    background:
-        var(--surface);
+    color:var(--text);
+    background:var(--surface);
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 }
 
 
@@ -3399,22 +2459,7 @@ button:active:not(:disabled) {
     color:var(--text-2);
 
     font-size:11.5px;
-
     line-height:1.55;
-}
-
-
-.seller-bio-empty {
-
-    margin-top:15px;
-
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
-
-    font-size:10px;
 }
 
 
@@ -3436,35 +2481,26 @@ button:active:not(:disabled) {
     padding:12px 5px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
     border-radius:14px;
 
     text-align:center;
 
-    background:
-        var(--surface-2);
+    background:var(--surface-2);
 }
 
 
 .seller-stat-number {
-
     font-size:19px;
-
     font-weight:900;
 }
 
 
 .seller-stat-label {
-
     margin-top:3px;
-
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
-
+    color:var(--muted);
     font-size:8px;
 }
 
@@ -3476,9 +2512,7 @@ button:active:not(:disabled) {
     margin-top:12px;
 
     color:var(--purple);
-
-    background:
-        var(--purple-soft);
+    background:var(--purple-soft);
 }
 
 
@@ -3486,7 +2520,6 @@ button:active:not(:disabled) {
 .seller-visibility-private {
 
     margin-top:12px;
-
     padding:10px;
 
     border-radius:12px;
@@ -3496,43 +2529,28 @@ button:active:not(:disabled) {
 
 
 .seller-visibility-public {
-
     color:var(--green);
-
-    background:
-        var(--green-soft);
+    background:var(--green-soft);
 }
 
 
 .seller-visibility-private {
-
     color:var(--yellow);
-
-    background:
-        var(--yellow-soft);
+    background:var(--yellow-soft);
 }
 
 
 .seller-listings-title {
 
-    margin:
-        21px 0 11px;
+    margin:21px 0 11px;
 
     font-size:17px;
-
     font-weight:900;
 }
 
 
-/* =========================================================
-   WANTED
-   ========================================================= */
-
 .wanted-card {
-
-    border-left:
-        3px solid
-        var(--blue);
+    border-left:3px solid var(--blue);
 }
 
 
@@ -3547,42 +2565,27 @@ button:active:not(:disabled) {
 
 
 .contact-buyer-button {
-
     color:#fff;
-
-    background:
-        var(--blue);
+    background:var(--blue);
 }
 
 
 .your-request-button {
-
     color:var(--green);
-
-    background:
-        var(--green-soft);
+    background:var(--green-soft);
 }
 
 
 .close-request-button {
-
     color:var(--red);
-
-    background:
-        var(--red-soft);
+    background:var(--red-soft);
 }
 
-
-/* =========================================================
-   MANAGEMENT
-   ========================================================= */
 
 .manage-buttons {
 
     display:flex;
-
     flex-wrap:wrap;
-
     gap:7px;
 
     margin-top:13px;
@@ -3590,55 +2593,39 @@ button:active:not(:disabled) {
 
 
 .manage-buttons button {
-
     flex:1;
-
     min-width:80px;
 }
 
 
 .edit-listing-button {
-
     color:var(--blue);
-
-    background:
-        var(--blue-soft);
+    background:var(--blue-soft);
 }
 
 
 .pause-listing-button {
-
     color:var(--yellow);
-
-    background:
-        var(--yellow-soft);
+    background:var(--yellow-soft);
 }
 
 
 .resume-listing-button {
-
     color:var(--green);
-
-    background:
-        var(--green-soft);
+    background:var(--green-soft);
 }
 
 
 .remove-listing-button {
-
     color:var(--red);
-
-    background:
-        var(--red-soft);
+    background:var(--red-soft);
 }
 
 
 .paused-note,
-.frozen-note,
-.removed-note {
+.frozen-note {
 
     margin-top:11px;
-
     padding:10px;
 
     border-radius:12px;
@@ -3648,39 +2635,25 @@ button:active:not(:disabled) {
 
 
 .paused-note {
-
     color:var(--blue);
-
-    background:
-        var(--blue-soft);
+    background:var(--blue-soft);
 }
 
 
 .frozen-note {
-
     color:var(--cyan);
-
-    background:
-        var(--cyan-soft);
+    background:var(--cyan-soft);
 }
 
-
-/* =========================================================
-   PROMOTION STATUS
-   ========================================================= */
 
 .promotion-status {
 
     display:flex;
-
     align-items:center;
-
     justify-content:space-between;
-
     gap:10px;
 
     margin-top:12px;
-
     padding:11px 12px;
 
     border-radius:13px;
@@ -3690,65 +2663,40 @@ button:active:not(:disabled) {
 
 
 .promotion-status-vip {
-
     color:#e2c46c;
-
-    background:
-
-        linear-gradient(
-            135deg,
-            #16100e,
-            #241015
-        );
+    background:linear-gradient(135deg,#16100e,#241015);
 }
 
 
 .promotion-status-hot {
-
     color:#d75718;
-
-    background:
-        var(--orange-soft);
+    background:var(--orange-soft);
 }
 
 
 .promotion-status-bump {
-
     color:var(--blue);
-
-    background:
-        var(--blue-soft);
+    background:var(--blue-soft);
 }
 
-
-/* =========================================================
-   OFFERS
-   ========================================================= */
 
 .offer-summary {
 
     margin-top:10px;
-
     padding:11px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
     border-radius:13px;
 
-    background:
-        var(--surface-2);
+    background:var(--surface-2);
 }
 
 
 .offer-label {
-
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
-
+    color:var(--muted);
     font-size:8.5px;
 }
 
@@ -3758,17 +2706,11 @@ button:active:not(:disabled) {
     margin-top:2px;
 
     font-size:19px;
-
     font-weight:900;
 }
 
 
-/* =========================================================
-   ADMIN
-   ========================================================= */
-
 .admin-box {
-
     margin:16px;
 }
 
@@ -3776,7 +2718,6 @@ button:active:not(:disabled) {
 .admin-header {
 
     margin-bottom:20px;
-
     padding:19px;
 
     border-radius:
@@ -3785,20 +2726,15 @@ button:active:not(:disabled) {
     color:#fff;
 
     background:
-
         linear-gradient(
             135deg,
             #262a33,
             #121418
         );
-
-    box-shadow:
-        var(--shadow-lg);
 }
 
 
 .admin-section {
-
     margin-bottom:27px;
 }
 
@@ -3808,91 +2744,61 @@ button:active:not(:disabled) {
     margin-bottom:10px;
 
     font-size:17px;
-
     font-weight:900;
 }
 
 
 .approve-button {
-
     flex:1;
-
     color:#fff;
-
-    background:
-        var(--green);
+    background:var(--green);
 }
 
 
 .reject-button {
-
     flex:1;
-
     color:#fff;
-
-    background:
-        var(--red);
+    background:var(--red);
 }
 
 
 .counter-button {
-
     flex:1;
-
     color:var(--blue);
-
-    background:
-        var(--blue-soft);
+    background:var(--blue-soft);
 }
 
 
 .freeze-button {
-
     color:var(--cyan);
-
-    background:
-        var(--cyan-soft);
+    background:var(--cyan-soft);
 }
 
 
 .unfreeze-button {
-
     color:var(--green);
-
-    background:
-        var(--green-soft);
+    background:var(--green-soft);
 }
 
 
 .dismiss-button {
-
-    background:
-        var(--surface-3);
+    background:var(--surface-3);
 }
 
 
 .admin-remove-button {
-
     color:var(--red);
-
-    background:
-        var(--red-soft);
+    background:var(--red-soft);
 }
 
 
 .report-card {
-
-    border-left:
-        3px solid
-        var(--red);
+    border-left:3px solid var(--red);
 }
 
 
 .frozen-card {
-
-    border-left:
-        3px solid
-        var(--cyan);
+    border-left:3px solid var(--cyan);
 }
 
 
@@ -3903,7 +2809,6 @@ button:active:not(:disabled) {
         rgba(201,151,46,.25);
 
     background:
-
         linear-gradient(
             135deg,
             var(--surface),
@@ -3917,7 +2822,6 @@ button:active:not(:disabled) {
     color:#634605;
 
     background:
-
         linear-gradient(
             135deg,
             #ffe8a1,
@@ -3927,17 +2831,10 @@ button:active:not(:disabled) {
 
 
 .premium-remove-button {
-
     color:#87671a;
-
-    background:
-        var(--gold-soft);
+    background:var(--gold-soft);
 }
 
-
-/* =========================================================
-   EMPTY
-   ========================================================= */
 
 .empty {
 
@@ -3949,29 +2846,17 @@ button:active:not(:disabled) {
 
     border-radius:16px;
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
-
-    background:
-        var(--surface);
+    color:var(--muted);
+    background:var(--surface);
 
     text-align:center;
-
     font-size:10px;
 }
 
 
-/* =========================================================
-   BOTTOM NAV
-   ========================================================= */
-
 .bottom-nav {
 
     position:fixed;
-
     z-index:100;
 
     left:50%;
@@ -3998,7 +2883,8 @@ button:active:not(:disabled) {
     padding:5px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
     border-radius:21px;
 
@@ -4006,19 +2892,14 @@ button:active:not(:disabled) {
         rgba(255,255,255,.95);
 
     box-shadow:
-
         0 13px 38px
         rgba(27,36,50,.13);
-
-    backdrop-filter:
-        blur(22px);
 }
 
 
 @media (prefers-color-scheme:dark) {
 
     .bottom-nav {
-
         background:
             rgba(24,27,32,.95);
     }
@@ -4030,25 +2911,16 @@ button:active:not(:disabled) {
     flex:1;
 
     display:flex;
-
     flex-direction:column;
-
     align-items:center;
-
     justify-content:center;
-
     gap:3px;
 
     border-radius:15px;
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
+    color:var(--muted);
 
     font-size:8px;
-
     font-weight:700;
 
     cursor:pointer;
@@ -4058,17 +2930,13 @@ button:active:not(:disabled) {
 .nav-item svg {
 
     width:19px;
-
     height:19px;
 
     fill:none;
-
     stroke:currentColor;
 
     stroke-width:1.9;
-
     stroke-linecap:round;
-
     stroke-linejoin:round;
 }
 
@@ -4076,30 +2944,21 @@ button:active:not(:disabled) {
 .nav-item.active {
 
     color:var(--blue);
-
-    background:
-        var(--blue-soft);
+    background:var(--blue-soft);
 
     font-weight:900;
 }
 
-
-/* =========================================================
-   MODAL
-   ========================================================= */
 
 .modal-backdrop {
 
     display:none;
 
     position:fixed;
-
     inset:0;
-
     z-index:1000;
 
     align-items:flex-end;
-
     justify-content:center;
 
     padding:
@@ -4112,14 +2971,10 @@ button:active:not(:disabled) {
 
     background:
         rgba(0,0,0,.44);
-
-    backdrop-filter:
-        blur(4px);
 }
 
 
 .modal-backdrop.show {
-
     display:flex;
 }
 
@@ -4127,9 +2982,7 @@ button:active:not(:disabled) {
 .modal {
 
     width:100%;
-
     max-width:510px;
-
     max-height:88vh;
 
     overflow-y:auto;
@@ -4142,43 +2995,24 @@ button:active:not(:disabled) {
 
     border-radius:24px;
 
-    color:
-        var(
-            --tg-theme-text-color,
-            var(--text)
-        );
-
-    background:
-        var(--surface);
-
-    box-shadow:
-
-        0 24px 75px
-        rgba(0,0,0,.25);
+    color:var(--text);
+    background:var(--surface);
 }
 
 
 .modal-title {
-
     font-size:20px;
-
     font-weight:900;
 }
 
 
 .modal-subtitle {
 
-    margin:
-        5px 0 17px;
+    margin:5px 0 17px;
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
+    color:var(--muted);
 
     font-size:10px;
-
     line-height:1.5;
 }
 
@@ -4186,7 +3020,6 @@ button:active:not(:disabled) {
 .modal-actions {
 
     display:flex;
-
     gap:8px;
 
     margin-top:14px;
@@ -4198,23 +3031,18 @@ button:active:not(:disabled) {
 }
 
 
-/* =========================================================
-   PROMOTION MODAL
-   ========================================================= */
-
 .promotion-plan {
 
     margin-bottom:10px;
-
     padding:14px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
     border-radius:17px;
 
-    background:
-        var(--surface-2);
+    background:var(--surface-2);
 }
 
 
@@ -4223,8 +3051,7 @@ button:active:not(:disabled) {
     border-color:
         rgba(236,100,25,.28);
 
-    background:
-        var(--orange-soft);
+    background:var(--orange-soft);
 }
 
 
@@ -4233,10 +3060,10 @@ button:active:not(:disabled) {
     color:#fff;
 
     border:
-        1px solid #c9972e;
+        1px solid
+        #c9972e;
 
     background:
-
         linear-gradient(
             145deg,
             #08090b,
@@ -4246,9 +3073,7 @@ button:active:not(:disabled) {
 
 
 .promotion-plan-name {
-
     font-size:14px;
-
     font-weight:900;
 }
 
@@ -4257,11 +3082,7 @@ button:active:not(:disabled) {
 
     margin-top:3px;
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
+    color:var(--muted);
 
     font-size:9px;
 }
@@ -4269,9 +3090,7 @@ button:active:not(:disabled) {
 
 .promotion-plan-vip
 .promotion-plan-subtitle {
-
-    color:
-        rgba(255,255,255,.62);
+    color:rgba(255,255,255,.62);
 }
 
 
@@ -4298,10 +3117,10 @@ button:active:not(:disabled) {
     padding:10px 5px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
-    background:
-        var(--surface);
+    background:var(--surface);
 }
 
 
@@ -4320,7 +3139,6 @@ button:active:not(:disabled) {
 
 .promotion-buy-button strong,
 .promotion-buy-button span {
-
     display:block;
 }
 
@@ -4328,29 +3146,17 @@ button:active:not(:disabled) {
 .promotion-rules {
 
     margin-top:12px;
-
     padding:11px;
 
     border-radius:13px;
 
-    color:
-        var(
-            --tg-theme-hint-color,
-            var(--muted)
-        );
-
-    background:
-        var(--surface-2);
+    color:var(--muted);
+    background:var(--surface-2);
 
     font-size:8.5px;
-
     line-height:1.55;
 }
 
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
 
 @media (min-width:650px) {
 
@@ -4382,10 +3188,6 @@ button:active:not(:disabled) {
         font-size:17px;
     }
 
-    .action-label {
-        display:none;
-    }
-
     .market-tools-top {
         flex-wrap:wrap;
     }
@@ -4409,11 +3211,6 @@ button:active:not(:disabled) {
 
 <div class="app">
 
-
-<!-- =======================================================
-     HEADER
-     ======================================================= -->
-
 <header>
 
 <div class="header-main">
@@ -4436,7 +3233,6 @@ WhatsApp username marketplace
 
 </div>
 
-
 <div
     id="authStatus"
     class="auth-status"
@@ -4447,15 +3243,7 @@ Connecting...
 </header>
 
 
-<!-- =======================================================
-     HOME
-     ======================================================= -->
-
-<div
-    id="home"
-    class="page active"
->
-
+<div id="home" class="page active">
 
 <div class="hero">
 
@@ -4470,7 +3258,6 @@ Discover valuable WhatsApp usernames.
 <div class="hero-text">
 Browse listings, discover sellers and negotiate directly through Handle Market.
 </div>
-
 
 <div class="hero-premium-info">
 
@@ -4519,76 +3306,45 @@ Categories
 
 <br>
 
-
 <div class="categories">
 
-<button
-    class="category"
-    onclick="openCategory('Brand')"
->
+<button class="category" onclick="openCategory('Brand')">
 🏷 Brand
 </button>
 
-<button
-    class="category"
-    onclick="openCategory('Business')"
->
+<button class="category" onclick="openCategory('Business')">
 💼 Business
 </button>
 
-<button
-    class="category"
-    onclick="openCategory('Tech & AI')"
->
+<button class="category" onclick="openCategory('Tech & AI')">
 🤖 Tech & AI
 </button>
 
-<button
-    class="category"
-    onclick="openCategory('Short')"
->
+<button class="category" onclick="openCategory('Short')">
 ⚡ Short
 </button>
 
-<button
-    class="category"
-    onclick="openCategory('Generic')"
->
+<button class="category" onclick="openCategory('Generic')">
 🌐 Generic
 </button>
 
-<button
-    class="category"
-    onclick="openCategory('Travel')"
->
+<button class="category" onclick="openCategory('Travel')">
 ✈️ Travel
 </button>
 
-<button
-    class="category"
-    onclick="openCategory('Finance')"
->
+<button class="category" onclick="openCategory('Finance')">
 💰 Finance
 </button>
 
-<button
-    class="category"
-    onclick="openCategory('Gaming')"
->
+<button class="category" onclick="openCategory('Gaming')">
 🎮 Gaming
 </button>
 
-<button
-    class="category"
-    onclick="openCategory('Media')"
->
+<button class="category" onclick="openCategory('Media')">
 📰 Media
 </button>
 
-<button
-    class="category"
-    onclick="openCategory('Crypto')"
->
+<button class="category" onclick="openCategory('Crypto')">
 ₿ Crypto
 </button>
 
@@ -4619,23 +3375,13 @@ Loading marketplace...
 
 
 <div class="warning">
-
 ⭐ Premium is awarded by Handle Market and cannot be purchased. 💎 VIP, 🔥 HOT and ⬆️ Bump are paid advertising placements only.
-
 </div>
 
 </div>
 
 
-<!-- =======================================================
-     MARKETPLACE
-     ======================================================= -->
-
-<div
-    id="marketplace"
-    class="page"
->
-
+<div id="marketplace" class="page">
 
 <div class="page-heading">
 
@@ -4681,12 +3427,9 @@ is awarded by Handle Market to selected unique and high-quality usernames. Selle
 </div>
 
 
-<!-- MARKET TOOLS -->
-
 <div class="market-tools">
 
 <div class="market-tools-top">
-
 
 <div
     id="marketResultCount"
@@ -4694,7 +3437,6 @@ is awarded by Handle Market to selected unique and high-quality usernames. Selle
 >
 0 listings
 </div>
-
 
 <select
     id="marketSort"
@@ -4728,7 +3470,6 @@ Z → A
 
 </select>
 
-
 <button
     id="marketFilterButton"
     class="market-filter-button"
@@ -4745,7 +3486,6 @@ Z → A
     class="filter-panel"
 >
 
-
 <div class="filter-section">
 
 <div class="filter-label">
@@ -4758,53 +3498,18 @@ Category
     onchange="setMarketplaceCategory(this.value)"
 >
 
-<option value="all">
-All categories
-</option>
-
-<option value="Brand">
-Brand
-</option>
-
-<option value="Business">
-Business
-</option>
-
-<option value="Tech & AI">
-Tech & AI
-</option>
-
-<option value="Short">
-Short
-</option>
-
-<option value="Travel">
-Travel
-</option>
-
-<option value="Finance">
-Finance
-</option>
-
-<option value="Gaming">
-Gaming
-</option>
-
-<option value="Crypto">
-Crypto
-</option>
-
-<option value="Media">
-Media
-</option>
-
-<option value="Generic">
-Generic
-</option>
-
-<option value="Other">
-Other
-</option>
+<option value="all">All categories</option>
+<option value="Brand">Brand</option>
+<option value="Business">Business</option>
+<option value="Tech & AI">Tech & AI</option>
+<option value="Short">Short</option>
+<option value="Travel">Travel</option>
+<option value="Finance">Finance</option>
+<option value="Gaming">Gaming</option>
+<option value="Crypto">Crypto</option>
+<option value="Media">Media</option>
+<option value="Generic">Generic</option>
+<option value="Other">Other</option>
 
 </select>
 
@@ -4816,7 +3521,6 @@ Other
 <div class="filter-label">
 Promotion
 </div>
-
 
 <div class="filter-promotion-row">
 
@@ -4871,7 +3575,6 @@ Regular
 Price USD
 </div>
 
-
 <div class="filter-price-grid">
 
 <input
@@ -4905,7 +3608,7 @@ Price USD
     onclick="togglePremiumOnly()"
 >
 
-<div class="premium-toggle-left">
+<div>
 
 <div class="premium-toggle-title">
 ⭐ Premium only
@@ -4968,10 +3671,6 @@ Loading...
 </div>
 
 
-<!-- =======================================================
-     LISTING DETAIL
-     ======================================================= -->
-
 <div
     id="listingDetail"
     class="page"
@@ -4986,7 +3685,6 @@ Loading...
 ← Marketplace
 </button>
 
-
 <div id="listingDetailContent">
 
 <div class="empty">
@@ -5000,14 +3698,7 @@ Loading listing...
 </div>
 
 
-<!-- =======================================================
-     LIST
-     ======================================================= -->
-
-<div
-    id="list"
-    class="page"
->
+<div id="list" class="page">
 
 <div class="form-box">
 
@@ -5018,7 +3709,6 @@ List Username
 <div class="form-subtitle">
 Submit your username for marketplace moderation.
 </div>
-
 
 <div class="premium-form-info">
 
@@ -5037,7 +3727,6 @@ Handle Market may award Premium status to selected unique, high-quality username
     id="listingForm"
     onsubmit="startListingPayment(event)"
 >
-
 
 <div class="field">
 
@@ -5192,7 +3881,7 @@ My Listings
 </div>
 
 <div class="section-subtitle">
-Manage and promote your usernames.
+Manage, promote and track your usernames.
 </div>
 
 <div id="myListings">
@@ -5208,14 +3897,7 @@ Loading...
 </div>
 
 
-<!-- =======================================================
-     WANTED
-     ======================================================= -->
-
-<div
-    id="wanted"
-    class="page"
->
+<div id="wanted" class="page">
 
 <div class="form-box">
 
@@ -5232,7 +3914,6 @@ Publish the username you are looking for.
     id="wantedForm"
     onsubmit="startWantedPayment(event)"
 >
-
 
 <div class="field">
 
@@ -5374,14 +4055,7 @@ Loading...
 </div>
 
 
-<!-- =======================================================
-     PROFILE
-     ======================================================= -->
-
-<div
-    id="profile"
-    class="page"
->
+<div id="profile" class="page">
 
 <div
     id="profileContent"
@@ -5392,10 +4066,6 @@ Loading...
 
 </div>
 
-
-<!-- =======================================================
-     SELLER PROFILE
-     ======================================================= -->
 
 <div
     id="sellerProfile"
@@ -5424,14 +4094,7 @@ Loading seller profile...
 </div>
 
 
-<!-- =======================================================
-     WATCHLIST
-     ======================================================= -->
-
-<div
-    id="watchlist"
-    class="page"
->
+<div id="watchlist" class="page">
 
 <div class="page-heading">
 
@@ -5460,14 +4123,7 @@ Loading...
 </div>
 
 
-<!-- =======================================================
-     OFFERS
-     ======================================================= -->
-
-<div
-    id="offers"
-    class="page"
->
+<div id="offers" class="page">
 
 <div class="page-heading">
 
@@ -5522,14 +4178,7 @@ Loading...
 </div>
 
 
-<!-- =======================================================
-     ADMIN
-     ======================================================= -->
-
-<div
-    id="admin"
-    class="page"
->
+<div id="admin" class="page">
 
 <div class="admin-box">
 
@@ -5538,16 +4187,6 @@ Loading...
 <h2>
 🛡 Admin Panel
 </h2>
-
-<div
-    style="
-        margin-top:5px;
-        font-size:9.5px;
-        opacity:.7;
-    "
->
-Marketplace moderation
-</div>
 
 </div>
 
@@ -5576,9 +4215,7 @@ Loading...
 </div>
 
 <div class="section-subtitle">
-
 Premium is awarded by Handle Market and cannot be purchased by sellers.
-
 </div>
 
 <div id="adminPremiumListings">
@@ -5629,10 +4266,6 @@ Loading...
 
 </div>
 
-
-<!-- =======================================================
-     NAV
-     ======================================================= -->
 
 <div class="bottom-nav">
 
@@ -5722,10 +4355,6 @@ Profile
 </div>
 
 
-<!-- =======================================================
-     PROMOTION MODAL
-     ======================================================= -->
-
 <div
     id="promotionModal"
     class="modal-backdrop"
@@ -5787,7 +4416,7 @@ Priority placement with HOT styling.
 </div>
 
 <div class="promotion-plan-subtitle">
-Maximum visibility. Pinned above HOT, Bump and regular listings.
+Maximum visibility.
 </div>
 
 <div
@@ -5804,19 +4433,9 @@ VIP → HOT → Bump → regular listings.
 
 <br><br>
 
-24 Hours · 3 Days · 7 Days.
-
-<br><br>
-
-⭐ Premium is separate from paid promotion. Premium is awarded only by Handle Market and cannot be purchased.
+⭐ Premium is separate from paid promotion.
 
 </div>
-
-
-<div
-    id="promotionMessage"
-    class="message"
-></div>
 
 
 <div class="modal-actions">
@@ -5834,10 +4453,6 @@ Close
 
 </div>
 
-
-<!-- =======================================================
-     GENERIC INPUT MODAL
-     ======================================================= -->
 
 <div
     id="inputModal"
@@ -5858,11 +4473,6 @@ Close
 ></div>
 
 <div id="inputModalFields"></div>
-
-<div
-    id="inputModalMessage"
-    class="message"
-></div>
 
 <div class="modal-actions">
 
@@ -5889,17 +4499,11 @@ Confirm
 
 <script>
 
-/* =========================================================
-   CONFIG
-   ========================================================= */
-
 const API_URL =
     "https://handle-market.onrender.com";
 
-
 const BOT_USERNAME =
     "handlemarket_bot";
-
 
 const tg =
     window.Telegram?.WebApp;
@@ -5908,14 +4512,11 @@ const tg =
 let authenticatedUser =
     null;
 
-
 let listingPriceStars =
     1;
 
-
 let contactUnlockPriceStars =
     1;
-
 
 let wantedPriceStars =
     1;
@@ -5946,45 +4547,36 @@ let promotionPrices = {
 let marketplaceListings =
     [];
 
-
 let myListingsData =
     [];
-
 
 let watchedListingIds =
     new Set();
 
-
 let reportedListingIds =
     new Set();
 
-
 let mySellerProfile =
     null;
-
 
 let currentPromotionListingId =
     null;
 
 
-/* =========================================================
-   MARKET FILTER STATE
-   ========================================================= */
+/* NEW v21 */
+
+let recordedListingViewIds =
+    new Set();
+
 
 const marketFilters = {
 
     search:"",
-
     category:"all",
-
     promotion:"all",
-
     premiumOnly:false,
-
     minPrice:"",
-
     maxPrice:"",
-
     sort:"recommended"
 };
 
@@ -5992,7 +4584,6 @@ const marketFilters = {
 if (tg) {
 
     tg.ready();
-
     tg.expand();
 }
 
@@ -6178,7 +4769,9 @@ async function authenticate() {
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
 
 
         status.textContent =
@@ -6230,11 +4823,15 @@ function showPremiumInfo() {
         tg?.showAlert
     ) {
 
-        tg.showAlert(text);
+        tg.showAlert(
+            text
+        );
 
     } else {
 
-        window.alert(text);
+        window.alert(
+            text
+        );
     }
 }
 
@@ -6254,19 +4851,25 @@ function promotionClass(
         );
 
 
-    if (type === "vip") {
+    if (
+        type === "vip"
+    ) {
 
         return "promotion-vip";
     }
 
 
-    if (type === "hot") {
+    if (
+        type === "hot"
+    ) {
 
         return "promotion-hot";
     }
 
 
-    if (type === "bump") {
+    if (
+        type === "bump"
+    ) {
 
         return "promotion-bump";
     }
@@ -6280,19 +4883,25 @@ function promotionLabel(
     type
 ) {
 
-    if (type === "vip") {
+    if (
+        type === "vip"
+    ) {
 
         return "💎 VIP";
     }
 
 
-    if (type === "hot") {
+    if (
+        type === "hot"
+    ) {
 
         return "🔥 HOT";
     }
 
 
-    if (type === "bump") {
+    if (
+        type === "bump"
+    ) {
 
         return "⬆️ BUMP";
     }
@@ -6338,7 +4947,7 @@ function promotionBadgeHtml(
 
 
 /* =========================================================
-   LOAD MARKETPLACE
+   MARKETPLACE
    ========================================================= */
 
 async function loadMarketplace() {
@@ -6384,38 +4993,28 @@ async function loadMarketplace() {
             );
         }
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
-        console.error(error);
+        console.error(
+            error
+        );
 
 
         document.getElementById(
             "marketListings"
-        ).innerHTML = `
-
-            <div class="empty">
-                Marketplace unavailable.
-            </div>
-
-        `;
+        ).innerHTML =
+            '<div class="empty">Marketplace unavailable.</div>';
 
 
         document.getElementById(
             "homeListings"
-        ).innerHTML = `
-
-            <div class="empty">
-                Marketplace unavailable.
-            </div>
-
-        `;
+        ).innerHTML =
+            '<div class="empty">Marketplace unavailable.</div>';
     }
 }
 
-
-/* =========================================================
-   NEW MARKETPLACE FILTER ENGINE
-   ========================================================= */
 
 function getFilteredMarketplaceListings() {
 
@@ -6441,7 +5040,9 @@ function getFilteredMarketplaceListings() {
         .toLowerCase();
 
 
-    if (search) {
+    if (
+        search
+    ) {
 
         listings =
             listings.filter(
@@ -6452,7 +5053,9 @@ function getFilteredMarketplaceListings() {
                         ""
                     )
                     .toLowerCase()
-                    .includes(search)
+                    .includes(
+                        search
+                    )
             );
     }
 
@@ -6469,7 +5072,8 @@ function getFilteredMarketplaceListings() {
                     String(
                         listing.category ||
                         "Other"
-                    ) ===
+                    )
+                    ===
                     marketFilters.category
             );
     }
@@ -6514,7 +5118,8 @@ function getFilteredMarketplaceListings() {
                         String(
                             listing.promotion_type ||
                             ""
-                        ) ===
+                        )
+                        ===
                         marketFilters.promotion
                 );
         }
@@ -6528,17 +5133,20 @@ function getFilteredMarketplaceListings() {
 
 
     if (
-        marketFilters.minPrice !== "" &&
-        Number.isFinite(minPrice)
+        marketFilters.minPrice !== ""
+        &&
+        Number.isFinite(
+            minPrice
+        )
     ) {
 
         listings =
             listings.filter(
                 listing =>
-
                     Number(
                         listing.asking_price
-                    ) >=
+                    )
+                    >=
                     minPrice
             );
     }
@@ -6551,17 +5159,20 @@ function getFilteredMarketplaceListings() {
 
 
     if (
-        marketFilters.maxPrice !== "" &&
-        Number.isFinite(maxPrice)
+        marketFilters.maxPrice !== ""
+        &&
+        Number.isFinite(
+            maxPrice
+        )
     ) {
 
         listings =
             listings.filter(
                 listing =>
-
                     Number(
                         listing.asking_price
-                    ) <=
+                    )
+                    <=
                     maxPrice
             );
     }
@@ -6694,7 +5305,6 @@ function getFilteredMarketplaceListings() {
                     a,
                     b
                 ) =>
-
                     a.__originalIndex
                     -
                     b.__originalIndex
@@ -6706,14 +5316,9 @@ function getFilteredMarketplaceListings() {
 }
 
 
-/* =========================================================
-   RENDER MARKETPLACE
-   ========================================================= */
-
 function renderMarketplace() {
 
     renderHomeListings();
-
     applyMarketplaceFilters();
 }
 
@@ -6740,7 +5345,9 @@ function renderHomeListings() {
         .toLowerCase();
 
 
-    if (search) {
+    if (
+        search
+    ) {
 
         listings =
             listings.filter(
@@ -6751,7 +5358,9 @@ function renderHomeListings() {
                         ""
                     )
                     .toLowerCase()
-                    .includes(search)
+                    .includes(
+                        search
+                    )
             );
     }
 
@@ -6767,13 +5376,8 @@ function renderHomeListings() {
         !listings.length
     ) {
 
-        home.innerHTML = `
-
-            <div class="empty">
-                No usernames found.
-            </div>
-
-        `;
+        home.innerHTML =
+            '<div class="empty">No usernames found.</div>';
 
         return;
     }
@@ -6788,7 +5392,6 @@ function renderHomeListings() {
 
 
     updateAllWatchButtons();
-
     updateAllReportButtons();
 
 
@@ -6855,7 +5458,6 @@ function applyMarketplaceFilters() {
 
 
     updateAllWatchButtons();
-
     updateAllReportButtons();
 
 
@@ -6872,7 +5474,7 @@ function applyMarketplaceFilters() {
 
 
 /* =========================================================
-   MARKET FILTER CONTROLS
+   FILTERS
    ========================================================= */
 
 function setMarketplaceSearch(
@@ -6919,7 +5521,6 @@ function setMarketplaceSearch(
 
 
     renderHomeListings();
-
     applyMarketplaceFilters();
 }
 
@@ -6951,7 +5552,9 @@ function openCategory(
         );
 
 
-    if (select) {
+    if (
+        select
+    ) {
 
         select.value =
             category;
@@ -6987,8 +5590,9 @@ function setMarketplacePromotion(
                 "active",
 
                 button.dataset
-                    .promotionFilter ===
-                    promotion
+                    .promotionFilter
+                ===
+                promotion
             );
         }
     );
@@ -7123,8 +5727,9 @@ function resetMarketplaceFilters() {
                 "active",
 
                 button.dataset
-                    .promotionFilter ===
-                    "all"
+                    .promotionFilter
+                ===
+                "all"
             );
         }
     );
@@ -7153,10 +5758,6 @@ function closeMarketFilters() {
     );
 }
 
-
-/* =========================================================
-   FILTER UI SUMMARY
-   ========================================================= */
 
 function updateMarketplaceFilterUI(
     resultCount
@@ -7246,13 +5847,7 @@ function renderActiveFilterBar() {
     ) {
 
         pills.push(
-            `
-                <span class="active-filter-pill">
-                    🔎 ${escapeHtml(
-                        marketFilters.search
-                    )}
-                </span>
-            `
+            `<span class="active-filter-pill">🔎 ${escapeHtml(marketFilters.search)}</span>`
         );
     }
 
@@ -7263,13 +5858,7 @@ function renderActiveFilterBar() {
     ) {
 
         pills.push(
-            `
-                <span class="active-filter-pill">
-                    ${escapeHtml(
-                        marketFilters.category
-                    )}
-                </span>
-            `
+            `<span class="active-filter-pill">${escapeHtml(marketFilters.category)}</span>`
         );
     }
 
@@ -7305,11 +5894,7 @@ function renderActiveFilterBar() {
 
 
         pills.push(
-            `
-                <span class="active-filter-pill">
-                    ${name}
-                </span>
-            `
+            `<span class="active-filter-pill">${name}</span>`
         );
     }
 
@@ -7319,11 +5904,7 @@ function renderActiveFilterBar() {
     ) {
 
         pills.push(
-            `
-                <span class="active-filter-pill gold">
-                    ⭐ Premium
-                </span>
-            `
+            `<span class="active-filter-pill gold">⭐ Premium</span>`
         );
     }
 
@@ -7333,13 +5914,7 @@ function renderActiveFilterBar() {
     ) {
 
         pills.push(
-            `
-                <span class="active-filter-pill">
-                    From $${escapeHtml(
-                        marketFilters.minPrice
-                    )}
-                </span>
-            `
+            `<span class="active-filter-pill">From $${escapeHtml(marketFilters.minPrice)}</span>`
         );
     }
 
@@ -7349,13 +5924,7 @@ function renderActiveFilterBar() {
     ) {
 
         pills.push(
-            `
-                <span class="active-filter-pill">
-                    Up to $${escapeHtml(
-                        marketFilters.maxPrice
-                    )}
-                </span>
-            `
+            `<span class="active-filter-pill">Up to $${escapeHtml(marketFilters.maxPrice)}</span>`
         );
     }
 
@@ -7443,12 +6012,9 @@ function renderListingCard(
             )}"
         >
 
-
             <div class="listing-header">
 
-
                 <div class="listing-main">
-
 
                     <div class="username">
 
@@ -7479,7 +6045,6 @@ function renderListingCard(
                         </span>
 
                         ${sellerButton}
-
 
                         <button
                             class="listing-view-link"
@@ -7539,7 +6104,6 @@ function renderListingCard(
 
             <div class="listing-actions">
 
-
                 <button
                     class="primary offer-button"
                     onclick="
@@ -7573,12 +6137,7 @@ function renderListingCard(
                         )
                     "
                 >
-
-                    ${watched
-                        ? "⭐"
-                        : "☆"
-                    }
-
+                    ${watched ? "⭐" : "☆"}
                 </button>
 
 
@@ -7599,12 +6158,7 @@ function renderListingCard(
                     "
                     ${reported ? "disabled" : ""}
                 >
-
-                    ${reported
-                        ? "✓"
-                        : "⚑"
-                    }
-
+                    ${reported ? "✓" : "⚑"}
                 </button>
 
             </div>
@@ -7616,16 +6170,70 @@ function renderListingCard(
                     listing.id
                 )}"
             >
-
                 ${getLockedContactHtml(
                     listing.id
                 )}
-
             </div>
 
         </div>
 
     `;
+}
+
+
+/* =========================================================
+   LISTING VIEW TRACKING - NEW v21
+   ========================================================= */
+
+async function recordListingView(
+    listingId
+) {
+
+    if (
+        !authenticatedUser
+        ||
+        !tg?.initData
+        ||
+        recordedListingViewIds.has(
+            String(
+                listingId
+            )
+        )
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/listing/view",
+            {
+                initData:
+                    tg.initData,
+
+                listing_id:
+                    listingId
+            }
+        );
+
+
+        recordedListingViewIds.add(
+            String(
+                listingId
+            )
+        );
+
+    } catch (
+        error
+    ) {
+
+        console.log(
+            "View tracking:",
+            error.message
+        );
+    }
 }
 
 
@@ -7640,12 +6248,15 @@ async function openListingPage(
     let listing =
         marketplaceListings.find(
             item =>
-                String(item.id) ===
+                String(item.id)
+                ===
                 String(listingId)
         );
 
 
-    if (!listing) {
+    if (
+        !listing
+    ) {
 
         await loadMarketplace();
 
@@ -7653,7 +6264,8 @@ async function openListingPage(
         listing =
             marketplaceListings.find(
                 item =>
-                    String(item.id) ===
+                    String(item.id)
+                    ===
                     String(listingId)
             );
     }
@@ -7671,15 +6283,12 @@ async function openListingPage(
         );
 
 
-    if (!listing) {
+    if (
+        !listing
+    ) {
 
-        container.innerHTML = `
-
-            <div class="empty">
-                This listing is unavailable.
-            </div>
-
-        `;
+        container.innerHTML =
+            '<div class="empty">This listing is unavailable.</div>';
 
         return;
     }
@@ -7762,7 +6371,6 @@ async function openListingPage(
 
                 </span>
 
-
                 ${
                     listing.seller_profile_id
 
@@ -7809,7 +6417,6 @@ async function openListingPage(
 
 
             <div class="detail-actions">
-
 
                 <button
                     class="primary offer-button"
@@ -7877,11 +6484,9 @@ async function openListingPage(
                     listing.id
                 )}"
             >
-
                 ${getLockedContactHtml(
                     listing.id
                 )}
-
             </div>
 
 
@@ -7929,12 +6534,19 @@ async function openListingPage(
     `;
 
 
+    await recordListingView(
+        listing.id
+    );
+
+
     if (
         authenticatedUser
     ) {
 
         await checkUnlockedContacts(
-            [listing]
+            [
+                listing
+            ]
         );
     }
 }
@@ -7976,7 +6588,9 @@ function shareListing(
     const shareUrl =
         "https://t.me/share/url?url="
         +
-        encodeURIComponent(link)
+        encodeURIComponent(
+            link
+        )
         +
         "&text="
         +
@@ -8003,9 +6617,11 @@ async function copyListingLink(
 
     try {
 
-        await navigator.clipboard.writeText(
-            link
-        );
+        await navigator
+            .clipboard
+            .writeText(
+                link
+            );
 
 
         tg?.showAlert(
@@ -8014,19 +6630,16 @@ async function copyListingLink(
 
     } catch {
 
-        tg?.showAlert(link);
+        tg?.showAlert(
+            link
+        );
     }
 }
 
 
-/* =========================================================
-   DEEP LINK
-   ========================================================= */
-
 function getStartParameter() {
 
     return (
-
         tg?.initDataUnsafe
             ?.start_param
 
@@ -8080,8 +6693,11 @@ async function checkUnlockedContacts(
 ) {
 
     if (
-        !authenticatedUser ||
-        !Array.isArray(listings)
+        !authenticatedUser
+        ||
+        !Array.isArray(
+            listings
+        )
     ) {
 
         return;
@@ -8149,7 +6765,7 @@ function getLockedContactHtml(
 
             <div class="contact-lock-left">
 
-                <div class="contact-lock-icon">
+                <div>
                     🔒
                 </div>
 
@@ -8169,9 +6785,7 @@ function getLockedContactHtml(
 
 
             <div class="contact-lock-price">
-
                 ${contactUnlockPriceStars} ⭐
-
             </div>
 
         </button>
@@ -8259,7 +6873,9 @@ async function unlockSellerContact(
                     i++
                 ) {
 
-                    await sleep(1600);
+                    await sleep(
+                        1600
+                    );
 
 
                     try {
@@ -8278,7 +6894,8 @@ async function unlockSellerContact(
 
 
                         if (
-                            result.order.status ===
+                            result.order.status
+                            ===
                             "paid"
                         ) {
 
@@ -8294,7 +6911,9 @@ async function unlockSellerContact(
             }
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -8316,15 +6935,20 @@ function showSellerContact(
 
             if (
                 area.dataset
-                    .contactListingId !==
-                String(listingId)
+                    .contactListingId
+                !==
+                String(
+                    listingId
+                )
             ) {
 
                 return;
             }
 
 
-            if (owner) {
+            if (
+                owner
+            ) {
 
                 area.innerHTML = `
 
@@ -8364,9 +6988,7 @@ function showSellerContact(
 
                         </div>
 
-
                         <div class="contact-actions">
-
 
                             ${
                                 contact.type ===
@@ -8392,7 +7014,6 @@ function showSellerContact(
                                     : ""
                             }
 
-
                             <button
                                 class="secondary"
                                 onclick="
@@ -8416,7 +7037,9 @@ function showSellerContact(
     );
 
 
-    if (owner) {
+    if (
+        owner
+    ) {
 
         markOwnListing(
             listingId
@@ -8436,8 +7059,11 @@ function markOwnListing(
 
             if (
                 card.dataset
-                    .listingCardId !==
-                String(listingId)
+                    .listingCardId
+                !==
+                String(
+                    listingId
+                )
             ) {
 
                 return;
@@ -8450,11 +7076,12 @@ function markOwnListing(
                 );
 
 
-            if (offer) {
+            if (
+                offer
+            ) {
 
                 offer.disabled =
                     true;
-
 
                 offer.textContent =
                     "Your Listing";
@@ -8467,11 +7094,12 @@ function markOwnListing(
                 );
 
 
-            if (report) {
+            if (
+                report
+            ) {
 
                 report.disabled =
                     true;
-
 
                 report.textContent =
                     "👤";
@@ -8490,11 +7118,16 @@ function openTelegramContact(
             value ||
             ""
         )
-        .replace(/^@/,"")
+        .replace(
+            /^@/,
+            ""
+        )
         .trim();
 
 
-    if (username) {
+    if (
+        username
+    ) {
 
         tg?.openTelegramLink(
             "https://t.me/"
@@ -8513,9 +7146,11 @@ async function copyContact(
 
     try {
 
-        await navigator.clipboard.writeText(
-            value
-        );
+        await navigator
+            .clipboard
+            .writeText(
+                value
+            );
 
 
         tg?.showAlert(
@@ -8524,7 +7159,9 @@ async function copyContact(
 
     } catch {
 
-        tg?.showAlert(value);
+        tg?.showAlert(
+            value
+        );
     }
 }
 
@@ -8535,7 +7172,9 @@ async function copyContact(
 
 async function loadWatchlistState() {
 
-    if (!tg?.initData) {
+    if (
+        !tg?.initData
+    ) {
 
         return;
     }
@@ -8559,7 +7198,9 @@ async function loadWatchlistState() {
                 (
                     data.listing_ids ||
                     []
-                ).map(String)
+                ).map(
+                    String
+                )
             );
 
 
@@ -8610,7 +7251,9 @@ async function toggleWatch(
 
         updateAllWatchButtons();
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -8683,11 +7326,12 @@ async function openWatchlist() {
 
         watchedListingIds =
             new Set(
-
                 (
                     data.listing_ids ||
                     []
-                ).map(String)
+                ).map(
+                    String
+                )
             );
 
 
@@ -8706,18 +7350,12 @@ async function openWatchlist() {
                     )
                     .join("")
 
-                : `
-
-                    <div class="empty">
-                        Your Watchlist is empty.
-                    </div>
-
-                `;
+                : '<div class="empty">Your Watchlist is empty.</div>';
 
 
         updateAllWatchButtons();
-
         updateAllReportButtons();
+
 
         await checkUnlockedContacts(
             listings
@@ -8725,13 +7363,8 @@ async function openWatchlist() {
 
     } catch {
 
-        container.innerHTML = `
-
-            <div class="empty">
-                Failed to load Watchlist.
-            </div>
-
-        `;
+        container.innerHTML =
+            '<div class="empty">Failed to load Watchlist.</div>';
     }
 }
 
@@ -8742,7 +7375,9 @@ async function openWatchlist() {
 
 async function loadMyReports() {
 
-    if (!tg?.initData) {
+    if (
+        !tg?.initData
+    ) {
 
         return;
     }
@@ -8766,7 +7401,9 @@ async function loadMyReports() {
                 (
                     data.listing_ids ||
                     []
-                ).map(String)
+                ).map(
+                    String
+                )
             );
 
 
@@ -8965,7 +7602,9 @@ function openReportModal(
                     "Report submitted ✓"
                 );
 
-            } catch (error) {
+            } catch (
+                error
+            ) {
 
                 tg?.showAlert(
                     error.message
@@ -9054,7 +7693,9 @@ async function startListingPayment(
                     i++
                 ) {
 
-                    await sleep(1600);
+                    await sleep(
+                        1600
+                    );
 
 
                     try {
@@ -9073,7 +7714,8 @@ async function startListingPayment(
 
 
                         if (
-                            result.order.status ===
+                            result.order.status
+                            ===
                             "completed"
                         ) {
 
@@ -9098,7 +7740,9 @@ async function startListingPayment(
             }
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -9108,12 +7752,14 @@ async function startListingPayment(
 
 
 /* =========================================================
-   MY LISTINGS
+   MY LISTINGS + STATS
    ========================================================= */
 
 async function loadMyListings() {
 
-    if (!tg?.initData) {
+    if (
+        !tg?.initData
+    ) {
 
         return;
     }
@@ -9152,24 +7798,98 @@ async function loadMyListings() {
                     )
                     .join("")
 
-                : `
+                : '<div class="empty">You have no listings yet.</div>';
 
-                    <div class="empty">
-                        You have no listings yet.
-                    </div>
+    } catch (
+        error
+    ) {
 
-                `;
+        console.error(
+            error
+        );
 
-    } catch {
 
-        container.innerHTML = `
+        container.innerHTML =
+            '<div class="empty">Failed to load your listings.</div>';
+    }
+}
 
-            <div class="empty">
-                Failed to load your listings.
+
+function listingStatsHtml(
+    listing
+) {
+
+    const stats =
+        listing.stats ||
+        {};
+
+
+    const views =
+        Number(
+            stats.views ||
+            0
+        );
+
+
+    const watchlists =
+        Number(
+            stats.watchlists ||
+            0
+        );
+
+
+    const offers =
+        Number(
+            stats.offers ||
+            0
+        );
+
+
+    return `
+
+        <div class="listing-stats">
+
+            <div class="listing-stat">
+
+                <div class="listing-stat-number">
+                    👁 ${views}
+                </div>
+
+                <div class="listing-stat-label">
+                    Views
+                </div>
+
             </div>
 
-        `;
-    }
+
+            <div class="listing-stat">
+
+                <div class="listing-stat-number">
+                    ⭐ ${watchlists}
+                </div>
+
+                <div class="listing-stat-label">
+                    Watchlists
+                </div>
+
+            </div>
+
+
+            <div class="listing-stat">
+
+                <div class="listing-stat-number">
+                    💬 ${offers}
+                </div>
+
+                <div class="listing-stat-label">
+                    Offers
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
 }
 
 
@@ -9244,9 +7964,7 @@ function renderMyListing(
 
         <div class="card">
 
-
             <div class="listing-header">
-
 
                 <div class="listing-main">
 
@@ -9298,11 +8016,6 @@ function renderMyListing(
             </div>
 
 
-            ${promotionStatusHtml(
-                listing
-            )}
-
-
             ${
                 listing.description
 
@@ -9320,6 +8033,16 @@ function renderMyListing(
 
                     : ""
             }
+
+
+            ${listingStatsHtml(
+                listing
+            )}
+
+
+            ${promotionStatusHtml(
+                listing
+            )}
 
 
             ${
@@ -9367,7 +8090,6 @@ function renderMyListing(
 
                             <div class="manage-buttons">
 
-
                                 <button
                                     class="edit-listing-button"
                                     onclick="
@@ -9385,9 +8107,7 @@ function renderMyListing(
                                 <button
                                     class="${
                                         listing.is_paused
-
                                             ? "resume-listing-button"
-
                                             : "pause-listing-button"
                                     }"
                                     onclick="
@@ -9397,9 +8117,7 @@ function renderMyListing(
                                             )}',
                                             '${
                                                 listing.is_paused
-
                                                     ? "resume"
-
                                                     : "pause"
                                             }'
                                         )
@@ -9408,9 +8126,7 @@ function renderMyListing(
 
                                     ${
                                         listing.is_paused
-
                                             ? "Resume"
-
                                             : "Pause"
                                     }
 
@@ -9496,13 +8212,11 @@ function promotionStatusHtml(
             </strong>
 
             <span>
-
                 ${escapeHtml(
                     formatPromotionRemaining(
                         listing.promotion_until
                     )
                 )}
-
             </span>
 
         </div>
@@ -9524,7 +8238,10 @@ function formatPromotionRemaining(
 
 
     if (
-        !Number.isFinite(diff) ||
+        !Number.isFinite(
+            diff
+        )
+        ||
         diff <= 0
     ) {
 
@@ -9570,7 +8287,7 @@ function formatPromotionRemaining(
 
 
 /* =========================================================
-   EDIT LISTING
+   EDIT / PAUSE / REMOVE
    ========================================================= */
 
 function openEditListing(
@@ -9580,12 +8297,19 @@ function openEditListing(
     const listing =
         myListingsData.find(
             item =>
-                String(item.id) ===
-                String(listingId)
+                String(
+                    item.id
+                )
+                ===
+                String(
+                    listingId
+                )
         );
 
 
-    if (!listing) {
+    if (
+        !listing
+    ) {
 
         return;
     }
@@ -9699,7 +8423,9 @@ function openEditListing(
                     "Listing updated ✓"
                 );
 
-            } catch (error) {
+            } catch (
+                error
+            ) {
 
                 tg?.showAlert(
                     error.message
@@ -9742,7 +8468,9 @@ async function changeListingPause(
             ]
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -9788,7 +8516,9 @@ async function removeListing(
             ]
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -9798,7 +8528,7 @@ async function removeListing(
 
 
 /* =========================================================
-   PROMOTION MODAL
+   PROMOTION
    ========================================================= */
 
 function openPromotionModal(
@@ -9812,12 +8542,15 @@ function openPromotionModal(
     const listing =
         myListingsData.find(
             item =>
-                String(item.id) ===
+                String(item.id)
+                ===
                 String(listingId)
         );
 
 
-    if (!listing) {
+    if (
+        !listing
+    ) {
 
         return;
     }
@@ -9897,7 +8630,6 @@ function renderPromotionButtons(
                     </strong>
 
                     <span>
-
                         ${
                             Number(
                                 promotionPrices
@@ -9907,7 +8639,6 @@ function renderPromotionButtons(
                                 1
                             )
                         } ⭐
-
                     </span>
 
                 </button>
@@ -9965,7 +8696,9 @@ async function startPromotionPayment(
                     i++
                 ) {
 
-                    await sleep(1600);
+                    await sleep(
+                        1600
+                    );
 
 
                     const result =
@@ -9982,7 +8715,8 @@ async function startPromotionPayment(
 
 
                     if (
-                        result.order.status ===
+                        result.order.status
+                        ===
                         "completed"
                     ) {
 
@@ -10010,7 +8744,9 @@ async function startPromotionPayment(
             }
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -10128,7 +8864,9 @@ function openOfferModal(
                     "Offer sent ✓"
                 );
 
-            } catch (error) {
+            } catch (
+                error
+            ) {
 
                 if (
                     error.message ===
@@ -10208,7 +8946,6 @@ async function loadSentOffers() {
 
                             <div class="card">
 
-
                                 <div class="username">
 
                                     @${escapeHtml(
@@ -10269,11 +9006,9 @@ async function loadSentOffers() {
                                     )}"
                                     style="margin-top:10px"
                                 >
-
                                     ${String(
                                         offer.status
                                     ).toUpperCase()}
-
                                 </div>
 
 
@@ -10355,23 +9090,12 @@ async function loadSentOffers() {
                     )
                     .join("")
 
-                : `
-
-                    <div class="empty">
-                        No sent offers.
-                    </div>
-
-                `;
+                : '<div class="empty">No sent offers.</div>';
 
     } catch {
 
-        container.innerHTML = `
-
-            <div class="empty">
-                Failed to load.
-            </div>
-
-        `;
+        container.innerHTML =
+            '<div class="empty">Failed to load.</div>';
     }
 }
 
@@ -10406,7 +9130,6 @@ async function loadReceivedOffers() {
 
                             <div class="card">
 
-
                                 <div class="username">
 
                                     @${escapeHtml(
@@ -10440,11 +9163,9 @@ async function loadReceivedOffers() {
                                     )}"
                                     style="margin-top:10px"
                                 >
-
                                     ${String(
                                         offer.status
                                     ).toUpperCase()}
-
                                 </div>
 
 
@@ -10455,7 +9176,6 @@ async function loadReceivedOffers() {
                                         ? `
 
                                             <div class="buttons">
-
 
                                                 ${
                                                     offer.listing?.is_frozen
@@ -10522,23 +9242,12 @@ async function loadReceivedOffers() {
                     )
                     .join("")
 
-                : `
-
-                    <div class="empty">
-                        No received offers.
-                    </div>
-
-                `;
+                : '<div class="empty">No received offers.</div>';
 
     } catch {
 
-        container.innerHTML = `
-
-            <div class="empty">
-                Failed to load.
-            </div>
-
-        `;
+        container.innerHTML =
+            '<div class="empty">Failed to load.</div>';
     }
 }
 
@@ -10572,7 +9281,9 @@ async function sellerOfferAction(
             ]
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -10666,7 +9377,9 @@ function openCounterOffer(
 
                 await loadOfferCenter();
 
-            } catch (error) {
+            } catch (
+                error
+            ) {
 
                 tg?.showAlert(
                     error.message
@@ -10709,7 +9422,9 @@ async function buyerOfferAction(
             ]
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -10733,7 +9448,6 @@ function openWantedPage(
 
 
     loadWanted();
-
     loadMyWanted();
 }
 
@@ -10825,7 +9539,8 @@ async function loadWanted() {
                                     authenticatedUser &&
                                     Number(
                                         post.buyer_telegram_id
-                                    ) ===
+                                    )
+                                    ===
                                     Number(
                                         authenticatedUser.id
                                     )
@@ -10869,13 +9584,7 @@ async function loadWanted() {
                     )
                     .join("")
 
-                : `
-
-                    <div class="empty">
-                        No active Wanted requests.
-                    </div>
-
-                `;
+                : '<div class="empty">No active Wanted requests.</div>';
 
     } catch {}
 }
@@ -10941,7 +9650,9 @@ async function startWantedPayment(
                     i++
                 ) {
 
-                    await sleep(1600);
+                    await sleep(
+                        1600
+                    );
 
 
                     const result =
@@ -10958,7 +9669,8 @@ async function startWantedPayment(
 
 
                     if (
-                        result.order.status ===
+                        result.order.status
+                        ===
                         "completed"
                     ) {
 
@@ -10981,7 +9693,9 @@ async function startWantedPayment(
             }
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -10992,7 +9706,9 @@ async function startWantedPayment(
 
 async function loadMyWanted() {
 
-    if (!tg?.initData) {
+    if (
+        !tg?.initData
+    ) {
 
         return;
     }
@@ -11044,18 +9760,14 @@ async function loadMyWanted() {
                                     class="badge ${
                                         post.status ===
                                         "active"
-
                                             ? "badge-active"
-
                                             : "badge-closed"
                                     }"
                                     style="margin-top:10px"
                                 >
-
                                     ${String(
                                         post.status
                                     ).toUpperCase()}
-
                                 </div>
 
 
@@ -11087,13 +9799,7 @@ async function loadMyWanted() {
                     )
                     .join("")
 
-                : `
-
-                    <div class="empty">
-                        No Wanted posts.
-                    </div>
-
-                `;
+                : '<div class="empty">No Wanted posts.</div>';
 
     } catch {}
 }
@@ -11124,7 +9830,9 @@ async function closeWantedRequest(
             ]
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -11200,7 +9908,6 @@ function renderMainProfile(
 
             <div class="profile-menu">
 
-
                 <button
                     class="profile-tile"
                     onclick="openMySellerProfile()"
@@ -11220,9 +9927,7 @@ function renderMainProfile(
 
                             ${
                                 user.seller_profile_is_public
-
                                     ? "Public"
-
                                     : "Private"
                             }
 
@@ -11342,13 +10047,8 @@ async function openSellerProfile(
         );
 
 
-    container.innerHTML = `
-
-        <div class="empty">
-            Loading seller profile...
-        </div>
-
-    `;
+    container.innerHTML =
+        '<div class="empty">Loading seller profile...</div>';
 
 
     try {
@@ -11385,13 +10085,8 @@ async function openSellerProfile(
 
     } catch {
 
-        container.innerHTML = `
-
-            <div class="empty">
-                Seller profile unavailable.
-            </div>
-
-        `;
+        container.innerHTML =
+            '<div class="empty">Seller profile unavailable.</div>';
     }
 }
 
@@ -11429,13 +10124,8 @@ async function openMySellerProfile() {
 
         document.getElementById(
             "sellerProfileContent"
-        ).innerHTML = `
-
-            <div class="empty">
-                Failed to load seller profile.
-            </div>
-
-        `;
+        ).innerHTML =
+            '<div class="empty">Failed to load seller profile.</div>';
     }
 }
 
@@ -11455,7 +10145,6 @@ function renderSellerProfile(
     ).innerHTML = `
 
         <div class="seller-header-card">
-
 
             <div class="seller-top">
 
@@ -11508,25 +10197,16 @@ function renderSellerProfile(
 
                     `
 
-                    : `
-
-                        <div class="seller-bio-empty">
-                            No bio yet.
-                        </div>
-
-                    `
+                    : ""
             }
 
 
             <div class="seller-stats">
 
-
                 <div class="seller-stat">
 
                     <div class="seller-stat-number">
-
                         ${profile.stats?.active_listings || 0}
-
                     </div>
 
                     <div class="seller-stat-label">
@@ -11539,9 +10219,7 @@ function renderSellerProfile(
                 <div class="seller-stat">
 
                     <div class="seller-stat-number">
-
                         ${profile.stats?.accepted_agreements || 0}
-
                     </div>
 
                     <div class="seller-stat-label">
@@ -11554,9 +10232,7 @@ function renderSellerProfile(
                 <div class="seller-stat">
 
                     <div class="seller-stat-number">
-
                         ${profile.stats?.active_wanted || 0}
-
                     </div>
 
                     <div class="seller-stat-label">
@@ -11576,18 +10252,14 @@ function renderSellerProfile(
                         <div
                             class="${
                                 profile.is_public
-
                                     ? "seller-visibility-public"
-
                                     : "seller-visibility-private"
                             }"
                         >
 
                             ${
                                 profile.is_public
-
                                     ? "🌐 Public profile"
-
                                     : "🔒 Private profile"
                             }
 
@@ -11627,20 +10299,13 @@ function renderSellerProfile(
                     )
                     .join("")
 
-                : `
-
-                    <div class="empty">
-                        No active listings.
-                    </div>
-
-                `
+                : '<div class="empty">No active listings.</div>'
         }
 
     `;
 
 
     updateAllWatchButtons();
-
     updateAllReportButtons();
 
 
@@ -11757,7 +10422,8 @@ function openSellerEdit() {
                             is_public:
                                 document.getElementById(
                                     "sellerVisibilityInput"
-                                ).value ===
+                                ).value
+                                ===
                                 "public"
                         }
                     );
@@ -11790,7 +10456,9 @@ function openSellerEdit() {
 
                 await loadMarketplace();
 
-            } catch (error) {
+            } catch (
+                error
+            ) {
 
                 tg?.showAlert(
                     error.message
@@ -11898,33 +10566,12 @@ async function loadPendingListings() {
                                 </div>
 
 
-                                ${
-                                    listing.description
-
-                                        ? `
-
-                                            <div class="description">
-
-                                                ${escapeHtml(
-                                                    listing.description
-                                                )}
-
-                                            </div>
-
-                                        `
-
-                                        : ""
-                                }
-
-
                                 <div class="buttons">
 
                                     <button
                                         class="${
                                             listing.is_premium_name
-
                                                 ? "premium-remove-button"
-
                                                 : "premium-mark-button"
                                         }"
                                         onclick="
@@ -11937,9 +10584,7 @@ async function loadPendingListings() {
 
                                         ${
                                             listing.is_premium_name
-
                                                 ? "☆ Remove Premium"
-
                                                 : "⭐ Mark Premium"
                                         }
 
@@ -11982,23 +10627,12 @@ async function loadPendingListings() {
                     )
                     .join("")
 
-                : `
-
-                    <div class="empty">
-                        No pending listings.
-                    </div>
-
-                `;
+                : '<div class="empty">No pending listings.</div>';
 
     } catch {
 
-        container.innerHTML = `
-
-            <div class="empty">
-                Failed to load.
-            </div>
-
-        `;
+        container.innerHTML =
+            '<div class="empty">Failed to load.</div>';
     }
 }
 
@@ -12070,25 +10704,10 @@ async function loadAdminPremiumListings() {
                                 </div>
 
 
-                                <div class="description">
-
-                                    ${
-                                        listing.is_premium_name
-
-                                            ? "⭐ Premium status active"
-
-                                            : "Regular username — no Premium status"
-                                    }
-
-                                </div>
-
-
                                 <button
                                     class="${
                                         listing.is_premium_name
-
                                             ? "premium-remove-button"
-
                                             : "premium-mark-button"
                                     }"
                                     style="margin-top:12px"
@@ -12102,9 +10721,7 @@ async function loadAdminPremiumListings() {
 
                                     ${
                                         listing.is_premium_name
-
                                             ? "☆ Remove Premium"
-
                                             : "⭐ Mark Premium"
                                     }
 
@@ -12116,23 +10733,12 @@ async function loadAdminPremiumListings() {
                     )
                     .join("")
 
-                : `
-
-                    <div class="empty">
-                        No active listings.
-                    </div>
-
-                `;
+                : '<div class="empty">No active listings.</div>';
 
     } catch {
 
-        container.innerHTML = `
-
-            <div class="empty">
-                Failed to load Premium management.
-            </div>
-
-        `;
+        container.innerHTML =
+            '<div class="empty">Failed to load Premium management.</div>';
     }
 }
 
@@ -12171,15 +10777,14 @@ async function adminSetPremium(
 
 
         tg?.showAlert(
-
             isPremium
-
                 ? "⭐ Premium awarded."
-
                 : "Premium removed."
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -12217,7 +10822,9 @@ async function adminStatus(
             ]
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -12280,25 +10887,6 @@ async function loadAdminReports() {
                                     )}
 
                                 </div>
-
-
-                                ${
-                                    report.details
-
-                                        ? `
-
-                                            <div class="description">
-
-                                                ${escapeHtml(
-                                                    report.details
-                                                )}
-
-                                            </div>
-
-                                        `
-
-                                        : ""
-                                }
 
 
                                 <div class="buttons">
@@ -12368,23 +10956,12 @@ async function loadAdminReports() {
                     )
                     .join("")
 
-                : `
-
-                    <div class="empty">
-                        No open reports.
-                    </div>
-
-                `;
+                : '<div class="empty">No open reports.</div>';
 
     } catch {
 
-        container.innerHTML = `
-
-            <div class="empty">
-                Failed to load reports.
-            </div>
-
-        `;
+        container.innerHTML =
+            '<div class="empty">Failed to load reports.</div>';
     }
 }
 
@@ -12419,7 +10996,9 @@ async function adminReportAction(
             ]
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -12467,24 +11046,6 @@ async function loadFrozenListings() {
                                 </div>
 
 
-                                <div class="listing-info-row">
-
-                                    ${premiumNameBadgeHtml(
-                                        listing
-                                    )}
-
-                                    <span class="category-badge">
-
-                                        ${escapeHtml(
-                                            listing.category ||
-                                            "Other"
-                                        )}
-
-                                    </span>
-
-                                </div>
-
-
                                 <div class="buttons">
 
                                     <button
@@ -12517,23 +11078,12 @@ async function loadFrozenListings() {
                     )
                     .join("")
 
-                : `
-
-                    <div class="empty">
-                        No frozen listings.
-                    </div>
-
-                `;
+                : '<div class="empty">No frozen listings.</div>';
 
     } catch {
 
-        container.innerHTML = `
-
-            <div class="empty">
-                Failed to load.
-            </div>
-
-        `;
+        container.innerHTML =
+            '<div class="empty">Failed to load.</div>';
     }
 }
 
@@ -12566,7 +11116,9 @@ async function adminUnfreezeListing(
             ]
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -12601,7 +11153,9 @@ async function adminRemoveListing(
             ]
         );
 
-    } catch (error) {
+    } catch (
+        error
+    ) {
 
         tg?.showAlert(
             error.message
@@ -12623,7 +11177,6 @@ function openPage(
         ".page"
     ).forEach(
         page =>
-
             page.classList.remove(
                 "active"
             )
@@ -12641,14 +11194,15 @@ function openPage(
         ".nav-item"
     ).forEach(
         item =>
-
             item.classList.remove(
                 "active"
             )
     );
 
 
-    if (nav) {
+    if (
+        nav
+    ) {
 
         nav.classList.add(
             "active"
@@ -12683,7 +11237,7 @@ function openPage(
 
 
 /* =========================================================
-   MODAL
+   MODALS
    ========================================================= */
 
 function showModal(
@@ -12707,24 +11261,6 @@ function closeModal(
     ).classList.remove(
         "show"
     );
-
-
-    if (
-        id ===
-        "inputModal"
-    ) {
-
-        document.getElementById(
-            "inputModalMessage"
-        ).className =
-            "message";
-
-
-        document.getElementById(
-            "inputModalMessage"
-        ).textContent =
-            "";
-    }
 }
 
 
@@ -12738,7 +11274,9 @@ function backdropClose(
         id
     ) {
 
-        closeModal(id);
+        closeModal(
+            id
+        );
     }
 }
 
@@ -12781,7 +11319,9 @@ function formatPrice(
 ) {
 
     const number =
-        Number(value);
+        Number(
+            value
+        );
 
 
     return Number.isFinite(
@@ -12805,7 +11345,9 @@ function formatMemberDate(
 ) {
 
     const date =
-        new Date(value);
+        new Date(
+            value
+        );
 
 
     if (
@@ -12850,12 +11392,26 @@ function escapeHtml(
         value ??
         ""
     )
-
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+    .replaceAll(
+        "&",
+        "&amp;"
+    )
+    .replaceAll(
+        "<",
+        "&lt;"
+    )
+    .replaceAll(
+        ">",
+        "&gt;"
+    )
+    .replaceAll(
+        '"',
+        "&quot;"
+    )
+    .replaceAll(
+        "'",
+        "&#039;"
+    );
 }
 
 
@@ -12867,11 +11423,22 @@ function escapeJs(
         value ??
         ""
     )
-
-    .replaceAll("\\","\\\\")
-    .replaceAll("'","\\'")
-    .replaceAll("\n","\\n")
-    .replaceAll("\r","");
+    .replaceAll(
+        "\\",
+        "\\\\"
+    )
+    .replaceAll(
+        "'",
+        "\\'"
+    )
+    .replaceAll(
+        "\n",
+        "\\n"
+    )
+    .replaceAll(
+        "\r",
+        ""
+    );
 }
 
 
