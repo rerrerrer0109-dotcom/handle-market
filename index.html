@@ -1,526 +1,599 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
 <title>Handle Market</title>
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f4f5f7;color:#111;padding-bottom:85px}
-.app{max-width:650px;margin:auto}
-header{background:#fff;padding:18px;border-bottom:1px solid #e5e5e5}
-.logo{font-size:25px;font-weight:800}
-.subtitle{color:#777;font-size:13px;margin-top:5px}
-.auth-status{margin-top:10px;font-size:13px}
-.auth-ok{color:#139447}
-.auth-error{color:#d93025}
 
-.page{display:none}
-.page.active{display:block}
-
-.search{padding:16px}
-
-.search input{
-    width:100%;
-    border:1px solid #ddd;
-    border-radius:14px;
-    padding:14px;
-    font-size:16px;
-    background:#fff
+* {
+    box-sizing: border-box;
 }
 
-.section{padding:0 16px 20px}
-
-.section-title{
-    font-size:20px;
-    font-weight:800;
-    margin-bottom:12px
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f5f7;
+    color: #111;
+    padding-bottom: 85px;
 }
 
-.categories{
-    display:flex;
-    gap:8px;
-    overflow-x:auto
+.app {
+    max-width: 650px;
+    margin: auto;
 }
 
-.category{
-    white-space:nowrap;
-    background:#fff;
-    border:1px solid #e8e8e8;
-    border-radius:20px;
-    padding:9px 14px
+header {
+    background: white;
+    padding: 18px;
+    border-bottom: 1px solid #e5e5e5;
 }
 
-.card{
-    background:#fff;
-    padding:17px;
-    margin-bottom:12px;
-    border-radius:18px;
-    box-shadow:0 2px 9px rgba(0,0,0,.04)
+.logo {
+    font-size: 25px;
+    font-weight: 800;
 }
 
-.username{
-    font-size:23px;
-    font-weight:800
+.subtitle {
+    color: #777;
+    font-size: 13px;
+    margin-top: 5px;
 }
 
-.price{
-    font-size:20px;
-    font-weight:700;
-    margin-top:13px
+.auth-status {
+    margin-top: 10px;
+    font-size: 13px;
 }
 
-.meta{
-    color:#777;
-    margin-top:6px;
-    font-size:13px
+.auth-ok {
+    color: #139447;
 }
 
-.description{
-    color:#555;
-    margin-top:12px;
-    line-height:1.45
+.auth-error {
+    color: #d93025;
 }
 
-.badge{
-    display:inline-block;
-    margin-top:7px;
-    padding:5px 9px;
-    border-radius:10px;
-    font-size:12px
+.page {
+    display: none;
 }
 
-.badge-pending{
-    background:#fff7e0;
-    color:#9a6900
+.page.active {
+    display: block;
+}
+
+.search {
+    padding: 16px;
+}
+
+.search input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 16px;
+    background: white;
+}
+
+.section {
+    padding: 0 16px 20px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.categories {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+}
+
+.category {
+    white-space: nowrap;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 20px;
+    padding: 9px 14px;
+}
+
+.card {
+    background: white;
+    padding: 17px;
+    margin-bottom: 12px;
+    border-radius: 18px;
+    box-shadow: 0 2px 9px rgba(0,0,0,.04);
+}
+
+.username {
+    font-size: 23px;
+    font-weight: 800;
+}
+
+.price {
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 13px;
+}
+
+.meta {
+    color: #777;
+    margin-top: 6px;
+    font-size: 13px;
+}
+
+.description {
+    color: #555;
+    margin-top: 12px;
+    line-height: 1.45;
+}
+
+.badge {
+    display: inline-block;
+    margin-top: 7px;
+    padding: 5px 9px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.badge-pending {
+    background: #fff7e0;
+    color: #9a6900;
 }
 
 .badge-active,
-.badge-accepted{
-    background:#ebf9ef;
-    color:#14863c
+.badge-accepted {
+    background: #ebf9ef;
+    color: #14863c;
 }
 
-.badge-rejected{
-    background:#fff0f0;
-    color:#c33
+.badge-rejected {
+    background: #fff0f0;
+    color: #c33;
 }
 
-.badge-countered{
-    background:#eef6ff;
-    color:#1764a5
+.badge-countered {
+    background: #eef6ff;
+    color: #1764a5;
 }
 
 .badge-declined,
-.badge-cancelled{
-    background:#f2f2f2;
-    color:#777
+.badge-cancelled {
+    background: #f2f2f2;
+    color: #777;
 }
 
-.buttons{
-    display:flex;
-    gap:8px;
-    margin-top:14px
+.buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
 }
 
-button{
-    border:none;
-    border-radius:12px;
-    padding:12px 14px;
-    font-size:14px;
-    cursor:pointer
+button {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    cursor: pointer;
 }
 
-button:disabled{
-    opacity:.55;
-    cursor:default
+button:disabled {
+    opacity: .55;
+    cursor: default;
 }
 
-.primary{
-    flex:1;
-    background:#1687e8;
-    color:#fff
+.primary {
+    flex: 1;
+    background: #1687e8;
+    color: white;
 }
 
-.secondary{
-    background:#eee
+.secondary {
+    background: #eee;
 }
 
-.own-listing-button{
-    flex:1;
-    background:#ebf9ef;
-    color:#14863c;
-    font-weight:700
+.watch-button {
+    background: #eee;
+    min-width: 100px;
 }
 
-.unlock-button{
-    width:100%;
-    margin-top:12px;
-    background:#f1f6ff;
-    border:1px solid #d8e7ff;
-    color:#1764a5;
-    font-weight:700
+.watch-button.watching {
+    background: #fff4cc;
+    color: #805e00;
+    font-weight: 700;
 }
 
-.contact-box{
-    margin-top:12px;
-    border-radius:14px;
-    padding:14px;
-    background:#edf9f1;
-    border:1px solid #caedd5
+.own-listing-button {
+    flex: 1;
+    background: #ebf9ef;
+    color: #14863c;
+    font-weight: 700;
 }
 
-.owner-contact-box{
-    margin-top:12px;
-    border-radius:14px;
-    padding:14px;
-    background:#f5f5f5;
-    border:1px solid #dedede
+.unlock-button {
+    width: 100%;
+    margin-top: 12px;
+    background: #f1f6ff;
+    border: 1px solid #d8e7ff;
+    color: #1764a5;
+    font-weight: 700;
 }
 
-.contact-title{
-    font-weight:800;
-    color:#168344
+.contact-box {
+    margin-top: 12px;
+    border-radius: 14px;
+    padding: 14px;
+    background: #edf9f1;
+    border: 1px solid #caedd5;
 }
 
-.owner-title{
-    font-weight:800;
-    color:#333
+.owner-contact-box {
+    margin-top: 12px;
+    border-radius: 14px;
+    padding: 14px;
+    background: #f5f5f5;
+    border: 1px solid #dedede;
 }
 
-.contact-value{
-    font-size:17px;
-    font-weight:700;
-    margin-top:8px;
-    word-break:break-word
+.contact-title {
+    font-weight: 800;
+    color: #168344;
 }
 
-.contact-actions{
-    display:flex;
-    gap:8px;
-    margin-top:12px
+.owner-title {
+    font-weight: 800;
+    color: #333;
 }
 
-.contact-actions button{
-    flex:1
+.contact-value {
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 8px;
+    word-break: break-word;
 }
 
-.owner-note{
-    color:#777;
-    font-size:12px;
-    line-height:1.45;
-    margin-top:8px
+.contact-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
 }
 
-.payment-wait{
-    margin-top:12px;
-    padding:12px;
-    border-radius:12px;
-    background:#eef6ff;
-    color:#1764a5;
-    font-size:13px
+.contact-actions button {
+    flex: 1;
 }
 
-.form-box{
-    margin:16px;
-    padding:18px;
-    background:#fff;
-    border-radius:18px
+.owner-note {
+    color: #777;
+    font-size: 12px;
+    line-height: 1.45;
+    margin-top: 8px;
 }
 
-.form-title{
-    font-size:22px;
-    font-weight:800
+.payment-wait {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #eef6ff;
+    color: #1764a5;
+    font-size: 13px;
 }
 
-.form-subtitle{
-    color:#777;
-    font-size:13px;
-    margin:5px 0 20px
+.form-box {
+    margin: 16px;
+    padding: 18px;
+    background: white;
+    border-radius: 18px;
 }
 
-.field{
-    margin-bottom:15px
+.form-title {
+    font-size: 22px;
+    font-weight: 800;
 }
 
-.field label{
-    display:block;
-    font-weight:700;
-    margin-bottom:7px
+.form-subtitle {
+    color: #777;
+    font-size: 13px;
+    margin: 5px 0 20px;
+}
+
+.field {
+    margin-bottom: 15px;
+}
+
+.field label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 7px;
 }
 
 .field input,
 .field select,
-.field textarea{
-    width:100%;
-    border:1px solid #ddd;
-    border-radius:12px;
-    padding:12px;
-    font-size:15px
+.field textarea {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 15px;
 }
 
-.field textarea{
-    min-height:90px
+.field textarea {
+    min-height: 90px;
 }
 
-.field-hint{
-    color:#888;
-    font-size:11px;
-    margin-top:5px
+.field-hint {
+    color: #888;
+    font-size: 11px;
+    margin-top: 5px;
 }
 
-.payment-box{
-    background:#f3f8ff;
-    border:1px solid #dbeaff;
-    border-radius:14px;
-    padding:15px;
-    margin-bottom:15px
+.payment-box {
+    background: #f3f8ff;
+    border: 1px solid #dbeaff;
+    border-radius: 14px;
+    padding: 15px;
+    margin-bottom: 15px;
 }
 
-.payment-price{
-    font-size:25px;
-    font-weight:800
+.payment-price {
+    font-size: 25px;
+    font-weight: 800;
 }
 
-.payment-button{
-    width:100%;
-    background:#1687e8;
-    color:#fff;
-    padding:15px;
-    font-size:16px;
-    font-weight:800
+.payment-button {
+    width: 100%;
+    background: #1687e8;
+    color: white;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 800;
 }
 
-.message{
-    margin-top:14px;
-    padding:13px;
-    border-radius:12px;
-    display:none
+.message {
+    margin-top: 14px;
+    padding: 13px;
+    border-radius: 12px;
+    display: none;
 }
 
-.message.success{
-    display:block;
-    background:#eaf8ee;
-    color:#14823a
+.message.success {
+    display: block;
+    background: #eaf8ee;
+    color: #14823a;
 }
 
-.message.error{
-    display:block;
-    background:#fff0f0;
-    color:#c62828
+.message.error {
+    display: block;
+    background: #fff0f0;
+    color: #c62828;
 }
 
-.message.info{
-    display:block;
-    background:#eef6ff;
-    color:#1764a5
+.message.info {
+    display: block;
+    background: #eef6ff;
+    color: #1764a5;
 }
 
-.warning{
-    margin:16px;
-    padding:14px;
-    border-radius:14px;
-    background:#fff8e7;
-    border:1px solid #ffe09d;
-    font-size:13px;
-    line-height:1.5
+.warning {
+    margin: 16px;
+    padding: 14px;
+    border-radius: 14px;
+    background: #fff8e7;
+    border: 1px solid #ffe09d;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
-.profile-card{
-    margin:16px;
-    padding:20px;
-    background:#fff;
-    border-radius:18px
+.profile-card {
+    margin: 16px;
+    padding: 20px;
+    background: white;
+    border-radius: 18px;
 }
 
-.profile-name{
-    font-size:22px;
-    font-weight:800
+.profile-name {
+    font-size: 22px;
+    font-weight: 800;
 }
 
-.profile-username{
-    color:#777;
-    margin-top:5px
+.profile-username {
+    color: #777;
+    margin-top: 5px;
 }
 
-.verified-box{
-    background:#edf9f1;
-    color:#138541;
-    padding:14px;
-    border-radius:14px;
-    margin-top:17px
+.verified-box {
+    background: #edf9f1;
+    color: #138541;
+    padding: 14px;
+    border-radius: 14px;
+    margin-top: 17px;
 }
 
-.profile-action{
-    width:100%;
-    margin-top:12px;
-    background:#1687e8;
-    color:#fff;
-    font-weight:700
+.profile-action {
+    width: 100%;
+    margin-top: 12px;
+    background: #1687e8;
+    color: white;
+    font-weight: 700;
 }
 
-.admin-button{
-    width:100%;
-    background:#222;
-    color:#fff;
-    margin-top:12px;
-    font-weight:700
+.watchlist-profile-button {
+    width: 100%;
+    margin-top: 10px;
+    background: #fff4cc;
+    color: #725500;
+    font-weight: 700;
 }
 
-.admin-box{
-    margin:16px
+.admin-button {
+    width: 100%;
+    background: #222;
+    color: white;
+    margin-top: 12px;
+    font-weight: 700;
 }
 
-.admin-header{
-    background:#222;
-    color:#fff;
-    padding:18px;
-    border-radius:18px;
-    margin-bottom:15px
+.admin-box {
+    margin: 16px;
 }
 
-.admin-header h2{
-    margin:0
+.admin-header {
+    background: #222;
+    color: white;
+    padding: 18px;
+    border-radius: 18px;
+    margin-bottom: 15px;
 }
 
-.approve-button{
-    flex:1;
-    background:#19a651;
-    color:#fff
+.admin-header h2 {
+    margin: 0;
 }
 
-.reject-button{
-    flex:1;
-    background:#e74747;
-    color:#fff
+.approve-button {
+    flex: 1;
+    background: #19a651;
+    color: white;
 }
 
-.counter-button{
-    flex:1;
-    background:#f1f6ff;
-    color:#1764a5
+.reject-button {
+    flex: 1;
+    background: #e74747;
+    color: white;
 }
 
-.empty{
-    padding:30px 15px;
-    text-align:center;
-    color:#777;
-    background:#fff;
-    border-radius:16px
+.counter-button {
+    flex: 1;
+    background: #f1f6ff;
+    color: #1764a5;
 }
 
-.offer-summary{
-    margin-top:12px;
-    background:#f7f7f7;
-    border-radius:12px;
-    padding:12px
+.empty {
+    padding: 30px 15px;
+    text-align: center;
+    color: #777;
+    background: white;
+    border-radius: 16px;
 }
 
-.offer-label{
-    color:#777;
-    font-size:12px
+.offer-summary {
+    margin-top: 12px;
+    background: #f7f7f7;
+    border-radius: 12px;
+    padding: 12px;
 }
 
-.offer-big{
-    font-size:20px;
-    font-weight:800;
-    margin-top:3px
+.offer-label {
+    color: #777;
+    font-size: 12px;
 }
 
-.offer-message{
-    margin-top:10px;
-    color:#555;
-    line-height:1.45
+.offer-big {
+    font-size: 20px;
+    font-weight: 800;
+    margin-top: 3px;
 }
 
-.buyer-box{
-    margin-top:12px;
-    background:#f5f5f5;
-    padding:11px;
-    border-radius:10px;
-    font-size:13px
+.offer-message {
+    margin-top: 10px;
+    color: #555;
+    line-height: 1.45;
 }
 
-.bottom-nav{
-    position:fixed;
-    bottom:0;
-    left:0;
-    right:0;
-    height:70px;
-    background:#fff;
-    border-top:1px solid #ddd;
-    display:flex;
-    z-index:100
+.buyer-box {
+    margin-top: 12px;
+    background: #f5f5f5;
+    padding: 11px;
+    border-radius: 10px;
+    font-size: 13px;
 }
 
-.nav-item{
-    flex:1;
-    text-align:center;
-    font-size:11px;
-    padding-top:9px;
-    color:#777
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: white;
+    border-top: 1px solid #ddd;
+    display: flex;
+    z-index: 100;
 }
 
-.nav-icon{
-    display:block;
-    font-size:23px;
-    margin-bottom:3px
+.nav-item {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    padding-top: 9px;
+    color: #777;
 }
 
-.nav-item.active{
-    color:#1687e8;
-    font-weight:700
+.nav-icon {
+    display: block;
+    font-size: 23px;
+    margin-bottom: 3px;
 }
 
-/* MODALS */
-
-.modal-backdrop{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.45);
-    z-index:1000;
-    padding:20px;
-    align-items:center;
-    justify-content:center
+.nav-item.active {
+    color: #1687e8;
+    font-weight: 700;
 }
 
-.modal-backdrop.show{
-    display:flex
+.modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 1000;
+    padding: 20px;
+    align-items: center;
+    justify-content: center;
 }
 
-.modal{
-    width:100%;
-    max-width:430px;
-    background:#fff;
-    border-radius:20px;
-    padding:20px;
-    max-height:90vh;
-    overflow-y:auto
+.modal-backdrop.show {
+    display: flex;
 }
 
-.modal-title{
-    font-size:22px;
-    font-weight:800
+.modal {
+    width: 100%;
+    max-width: 430px;
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
-.modal-subtitle{
-    color:#777;
-    margin-top:5px;
-    margin-bottom:18px
+.modal-title {
+    font-size: 22px;
+    font-weight: 800;
 }
 
-.modal-actions{
-    display:flex;
-    gap:8px;
-    margin-top:15px
+.modal-subtitle {
+    color: #777;
+    margin-top: 5px;
+    margin-bottom: 18px;
 }
 
-.modal-actions button{
-    flex:1
+.modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
 }
+
+.modal-actions button {
+    flex: 1;
+}
+
 </style>
 
 </head>
@@ -562,7 +635,6 @@ Connecting...
 
 </div>
 
-
 <div class="section">
 
 <div class="section-title">
@@ -571,34 +643,16 @@ Categories
 
 <div class="categories">
 
-<div class="category">
-🔥 Premium
-</div>
-
-<div class="category">
-Business
-</div>
-
-<div class="category">
-AI
-</div>
-
-<div class="category">
-Short
-</div>
-
-<div class="category">
-Travel
-</div>
-
-<div class="category">
-Finance
-</div>
+<div class="category">🔥 Premium</div>
+<div class="category">Business</div>
+<div class="category">AI</div>
+<div class="category">Short</div>
+<div class="category">Travel</div>
+<div class="category">Finance</div>
 
 </div>
 
 </div>
-
 
 <div class="section">
 
@@ -615,7 +669,6 @@ Loading...
 </div>
 
 </div>
-
 
 <div class="warning">
 
@@ -658,7 +711,7 @@ Loading...
 </div>
 
 
-<!-- LIST USERNAME -->
+<!-- LIST -->
 
 <div id="list" class="page">
 
@@ -717,45 +770,16 @@ Category
 
 <select id="listingCategory">
 
-<option>
-Premium
-</option>
-
-<option>
-Business
-</option>
-
-<option>
-AI
-</option>
-
-<option>
-Short
-</option>
-
-<option>
-Travel
-</option>
-
-<option>
-Finance
-</option>
-
-<option>
-Gaming
-</option>
-
-<option>
-Crypto
-</option>
-
-<option>
-Media
-</option>
-
-<option>
-Other
-</option>
+<option>Premium</option>
+<option>Business</option>
+<option>AI</option>
+<option>Short</option>
+<option>Travel</option>
+<option>Finance</option>
+<option>Gaming</option>
+<option>Crypto</option>
+<option>Media</option>
+<option>Other</option>
 
 </select>
 
@@ -914,6 +938,32 @@ Loading...
 </div>
 
 
+<!-- WATCHLIST -->
+
+<div id="watchlist" class="page">
+
+<div
+    class="section"
+    style="padding-top:16px"
+>
+
+<div class="section-title">
+⭐ My Watchlist
+</div>
+
+<div id="watchlistListings">
+
+<div class="empty">
+Loading...
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
 <!-- OFFERS -->
 
 <div id="offers" class="page">
@@ -986,7 +1036,7 @@ Loading...
 </div>
 
 
-<!-- BOTTOM NAVIGATION -->
+<!-- NAV -->
 
 <div class="bottom-nav">
 
@@ -1062,7 +1112,7 @@ Profile
 </div>
 
 
-<!-- MAKE OFFER MODAL -->
+<!-- OFFER MODAL -->
 
 <div
     id="offerModal"
@@ -1126,20 +1176,15 @@ Message (optional)
     class="secondary"
     onclick="closeModal('offerModal')"
 >
-
 Cancel
-
 </button>
-
 
 <button
     id="sendOfferButton"
     class="primary"
     onclick="submitOffer()"
 >
-
 Send Offer
-
 </button>
 
 </div>
@@ -1149,7 +1194,7 @@ Send Offer
 </div>
 
 
-<!-- COUNTER OFFER MODAL -->
+<!-- COUNTER MODAL -->
 
 <div
     id="counterModal"
@@ -1192,19 +1237,14 @@ Counter amount (USD)
     class="secondary"
     onclick="closeModal('counterModal')"
 >
-
 Cancel
-
 </button>
-
 
 <button
     class="primary"
     onclick="submitCounterOffer()"
 >
-
 Send Counter
-
 </button>
 
 </div>
@@ -1235,6 +1275,12 @@ let contactUnlockPriceStars =
 let marketplaceListings =
     [];
 
+let watchedListingIds =
+    new Set();
+
+let watchlistListings =
+    [];
+
 let currentOfferListingId =
     null;
 
@@ -1257,7 +1303,7 @@ if (tg) {
 
 
 // ======================================================
-// API HELPER
+// API
 // ======================================================
 
 async function api(
@@ -1269,8 +1315,7 @@ async function api(
         await fetch(
             API_URL + path,
             {
-                method:
-                    "POST",
+                method: "POST",
 
                 headers: {
                     "Content-Type":
@@ -1314,7 +1359,7 @@ async function api(
 
 
 // ======================================================
-// AUTHENTICATE
+// AUTH
 // ======================================================
 
 async function authenticate() {
@@ -1374,6 +1419,9 @@ async function authenticate() {
             "auth-status auth-ok";
 
 
+        await loadWatchlistState();
+
+
         const fullName =
             [
                 data.user.first_name,
@@ -1417,6 +1465,7 @@ async function authenticate() {
 
                 </div>
 
+
                 <div class="profile-username">
 
                     ${
@@ -1431,6 +1480,7 @@ async function authenticate() {
                     }
 
                 </div>
+
 
                 <div class="verified-box">
 
@@ -1447,6 +1497,18 @@ async function authenticate() {
                     💬 My Offers
 
                 </button>
+
+
+                <button
+                    class="watchlist-profile-button"
+                    onclick="openWatchlist()"
+                >
+
+                    ⭐ My Watchlist
+                    (<span id="watchlistCount">${watchedListingIds.size}</span>)
+
+                </button>
+
 
                 ${adminButton}
 
@@ -1475,6 +1537,400 @@ async function authenticate() {
 
         status.className =
             "auth-status auth-error";
+    }
+}
+
+
+// ======================================================
+// WATCHLIST STATE
+// ======================================================
+
+async function loadWatchlistState() {
+
+    if (
+        !tg?.initData
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/watchlist/list",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        watchedListingIds =
+            new Set(
+                (
+                    data.listing_ids ||
+                    []
+                )
+                    .map(
+                        String
+                    )
+            );
+
+
+        watchlistListings =
+            data.listings ||
+            [];
+
+
+        updateWatchlistCount();
+
+
+        updateAllWatchButtons();
+
+    } catch (error) {
+
+        console.error(
+            "Watchlist load:",
+            error
+        );
+    }
+}
+
+
+// ======================================================
+// TOGGLE WATCH
+// ======================================================
+
+async function toggleWatch(
+    listingId
+) {
+
+    if (
+        !authenticatedUser
+    ) {
+
+        tg?.showAlert(
+            "Please wait for authentication."
+        );
+
+        return;
+    }
+
+
+    const buttons =
+        getWatchButtons(
+            listingId
+        );
+
+
+    buttons.forEach(
+        button => {
+
+            button.disabled =
+                true;
+        }
+    );
+
+
+    try {
+
+        const data =
+            await api(
+                "/watchlist/toggle",
+                {
+                    initData:
+                        tg.initData,
+
+                    listing_id:
+                        listingId
+                }
+            );
+
+
+        if (
+            data.watched
+        ) {
+
+            watchedListingIds.add(
+                String(
+                    listingId
+                )
+            );
+
+        } else {
+
+            watchedListingIds.delete(
+                String(
+                    listingId
+                )
+            );
+        }
+
+
+        updateWatchButtons(
+            listingId
+        );
+
+
+        updateWatchlistCount();
+
+
+        if (
+            document
+                .getElementById(
+                    "watchlist"
+                )
+                .classList
+                .contains(
+                    "active"
+                )
+        ) {
+
+            await loadWatchlistPage();
+        }
+
+    } catch (error) {
+
+        tg?.showAlert(
+            "Watchlist error: " +
+            error.message
+        );
+
+    } finally {
+
+        getWatchButtons(
+            listingId
+        )
+            .forEach(
+                button => {
+
+                    button.disabled =
+                        false;
+                }
+            );
+    }
+}
+
+
+// ======================================================
+// WATCH BUTTON HELPERS
+// ======================================================
+
+function getWatchButtons(
+    listingId
+) {
+
+    return [
+        ...document.querySelectorAll(
+            ".watch-button"
+        )
+    ]
+        .filter(
+            button =>
+
+                button.dataset
+                    .watchListingId ===
+                String(
+                    listingId
+                )
+        );
+}
+
+
+function updateWatchButtons(
+    listingId
+) {
+
+    const watched =
+        watchedListingIds.has(
+            String(
+                listingId
+            )
+        );
+
+
+    getWatchButtons(
+        listingId
+    )
+        .forEach(
+            button => {
+
+                button.textContent =
+                    watched
+                        ? "★ Watching"
+                        : "☆ Watch";
+
+
+                button.classList.toggle(
+                    "watching",
+                    watched
+                );
+            }
+        );
+}
+
+
+function updateAllWatchButtons() {
+
+    document
+        .querySelectorAll(
+            ".watch-button"
+        )
+        .forEach(
+            button => {
+
+                updateWatchButtons(
+                    button.dataset
+                        .watchListingId
+                );
+            }
+        );
+}
+
+
+function updateWatchlistCount() {
+
+    const counter =
+        document.getElementById(
+            "watchlistCount"
+        );
+
+
+    if (
+        counter
+    ) {
+
+        counter.textContent =
+            watchedListingIds.size;
+    }
+}
+
+
+// ======================================================
+// WATCHLIST PAGE
+// ======================================================
+
+function openWatchlist() {
+
+    openPage(
+        "watchlist",
+        null
+    );
+
+
+    loadWatchlistPage();
+}
+
+
+async function loadWatchlistPage() {
+
+    const container =
+        document.getElementById(
+            "watchlistListings"
+        );
+
+
+    container.innerHTML = `
+
+        <div class="empty">
+            Loading...
+        </div>
+
+    `;
+
+
+    try {
+
+        const data =
+            await api(
+                "/watchlist/list",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        watchedListingIds =
+            new Set(
+                (
+                    data.listing_ids ||
+                    []
+                )
+                    .map(
+                        String
+                    )
+            );
+
+
+        watchlistListings =
+            data.listings ||
+            [];
+
+
+        updateWatchlistCount();
+
+
+        if (
+            !watchlistListings.length
+        ) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+
+                    Your Watchlist is empty.
+
+                    <br><br>
+
+                    Tap ☆ Watch on a username
+                    to save it here.
+
+                </div>
+
+            `;
+
+
+            updateAllWatchButtons();
+
+
+            return;
+        }
+
+
+        container.innerHTML =
+            watchlistListings
+                .map(
+                    renderPublicListing
+                )
+                .join("");
+
+
+        updateAllWatchButtons();
+
+
+        await checkUnlockedContacts(
+            watchlistListings
+        );
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                Failed to load Watchlist.
+
+            </div>
+
+        `;
     }
 }
 
@@ -1517,6 +1973,9 @@ async function loadMarketplace() {
         renderMarketplace(
             marketplaceListings
         );
+
+
+        updateAllWatchButtons();
 
 
         if (
@@ -1641,6 +2100,9 @@ function renderMarketplace(
                 renderPublicListing
             )
             .join("");
+
+
+    updateAllWatchButtons();
 }
 
 
@@ -1651,6 +2113,14 @@ function renderMarketplace(
 function renderPublicListing(
     listing
 ) {
+
+    const watched =
+        watchedListingIds.has(
+            String(
+                listing.id
+            )
+        );
+
 
     return `
 
@@ -1733,11 +2203,24 @@ function renderPublicListing(
 
 
                 <button
-                    class="secondary"
-                    onclick="futureWatch()"
+                    class="watch-button ${watched ? "watching" : ""}"
+                    data-watch-listing-id="${escapeHtml(
+                        listing.id
+                    )}"
+                    onclick="
+                        toggleWatch(
+                            '${escapeJs(
+                                listing.id
+                            )}'
+                        )
+                    "
                 >
 
-                    ☆ Watch
+                    ${
+                        watched
+                            ? "★ Watching"
+                            : "☆ Watch"
+                    }
 
                 </button>
 
@@ -1764,7 +2247,7 @@ function renderPublicListing(
 
 
 // ======================================================
-// AUTO CHECK CONTACT ACCESS
+// CONTACT ACCESS CHECK
 // ======================================================
 
 async function checkUnlockedContacts(
@@ -1878,6 +2361,7 @@ async function unlockSellerContact(
                 )
             );
 
+
             return;
         }
 
@@ -1902,7 +2386,7 @@ async function unlockSellerContact(
 
 
 // ======================================================
-// START CONTACT PAYMENT
+// CONTACT PAYMENT
 // ======================================================
 
 async function startContactPayment(
@@ -1936,6 +2420,7 @@ async function startContactPayment(
             listingId
         );
 
+
         return;
     }
 
@@ -1954,6 +2439,7 @@ async function startContactPayment(
                 restoreContactButton(
                     listingId
                 );
+
 
                 return;
             }
@@ -2032,6 +2518,7 @@ async function waitForContactPayment(
                     listingId
                 );
 
+
                 return;
             }
 
@@ -2084,7 +2571,7 @@ async function waitForContactPayment(
 
 
 // ======================================================
-// SHOW SELLER CONTACT
+// SHOW CONTACT
 // ======================================================
 
 function showSellerContact(
@@ -2302,7 +2789,7 @@ function showSellerContact(
 
 
 // ======================================================
-// MARK OWN LISTING
+// OWN LISTING
 // ======================================================
 
 function markOwnListing(
@@ -2317,7 +2804,8 @@ function markOwnListing(
             card => {
 
                 if (
-                    card.dataset.listingCardId ===
+                    card.dataset
+                        .listingCardId ===
                     String(
                         listingId
                     )
@@ -2355,7 +2843,7 @@ function markOwnListing(
 // ======================================================
 
 function getContactAreas(
-    id
+    listingId
 ) {
 
     return [
@@ -2365,14 +2853,18 @@ function getContactAreas(
     ]
         .filter(
             area =>
-                area.dataset.contactListingId ===
-                String(id)
+
+                area.dataset
+                    .contactListingId ===
+                String(
+                    listingId
+                )
         );
 }
 
 
 function getLockedContactHtml(
-    id
+    listingId
 ) {
 
     return `
@@ -2382,7 +2874,7 @@ function getLockedContactHtml(
             onclick="
                 unlockSellerContact(
                     '${escapeJs(
-                        id
+                        listingId
                     )}'
                 )
             "
@@ -2398,12 +2890,12 @@ function getLockedContactHtml(
 
 
 function setContactLoading(
-    id,
+    listingId,
     text
 ) {
 
     getContactAreas(
-        id
+        listingId
     )
         .forEach(
             area => {
@@ -2425,17 +2917,17 @@ function setContactLoading(
 
 
 function restoreContactButton(
-    id
+    listingId
 ) {
 
     const html =
         getLockedContactHtml(
-            id
+            listingId
         );
 
 
     getContactAreas(
-        id
+        listingId
     )
         .forEach(
             area => {
@@ -2448,7 +2940,7 @@ function restoreContactButton(
 
 
 // ======================================================
-// OPEN MAKE OFFER
+// MAKE OFFER
 // ======================================================
 
 async function openOfferModal(
@@ -2464,6 +2956,7 @@ async function openOfferModal(
         tg?.showAlert(
             "Please wait for authentication."
         );
+
 
         return;
     }
@@ -2492,6 +2985,7 @@ async function openOfferModal(
                 "You cannot make an offer on your own listing."
             );
 
+
             return;
         }
 
@@ -2503,6 +2997,7 @@ async function openOfferModal(
             tg?.showAlert(
                 `Unlock the seller contact for ${contactUnlockPriceStars} ⭐ before sending an offer.`
             );
+
 
             return;
         }
@@ -2552,7 +3047,6 @@ async function openOfferModal(
     } catch (error) {
 
         tg?.showAlert(
-            "Error: " +
             readableOfferError(
                 error.message
             )
@@ -2659,7 +3153,7 @@ async function submitOffer() {
 
 
 // ======================================================
-// OFFERS PAGE
+// OFFER CENTER
 // ======================================================
 
 function openOffers() {
@@ -2842,7 +3336,8 @@ function renderSentOffer(
 ) {
 
     const username =
-        offer.listing?.whatsapp_username ||
+        offer.listing
+            ?.whatsapp_username ||
         "username";
 
 
@@ -3068,7 +3563,8 @@ function renderReceivedOffer(
 ) {
 
     const username =
-        offer.listing?.whatsapp_username ||
+        offer.listing
+            ?.whatsapp_username ||
         "username";
 
 
@@ -3084,10 +3580,12 @@ function renderReceivedOffer(
 
 
     const buyerUsername =
-        offer.buyer?.telegram_username
+        offer.buyer
+            ?.telegram_username
 
             ? "@" +
-                offer.buyer.telegram_username
+                offer.buyer
+                    .telegram_username
 
             : "No public Telegram username";
 
@@ -3251,9 +3749,7 @@ function renderReceivedOffer(
 
             <div class="buyer-box">
 
-                <b>
-                    Buyer
-                </b>
+                <b>Buyer</b>
 
                 <br>
 
@@ -3317,7 +3813,7 @@ function renderReceivedOffer(
 
 
 // ======================================================
-// SELLER ACCEPT / DECLINE
+// SELLER ACTION
 // ======================================================
 
 async function sellerOfferAction(
@@ -3375,7 +3871,7 @@ async function sellerOfferAction(
 
 
 // ======================================================
-// OPEN COUNTER OFFER
+// COUNTER
 // ======================================================
 
 function openCounterModal(
@@ -3415,10 +3911,6 @@ function openCounterModal(
     );
 }
 
-
-// ======================================================
-// SUBMIT COUNTER
-// ======================================================
 
 async function submitCounterOffer() {
 
@@ -3476,7 +3968,7 @@ async function submitCounterOffer() {
 
 
 // ======================================================
-// BUYER OFFER ACTION
+// BUYER ACTION
 // ======================================================
 
 async function buyerOfferAction(
@@ -3628,6 +4120,7 @@ async function startListingPayment(
                 ) {
 
                     resetListingButton();
+
 
                     return;
                 }
@@ -4089,7 +4582,7 @@ function filterMarketplace(
 
 
 // ======================================================
-// PAGE NAVIGATION
+// NAVIGATION
 // ======================================================
 
 function openPage(
@@ -4362,14 +4855,6 @@ function resetListingButton() {
 }
 
 
-function futureWatch() {
-
-    tg?.showAlert(
-        "Watchlist will be connected later."
-    );
-}
-
-
 function sleep(
     ms
 ) {
@@ -4579,7 +5064,7 @@ function escapeJs(
 
 
 // ======================================================
-// START APP
+// START
 // ======================================================
 
 authenticate();
@@ -4591,4 +5076,5 @@ loadMyListings();
 </script>
 
 </body>
+
 </html>
