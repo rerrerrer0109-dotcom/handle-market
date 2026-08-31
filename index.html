@@ -8,10 +8,7 @@
     content="width=device-width, initial-scale=1.0, viewport-fit=cover"
 >
 
-<meta
-    name="theme-color"
-    content="#0f1115"
->
+<meta name="theme-color" content="#ffffff">
 
 <title>Handle Market</title>
 
@@ -19,120 +16,92 @@
 
 <style>
 
-/* =====================================================
-   HANDLE MARKET — MODERN UI
-   ===================================================== */
+/* =========================================================
+   HANDLE MARKET v12
+   ========================================================= */
 
 :root {
-
-    --bg: #f4f6f9;
+    --bg: #f6f7f9;
     --surface: #ffffff;
-    --surface-2: #f7f8fb;
+    --surface-2: #f8f9fb;
     --surface-3: #eef1f5;
 
     --text: #111318;
-    --text-2: #4f5664;
-    --muted: #868e9c;
+    --text-2: #525966;
+    --muted: #89909d;
 
-    --border: rgba(30, 40, 60, .09);
+    --border: #e7e9ee;
 
-    --primary: #1687e8;
-    --primary-dark: #086dc7;
-    --primary-soft: #eaf4ff;
+    --blue: #1688e8;
+    --blue-dark: #0872ce;
+    --blue-soft: #edf6ff;
 
-    --success: #159447;
-    --success-soft: #e9f8ef;
+    --green: #15954a;
+    --green-soft: #eaf8ef;
 
-    --danger: #dc4545;
-    --danger-soft: #fff0f0;
+    --red: #df4545;
+    --red-soft: #fff0f0;
 
-    --warning: #a96f00;
-    --warning-soft: #fff6df;
+    --yellow: #9c7000;
+    --yellow-soft: #fff5d9;
 
-    --purple: #6d4bd2;
-    --purple-soft: #f1edff;
+    --purple: #6848c9;
+    --purple-soft: #f2efff;
 
-    --cyan: #008dba;
-    --cyan-soft: #e9f8ff;
+    --cyan: #087fa8;
+    --cyan-soft: #e8f8ff;
 
     --shadow:
-        0 14px 35px rgba(28, 37, 54, .07);
+        0 10px 30px rgba(29, 39, 56, .06);
 
-    --shadow-small:
-        0 6px 18px rgba(28, 37, 54, .055);
+    --shadow-lg:
+        0 18px 50px rgba(29, 39, 56, .09);
 
     --radius-xl: 24px;
     --radius-lg: 18px;
     --radius-md: 14px;
-    --radius-sm: 11px;
 
-    --nav-height: 72px;
+    --nav-height: 64px;
 }
 
 
-/* Telegram theme integration */
-
-body {
-
-    --tg-bg:
-        var(--tg-theme-bg-color, var(--bg));
-
-    --tg-surface:
-        var(--tg-theme-secondary-bg-color, var(--surface));
-
-    --tg-text:
-        var(--tg-theme-text-color, var(--text));
-
-    --tg-muted:
-        var(--tg-theme-hint-color, var(--muted));
-
-    --tg-primary:
-        var(--tg-theme-button-color, var(--primary));
-
-    --tg-primary-text:
-        var(--tg-theme-button-text-color, #ffffff);
-}
-
+/* =========================================================
+   DARK MODE
+   ========================================================= */
 
 @media (prefers-color-scheme: dark) {
 
     :root {
-
-        --bg: #0f1115;
-        --surface: #181b21;
-        --surface-2: #20242b;
-        --surface-3: #292e36;
+        --bg: #101216;
+        --surface: #181b20;
+        --surface-2: #202329;
+        --surface-3: #292d34;
 
         --text: #f4f5f7;
-        --text-2: #c1c6cf;
+        --text-2: #c2c7cf;
         --muted: #9299a5;
 
-        --border: rgba(255,255,255,.075);
+        --border: #292d34;
 
-        --primary-soft: rgba(22,135,232,.13);
-
-        --success-soft: rgba(21,148,71,.13);
-
-        --danger-soft: rgba(220,69,69,.13);
-
-        --warning-soft: rgba(220,155,25,.13);
-
-        --purple-soft: rgba(109,75,210,.15);
-
-        --cyan-soft: rgba(0,141,186,.14);
+        --blue-soft: rgba(22,136,232,.14);
+        --green-soft: rgba(21,149,74,.14);
+        --red-soft: rgba(223,69,69,.14);
+        --yellow-soft: rgba(211,161,28,.14);
+        --purple-soft: rgba(104,72,201,.17);
+        --cyan-soft: rgba(8,127,168,.17);
 
         --shadow:
-            0 16px 40px rgba(0,0,0,.25);
+            0 10px 30px rgba(0,0,0,.18);
 
-        --shadow-small:
-            0 7px 20px rgba(0,0,0,.18);
+        --shadow-lg:
+            0 20px 60px rgba(0,0,0,.3);
     }
 }
 
 
-/* =====================================================
+/* =========================================================
    BASE
-   ===================================================== */
+   ========================================================= */
 
 * {
     box-sizing: border-box;
@@ -144,23 +113,8 @@ html {
 }
 
 body {
-
     margin: 0;
-
     min-height: 100vh;
-
-    background:
-
-        radial-gradient(
-            circle at 92% 0%,
-            rgba(22,135,232,.08),
-            transparent 28%
-        ),
-
-        var(--tg-bg);
-
-    color:
-        var(--tg-text);
 
     font-family:
         Inter,
@@ -168,15 +122,25 @@ body {
         BlinkMacSystemFont,
         "Segoe UI",
         Roboto,
-        Helvetica,
         Arial,
         sans-serif;
 
+    color:
+        var(--tg-theme-text-color, var(--text));
+
+    background:
+        radial-gradient(
+            circle at 95% 0%,
+            rgba(22,136,232,.07),
+            transparent 28%
+        ),
+        var(--tg-theme-bg-color, var(--bg));
+
     padding-bottom:
         calc(
-            var(--nav-height) +
-            env(safe-area-inset-bottom) +
-            20px
+            var(--nav-height)
+            + env(safe-area-inset-bottom)
+            + 38px
         );
 
     line-height: 1.45;
@@ -184,13 +148,13 @@ body {
 
 button,
 input,
-select,
-textarea {
+textarea,
+select {
     font: inherit;
 }
 
 button {
-    border: none;
+    border: 0;
     cursor: pointer;
     touch-action: manipulation;
 }
@@ -202,185 +166,132 @@ button:disabled {
 
 .app {
     width: 100%;
-    max-width: 720px;
+    max-width: 820px;
     margin: 0 auto;
 }
 
 
-/* =====================================================
+/* =========================================================
    HEADER
-   ===================================================== */
+   ========================================================= */
 
 header {
-
     position: sticky;
     top: 0;
-
     z-index: 80;
 
     padding:
+        calc(14px + env(safe-area-inset-top))
+        18px
+        13px;
 
-        calc(
-            15px +
-            env(safe-area-inset-top)
-        )
+    border-bottom: 1px solid var(--border);
 
-        17px
+    background: rgba(255,255,255,.93);
 
-        14px;
-
-    background:
-        rgba(255,255,255,.9);
-
-    border-bottom:
-        1px solid var(--border);
-
-    backdrop-filter:
-        blur(18px);
-
-    -webkit-backdrop-filter:
-        blur(18px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
-
 
 @media (prefers-color-scheme: dark) {
 
     header {
-        background:
-            rgba(24,27,33,.9);
+        background: rgba(24,27,32,.93);
     }
 }
 
-
-.header-row {
-
+.header-main {
     display: flex;
-
     align-items: center;
-
     gap: 11px;
 }
 
-
-.logo-icon {
+.brand-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
-    width: 39px;
-
-    height: 39px;
-
-    flex: 0 0 39px;
 
     border-radius: 13px;
 
-    background:
+    color: #fff;
 
+    font-size: 18px;
+    font-weight: 900;
+
+    background:
         linear-gradient(
             145deg,
-            #31a0f4,
-            #1575d5
+            #2da0f5,
+            #1476d4
         );
 
-    color: white;
-
-    font-size: 19px;
-
-    font-weight: 900;
-
     box-shadow:
-
-        0 8px 20px
-        rgba(22,135,232,.24);
+        0 8px 20px rgba(22,136,232,.23);
 }
 
-
-.header-text {
-    min-width: 0;
-}
-
-
-.logo {
-
-    font-size: 23px;
-
-    line-height: 1.05;
-
+.brand-title {
+    font-size: 22px;
     font-weight: 900;
-
+    line-height: 1.05;
     letter-spacing: -.7px;
 }
 
-
-.subtitle {
-
+.brand-subtitle {
     margin-top: 4px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 11.5px;
-
-    font-weight: 500;
+    font-size: 11px;
 }
 
-
 .auth-status {
-
     display: inline-flex;
-
     align-items: center;
 
-    margin-top: 10px;
+    margin-top: 9px;
 
     padding: 5px 9px;
 
     border-radius: 999px;
 
     font-size: 10px;
-
     font-weight: 800;
 }
 
-
 .auth-ok {
-    color: var(--success);
-    background: var(--success-soft);
+    color: var(--green);
+    background: var(--green-soft);
 }
-
 
 .auth-error {
-    color: var(--danger);
-    background: var(--danger-soft);
+    color: var(--red);
+    background: var(--red-soft);
 }
 
 
-/* =====================================================
+/* =========================================================
    PAGE
-   ===================================================== */
+   ========================================================= */
 
 .page {
     display: none;
 }
 
 .page.active {
-
     display: block;
-
-    animation:
-        pageEnter .18s ease;
+    animation: page-in .16s ease;
 }
 
-
-@keyframes pageEnter {
+@keyframes page-in {
 
     from {
         opacity: 0;
-        transform: translateY(4px);
+        transform: translateY(3px);
     }
 
     to {
@@ -390,1326 +301,1240 @@ header {
 }
 
 
-/* =====================================================
-   HERO
-   ===================================================== */
+/* =========================================================
+   HOME HERO
+   ========================================================= */
 
 .hero {
-
     margin: 16px;
-
     padding: 22px;
 
-    border-radius:
-        26px;
+    overflow: hidden;
 
-    color: white;
+    position: relative;
+
+    border-radius: 25px;
+
+    color: #fff;
 
     background:
-
-        radial-gradient(
-            circle at 90% 10%,
-            rgba(255,255,255,.22),
-            transparent 30%
-        ),
-
         linear-gradient(
             135deg,
-            #1687e8,
-            #1967d2 62%,
-            #6446c8
+            #1688e8 0%,
+            #1678dd 48%,
+            #6848cc 100%
         );
 
     box-shadow:
-
-        0 18px 40px
-        rgba(22,135,232,.22);
+        0 16px 40px rgba(22,136,232,.19);
 }
 
-
-.hero-eyebrow {
-
-    font-size: 10px;
-
-    font-weight: 800;
-
-    letter-spacing: .9px;
-
-    opacity: .8;
-}
-
-
-.hero-title {
-
-    margin-top: 7px;
-
-    max-width: 430px;
-
-    font-size: 28px;
-
-    line-height: 1.1;
-
-    font-weight: 900;
-
-    letter-spacing: -1px;
-}
-
-
-.hero-text {
-
-    max-width: 480px;
-
-    margin-top: 9px;
-
-    font-size: 12px;
-
-    line-height: 1.5;
-
-    opacity: .87;
-}
-
-
-/* =====================================================
-   SEARCH
-   ===================================================== */
-
-.search {
-    padding: 0 16px 15px;
-}
-
-
-.search-box {
-    position: relative;
-}
-
-
-.search-icon {
+.hero::after {
+    content: "";
 
     position: absolute;
 
-    left: 15px;
+    width: 180px;
+    height: 180px;
 
+    top: -85px;
+    right: -45px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(255,255,255,.11);
+}
+
+.hero-label {
+    position: relative;
+    z-index: 1;
+
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+
+    opacity: .78;
+}
+
+.hero-title {
+    position: relative;
+    z-index: 1;
+
+    max-width: 560px;
+
+    margin-top: 8px;
+
+    font-size: 27px;
+    font-weight: 900;
+    line-height: 1.08;
+    letter-spacing: -1px;
+}
+
+.hero-text {
+    position: relative;
+    z-index: 1;
+
+    max-width: 560px;
+
+    margin-top: 9px;
+
+    font-size: 11.5px;
+    line-height: 1.55;
+
+    opacity: .88;
+}
+
+
+/* =========================================================
+   PAGE HEADING
+   ========================================================= */
+
+.page-heading {
+    padding: 19px 16px 9px;
+}
+
+.page-title {
+    font-size: 21px;
+    font-weight: 900;
+    letter-spacing: -.55px;
+}
+
+.page-description {
+    margin-top: 3px;
+
+    color:
+        var(--tg-theme-hint-color, var(--muted));
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+.search {
+    padding: 0 16px 16px;
+}
+
+.search-wrap {
+    position: relative;
+}
+
+.search-wrap svg {
+    position: absolute;
+
+    left: 15px;
     top: 50%;
+
+    width: 17px;
+    height: 17px;
 
     transform: translateY(-50%);
 
-    color:
-        var(--tg-muted);
-
-    font-size: 16px;
+    stroke:
+        var(--tg-theme-hint-color, var(--muted));
 
     pointer-events: none;
 }
 
-
 .search input {
-
     width: 100%;
 
-    padding:
-        14px
-        15px
-        14px
-        43px;
+    padding: 14px 15px 14px 44px;
 
-    border:
-        1px solid var(--border);
+    border: 1px solid var(--border);
 
-    border-radius:
-        16px;
+    border-radius: 16px;
 
-    outline: none;
-
-    background:
-        var(--tg-surface);
+    outline: 0;
 
     color:
-        var(--tg-text);
+        var(--tg-theme-text-color, var(--text));
 
-    font-size:
-        14px;
+    background:
+        var(--tg-theme-secondary-bg-color, var(--surface));
 
-    box-shadow:
-        var(--shadow-small);
+    box-shadow: var(--shadow);
+
+    font-size: 13px;
 
     transition:
         border-color .18s,
         box-shadow .18s;
 }
 
-
 .search input:focus {
-
-    border-color:
-        rgba(22,135,232,.5);
+    border-color: rgba(22,136,232,.45);
 
     box-shadow:
-
-        0 0 0 4px
-        rgba(22,135,232,.08),
-
-        var(--shadow-small);
+        0 0 0 4px rgba(22,136,232,.07),
+        var(--shadow);
 }
 
 
-/* =====================================================
-   SECTIONS
-   ===================================================== */
+/* =========================================================
+   SECTION
+   ========================================================= */
 
 .section {
     padding: 0 16px 24px;
 }
 
-
-.section-header {
-
+.section-head {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
-    gap: 10px;
 
     margin-bottom: 12px;
 }
 
-
 .section-title {
-
-    margin: 0;
-
     font-size: 18px;
-
     font-weight: 900;
-
     letter-spacing: -.4px;
 }
 
-
 .section-subtitle {
-
     margin-top: -5px;
-
     margin-bottom: 13px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 11.5px;
-
+    font-size: 10.5px;
     line-height: 1.45;
 }
 
 
-/* =====================================================
+/* =========================================================
    CATEGORIES
-   ===================================================== */
+   ========================================================= */
 
 .categories {
-
     display: flex;
-
     gap: 8px;
 
     overflow-x: auto;
 
-    padding-bottom: 4px;
+    padding-bottom: 3px;
 
     scrollbar-width: none;
 }
-
 
 .categories::-webkit-scrollbar {
     display: none;
 }
 
-
 .category {
-
     flex: 0 0 auto;
 
     padding: 9px 13px;
 
-    border:
-        1px solid var(--border);
+    border: 1px solid var(--border);
 
     border-radius: 999px;
 
-    background:
-        var(--tg-surface);
-
     color:
-        var(--tg-text);
+        var(--tg-theme-text-color, var(--text));
 
-    font-size: 11px;
-
-    font-weight: 750;
+    background:
+        var(--tg-theme-secondary-bg-color, var(--surface));
 
     box-shadow:
-        0 3px 9px rgba(0,0,0,.025);
+        0 2px 8px rgba(0,0,0,.02);
+
+    font-size: 10.5px;
+    font-weight: 750;
 }
 
 
-/* =====================================================
-   CARD
-   ===================================================== */
+/* =========================================================
+   GENERAL CARD
+   ========================================================= */
 
 .card {
-
-    position: relative;
-
-    overflow: hidden;
-
     margin-bottom: 12px;
 
     padding: 18px;
 
-    border:
-        1px solid var(--border);
+    border: 1px solid var(--border);
 
-    border-radius:
-        var(--radius-xl);
+    border-radius: var(--radius-xl);
 
     background:
-        var(--tg-surface);
+        var(--tg-theme-secondary-bg-color, var(--surface));
 
-    box-shadow:
-        var(--shadow-small);
-
-    transition:
-        transform .15s ease,
-        box-shadow .15s ease;
+    box-shadow: var(--shadow);
 }
-
-
-.card:active {
-    transform: scale(.995);
-}
-
-
-.card-glow {
-
-    position: absolute;
-
-    pointer-events: none;
-
-    width: 100px;
-
-    height: 100px;
-
-    top: -35px;
-
-    right: -35px;
-
-    border-radius: 50%;
-
-    background:
-        rgba(22,135,232,.05);
-}
-
 
 .username {
-
-    position: relative;
-
-    z-index: 1;
-
-    font-size: 22px;
-
-    line-height: 1.15;
-
+    font-size: 21px;
     font-weight: 900;
-
-    letter-spacing: -.6px;
-
+    line-height: 1.12;
+    letter-spacing: -.55px;
     word-break: break-word;
 }
 
-
 .price {
-
-    margin-top: 11px;
-
-    font-size: 21px;
-
-    line-height: 1.1;
-
+    font-size: 20px;
     font-weight: 900;
-
     letter-spacing: -.5px;
 }
 
-
 .meta {
-
-    margin-top: 6px;
+    margin-top: 5px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 11px;
-
-    font-weight: 550;
+    font-size: 10.5px;
 }
 
-
 .description {
-
     margin-top: 12px;
 
-    color:
-        var(--text-2);
+    color: var(--text-2);
 
-    font-size: 12.5px;
-
+    font-size: 11.5px;
     line-height: 1.55;
 
     word-break: break-word;
 }
 
 
-/* =====================================================
-   BADGE
-   ===================================================== */
+/* =========================================================
+   LISTING CARD v12
+   ========================================================= */
 
-.badge {
+.listing-card {
+    padding: 17px;
+}
 
+.listing-header {
+    display: flex;
+
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 14px;
+}
+
+.listing-main {
+    min-width: 0;
+    flex: 1;
+}
+
+.listing-price-box {
+    flex: 0 0 auto;
+    text-align: right;
+}
+
+.listing-price {
+    font-size: 19px;
+    font-weight: 900;
+    letter-spacing: -.45px;
+}
+
+.listing-price-label {
+    margin-top: 3px;
+
+    color:
+        var(--tg-theme-hint-color, var(--muted));
+
+    font-size: 8.5px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
+.listing-info-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 7px;
+
+    margin-top: 9px;
+}
+
+.category-badge {
     display: inline-flex;
 
-    align-items: center;
-
-    margin-top: 8px;
-
-    padding: 6px 9px;
+    padding: 5px 8px;
 
     border-radius: 999px;
 
+    background: var(--surface-3);
+
+    color:
+        var(--tg-theme-hint-color, var(--muted));
+
     font-size: 9.5px;
-
-    font-weight: 900;
-
-    letter-spacing: .3px;
+    font-weight: 750;
 }
 
+.seller-link {
+    display: inline-flex;
+    align-items: center;
 
-.badge-pending {
+    gap: 5px;
 
-    background:
-        var(--warning-soft);
+    padding: 5px 8px;
 
-    color:
-        var(--warning);
+    border-radius: 999px;
+
+    background: var(--purple-soft);
+    color: var(--purple);
+
+    font-size: 9.5px;
+    font-weight: 800;
 }
 
+.seller-link svg {
+    width: 12px;
+    height: 12px;
 
-.badge-active,
-.badge-accepted {
-
-    background:
-        var(--success-soft);
-
-    color:
-        var(--success);
+    stroke: currentColor;
 }
 
+.listing-actions {
+    display: grid;
 
-.badge-paused,
-.badge-countered {
+    grid-template-columns:
+        minmax(0,1fr)
+        auto
+        auto;
 
-    background:
-        var(--primary-soft);
-
-    color:
-        var(--primary);
-}
-
-
-.badge-frozen {
-
-    background:
-        var(--cyan-soft);
-
-    color:
-        var(--cyan);
-}
-
-
-.badge-rejected {
-
-    background:
-        var(--danger-soft);
-
-    color:
-        var(--danger);
-}
-
-
-.badge-removed,
-.badge-declined,
-.badge-cancelled,
-.badge-closed {
-
-    background:
-        var(--surface-3);
-
-    color:
-        var(--muted);
-}
-
-
-/* =====================================================
-   BUTTONS
-   ===================================================== */
-
-.buttons {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 8px;
+    gap: 7px;
 
     margin-top: 15px;
 }
 
+.offer-button {
+    min-width: 0;
+}
+
+.action-icon-button {
+    min-width: 48px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 5px;
+
+    padding: 11px 12px;
+
+    border-radius: 13px;
+
+    white-space: nowrap;
+}
+
+.action-icon-button svg {
+    width: 15px;
+    height: 15px;
+
+    stroke: currentColor;
+}
+
+.watch-button {
+    color:
+        var(--tg-theme-text-color, var(--text));
+
+    background: var(--surface-3);
+}
+
+.watch-button.watching {
+    color: var(--yellow);
+    background: var(--yellow-soft);
+}
+
+.report-button {
+    color: var(--red);
+    background: var(--red-soft);
+}
+
+.report-button.reported {
+    color:
+        var(--tg-theme-hint-color, var(--muted));
+
+    background: var(--surface-3);
+}
+
+
+/* =========================================================
+   CONTACT LOCK CARD
+   ========================================================= */
+
+.contact-lock-card {
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-top: 10px;
+
+    padding: 12px 13px;
+
+    border: 1px solid rgba(22,136,232,.14);
+
+    border-radius: 14px;
+
+    color:
+        var(--tg-theme-text-color, var(--text));
+
+    background: var(--blue-soft);
+
+    text-align: left;
+}
+
+.contact-lock-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.contact-lock-icon {
+    width: 31px;
+    height: 31px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 31px;
+
+    border-radius: 10px;
+
+    color: var(--blue);
+    background:
+        var(--tg-theme-secondary-bg-color, var(--surface));
+}
+
+.contact-lock-icon svg {
+    width: 15px;
+    height: 15px;
+
+    stroke: currentColor;
+}
+
+.contact-lock-title {
+    font-size: 10.5px;
+    font-weight: 850;
+}
+
+.contact-lock-subtitle {
+    margin-top: 1px;
+
+    color:
+        var(--tg-theme-hint-color, var(--muted));
+
+    font-size: 8.5px;
+    font-weight: 500;
+}
+
+.contact-lock-price {
+    flex: 0 0 auto;
+
+    color: var(--blue);
+
+    font-size: 11px;
+    font-weight: 900;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
 
 button {
-
     padding: 11px 13px;
 
     border-radius: 13px;
 
-    font-size: 11.5px;
-
+    font-size: 10.5px;
     font-weight: 800;
 
     transition:
-        transform .1s ease,
-        opacity .1s ease,
-        filter .1s ease;
+        transform .1s,
+        opacity .1s;
 }
-
 
 button:active:not(:disabled) {
     transform: scale(.97);
 }
 
-
 .primary {
-
-    flex: 1;
-
     color:
-        var(--tg-primary-text);
+        var(--tg-theme-button-text-color, #fff);
 
     background:
-
         linear-gradient(
             135deg,
-            var(--tg-primary),
-            var(--primary-dark)
+            var(--tg-theme-button-color, var(--blue)),
+            var(--blue-dark)
         );
 
     box-shadow:
-
-        0 7px 16px
-        rgba(22,135,232,.17);
+        0 7px 17px rgba(22,136,232,.16);
 }
-
 
 .secondary {
-
-    background:
-        var(--surface-3);
-
     color:
-        var(--tg-text);
-}
+        var(--tg-theme-text-color, var(--text));
 
+    background: var(--surface-3);
+}
 
 .danger {
+    color: #fff;
+    background: var(--red);
+}
 
-    background:
-        var(--danger);
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
 
-    color: white;
+    gap: 8px;
+
+    margin-top: 14px;
 }
 
 
-.watch-button {
-
-    background:
-        var(--surface-3);
-
-    color:
-        var(--tg-text);
-}
-
-
-.watch-button.watching {
-
-    color:
-        #986b00;
-
-    background:
-        #fff2c7;
-}
-
-
-@media (prefers-color-scheme: dark) {
-
-    .watch-button.watching {
-
-        color:
-            #e3b949;
-
-        background:
-            rgba(220,165,28,.14);
-    }
-}
-
-
-.report-button {
-
-    color:
-        var(--danger);
-
-    background:
-        var(--danger-soft);
-}
-
-
-.report-button.reported {
-
-    color:
-        var(--muted);
-
-    background:
-        var(--surface-3);
-}
-
-
-.seller-profile-button {
-
-    width: 100%;
-
-    margin-top: 13px;
-
-    color:
-        var(--purple);
-
-    background:
-        var(--purple-soft);
-}
-
-
-.own-listing-button {
-
-    flex: 1;
-
-    color:
-        var(--success);
-
-    background:
-        var(--success-soft);
-}
-
-
-.unlock-button {
-
-    width: 100%;
-
-    margin-top: 13px;
-
-    padding: 13px;
-
-    color:
-        var(--primary);
-
-    background:
-        var(--primary-soft);
-
-    border:
-        1px solid rgba(22,135,232,.12);
-}
-
-
-/* =====================================================
-   CONTACT
-   ===================================================== */
+/* =========================================================
+   CONTACT UNLOCKED
+   ========================================================= */
 
 .contact-box,
 .owner-contact-box {
+    margin-top: 10px;
 
-    margin-top: 13px;
+    padding: 13px;
 
-    padding: 14px;
+    border: 1px solid var(--border);
 
-    border:
-        1px solid var(--border);
-
-    border-radius:
-        16px;
+    border-radius: 14px;
 }
-
 
 .contact-box {
-    background:
-        var(--success-soft);
+    background: var(--green-soft);
 }
-
 
 .owner-contact-box {
-    background:
-        var(--surface-2);
+    background: var(--surface-2);
 }
-
 
 .contact-title {
+    color: var(--green);
 
-    color:
-        var(--success);
-
-    font-size: 12px;
-
+    font-size: 10.5px;
     font-weight: 900;
 }
-
 
 .owner-title {
-
-    font-size: 12px;
-
+    font-size: 10.5px;
     font-weight: 900;
 }
 
-
 .contact-value {
+    margin-top: 7px;
 
-    margin-top: 8px;
-
-    font-size: 16px;
-
+    font-size: 14px;
     font-weight: 800;
 
     word-break: break-word;
 }
 
-
 .contact-actions {
-
     display: flex;
-
     gap: 8px;
 
-    margin-top: 12px;
+    margin-top: 10px;
 }
-
 
 .contact-actions button {
     flex: 1;
 }
 
 
-.owner-note {
+/* =========================================================
+   BADGES
+   ========================================================= */
 
-    margin-top: 6px;
+.badge {
+    display: inline-flex;
+    align-items: center;
 
+    margin-top: 7px;
+
+    padding: 5px 8px;
+
+    border-radius: 999px;
+
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .25px;
+}
+
+.badge-pending {
+    color: var(--yellow);
+    background: var(--yellow-soft);
+}
+
+.badge-active,
+.badge-accepted {
+    color: var(--green);
+    background: var(--green-soft);
+}
+
+.badge-paused,
+.badge-countered {
+    color: var(--blue);
+    background: var(--blue-soft);
+}
+
+.badge-frozen {
+    color: var(--cyan);
+    background: var(--cyan-soft);
+}
+
+.badge-rejected {
+    color: var(--red);
+    background: var(--red-soft);
+}
+
+.badge-removed,
+.badge-declined,
+.badge-cancelled,
+.badge-closed {
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 10.5px;
+    background: var(--surface-3);
 }
 
 
-.payment-wait {
-
-    margin-top: 13px;
-
-    padding: 12px;
-
-    border-radius: 13px;
-
-    color:
-        var(--primary);
-
-    background:
-        var(--primary-soft);
-
-    font-size: 11px;
-}
-
-
-/* =====================================================
+/* =========================================================
    FORMS
-   ===================================================== */
+   ========================================================= */
 
 .form-box {
-
     margin: 16px;
 
     padding: 20px;
 
-    border:
-        1px solid var(--border);
+    border: 1px solid var(--border);
 
-    border-radius:
-        var(--radius-xl);
+    border-radius: var(--radius-xl);
 
     background:
-        var(--tg-surface);
+        var(--tg-theme-secondary-bg-color, var(--surface));
 
-    box-shadow:
-        var(--shadow-small);
+    box-shadow: var(--shadow);
 }
-
 
 .form-title {
-
-    font-size: 22px;
-
+    font-size: 21px;
     font-weight: 900;
-
-    letter-spacing: -.6px;
+    letter-spacing: -.55px;
 }
 
-
 .form-subtitle {
-
-    margin:
-        6px 0 20px;
+    margin: 5px 0 19px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 11.5px;
-
+    font-size: 10.5px;
     line-height: 1.5;
 }
 
-
 .field {
-    margin-bottom: 16px;
+    margin-bottom: 15px;
 }
-
 
 .field label {
-
     display: block;
 
-    margin-bottom: 7px;
+    margin-bottom: 6px;
 
-    font-size: 11.5px;
-
+    font-size: 10.5px;
     font-weight: 800;
 }
-
 
 .field input,
 .field select,
 .field textarea {
-
     width: 100%;
 
     padding: 12px 13px;
 
-    border:
-        1px solid var(--border);
+    border: 1px solid var(--border);
 
-    border-radius:
-        14px;
+    border-radius: 13px;
 
-    outline: none;
-
-    background:
-        var(--surface-2);
+    outline: 0;
 
     color:
-        var(--tg-text);
+        var(--tg-theme-text-color, var(--text));
 
-    font-size: 13px;
+    background: var(--surface-2);
+
+    font-size: 12px;
 }
-
 
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-
-    border-color:
-        rgba(22,135,232,.45);
+    border-color: rgba(22,136,232,.45);
 
     box-shadow:
-        0 0 0 4px
-        rgba(22,135,232,.07);
+        0 0 0 4px rgba(22,136,232,.06);
 }
 
-
 .field textarea {
-
-    min-height: 95px;
-
+    min-height: 92px;
     resize: vertical;
 }
 
-
 .field-hint {
-
-    margin-top: 6px;
+    margin-top: 5px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 10px;
-
+    font-size: 9px;
     line-height: 1.45;
 }
 
-
 .payment-box {
+    margin-bottom: 14px;
 
-    margin-bottom: 15px;
+    padding: 14px;
 
-    padding: 15px;
+    border: 1px solid rgba(22,136,232,.12);
 
-    border-radius: 16px;
+    border-radius: 15px;
 
-    background:
-        var(--primary-soft);
-
-    border:
-        1px solid rgba(22,135,232,.11);
+    background: var(--blue-soft);
 }
 
+.payment-label {
+    color:
+        var(--tg-theme-hint-color, var(--muted));
+
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .5px;
+}
 
 .payment-price {
-
     margin-top: 3px;
 
-    font-size: 25px;
-
+    font-size: 23px;
     font-weight: 900;
-
-    letter-spacing: -.7px;
 }
 
-
 .payment-button {
-
     width: 100%;
 
     padding: 14px;
 
-    border-radius: 15px;
+    border-radius: 14px;
 
     color:
-        var(--tg-primary-text);
+        var(--tg-theme-button-text-color, #fff);
 
     background:
-
         linear-gradient(
             135deg,
-            var(--tg-primary),
-            var(--primary-dark)
+            var(--tg-theme-button-color, var(--blue)),
+            var(--blue-dark)
         );
 
-    font-size: 13px;
-
-    font-weight: 900;
-
     box-shadow:
+        0 8px 20px rgba(22,136,232,.17);
 
-        0 9px 21px
-        rgba(22,135,232,.18);
+    font-size: 12px;
+    font-weight: 900;
 }
 
 
-/* =====================================================
+/* =========================================================
    MESSAGE
-   ===================================================== */
+   ========================================================= */
 
 .message {
-
     display: none;
 
-    margin-top: 13px;
+    margin-top: 12px;
 
-    padding: 12px;
+    padding: 11px;
 
-    border-radius: 13px;
+    border-radius: 12px;
 
-    font-size: 11px;
-
+    font-size: 10px;
     line-height: 1.45;
 }
 
-
 .message.success {
-
     display: block;
 
-    color:
-        var(--success);
-
-    background:
-        var(--success-soft);
+    color: var(--green);
+    background: var(--green-soft);
 }
-
 
 .message.error {
-
     display: block;
 
-    color:
-        var(--danger);
-
-    background:
-        var(--danger-soft);
+    color: var(--red);
+    background: var(--red-soft);
 }
-
 
 .message.info {
-
     display: block;
 
-    color:
-        var(--primary);
-
-    background:
-        var(--primary-soft);
+    color: var(--blue);
+    background: var(--blue-soft);
 }
 
 
-/* =====================================================
-   WARNING
-   ===================================================== */
+/* =========================================================
+   DISCLAIMER
+   ========================================================= */
 
 .warning {
+    margin: 0 16px 22px;
 
-    margin: 0 16px 20px;
+    padding: 12px;
 
-    padding: 13px;
+    border-radius: 14px;
 
-    border-radius: 15px;
+    color: var(--yellow);
+    background: var(--yellow-soft);
 
-    color:
-        var(--warning);
+    border: 1px solid rgba(180,130,10,.11);
 
-    background:
-        var(--warning-soft);
-
-    border:
-        1px solid rgba(230,160,15,.13);
-
-    font-size: 10.5px;
-
+    font-size: 9.5px;
     line-height: 1.5;
 }
 
 
-/* =====================================================
-   PROFILE
-   ===================================================== */
+/* =========================================================
+   PROFILE v12
+   ========================================================= */
 
-.profile-card {
-
+.profile-shell {
     margin: 16px;
-
-    padding: 21px;
-
-    border:
-        1px solid var(--border);
-
-    border-radius:
-        var(--radius-xl);
-
-    background:
-        var(--tg-surface);
-
-    box-shadow:
-        var(--shadow-small);
 }
 
+.profile-card {
+    padding: 19px;
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius-xl);
+
+    background:
+        var(--tg-theme-secondary-bg-color, var(--surface));
+
+    box-shadow: var(--shadow);
+}
+
+.profile-top {
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+}
 
 .profile-avatar {
+    width: 54px;
+    height: 54px;
+
+    flex: 0 0 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 17px;
+
+    color: var(--purple);
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--purple-soft),
+            var(--blue-soft)
+        );
+}
+
+.profile-avatar svg {
+    width: 24px;
+    height: 24px;
+
+    stroke: currentColor;
+}
+
+.profile-name {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -.5px;
+}
+
+.profile-username {
+    margin-top: 3px;
+
+    color:
+        var(--tg-theme-hint-color, var(--muted));
+
+    font-size: 10px;
+}
+
+.profile-auth {
+    display: inline-flex;
+
+    margin-top: 8px;
+
+    padding: 5px 8px;
+
+    border-radius: 999px;
+
+    color: var(--green);
+    background: var(--green-soft);
+
+    font-size: 8.5px;
+    font-weight: 800;
+}
+
+.profile-menu {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2,minmax(0,1fr));
+
+    gap: 9px;
+
+    margin-top: 15px;
+}
+
+.profile-tile {
+    min-height: 94px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-start;
+    justify-content: space-between;
+
+    padding: 13px;
+
+    border: 1px solid var(--border);
+
+    border-radius: 16px;
+
+    text-align: left;
+
+    color:
+        var(--tg-theme-text-color, var(--text));
+
+    background: var(--surface-2);
+}
+
+.profile-tile-icon {
+    width: 32px;
+    height: 32px;
 
     display: flex;
 
     align-items: center;
-
     justify-content: center;
 
-    width: 54px;
-
-    height: 54px;
-
-    margin-bottom: 13px;
-
-    border-radius: 17px;
-
-    font-size: 23px;
+    border-radius: 10px;
 
     background:
-
-        linear-gradient(
-            135deg,
-            var(--primary-soft),
-            var(--purple-soft)
-        );
+        var(--tg-theme-secondary-bg-color, var(--surface));
 }
 
+.profile-tile-icon svg {
+    width: 16px;
+    height: 16px;
 
-.profile-name {
+    stroke: currentColor;
+}
 
-    font-size: 23px;
+.profile-tile-purple .profile-tile-icon {
+    color: var(--purple);
+    background: var(--purple-soft);
+}
 
+.profile-tile-blue .profile-tile-icon {
+    color: var(--blue);
+    background: var(--blue-soft);
+}
+
+.profile-tile-yellow .profile-tile-icon {
+    color: var(--yellow);
+    background: var(--yellow-soft);
+}
+
+.profile-tile-dark .profile-tile-icon {
+    color:
+        var(--tg-theme-text-color, var(--text));
+
+    background: var(--surface-3);
+}
+
+.profile-tile-title {
+    margin-top: 10px;
+
+    font-size: 10.5px;
     font-weight: 900;
-
-    letter-spacing: -.6px;
 }
 
-
-.profile-username {
-
-    margin-top: 4px;
+.profile-tile-subtitle {
+    margin-top: 2px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 11.5px;
+    font-size: 8.5px;
 }
 
 
-.verified-box {
-
-    margin-top: 15px;
-
-    padding: 11px;
-
-    border-radius: 13px;
-
-    color:
-        var(--success);
-
-    background:
-        var(--success-soft);
-
-    font-size: 11px;
-
-    font-weight: 750;
-}
-
-
-.profile-action,
-.seller-profile-action,
-.watchlist-profile-button,
-.admin-button {
-
-    width: 100%;
-
-    margin-top: 9px;
-
-    padding: 13px;
-
-    font-size: 11.5px;
-}
-
-
-.profile-action {
-
-    color: white;
-
-    background:
-
-        linear-gradient(
-            135deg,
-            var(--primary),
-            var(--primary-dark)
-        );
-}
-
-
-.seller-profile-action {
-
-    color:
-        var(--purple);
-
-    background:
-        var(--purple-soft);
-}
-
-
-.watchlist-profile-button {
-
-    color:
-        #9c7000;
-
-    background:
-        var(--warning-soft);
-}
-
-
-.admin-button {
-
-    color: white;
-
-    background:
-
-        linear-gradient(
-            135deg,
-            #272b33,
-            #17191e
-        );
-}
-
-
-/* =====================================================
+/* =========================================================
    SELLER PROFILE
-   ===================================================== */
+   ========================================================= */
 
 .seller-page {
     padding: 16px;
 }
 
-
 .back-button {
-
-    margin-bottom: 12px;
+    margin-bottom: 11px;
 
     color:
-        var(--tg-text);
+        var(--tg-theme-text-color, var(--text));
 
     background:
-        var(--tg-surface);
+        var(--tg-theme-secondary-bg-color, var(--surface));
 
-    border:
-        1px solid var(--border);
+    border: 1px solid var(--border);
 }
-
 
 .seller-header-card {
+    padding: 19px;
 
-    padding: 21px;
+    border: 1px solid var(--border);
 
-    border:
-        1px solid var(--border);
-
-    border-radius:
-        var(--radius-xl);
+    border-radius: var(--radius-xl);
 
     background:
-        var(--tg-surface);
+        var(--tg-theme-secondary-bg-color, var(--surface));
 
-    box-shadow:
-        var(--shadow-small);
+    box-shadow: var(--shadow);
 }
 
-
-.seller-avatar {
-
+.seller-top {
     display: flex;
-
     align-items: center;
 
+    gap: 13px;
+}
+
+.seller-avatar {
+    width: 57px;
+    height: 57px;
+
+    flex: 0 0 57px;
+
+    display: flex;
+    align-items: center;
     justify-content: center;
 
-    width: 60px;
+    border-radius: 17px;
 
-    height: 60px;
-
-    margin-bottom: 14px;
-
-    border-radius: 18px;
-
-    font-size: 26px;
+    color: var(--purple);
 
     background:
-
         linear-gradient(
             135deg,
             var(--purple-soft),
-            var(--primary-soft)
+            var(--blue-soft)
         );
 }
 
+.seller-avatar svg {
+    width: 25px;
+    height: 25px;
+    stroke: currentColor;
+}
 
 .seller-name {
-
-    font-size: 25px;
-
-    line-height: 1.1;
-
+    font-size: 22px;
     font-weight: 900;
-
-    letter-spacing: -.8px;
+    line-height: 1.1;
+    letter-spacing: -.6px;
 }
-
 
 .seller-member {
-
-    margin-top: 6px;
+    margin-top: 4px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 10.5px;
+    font-size: 9.5px;
 }
 
-
 .seller-auth {
-
     display: inline-flex;
 
-    margin-top: 11px;
+    margin-top: 7px;
 
-    padding: 7px 10px;
+    padding: 5px 8px;
 
     border-radius: 999px;
 
-    color:
-        var(--success);
+    color: var(--green);
+    background: var(--green-soft);
 
-    background:
-        var(--success-soft);
-
-    font-size: 10px;
-
+    font-size: 8.5px;
     font-weight: 800;
 }
 
-
 .seller-bio {
-
     margin-top: 15px;
 
-    color:
-        var(--text-2);
+    color: var(--text-2);
 
-    font-size: 12.5px;
-
+    font-size: 11.5px;
     line-height: 1.55;
 
     white-space: pre-wrap;
-
     word-break: break-word;
 }
 
-
 .seller-bio-empty {
-
     margin-top: 15px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 11px;
-
+    font-size: 10px;
     font-style: italic;
 }
 
-
 .seller-stats {
-
     display: grid;
 
     grid-template-columns:
@@ -1717,590 +1542,371 @@ button:active:not(:disabled) {
 
     gap: 8px;
 
-    margin-top: 18px;
+    margin-top: 16px;
 }
 
-
 .seller-stat {
+    padding: 12px 5px;
 
-    padding: 14px 6px;
+    border: 1px solid var(--border);
 
-    border:
-        1px solid var(--border);
-
-    border-radius: 15px;
+    border-radius: 14px;
 
     text-align: center;
 
-    background:
-        var(--surface-2);
+    background: var(--surface-2);
 }
-
 
 .seller-stat-number {
-
-    font-size: 21px;
-
+    font-size: 19px;
     font-weight: 900;
-
-    letter-spacing: -.4px;
 }
 
-
 .seller-stat-label {
-
-    margin-top: 4px;
+    margin-top: 3px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 9px;
-
-    line-height: 1.3;
-
+    font-size: 8px;
+    line-height: 1.25;
     font-weight: 650;
 }
 
-
 .seller-edit-button {
-
     width: 100%;
-
-    margin-top: 14px;
-
-    color:
-        var(--purple);
-
-    background:
-        var(--purple-soft);
-}
-
-
-.seller-visibility-public,
-.seller-visibility-private {
-
-    margin-top: 13px;
-
-    padding: 11px;
-
-    border-radius: 13px;
-
-    font-size: 10.5px;
-
-    line-height: 1.5;
-}
-
-
-.seller-visibility-public {
-
-    color:
-        var(--success);
-
-    background:
-        var(--success-soft);
-}
-
-
-.seller-visibility-private {
-
-    color:
-        var(--warning);
-
-    background:
-        var(--warning-soft);
-}
-
-
-.seller-listings-title {
-
-    margin:
-        22px 0 12px;
-
-    font-size: 18px;
-
-    font-weight: 900;
-
-    letter-spacing: -.4px;
-}
-
-
-/* =====================================================
-   WANTED
-   ===================================================== */
-
-.wanted-card {
-    border-left:
-        3px solid var(--primary);
-}
-
-
-.wanted-label {
-
-    margin-top: 11px;
-
-    color:
-        var(--tg-muted);
-
-    font-size: 10px;
-}
-
-
-.wanted-budget {
-
-    margin-top: 3px;
-
-    font-size: 21px;
-
-    font-weight: 900;
-}
-
-
-.wanted-buyer {
 
     margin-top: 12px;
 
-    padding: 11px;
+    color: var(--purple);
+    background: var(--purple-soft);
+}
+
+.seller-visibility-public,
+.seller-visibility-private {
+    margin-top: 12px;
+
+    padding: 10px;
 
     border-radius: 12px;
 
-    background:
-        var(--surface-2);
-
-    font-size: 10.5px;
+    font-size: 9.5px;
+    line-height: 1.45;
 }
 
+.seller-visibility-public {
+    color: var(--green);
+    background: var(--green-soft);
+}
+
+.seller-visibility-private {
+    color: var(--yellow);
+    background: var(--yellow-soft);
+}
+
+.seller-listings-title {
+    margin: 21px 0 11px;
+
+    font-size: 17px;
+    font-weight: 900;
+}
+
+
+/* =========================================================
+   WANTED
+   ========================================================= */
+
+.wanted-card {
+    border-left: 3px solid var(--blue);
+}
+
+.wanted-budget {
+    margin-top: 4px;
+
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.wanted-label {
+    margin-top: 11px;
+
+    color:
+        var(--tg-theme-hint-color, var(--muted));
+
+    font-size: 8.5px;
+    font-weight: 800;
+}
 
 .contact-buyer-button,
 .your-request-button,
 .close-request-button {
-
     width: 100%;
-
-    margin-top: 12px;
+    margin-top: 11px;
 }
-
 
 .contact-buyer-button {
-
-    color: white;
-
-    background:
-        var(--primary);
+    color: #fff;
+    background: var(--blue);
 }
-
 
 .your-request-button {
-
-    color:
-        var(--success);
-
-    background:
-        var(--success-soft);
+    color: var(--green);
+    background: var(--green-soft);
 }
-
 
 .close-request-button {
-
-    color:
-        var(--danger);
-
-    background:
-        var(--danger-soft);
+    color: var(--red);
+    background: var(--red-soft);
 }
 
 
-/* =====================================================
-   MANAGEMENT
-   ===================================================== */
+/* =========================================================
+   LISTING MANAGEMENT
+   ========================================================= */
 
 .manage-buttons {
-
     display: flex;
-
     flex-wrap: wrap;
 
     gap: 7px;
 
-    margin-top: 14px;
+    margin-top: 13px;
 }
-
 
 .manage-buttons button {
-
     flex: 1;
-
-    min-width: 82px;
+    min-width: 80px;
 }
-
 
 .edit-listing-button {
-
-    color:
-        var(--primary);
-
-    background:
-        var(--primary-soft);
+    color: var(--blue);
+    background: var(--blue-soft);
 }
-
 
 .pause-listing-button {
-
-    color:
-        var(--warning);
-
-    background:
-        var(--warning-soft);
+    color: var(--yellow);
+    background: var(--yellow-soft);
 }
-
 
 .resume-listing-button {
-
-    color:
-        var(--success);
-
-    background:
-        var(--success-soft);
+    color: var(--green);
+    background: var(--green-soft);
 }
-
 
 .remove-listing-button {
-
-    color:
-        var(--danger);
-
-    background:
-        var(--danger-soft);
+    color: var(--red);
+    background: var(--red-soft);
 }
-
 
 .paused-note,
 .frozen-note,
 .removed-note {
+    margin-top: 11px;
 
-    margin-top: 12px;
+    padding: 10px;
 
-    padding: 11px;
+    border-radius: 12px;
 
-    border-radius: 13px;
-
-    font-size: 10.5px;
-
+    font-size: 9.5px;
     line-height: 1.5;
 }
 
-
 .paused-note {
-
-    color:
-        var(--primary);
-
-    background:
-        var(--primary-soft);
+    color: var(--blue);
+    background: var(--blue-soft);
 }
-
 
 .frozen-note {
-
-    color:
-        var(--cyan);
-
-    background:
-        var(--cyan-soft);
+    color: var(--cyan);
+    background: var(--cyan-soft);
 }
-
 
 .removed-note {
-
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    background:
-        var(--surface-3);
+    background: var(--surface-3);
 }
 
 
-/* =====================================================
-   OFFER
-   ===================================================== */
+/* =========================================================
+   OFFERS
+   ========================================================= */
 
 .offer-summary {
+    margin-top: 10px;
 
-    margin-top: 11px;
+    padding: 11px;
 
-    padding: 12px;
+    border: 1px solid var(--border);
 
-    border:
-        1px solid var(--border);
+    border-radius: 13px;
 
-    border-radius: 14px;
-
-    background:
-        var(--surface-2);
+    background: var(--surface-2);
 }
-
 
 .offer-label {
-
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 10px;
+    font-size: 8.5px;
+    font-weight: 750;
 }
 
-
 .offer-big {
-
     margin-top: 2px;
 
-    font-size: 20px;
-
+    font-size: 19px;
     font-weight: 900;
 }
 
 
-.offer-message {
-
-    margin-top: 10px;
-
-    color:
-        var(--text-2);
-
-    font-size: 11px;
-
-    line-height: 1.5;
-}
-
-
-.buyer-box {
-
-    margin-top: 11px;
-
-    padding: 11px;
-
-    border-radius: 12px;
-
-    background:
-        var(--surface-2);
-
-    font-size: 10.5px;
-}
-
-
-/* =====================================================
+/* =========================================================
    ADMIN
-   ===================================================== */
+   ========================================================= */
 
 .admin-box {
     margin: 16px;
 }
 
-
 .admin-header {
-
     margin-bottom: 20px;
 
-    padding: 21px;
+    padding: 19px;
 
-    border-radius:
-        var(--radius-xl);
+    border-radius: var(--radius-xl);
 
-    color: white;
+    color: #fff;
 
     background:
-
-        radial-gradient(
-            circle at 90% 10%,
-            rgba(255,255,255,.12),
-            transparent 32%
-        ),
-
         linear-gradient(
             135deg,
             #262a33,
-            #111317
+            #121418
         );
 
-    box-shadow:
-        var(--shadow);
+    box-shadow: var(--shadow-lg);
 }
-
 
 .admin-header h2 {
-
     margin: 0;
 
-    font-size: 21px;
-
+    font-size: 20px;
     font-weight: 900;
-
-    letter-spacing: -.5px;
 }
-
 
 .admin-section {
-    margin-bottom: 29px;
+    margin-bottom: 27px;
 }
-
 
 .admin-section-title {
+    margin-bottom: 10px;
 
-    margin-bottom: 11px;
-
-    font-size: 18px;
-
+    font-size: 17px;
     font-weight: 900;
 }
-
 
 .approve-button {
-
     flex: 1;
 
-    color: white;
-
-    background:
-        var(--success);
+    color: #fff;
+    background: var(--green);
 }
-
 
 .reject-button {
-
     flex: 1;
 
-    color: white;
-
-    background:
-        var(--danger);
+    color: #fff;
+    background: var(--red);
 }
-
 
 .counter-button {
-
     flex: 1;
 
-    color:
-        var(--primary);
-
-    background:
-        var(--primary-soft);
+    color: var(--blue);
+    background: var(--blue-soft);
 }
-
 
 .freeze-button {
-
-    color:
-        var(--cyan);
-
-    background:
-        var(--cyan-soft);
+    color: var(--cyan);
+    background: var(--cyan-soft);
 }
-
 
 .unfreeze-button {
-
-    color:
-        var(--success);
-
-    background:
-        var(--success-soft);
+    color: var(--green);
+    background: var(--green-soft);
 }
-
 
 .dismiss-button {
-
     color:
-        var(--tg-text);
+        var(--tg-theme-text-color, var(--text));
 
-    background:
-        var(--surface-3);
+    background: var(--surface-3);
 }
-
 
 .admin-remove-button {
-
-    color:
-        var(--danger);
-
-    background:
-        var(--danger-soft);
+    color: var(--red);
+    background: var(--red-soft);
 }
-
 
 .report-card {
-
-    border-left:
-        3px solid var(--danger);
+    border-left: 3px solid var(--red);
 }
-
 
 .frozen-card {
-
-    border-left:
-        3px solid var(--cyan);
+    border-left: 3px solid var(--cyan);
 }
 
-
 .report-reason {
+    margin-top: 10px;
 
-    margin-top: 11px;
-
-    font-size: 11px;
-
+    font-size: 10px;
     font-weight: 900;
 }
 
-
 .report-details {
+    margin-top: 7px;
 
-    margin-top: 8px;
+    padding: 10px;
 
-    padding: 11px;
+    border-radius: 11px;
 
-    border-radius: 12px;
+    color: var(--text-2);
+    background: var(--surface-2);
 
-    color:
-        var(--text-2);
-
-    background:
-        var(--surface-2);
-
-    font-size: 10.5px;
-
+    font-size: 9.5px;
     line-height: 1.5;
 }
 
 
-/* =====================================================
+/* =========================================================
    EMPTY
-   ===================================================== */
+   ========================================================= */
 
 .empty {
+    padding: 30px 15px;
 
-    padding: 32px 16px;
+    border: 1px dashed var(--border);
 
-    border:
-        1px dashed var(--border);
-
-    border-radius: 17px;
-
-    background:
-        var(--tg-surface);
+    border-radius: 16px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
+
+    background:
+        var(--tg-theme-secondary-bg-color, var(--surface));
 
     text-align: center;
 
-    font-size: 11px;
+    font-size: 10px;
 }
 
 
-/* =====================================================
-   NAV
-   ===================================================== */
+/* =========================================================
+   BOTTOM NAV
+   ========================================================= */
 
 .bottom-nav {
-
     position: fixed;
 
     z-index: 100;
@@ -2313,208 +1919,138 @@ button:active:not(:disabled) {
             env(safe-area-inset-bottom)
         );
 
-    transform:
-        translateX(-50%);
+    transform: translateX(-50%);
+
+    width: calc(100% - 18px);
+    max-width: 790px;
+    height: var(--nav-height);
 
     display: flex;
 
-    width:
-        calc(100% - 18px);
+    padding: 5px;
 
-    max-width: 690px;
+    border: 1px solid var(--border);
 
-    height: 66px;
+    border-radius: 21px;
 
-    padding: 6px;
-
-    border:
-        1px solid var(--border);
-
-    border-radius: 22px;
-
-    background:
-        rgba(255,255,255,.94);
+    background: rgba(255,255,255,.95);
 
     box-shadow:
+        0 13px 38px rgba(27,36,50,.13);
 
-        0 15px 38px
-        rgba(24,31,43,.14);
-
-    backdrop-filter:
-        blur(20px);
-
-    -webkit-backdrop-filter:
-        blur(20px);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
 }
-
 
 @media (prefers-color-scheme: dark) {
 
     .bottom-nav {
-
-        background:
-            rgba(24,27,33,.94);
+        background: rgba(24,27,32,.95);
     }
 }
 
-
 .nav-item {
-
     flex: 1;
 
     display: flex;
-
     flex-direction: column;
 
     align-items: center;
-
     justify-content: center;
 
     gap: 3px;
 
-    border-radius: 16px;
+    border-radius: 15px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 8.5px;
-
+    font-size: 8px;
     font-weight: 700;
 
     cursor: pointer;
-
-    transition:
-        color .15s,
-        background .15s,
-        transform .1s;
 }
 
+.nav-item svg {
+    width: 19px;
+    height: 19px;
 
-.nav-item:active {
-    transform: scale(.96);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
-
-
-.nav-icon {
-
-    display: block;
-
-    margin: 0;
-
-    font-size: 19px;
-
-    line-height: 1;
-}
-
 
 .nav-item.active {
-
-    color:
-        var(--primary);
-
-    background:
-        var(--primary-soft);
+    color: var(--blue);
+    background: var(--blue-soft);
 
     font-weight: 900;
 }
 
 
-/* =====================================================
-   MODALS
-   ===================================================== */
+/* =========================================================
+   MODAL
+   ========================================================= */
 
 .modal-backdrop {
-
     display: none;
 
     position: fixed;
+    inset: 0;
 
     z-index: 1000;
 
-    inset: 0;
-
     align-items: flex-end;
-
     justify-content: center;
 
     padding:
         14px
         14px
-        max(
-            14px,
-            env(safe-area-inset-bottom)
-        );
+        max(14px, env(safe-area-inset-bottom));
 
-    background:
-        rgba(0,0,0,.44);
+    background: rgba(0,0,0,.44);
 
-    backdrop-filter:
-        blur(4px);
-
-    -webkit-backdrop-filter:
-        blur(4px);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
-
 
 .modal-backdrop.show {
-
     display: flex;
-
-    animation:
-        backdropIn .16s ease;
 }
 
-
 .modal {
-
     width: 100%;
-
-    max-width: 500px;
-
+    max-width: 510px;
     max-height: 88vh;
 
     overflow-y: auto;
 
-    padding: 21px;
+    padding: 20px;
 
-    border:
-        1px solid var(--border);
+    border: 1px solid var(--border);
 
-    border-radius: 25px;
-
-    background:
-        var(--tg-surface);
+    border-radius: 24px;
 
     color:
-        var(--tg-text);
+        var(--tg-theme-text-color, var(--text));
+
+    background:
+        var(--tg-theme-secondary-bg-color, var(--surface));
 
     box-shadow:
+        0 24px 75px rgba(0,0,0,.25);
 
-        0 25px 80px
-        rgba(0,0,0,.25);
-
-    animation:
-        modalIn .2s ease;
+    animation: modal-in .18s ease;
 }
 
-
-@keyframes backdropIn {
+@keyframes modal-in {
 
     from {
         opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-
-@keyframes modalIn {
-
-    from {
-        opacity: 0;
-        transform: translateY(25px);
+        transform: translateY(20px);
     }
 
     to {
@@ -2523,51 +2059,37 @@ button:active:not(:disabled) {
     }
 }
 
-
 .modal-title {
-
-    font-size: 21px;
-
-    line-height: 1.2;
-
+    font-size: 20px;
     font-weight: 900;
-
     letter-spacing: -.5px;
 }
 
-
 .modal-subtitle {
-
-    margin:
-        6px 0 18px;
+    margin: 5px 0 17px;
 
     color:
-        var(--tg-muted);
+        var(--tg-theme-hint-color, var(--muted));
 
-    font-size: 11px;
-
+    font-size: 10px;
     line-height: 1.5;
 }
 
-
 .modal-actions {
-
     display: flex;
-
     gap: 8px;
 
-    margin-top: 15px;
+    margin-top: 14px;
 }
-
 
 .modal-actions button {
     flex: 1;
 }
 
 
-/* =====================================================
-   DESKTOP
-   ===================================================== */
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
 
 @media (min-width: 650px) {
 
@@ -2576,76 +2098,88 @@ button:active:not(:disabled) {
     }
 
     .hero {
-        padding: 27px;
+        padding: 25px;
     }
 
     .hero-title {
-        font-size: 32px;
+        font-size: 30px;
     }
 
-    .card {
-        padding: 20px;
+    .listing-card {
+        padding: 19px;
+    }
+
+    .profile-card,
+    .seller-header-card {
+        padding: 21px;
     }
 }
 
-
-@media (max-width: 390px) {
+@media (max-width: 430px) {
 
     .hero-title {
-        font-size: 25px;
+        font-size: 24px;
+    }
+
+    .listing-header {
+        gap: 8px;
+    }
+
+    .listing-price {
+        font-size: 17px;
     }
 
     .username {
-        font-size: 20px;
-    }
-
-    .price {
         font-size: 19px;
     }
 
-    .buttons button {
-        padding: 10px 10px;
-        font-size: 10.5px;
+    .action-icon-button {
+        min-width: 43px;
+        padding: 11px 10px;
     }
 
-    .seller-stat-number {
-        font-size: 19px;
+    .action-label {
+        display: none;
+    }
+
+    .profile-menu {
+        gap: 8px;
     }
 }
 
 </style>
 </head>
 
-
 <body>
 
 <div class="app">
 
 
-<!-- HEADER -->
+<!-- =====================================================
+     HEADER
+===================================================== -->
 
 <header>
 
-<div class="header-row">
+<div class="header-main">
 
-<div class="logo-icon">
+<div class="brand-icon">
 H
 </div>
 
-<div class="header-text">
+<div>
 
-<div class="logo">
+<div class="brand-title">
 Handle Market
 </div>
 
-<div class="subtitle">
+<div class="brand-subtitle">
 WhatsApp username marketplace
 </div>
 
 </div>
 
 </div>
-
 
 <div
     id="authStatus"
@@ -2668,7 +2202,7 @@ Connecting...
 
 <div class="hero">
 
-<div class="hero-eyebrow">
+<div class="hero-label">
 HANDLE MARKET
 </div>
 
@@ -2677,7 +2211,7 @@ Discover valuable WhatsApp usernames.
 </div>
 
 <div class="hero-text">
-Browse listings, connect with sellers and negotiate directly through Handle Market.
+Browse listings, discover sellers and negotiate directly through Handle Market.
 </div>
 
 </div>
@@ -2685,11 +2219,12 @@ Browse listings, connect with sellers and negotiate directly through Handle Mark
 
 <div class="search">
 
-<div class="search-box">
+<div class="search-wrap">
 
-<div class="search-icon">
-⌕
-</div>
+<svg viewBox="0 0 24 24">
+<circle cx="11" cy="11" r="7"></circle>
+<path d="m20 20-4-4"></path>
+</svg>
 
 <input
     placeholder="Search @username"
@@ -2703,14 +2238,13 @@ Browse listings, connect with sellers and negotiate directly through Handle Mark
 
 <div class="section">
 
-<div class="section-header">
+<div class="section-head">
 
 <div class="section-title">
 Categories
 </div>
 
 </div>
-
 
 <div class="categories">
 
@@ -2749,14 +2283,13 @@ Categories
 
 <div class="section">
 
-<div class="section-header">
+<div class="section-head">
 
 <div class="section-title">
 Featured usernames
 </div>
 
 </div>
-
 
 <div id="homeListings">
 
@@ -2779,7 +2312,7 @@ Loading marketplace...
 
 
 <!-- =====================================================
-     MARKETPLACE
+     MARKET
 ===================================================== -->
 
 <div
@@ -2787,29 +2320,13 @@ Loading marketplace...
     class="page"
 >
 
-<div
-    style="
-        padding:
-            19px
-            16px
-            7px;
-    "
->
+<div class="page-heading">
 
-<div class="section-title">
+<div class="page-title">
 Marketplace
 </div>
 
-<div
-    style="
-        color:
-            var(--tg-muted);
-        font-size:
-            11px;
-        margin-top:
-            3px;
-    "
->
+<div class="page-description">
 Discover active username listings.
 </div>
 
@@ -2818,11 +2335,12 @@ Discover active username listings.
 
 <div class="search">
 
-<div class="search-box">
+<div class="search-wrap">
 
-<div class="search-icon">
-⌕
-</div>
+<svg viewBox="0 0 24 24">
+<circle cx="11" cy="11" r="7"></circle>
+<path d="m20 20-4-4"></path>
+</svg>
 
 <input
     placeholder="Search Marketplace"
@@ -2865,7 +2383,7 @@ List Username
 </div>
 
 <div class="form-subtitle">
-Create a new listing. Your listing will be reviewed before appearing in Marketplace.
+Submit your username for marketplace moderation.
 </div>
 
 
@@ -2984,9 +2502,8 @@ Seller contact
     required
 >
 
-
 <div class="field-hint">
-Your contact is private until a buyer unlocks it.
+Your contact stays private until a buyer unlocks it.
 </div>
 
 </div>
@@ -2994,16 +2511,7 @@ Your contact is private until a buyer unlocks it.
 
 <div class="payment-box">
 
-<div
-    style="
-        color:
-            var(--tg-muted);
-        font-size:
-            10px;
-        font-weight:
-            700;
-    "
->
+<div class="payment-label">
 LISTING FEE
 </div>
 
@@ -3042,9 +2550,7 @@ Pay 1 ⭐ & Submit
 My Listings
 </div>
 
-<div
-    class="section-subtitle"
->
+<div class="section-subtitle">
 Manage your submitted usernames.
 </div>
 
@@ -3153,7 +2659,7 @@ Description
 <textarea
     id="wantedDescription"
     maxlength="500"
-    placeholder="Add details about what you are looking for..."
+    placeholder="Add details..."
 ></textarea>
 
 </div>
@@ -3161,16 +2667,7 @@ Description
 
 <div class="payment-box">
 
-<div
-    style="
-        color:
-            var(--tg-muted);
-        font-size:
-            10px;
-        font-weight:
-            700;
-    "
->
+<div class="payment-label">
 PUBLICATION FEE
 </div>
 
@@ -3209,9 +2706,7 @@ Pay 1 ⭐ & Publish
 Wanted Requests
 </div>
 
-<div
-    class="section-subtitle"
->
+<div class="section-subtitle">
 Active requests from buyers.
 </div>
 
@@ -3258,7 +2753,7 @@ Loading...
 
 <div
     id="profileContent"
-    class="profile-card"
+    class="profile-shell"
 >
 Loading...
 </div>
@@ -3307,24 +2802,20 @@ Loading seller profile...
     class="page"
 >
 
-<div
-    class="section"
-    style="
-        padding-top:
-            19px;
-    "
->
+<div class="page-heading">
 
-<div class="section-title">
-⭐ My Watchlist
+<div class="page-title">
+My Watchlist
 </div>
 
-<div
-    class="section-subtitle"
->
-Usernames you saved for later.
+<div class="page-description">
+Saved usernames you may want to revisit.
 </div>
 
+</div>
+
+
+<div class="section">
 
 <div id="watchlistListings">
 
@@ -3348,18 +2839,24 @@ Loading...
     class="page"
 >
 
-<div
-    class="section"
-    style="
-        padding-top:
-            19px;
-    "
->
+<div class="page-heading">
 
-<div class="section-title">
-💬 Offers Sent
+<div class="page-title">
+Offers
 </div>
 
+<div class="page-description">
+Manage your username negotiations.
+</div>
+
+</div>
+
+
+<div class="section">
+
+<div class="section-title">
+Offers Sent
+</div>
 
 <div id="sentOffers">
 
@@ -3375,9 +2872,8 @@ Loading...
 <div class="section">
 
 <div class="section-title">
-📥 Offers Received
+Offers Received
 </div>
-
 
 <div id="receivedOffers">
 
@@ -3411,15 +2907,12 @@ Loading...
 
 <div
     style="
-        margin-top:
-            6px;
-        font-size:
-            10.5px;
-        opacity:
-            .7;
+        margin-top:5px;
+        font-size:9.5px;
+        opacity:.7;
     "
 >
-Moderation & marketplace control
+Marketplace moderation
 </div>
 
 </div>
@@ -3489,14 +2982,16 @@ Loading...
 
 <div class="bottom-nav">
 
+
 <div
     class="nav-item active"
     onclick="openPage('home',this)"
 >
 
-<span class="nav-icon">
-⌂
-</span>
+<svg viewBox="0 0 24 24">
+<path d="M3 11.5 12 4l9 7.5"></path>
+<path d="M5.5 10.5V20h13v-9.5"></path>
+</svg>
 
 Home
 
@@ -3508,9 +3003,10 @@ Home
     onclick="openPage('marketplace',this)"
 >
 
-<span class="nav-icon">
-⌕
-</span>
+<svg viewBox="0 0 24 24">
+<circle cx="11" cy="11" r="6.5"></circle>
+<path d="m16 16 4 4"></path>
+</svg>
 
 Market
 
@@ -3522,9 +3018,10 @@ Market
     onclick="openPage('list',this);loadMyListings();"
 >
 
-<span class="nav-icon">
-＋
-</span>
+<svg viewBox="0 0 24 24">
+<path d="M12 5v14"></path>
+<path d="M5 12h14"></path>
+</svg>
 
 List
 
@@ -3536,9 +3033,10 @@ List
     onclick="openWantedPage(this)"
 >
 
-<span class="nav-icon">
-◎
-</span>
+<svg viewBox="0 0 24 24">
+<circle cx="12" cy="12" r="8"></circle>
+<circle cx="12" cy="12" r="3"></circle>
+</svg>
 
 Wanted
 
@@ -3550,13 +3048,15 @@ Wanted
     onclick="openPage('profile',this)"
 >
 
-<span class="nav-icon">
-◉
-</span>
+<svg viewBox="0 0 24 24">
+<circle cx="12" cy="8" r="3.5"></circle>
+<path d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6"></path>
+</svg>
 
 Profile
 
 </div>
+
 
 </div>
 
@@ -3574,12 +3074,11 @@ Profile
 <div class="modal">
 
 <div class="modal-title">
-👤 Edit Seller Profile
+Edit Seller Profile
 </div>
 
-
 <div class="modal-subtitle">
-Your Telegram username and private seller contact are not displayed publicly.
+Your private seller contact is not displayed publicly.
 </div>
 
 
@@ -3619,11 +3118,6 @@ Private
 </option>
 
 </select>
-
-
-<div class="field-hint">
-Private profiles are not linked from Marketplace listings.
-</div>
 
 </div>
 
@@ -3672,9 +3166,8 @@ Save Profile
 <div class="modal">
 
 <div class="modal-title">
-✏️ Edit Listing
+Edit Listing
 </div>
-
 
 <div
     id="editListingSubtitle"
@@ -3756,9 +3249,8 @@ Save Changes
 <div class="modal">
 
 <div class="modal-title">
-🚩 Report Listing
+Report Listing
 </div>
-
 
 <div
     id="reportModalSubtitle"
@@ -3858,9 +3350,8 @@ Submit Report
 <div class="modal">
 
 <div class="modal-title">
-💬 Make Offer
+Make Offer
 </div>
-
 
 <div
     id="offerModalSubtitle"
@@ -3946,7 +3437,6 @@ Send Offer
 Counter Offer
 </div>
 
-
 <div
     id="counterModalSubtitle"
     class="modal-subtitle"
@@ -3995,77 +3485,55 @@ Send Counter
 
 <script>
 
-/* =====================================================
+
+/* =========================================================
    CONFIG
-===================================================== */
+   ========================================================= */
 
 const API_URL =
     "https://handle-market.onrender.com";
 
-
 const tg =
     window.Telegram?.WebApp;
 
+let authenticatedUser = null;
 
-let authenticatedUser =
-    null;
+let listingPriceStars = 1;
 
+let contactUnlockPriceStars = 1;
 
-let listingPriceStars =
-    1;
+let wantedPriceStars = 1;
 
+let marketplaceListings = [];
 
-let contactUnlockPriceStars =
-    1;
-
-
-let wantedPriceStars =
-    1;
-
-
-let marketplaceListings =
-    [];
-
-
-let myListingsData =
-    [];
-
+let myListingsData = [];
 
 let watchedListingIds =
     new Set();
 
-
 let reportedListingIds =
     new Set();
-
 
 let currentEditListingId =
     null;
 
-
 let currentReportListingId =
     null;
-
 
 let currentReportUsername =
     "";
 
-
 let currentOfferListingId =
     null;
-
 
 let currentOfferListingName =
     "";
 
-
 let currentCounterOfferId =
     null;
 
-
 let currentCounterUsername =
     "";
-
 
 let mySellerProfile =
     null;
@@ -4079,9 +3547,9 @@ if (tg) {
 }
 
 
-/* =====================================================
+/* =========================================================
    API
-===================================================== */
+   ========================================================= */
 
 async function api(
     path,
@@ -4092,8 +3560,7 @@ async function api(
         await fetch(
             API_URL + path,
             {
-                method:
-                    "POST",
+                method: "POST",
 
                 headers: {
                     "Content-Type":
@@ -4101,9 +3568,7 @@ async function api(
                 },
 
                 body:
-                    JSON.stringify(
-                        body
-                    )
+                    JSON.stringify(body)
             }
         );
 
@@ -4135,9 +3600,9 @@ async function api(
 }
 
 
-/* =====================================================
+/* =========================================================
    AUTH
-===================================================== */
+   ========================================================= */
 
 async function authenticate() {
 
@@ -4241,9 +3706,7 @@ async function authenticate() {
 
     } catch (error) {
 
-        console.error(
-            error
-        );
+        console.error(error);
 
 
         status.textContent =
@@ -4255,6 +3718,10 @@ async function authenticate() {
     }
 }
 
+
+/* =========================================================
+   MAIN PROFILE
+   ========================================================= */
 
 function renderMainProfile(
     user
@@ -4275,17 +3742,38 @@ function renderMainProfile(
             : "Private";
 
 
-    const adminButton =
+    const adminTile =
         user.is_admin
 
             ? `
 
                 <button
-                    class="admin-button"
+                    class="profile-tile profile-tile-dark"
                     onclick="openAdmin()"
                 >
 
-                    🛡 Open Admin Panel
+                    <div class="profile-tile-icon">
+
+                        <svg viewBox="0 0 24 24">
+
+                            <path d="M12 3 19 6v5c0 4.5-2.8 8-7 10-4.2-2-7-5.5-7-10V6z"></path>
+
+                        </svg>
+
+                    </div>
+
+
+                    <div>
+
+                        <div class="profile-tile-title">
+                            Admin Panel
+                        </div>
+
+                        <div class="profile-tile-subtitle">
+                            Moderation tools
+                        </div>
+
+                    </div>
 
                 </button>
 
@@ -4300,87 +3788,183 @@ function renderMainProfile(
         )
         .innerHTML = `
 
-            <div class="profile-avatar">
-                👤
-            </div>
+            <div class="profile-card">
 
 
-            <div class="profile-name">
+                <div class="profile-top">
 
-                ${escapeHtml(
-                    fullName ||
-                    "Telegram User"
-                )}
+                    <div class="profile-avatar">
 
-            </div>
+                        <svg viewBox="0 0 24 24">
+
+                            <circle cx="12" cy="8" r="3.5"></circle>
+
+                            <path d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6"></path>
+
+                        </svg>
+
+                    </div>
 
 
-            <div class="profile-username">
+                    <div>
 
-                ${
-                    user.username
+                        <div class="profile-name">
 
-                        ? "@" +
-                            escapeHtml(
+                            ${escapeHtml(
+                                fullName ||
+                                "Telegram User"
+                            )}
+
+                        </div>
+
+
+                        <div class="profile-username">
+
+                            ${
                                 user.username
-                            )
 
-                        : "No public Telegram username"
-                }
+                                    ? "@" +
+                                        escapeHtml(
+                                            user.username
+                                        )
+
+                                    : "No public Telegram username"
+                            }
+
+                        </div>
+
+
+                        <div class="profile-auth">
+
+                            ✓ Telegram account authenticated
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="profile-menu">
+
+
+                    <button
+                        class="profile-tile profile-tile-purple"
+                        onclick="openMySellerProfile()"
+                    >
+
+                        <div class="profile-tile-icon">
+
+                            <svg viewBox="0 0 24 24">
+
+                                <circle cx="12" cy="8" r="3"></circle>
+
+                                <path d="M6 20c.7-3.8 2.8-5.7 6-5.7s5.3 1.9 6 5.7"></path>
+
+                            </svg>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="profile-tile-title">
+                                Seller Profile
+                            </div>
+
+                            <div class="profile-tile-subtitle">
+
+                                ${escapeHtml(
+                                    visibility
+                                )}
+
+                            </div>
+
+                        </div>
+
+                    </button>
+
+
+                    <button
+                        class="profile-tile profile-tile-blue"
+                        onclick="openOffers()"
+                    >
+
+                        <div class="profile-tile-icon">
+
+                            <svg viewBox="0 0 24 24">
+
+                                <path d="M5 5h14v10H9l-4 4z"></path>
+
+                            </svg>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="profile-tile-title">
+                                My Offers
+                            </div>
+
+                            <div class="profile-tile-subtitle">
+                                Negotiations
+                            </div>
+
+                        </div>
+
+                    </button>
+
+
+                    <button
+                        class="profile-tile profile-tile-yellow"
+                        onclick="openWatchlist()"
+                    >
+
+                        <div class="profile-tile-icon">
+
+                            <svg viewBox="0 0 24 24">
+
+                                <path d="m12 3 2.6 5.3 5.9.9-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.9z"></path>
+
+                            </svg>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="profile-tile-title">
+                                Watchlist
+                            </div>
+
+                            <div class="profile-tile-subtitle">
+
+                                <span id="watchlistCount">${watchedListingIds.size}</span>
+                                saved
+
+                            </div>
+
+                        </div>
+
+                    </button>
+
+
+                    ${adminTile}
+
+
+                </div>
+
 
             </div>
-
-
-            <div class="verified-box">
-
-                ✓ Telegram account authenticated
-
-            </div>
-
-
-            <button
-                class="seller-profile-action"
-                onclick="openMySellerProfile()"
-            >
-
-                👤 My Seller Profile ·
-                ${escapeHtml(
-                    visibility
-                )}
-
-            </button>
-
-
-            <button
-                class="profile-action"
-                onclick="openOffers()"
-            >
-
-                💬 My Offers
-
-            </button>
-
-
-            <button
-                class="watchlist-profile-button"
-                onclick="openWatchlist()"
-            >
-
-                ⭐ My Watchlist
-                (<span id="watchlistCount">${watchedListingIds.size}</span>)
-
-            </button>
-
-
-            ${adminButton}
 
         `;
 }
 
 
-/* =====================================================
+/* =========================================================
    SELLER PROFILE
-===================================================== */
+   ========================================================= */
 
 async function openSellerProfile(
     profileId
@@ -4531,9 +4115,7 @@ async function openMySellerProfile() {
         container.innerHTML = `
 
             <div class="empty">
-
                 Failed to load your seller profile.
-
             </div>
 
         `;
@@ -4583,8 +4165,7 @@ function renderSellerProfile(
             `;
 
 
-    let ownControls =
-        "";
+    let ownControls = "";
 
 
     if (
@@ -4606,7 +4187,7 @@ function renderSellerProfile(
 
                         ? "🌐 Public profile — buyers can view your seller profile."
 
-                        : "🔒 Private profile — your profile is hidden from Marketplace."
+                        : "🔒 Private profile — your seller profile is hidden from Marketplace."
                 }
 
             </div>
@@ -4617,7 +4198,7 @@ function renderSellerProfile(
                 onclick="openSellerEditModal()"
             >
 
-                ✏️ Edit Seller Profile
+                Edit Seller Profile
 
             </button>
 
@@ -4629,54 +4210,76 @@ function renderSellerProfile(
 
         <div class="seller-header-card">
 
-            <div class="seller-avatar">
-                👤
+
+            <div class="seller-top">
+
+
+                <div class="seller-avatar">
+
+                    <svg viewBox="0 0 24 24">
+
+                        <circle cx="12" cy="8" r="3.5"></circle>
+
+                        <path d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6"></path>
+
+                    </svg>
+
+                </div>
+
+
+                <div>
+
+
+                    <div class="seller-name">
+
+                        ${escapeHtml(
+                            profile.display_name ||
+                            "Seller"
+                        )}
+
+                    </div>
+
+
+                    <div class="seller-member">
+
+                        Member since
+                        ${escapeHtml(
+                            formatMemberDate(
+                                profile.seller_since
+                            )
+                        )}
+
+                    </div>
+
+
+                    ${
+                        profile.telegram_authenticated
+
+                            ? `
+
+                                <div class="seller-auth">
+
+                                    ✓ Telegram authenticated
+
+                                </div>
+
+                            `
+
+                            : ""
+                    }
+
+
+                </div>
+
+
             </div>
-
-
-            <div class="seller-name">
-
-                ${escapeHtml(
-                    profile.display_name ||
-                    "Seller"
-                )}
-
-            </div>
-
-
-            <div class="seller-member">
-
-                Member since
-                ${escapeHtml(
-                    formatMemberDate(
-                        profile.seller_since
-                    )
-                )}
-
-            </div>
-
-
-            ${
-                profile.telegram_authenticated
-
-                    ? `
-
-                        <div class="seller-auth">
-
-                            ✓ Telegram authenticated
-
-                        </div>
-
-                    `
-
-                    : ""
-            }
 
 
             ${bioHtml}
 
 
             <div class="seller-stats">
+
 
                 <div class="seller-stat">
 
@@ -4743,18 +4346,18 @@ function renderSellerProfile(
 
                 </div>
 
+
             </div>
 
 
             ${ownControls}
 
+
         </div>
 
 
         <div class="seller-listings-title">
-
             Active Listings
-
         </div>
 
 
@@ -4775,9 +4378,7 @@ function renderSellerProfile(
                     : `
 
                         <div class="empty">
-
                             No active listings.
-
                         </div>
 
                     `
@@ -4809,173 +4410,10 @@ function renderSellerProfileListing(
     listing
 ) {
 
-    const watched =
-        watchedListingIds.has(
-            String(
-                listing.id
-            )
-        );
-
-
-    const reported =
-        reportedListingIds.has(
-            String(
-                listing.id
-            )
-        );
-
-
-    return `
-
-        <div
-            class="card listing-card"
-            data-listing-card-id="${escapeHtml(
-                listing.id
-            )}"
-        >
-
-            <div class="card-glow"></div>
-
-
-            <div class="username">
-
-                @${escapeHtml(
-                    listing.whatsapp_username
-                )}
-
-            </div>
-
-
-            <div class="price">
-
-                $${formatPrice(
-                    listing.asking_price
-                )}
-
-            </div>
-
-
-            <div class="meta">
-
-                ${escapeHtml(
-                    listing.category ||
-                    "Other"
-                )}
-
-            </div>
-
-
-            ${
-                listing.description
-
-                    ? `
-
-                        <div class="description">
-
-                            ${escapeHtml(
-                                listing.description
-                            )}
-
-                        </div>
-
-                    `
-
-                    : ""
-            }
-
-
-            <div class="buttons">
-
-                <button
-                    class="primary offer-button"
-                    onclick="
-                        openOfferModal(
-                            '${escapeJs(
-                                listing.id
-                            )}',
-                            '${escapeJs(
-                                listing.whatsapp_username
-                            )}',
-                            '${escapeJs(
-                                listing.asking_price
-                            )}'
-                        )
-                    "
-                >
-
-                    Make Offer
-
-                </button>
-
-
-                <button
-                    class="watch-button ${watched ? "watching" : ""}"
-                    data-watch-listing-id="${escapeHtml(
-                        listing.id
-                    )}"
-                    onclick="
-                        toggleWatch(
-                            '${escapeJs(
-                                listing.id
-                            )}'
-                        )
-                    "
-                >
-
-                    ${
-                        watched
-                            ? "★ Watching"
-                            : "☆ Watch"
-                    }
-
-                </button>
-
-
-                <button
-                    class="report-button ${reported ? "reported" : ""}"
-                    data-report-listing-id="${escapeHtml(
-                        listing.id
-                    )}"
-                    onclick="
-                        openReportModal(
-                            '${escapeJs(
-                                listing.id
-                            )}',
-                            '${escapeJs(
-                                listing.whatsapp_username
-                            )}'
-                        )
-                    "
-                    ${reported ? "disabled" : ""}
-                >
-
-                    ${
-                        reported
-                            ? "✓ Reported"
-                            : "🚩 Report"
-                    }
-
-                </button>
-
-            </div>
-
-
-            <div
-                class="contact-area"
-                data-contact-listing-id="${escapeHtml(
-                    listing.id
-                )}"
-            >
-
-                ${getLockedContactHtml(
-                    listing.id
-                )}
-
-            </div>
-
-        </div>
-
-    `;
+    return renderListingCard(
+        listing,
+        false
+    );
 }
 
 
@@ -5025,9 +4463,7 @@ async function saveSellerProfile() {
         );
 
 
-    button.disabled =
-        true;
-
+    button.disabled = true;
 
     button.textContent =
         "Saving...";
@@ -5119,9 +4555,7 @@ async function saveSellerProfile() {
 
     } finally {
 
-        button.disabled =
-            false;
-
+        button.disabled = false;
 
         button.textContent =
             "Save Profile";
@@ -5196,9 +4630,9 @@ function readableSellerProfileError(
 }
 
 
-/* =====================================================
+/* =========================================================
    REPORT STATE
-===================================================== */
+   ========================================================= */
 
 async function loadMyReports() {
 
@@ -5228,9 +4662,7 @@ async function loadMyReports() {
                     data.listing_ids ||
                     []
                 )
-                    .map(
-                        String
-                    )
+                    .map(String)
             );
 
 
@@ -5260,9 +4692,7 @@ function getReportButtons(
 
                 button.dataset
                     .reportListingId ===
-                String(
-                    listingId
-                )
+                String(listingId)
         );
 }
 
@@ -5273,9 +4703,7 @@ function updateReportButton(
 
     const reported =
         reportedListingIds.has(
-            String(
-                listingId
-            )
+            String(listingId)
         );
 
 
@@ -5290,12 +4718,12 @@ function updateReportButton(
                     "true"
                 ) {
 
-                    button.disabled =
-                        true;
+                    button.disabled = true;
 
-
-                    button.textContent =
-                        "👤 Yours";
+                    button.innerHTML =
+                        reportButtonHtml(
+                            "owner"
+                        );
 
 
                     return;
@@ -5312,10 +4740,12 @@ function updateReportButton(
                 );
 
 
-                button.textContent =
-                    reported
-                        ? "✓ Reported"
-                        : "🚩 Report";
+                button.innerHTML =
+                    reportButtonHtml(
+                        reported
+                            ? "reported"
+                            : "report"
+                    );
             }
         );
 }
@@ -5339,9 +4769,9 @@ function updateAllReportButtons() {
 }
 
 
-/* =====================================================
+/* =========================================================
    REPORT
-===================================================== */
+   ========================================================= */
 
 function openReportModal(
     listingId,
@@ -5350,9 +4780,7 @@ function openReportModal(
 
     if (
         reportedListingIds.has(
-            String(
-                listingId
-            )
+            String(listingId)
         )
     ) {
 
@@ -5414,9 +4842,7 @@ async function submitReport() {
         );
 
 
-    button.disabled =
-        true;
-
+    button.disabled = true;
 
     button.textContent =
         "Submitting...";
@@ -5482,9 +4908,7 @@ async function submitReport() {
 
     } finally {
 
-        button.disabled =
-            false;
-
+        button.disabled = false;
 
         button.textContent =
             "Submit Report";
@@ -5559,698 +4983,9 @@ function readableReportError(
 }
 
 
-/* =====================================================
-   MY LISTINGS
-===================================================== */
-
-async function loadMyListings() {
-
-    if (
-        !tg?.initData
-    ) {
-
-        return;
-    }
-
-
-    const container =
-        document.getElementById(
-            "myListings"
-        );
-
-
-    try {
-
-        const data =
-            await api(
-                "/my-listings",
-                {
-                    initData:
-                        tg.initData
-                }
-            );
-
-
-        myListingsData =
-            data.listings ||
-            [];
-
-
-        if (
-            !myListingsData.length
-        ) {
-
-            container.innerHTML = `
-
-                <div class="empty">
-
-                    You have no listings yet.
-
-                </div>
-
-            `;
-
-
-            return;
-        }
-
-
-        container.innerHTML =
-            myListingsData
-                .map(
-                    renderMyListing
-                )
-                .join("");
-
-    } catch {
-
-        container.innerHTML = `
-
-            <div class="empty">
-
-                Failed to load your listings.
-
-            </div>
-
-        `;
-    }
-}
-
-
-function renderMyListing(
-    listing
-) {
-
-    let displayStatus =
-        String(
-            listing.status ||
-            ""
-        ).toUpperCase();
-
-
-    let badgeClass =
-        "badge-pending";
-
-
-    if (
-        listing.is_frozen
-    ) {
-
-        displayStatus =
-            "🧊 FROZEN";
-
-
-        badgeClass =
-            "badge-frozen";
-
-    } else if (
-        listing.status ===
-        "active"
-    ) {
-
-        if (
-            listing.is_paused
-        ) {
-
-            displayStatus =
-                "PAUSED";
-
-
-            badgeClass =
-                "badge-paused";
-
-        } else {
-
-            displayStatus =
-                "ACTIVE";
-
-
-            badgeClass =
-                "badge-active";
-        }
-
-    } else if (
-        listing.status ===
-        "rejected"
-    ) {
-
-        badgeClass =
-            "badge-rejected";
-
-    } else if (
-        listing.status ===
-        "removed"
-    ) {
-
-        badgeClass =
-            "badge-removed";
-    }
-
-
-    let management =
-        "";
-
-
-    if (
-        listing.is_frozen
-    ) {
-
-        management = `
-
-            <div class="frozen-note">
-
-                <b>
-                    🧊 Frozen by Handle Market moderation
-                </b>
-
-                <br><br>
-
-                ${
-                    listing.frozen_reason
-                        ? escapeHtml(
-                            listing.frozen_reason
-                        )
-                        : "This listing is being reviewed."
-                }
-
-            </div>
-
-        `;
-
-    } else if (
-        listing.status ===
-        "active"
-    ) {
-
-        management = `
-
-            ${
-                listing.is_paused
-
-                    ? `
-
-                        <div class="paused-note">
-
-                            ⏸ This listing is currently hidden from Marketplace.
-
-                        </div>
-
-                    `
-
-                    : ""
-            }
-
-
-            <div class="manage-buttons">
-
-                <button
-                    class="edit-listing-button"
-                    onclick="
-                        openEditListingModal(
-                            '${escapeJs(
-                                listing.id
-                            )}'
-                        )
-                    "
-                >
-
-                    ✏️ Edit
-
-                </button>
-
-
-                ${
-                    listing.is_paused
-
-                        ? `
-
-                            <button
-                                class="resume-listing-button"
-                                onclick="
-                                    changeListingPause(
-                                        '${listing.id}',
-                                        'resume'
-                                    )
-                                "
-                            >
-
-                                ▶ Resume
-
-                            </button>
-
-                        `
-
-                        : `
-
-                            <button
-                                class="pause-listing-button"
-                                onclick="
-                                    changeListingPause(
-                                        '${listing.id}',
-                                        'pause'
-                                    )
-                                "
-                            >
-
-                                ⏸ Pause
-
-                            </button>
-
-                        `
-                }
-
-
-                <button
-                    class="remove-listing-button"
-                    onclick="
-                        removeListing(
-                            '${listing.id}',
-                            '${escapeJs(
-                                listing.whatsapp_username
-                            )}'
-                        )
-                    "
-                >
-
-                    🗑 Remove
-
-                </button>
-
-            </div>
-
-        `;
-
-    } else if (
-        listing.status ===
-        "pending" ||
-        listing.status ===
-        "rejected"
-    ) {
-
-        management = `
-
-            <div class="manage-buttons">
-
-                <button
-                    class="remove-listing-button"
-                    onclick="
-                        removeListing(
-                            '${listing.id}',
-                            '${escapeJs(
-                                listing.whatsapp_username
-                            )}'
-                        )
-                    "
-                >
-
-                    🗑 Remove
-
-                </button>
-
-            </div>
-
-        `;
-
-    } else if (
-        listing.status ===
-        "removed"
-    ) {
-
-        management = `
-
-            <div class="removed-note">
-
-                This listing was removed.
-
-            </div>
-
-        `;
-    }
-
-
-    return `
-
-        <div class="card">
-
-            <div class="card-glow"></div>
-
-
-            <div class="username">
-
-                @${escapeHtml(
-                    listing.whatsapp_username
-                )}
-
-            </div>
-
-
-            <div
-                class="badge ${badgeClass}"
-            >
-
-                ${escapeHtml(
-                    displayStatus
-                )}
-
-            </div>
-
-
-            <div class="price">
-
-                $${formatPrice(
-                    listing.asking_price
-                )}
-
-            </div>
-
-
-            <div class="meta">
-
-                ${escapeHtml(
-                    listing.category ||
-                    "Other"
-                )}
-
-            </div>
-
-
-            ${
-                listing.description
-
-                    ? `
-
-                        <div class="description">
-
-                            ${escapeHtml(
-                                listing.description
-                            )}
-
-                        </div>
-
-                    `
-
-                    : ""
-            }
-
-
-            ${management}
-
-        </div>
-
-    `;
-}
-
-
-function openEditListingModal(
-    listingId
-) {
-
-    const listing =
-        myListingsData.find(
-            item =>
-                String(
-                    item.id
-                ) ===
-                String(
-                    listingId
-                )
-        );
-
-
-    if (!listing) {
-        return;
-    }
-
-
-    currentEditListingId =
-        listing.id;
-
-
-    document.getElementById(
-        "editListingSubtitle"
-    ).textContent =
-        `@${listing.whatsapp_username}`;
-
-
-    document.getElementById(
-        "editListingPrice"
-    ).value =
-        listing.asking_price;
-
-
-    document.getElementById(
-        "editListingDescription"
-    ).value =
-        listing.description ||
-        "";
-
-
-    document.getElementById(
-        "editListingMessage"
-    ).className =
-        "message";
-
-
-    showModal(
-        "editListingModal"
-    );
-}
-
-
-async function saveListingEdit() {
-
-    const button =
-        document.getElementById(
-            "saveListingEditButton"
-        );
-
-
-    button.disabled =
-        true;
-
-
-    button.textContent =
-        "Saving...";
-
-
-    try {
-
-        await api(
-            "/listing/manage/edit",
-            {
-                initData:
-                    tg.initData,
-
-                listing_id:
-                    currentEditListingId,
-
-                asking_price:
-                    document.getElementById(
-                        "editListingPrice"
-                    ).value,
-
-                description:
-                    document.getElementById(
-                        "editListingDescription"
-                    ).value.trim()
-            }
-        );
-
-
-        closeModal(
-            "editListingModal"
-        );
-
-
-        await refreshMarketplaceAndListings();
-
-
-        tg?.showAlert(
-            "Listing updated ✓"
-        );
-
-    } catch (error) {
-
-        const box =
-            document.getElementById(
-                "editListingMessage"
-            );
-
-
-        box.className =
-            "message error";
-
-
-        box.textContent =
-            readableListingManageError(
-                error.message
-            );
-
-    } finally {
-
-        button.disabled =
-            false;
-
-
-        button.textContent =
-            "Save Changes";
-    }
-}
-
-
-async function changeListingPause(
-    listingId,
-    action
-) {
-
-    const confirmed =
-        await askConfirm(
-
-            action ===
-            "pause"
-
-                ? "Pause this listing?"
-
-                : "Resume this listing?"
-        );
-
-
-    if (!confirmed) {
-        return;
-    }
-
-
-    try {
-
-        await api(
-            "/listing/manage/pause",
-            {
-                initData:
-                    tg.initData,
-
-                listing_id:
-                    listingId,
-
-                action
-            }
-        );
-
-
-        await refreshMarketplaceAndListings();
-
-    } catch (error) {
-
-        tg?.showAlert(
-            readableListingManageError(
-                error.message
-            )
-        );
-    }
-}
-
-
-async function removeListing(
-    listingId,
-    username
-) {
-
-    const confirmed =
-        await askConfirm(
-            `Remove @${username}?`
-        );
-
-
-    if (!confirmed) {
-        return;
-    }
-
-
-    try {
-
-        await api(
-            "/listing/manage/remove",
-            {
-                initData:
-                    tg.initData,
-
-                listing_id:
-                    listingId
-            }
-        );
-
-
-        await Promise.all(
-            [
-                refreshMarketplaceAndListings(),
-                loadOfferCenter()
-            ]
-        );
-
-
-        tg?.showAlert(
-            `@${username} removed ✓`
-        );
-
-    } catch (error) {
-
-        tg?.showAlert(
-            readableListingManageError(
-                error.message
-            )
-        );
-    }
-}
-
-
-function readableListingManageError(
-    error
-) {
-
-    const errors = {
-
-        listing_frozen:
-            "This listing is frozen by moderation.",
-
-        invalid_price:
-            "Enter a valid price.",
-
-        listing_has_agreement:
-            "This listing has an accepted agreement.",
-
-        listing_not_editable:
-            "This listing cannot be edited.",
-
-        listing_not_manageable:
-            "This listing cannot be paused or resumed.",
-
-        listing_remove_failed:
-            "Could not remove listing."
-    };
-
-
-    return errors[
-        error
-    ] ||
-    error ||
-    "Something went wrong.";
-}
-
-
-async function refreshMarketplaceAndListings() {
-
-    await Promise.all(
-        [
-            loadMyListings(),
-            loadMarketplace(),
-            loadWatchlistState()
-        ]
-    );
-}
-
-
-/* =====================================================
+/* =========================================================
    MARKETPLACE
-===================================================== */
+   ========================================================= */
 
 async function loadMarketplace() {
 
@@ -6337,8 +5072,19 @@ function renderMarketplace(
             `<div class="empty">No usernames found.</div>`;
 
 
-        home.innerHTML =
-            `<div class="empty">No usernames found.</div>`;
+        /*
+        Do not replace Home with empty search results
+        when Marketplace search is active.
+        */
+
+        if (
+            listings ===
+            marketplaceListings
+        ) {
+
+            home.innerHTML =
+                `<div class="empty">No usernames found.</div>`;
+        }
 
 
         return;
@@ -6356,29 +5102,39 @@ function renderMarketplace(
             .join("");
 
 
-    const featured =
-        listings.filter(
-            item =>
-                item.is_featured
-        );
+    if (
+        listings ===
+        marketplaceListings
+    ) {
+
+        const featured =
+            marketplaceListings.filter(
+                item =>
+                    item.is_featured
+            );
 
 
-    home.innerHTML =
-        (
+        const homeItems =
             featured.length
+
                 ? featured
-                : listings.slice(
+
+                : marketplaceListings.slice(
                     0,
                     5
+                );
+
+
+        home.innerHTML =
+            homeItems
+                .map(
+                    listing =>
+                        renderPublicListing(
+                            listing
+                        )
                 )
-        )
-            .map(
-                listing =>
-                    renderPublicListing(
-                        listing
-                    )
-            )
-            .join("");
+                .join("");
+    }
 
 
     updateAllWatchButtons();
@@ -6389,6 +5145,18 @@ function renderMarketplace(
 
 function renderPublicListing(
     listing
+) {
+
+    return renderListingCard(
+        listing,
+        true
+    );
+}
+
+
+function renderListingCard(
+    listing,
+    showSeller
 ) {
 
     const watched =
@@ -6408,12 +5176,13 @@ function renderPublicListing(
 
 
     const sellerButton =
+        showSeller &&
         listing.seller_profile_id
 
             ? `
 
                 <button
-                    class="seller-profile-button"
+                    class="seller-link"
                     onclick="
                         openSellerProfile(
                             '${escapeJs(
@@ -6423,7 +5192,15 @@ function renderPublicListing(
                     "
                 >
 
-                    👤 View Seller Profile
+                    <svg viewBox="0 0 24 24">
+
+                        <circle cx="12" cy="8" r="3"></circle>
+
+                        <path d="M6 20c.7-3.8 2.8-5.7 6-5.7s5.3 1.9 6 5.7"></path>
+
+                    </svg>
+
+                    Seller
 
                 </button>
 
@@ -6441,33 +5218,59 @@ function renderPublicListing(
             )}"
         >
 
-            <div class="card-glow"></div>
+
+            <div class="listing-header">
 
 
-            <div class="username">
-
-                @${escapeHtml(
-                    listing.whatsapp_username
-                )}
-
-            </div>
+                <div class="listing-main">
 
 
-            <div class="price">
+                    <div class="username">
 
-                $${formatPrice(
-                    listing.asking_price
-                )}
+                        @${escapeHtml(
+                            listing.whatsapp_username
+                        )}
 
-            </div>
+                    </div>
 
 
-            <div class="meta">
+                    <div class="listing-info-row">
 
-                ${escapeHtml(
-                    listing.category ||
-                    "Other"
-                )}
+                        <span class="category-badge">
+
+                            ${escapeHtml(
+                                listing.category ||
+                                "Other"
+                            )}
+
+                        </span>
+
+
+                        ${sellerButton}
+
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="listing-price-box">
+
+                    <div class="listing-price">
+
+                        $${formatPrice(
+                            listing.asking_price
+                        )}
+
+                    </div>
+
+                    <div class="listing-price-label">
+                        Asking
+                    </div>
+
+                </div>
+
 
             </div>
 
@@ -6491,20 +5294,22 @@ function renderPublicListing(
             }
 
 
-            ${sellerButton}
+            <div class="listing-actions">
 
-
-            <div class="buttons">
 
                 <button
                     class="primary offer-button"
                     onclick="
                         openOfferModal(
-                            '${listing.id}',
+                            '${escapeJs(
+                                listing.id
+                            )}',
                             '${escapeJs(
                                 listing.whatsapp_username
                             )}',
-                            '${listing.asking_price}'
+                            '${escapeJs(
+                                listing.asking_price
+                            )}'
                         )
                     "
                 >
@@ -6515,34 +5320,36 @@ function renderPublicListing(
 
 
                 <button
-                    class="watch-button ${watched ? "watching" : ""}"
+                    class="action-icon-button watch-button ${watched ? "watching" : ""}"
                     data-watch-listing-id="${escapeHtml(
                         listing.id
                     )}"
                     onclick="
                         toggleWatch(
-                            '${listing.id}'
+                            '${escapeJs(
+                                listing.id
+                            )}'
                         )
                     "
                 >
 
-                    ${
+                    ${watchButtonHtml(
                         watched
-                            ? "★ Watching"
-                            : "☆ Watch"
-                    }
+                    )}
 
                 </button>
 
 
                 <button
-                    class="report-button ${reported ? "reported" : ""}"
+                    class="action-icon-button report-button ${reported ? "reported" : ""}"
                     data-report-listing-id="${escapeHtml(
                         listing.id
                     )}"
                     onclick="
                         openReportModal(
-                            '${listing.id}',
+                            '${escapeJs(
+                                listing.id
+                            )}',
                             '${escapeJs(
                                 listing.whatsapp_username
                             )}'
@@ -6551,13 +5358,14 @@ function renderPublicListing(
                     ${reported ? "disabled" : ""}
                 >
 
-                    ${
+                    ${reportButtonHtml(
                         reported
-                            ? "✓ Reported"
-                            : "🚩 Report"
-                    }
+                            ? "reported"
+                            : "report"
+                    )}
 
                 </button>
+
 
             </div>
 
@@ -6575,15 +5383,16 @@ function renderPublicListing(
 
             </div>
 
+
         </div>
 
     `;
 }
 
 
-/* =====================================================
+/* =========================================================
    WATCHLIST
-===================================================== */
+   ========================================================= */
 
 async function loadWatchlistState() {
 
@@ -6613,9 +5422,7 @@ async function loadWatchlistState() {
                     data.listing_ids ||
                     []
                 )
-                    .map(
-                        String
-                    )
+                    .map(String)
             );
 
 
@@ -6651,17 +5458,13 @@ async function toggleWatch(
         ) {
 
             watchedListingIds.add(
-                String(
-                    listingId
-                )
+                String(listingId)
             );
 
         } else {
 
             watchedListingIds.delete(
-                String(
-                    listingId
-                )
+                String(listingId)
             );
         }
 
@@ -6688,9 +5491,7 @@ function updateWatchButtons(
 
     const watched =
         watchedListingIds.has(
-            String(
-                listingId
-            )
+            String(listingId)
         );
 
 
@@ -6704,15 +5505,13 @@ function updateWatchButtons(
                 if (
                     button.dataset
                         .watchListingId ===
-                    String(
-                        listingId
-                    )
+                    String(listingId)
                 ) {
 
-                    button.textContent =
-                        watched
-                            ? "★ Watching"
-                            : "☆ Watch";
+                    button.innerHTML =
+                        watchButtonHtml(
+                            watched
+                        );
 
 
                     button.classList.toggle(
@@ -6803,9 +5602,7 @@ async function loadWatchlistPage() {
                     data.listing_ids ||
                     []
                 )
-                    .map(
-                        String
-                    )
+                    .map(String)
             );
 
 
@@ -6824,9 +5621,7 @@ async function loadWatchlistPage() {
             container.innerHTML = `
 
                 <div class="empty">
-
                     Your Watchlist is empty.
-
                 </div>
 
             `;
@@ -6864,9 +5659,9 @@ async function loadWatchlistPage() {
 }
 
 
-/* =====================================================
+/* =========================================================
    CONTACT
-===================================================== */
+   ========================================================= */
 
 async function checkUnlockedContacts(
     listings
@@ -6874,9 +5669,7 @@ async function checkUnlockedContacts(
 
     if (
         !authenticatedUser ||
-        !Array.isArray(
-            listings
-        )
+        !Array.isArray(listings)
     ) {
 
         return;
@@ -7090,9 +5883,7 @@ function showSellerContact(
                 area =>
                     area.dataset
                         .contactListingId ===
-                    String(
-                        listingId
-                    )
+                    String(listingId)
             );
 
 
@@ -7108,11 +5899,8 @@ function showSellerContact(
             <div class="owner-contact-box">
 
                 <div class="owner-title">
-
                     👤 Your Listing
-
                 </div>
-
 
                 <div class="contact-value">
 
@@ -7138,9 +5926,7 @@ function showSellerContact(
             <div class="contact-box">
 
                 <div class="contact-title">
-
                     🔓 Seller Contact Unlocked
-
                 </div>
 
 
@@ -7165,6 +5951,7 @@ function showSellerContact(
 
 
                 <div class="contact-actions">
+
 
                     ${
                         contact.type ===
@@ -7208,7 +5995,9 @@ function showSellerContact(
 
                     </button>
 
+
                 </div>
+
 
             </div>
 
@@ -7238,9 +6027,7 @@ function markOwnListing(
                 if (
                     card.dataset
                         .listingCardId !==
-                    String(
-                        listingId
-                    )
+                    String(listingId)
                 ) {
 
                     return;
@@ -7257,9 +6044,7 @@ function markOwnListing(
                     offer
                 ) {
 
-                    offer.disabled =
-                        true;
-
+                    offer.disabled = true;
 
                     offer.textContent =
                         "Your Listing";
@@ -7280,12 +6065,12 @@ function markOwnListing(
                         "true";
 
 
-                    report.disabled =
-                        true;
+                    report.disabled = true;
 
-
-                    report.textContent =
-                        "👤 Yours";
+                    report.innerHTML =
+                        reportButtonHtml(
+                            "owner"
+                        );
                 }
             }
         );
@@ -7299,16 +6084,68 @@ function getLockedContactHtml(
     return `
 
         <button
-            class="unlock-button"
+            class="contact-lock-card"
             onclick="
                 unlockSellerContact(
-                    '${listingId}'
+                    '${escapeJs(
+                        listingId
+                    )}'
                 )
             "
         >
 
-            🔒 Unlock Seller Contact ·
-            ${contactUnlockPriceStars} ⭐
+
+            <div class="contact-lock-left">
+
+
+                <div class="contact-lock-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+
+                        <rect
+                            x="5"
+                            y="10"
+                            width="14"
+                            height="10"
+                            rx="2"
+                        ></rect>
+
+                        <path
+                            d="M8 10V7a4 4 0 0 1 8 0v3"
+                        ></path>
+
+                    </svg>
+
+                </div>
+
+
+                <div>
+
+                    <div class="contact-lock-title">
+                        Unlock Seller Contact
+                    </div>
+
+                    <div class="contact-lock-subtitle">
+                        Direct seller contact
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <div class="contact-lock-price">
+
+                ${contactUnlockPriceStars} ⭐
+
+            </div>
+
 
         </button>
 
@@ -7316,9 +6153,707 @@ function getLockedContactHtml(
 }
 
 
-/* =====================================================
+/* =========================================================
+   MY LISTINGS
+   ========================================================= */
+
+async function loadMyListings() {
+
+    if (
+        !tg?.initData
+    ) {
+
+        return;
+    }
+
+
+    const container =
+        document.getElementById(
+            "myListings"
+        );
+
+
+    try {
+
+        const data =
+            await api(
+                "/my-listings",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        myListingsData =
+            data.listings ||
+            [];
+
+
+        if (
+            !myListingsData.length
+        ) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+                    You have no listings yet.
+                </div>
+
+            `;
+
+
+            return;
+        }
+
+
+        container.innerHTML =
+            myListingsData
+                .map(
+                    renderMyListing
+                )
+                .join("");
+
+    } catch {
+
+        container.innerHTML = `
+
+            <div class="empty">
+                Failed to load your listings.
+            </div>
+
+        `;
+    }
+}
+
+
+function renderMyListing(
+    listing
+) {
+
+    let displayStatus =
+        String(
+            listing.status ||
+            ""
+        ).toUpperCase();
+
+
+    let badgeClass =
+        "badge-pending";
+
+
+    if (
+        listing.is_frozen
+    ) {
+
+        displayStatus =
+            "🧊 FROZEN";
+
+
+        badgeClass =
+            "badge-frozen";
+
+    } else if (
+        listing.status ===
+        "active"
+    ) {
+
+        if (
+            listing.is_paused
+        ) {
+
+            displayStatus =
+                "PAUSED";
+
+
+            badgeClass =
+                "badge-paused";
+
+        } else {
+
+            displayStatus =
+                "ACTIVE";
+
+
+            badgeClass =
+                "badge-active";
+        }
+
+    } else if (
+        listing.status ===
+        "rejected"
+    ) {
+
+        badgeClass =
+            "badge-rejected";
+
+    } else if (
+        listing.status ===
+        "removed"
+    ) {
+
+        badgeClass =
+            "badge-removed";
+    }
+
+
+    let management = "";
+
+
+    if (
+        listing.is_frozen
+    ) {
+
+        management = `
+
+            <div class="frozen-note">
+
+                <b>
+                    🧊 Frozen by moderation
+                </b>
+
+                <br><br>
+
+                ${
+                    listing.frozen_reason
+
+                        ? escapeHtml(
+                            listing.frozen_reason
+                        )
+
+                        : "This listing is being reviewed."
+                }
+
+            </div>
+
+        `;
+
+    } else if (
+        listing.status ===
+        "active"
+    ) {
+
+        management = `
+
+            ${
+                listing.is_paused
+
+                    ? `
+
+                        <div class="paused-note">
+
+                            ⏸ Hidden from Marketplace.
+
+                        </div>
+
+                    `
+
+                    : ""
+            }
+
+
+            <div class="manage-buttons">
+
+
+                <button
+                    class="edit-listing-button"
+                    onclick="
+                        openEditListingModal(
+                            '${escapeJs(
+                                listing.id
+                            )}'
+                        )
+                    "
+                >
+
+                    Edit
+
+                </button>
+
+
+                ${
+                    listing.is_paused
+
+                        ? `
+
+                            <button
+                                class="resume-listing-button"
+                                onclick="
+                                    changeListingPause(
+                                        '${listing.id}',
+                                        'resume'
+                                    )
+                                "
+                            >
+
+                                Resume
+
+                            </button>
+
+                        `
+
+                        : `
+
+                            <button
+                                class="pause-listing-button"
+                                onclick="
+                                    changeListingPause(
+                                        '${listing.id}',
+                                        'pause'
+                                    )
+                                "
+                            >
+
+                                Pause
+
+                            </button>
+
+                        `
+                }
+
+
+                <button
+                    class="remove-listing-button"
+                    onclick="
+                        removeListing(
+                            '${listing.id}',
+                            '${escapeJs(
+                                listing.whatsapp_username
+                            )}'
+                        )
+                    "
+                >
+
+                    Remove
+
+                </button>
+
+
+            </div>
+
+        `;
+
+    } else if (
+        listing.status ===
+        "pending" ||
+        listing.status ===
+        "rejected"
+    ) {
+
+        management = `
+
+            <div class="manage-buttons">
+
+                <button
+                    class="remove-listing-button"
+                    onclick="
+                        removeListing(
+                            '${listing.id}',
+                            '${escapeJs(
+                                listing.whatsapp_username
+                            )}'
+                        )
+                    "
+                >
+
+                    Remove
+
+                </button>
+
+            </div>
+
+        `;
+
+    } else if (
+        listing.status ===
+        "removed"
+    ) {
+
+        management = `
+
+            <div class="removed-note">
+
+                This listing was removed.
+
+            </div>
+
+        `;
+    }
+
+
+    return `
+
+        <div class="card">
+
+
+            <div class="listing-header">
+
+
+                <div class="listing-main">
+
+                    <div class="username">
+
+                        @${escapeHtml(
+                            listing.whatsapp_username
+                        )}
+
+                    </div>
+
+
+                    <div class="listing-info-row">
+
+                        <span class="category-badge">
+
+                            ${escapeHtml(
+                                listing.category ||
+                                "Other"
+                            )}
+
+                        </span>
+
+
+                        <span class="badge ${badgeClass}">
+
+                            ${escapeHtml(
+                                displayStatus
+                            )}
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="listing-price-box">
+
+                    <div class="listing-price">
+
+                        $${formatPrice(
+                            listing.asking_price
+                        )}
+
+                    </div>
+
+                    <div class="listing-price-label">
+                        Asking
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            ${
+                listing.description
+
+                    ? `
+
+                        <div class="description">
+
+                            ${escapeHtml(
+                                listing.description
+                            )}
+
+                        </div>
+
+                    `
+
+                    : ""
+            }
+
+
+            ${management}
+
+
+        </div>
+
+    `;
+}
+
+
+function openEditListingModal(
+    listingId
+) {
+
+    const listing =
+        myListingsData.find(
+            item =>
+                String(item.id) ===
+                String(listingId)
+        );
+
+
+    if (!listing) {
+        return;
+    }
+
+
+    currentEditListingId =
+        listing.id;
+
+
+    document.getElementById(
+        "editListingSubtitle"
+    ).textContent =
+        `@${listing.whatsapp_username}`;
+
+
+    document.getElementById(
+        "editListingPrice"
+    ).value =
+        listing.asking_price;
+
+
+    document.getElementById(
+        "editListingDescription"
+    ).value =
+        listing.description ||
+        "";
+
+
+    document.getElementById(
+        "editListingMessage"
+    ).className =
+        "message";
+
+
+    showModal(
+        "editListingModal"
+    );
+}
+
+
+async function saveListingEdit() {
+
+    const button =
+        document.getElementById(
+            "saveListingEditButton"
+        );
+
+
+    button.disabled = true;
+
+    button.textContent =
+        "Saving...";
+
+
+    try {
+
+        await api(
+            "/listing/manage/edit",
+            {
+                initData:
+                    tg.initData,
+
+                listing_id:
+                    currentEditListingId,
+
+                asking_price:
+                    document.getElementById(
+                        "editListingPrice"
+                    ).value,
+
+                description:
+                    document.getElementById(
+                        "editListingDescription"
+                    ).value.trim()
+            }
+        );
+
+
+        closeModal(
+            "editListingModal"
+        );
+
+
+        await refreshMarketplaceAndListings();
+
+
+        tg?.showAlert(
+            "Listing updated ✓"
+        );
+
+    } catch (error) {
+
+        const box =
+            document.getElementById(
+                "editListingMessage"
+            );
+
+
+        box.className =
+            "message error";
+
+
+        box.textContent =
+            readableListingManageError(
+                error.message
+            );
+
+    } finally {
+
+        button.disabled = false;
+
+        button.textContent =
+            "Save Changes";
+    }
+}
+
+
+async function changeListingPause(
+    listingId,
+    action
+) {
+
+    const confirmed =
+        await askConfirm(
+
+            action === "pause"
+
+                ? "Pause this listing?"
+
+                : "Resume this listing?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/listing/manage/pause",
+            {
+                initData:
+                    tg.initData,
+
+                listing_id:
+                    listingId,
+
+                action
+            }
+        );
+
+
+        await refreshMarketplaceAndListings();
+
+    } catch (error) {
+
+        tg?.showAlert(
+            readableListingManageError(
+                error.message
+            )
+        );
+    }
+}
+
+
+async function removeListing(
+    listingId,
+    username
+) {
+
+    const confirmed =
+        await askConfirm(
+            `Remove @${username}?`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/listing/manage/remove",
+            {
+                initData:
+                    tg.initData,
+
+                listing_id:
+                    listingId
+            }
+        );
+
+
+        await Promise.all(
+            [
+                refreshMarketplaceAndListings(),
+                loadOfferCenter()
+            ]
+        );
+
+
+        tg?.showAlert(
+            `@${username} removed ✓`
+        );
+
+    } catch (error) {
+
+        tg?.showAlert(
+            readableListingManageError(
+                error.message
+            )
+        );
+    }
+}
+
+
+function readableListingManageError(
+    error
+) {
+
+    const errors = {
+
+        listing_frozen:
+            "This listing is frozen by moderation.",
+
+        invalid_price:
+            "Enter a valid price.",
+
+        listing_has_agreement:
+            "This listing has an accepted agreement.",
+
+        listing_not_editable:
+            "This listing cannot be edited.",
+
+        listing_not_manageable:
+            "This listing cannot be paused or resumed.",
+
+        listing_remove_failed:
+            "Could not remove listing."
+    };
+
+
+    return errors[
+        error
+    ] ||
+    error ||
+    "Something went wrong.";
+}
+
+
+async function refreshMarketplaceAndListings() {
+
+    await Promise.all(
+        [
+            loadMyListings(),
+            loadMarketplace(),
+            loadWatchlistState()
+        ]
+    );
+}
+
+
+/* =========================================================
    WANTED
-===================================================== */
+   ========================================================= */
 
 function openWantedPage(
     nav
@@ -7412,43 +6947,60 @@ function renderWantedPost(
 
         <div class="card wanted-card">
 
-            <div class="card-glow"></div>
+
+            <div class="listing-header">
 
 
-            <div class="meta">
-                LOOKING FOR
+                <div class="listing-main">
+
+                    <div class="meta">
+                        LOOKING FOR
+                    </div>
+
+                    <div
+                        class="username"
+                        style="margin-top:4px"
+                    >
+
+                        @${escapeHtml(
+                            post.desired_username
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="listing-price-box">
+
+                    <div class="listing-price">
+
+                        $${formatPrice(
+                            post.budget
+                        )}
+
+                    </div>
+
+                    <div class="listing-price-label">
+                        Budget
+                    </div>
+
+                </div>
+
+
             </div>
 
 
-            <div class="username">
+            <div class="listing-info-row">
 
-                @${escapeHtml(
-                    post.desired_username
-                )}
+                <span class="category-badge">
 
-            </div>
+                    ${escapeHtml(
+                        post.category ||
+                        "Other"
+                    )}
 
-
-            <div class="wanted-label">
-                BUYER BUDGET
-            </div>
-
-
-            <div class="wanted-budget">
-
-                $${formatPrice(
-                    post.budget
-                )}
-
-            </div>
-
-
-            <div class="meta">
-
-                ${escapeHtml(
-                    post.category ||
-                    "Other"
-                )}
+                </span>
 
             </div>
 
@@ -7482,7 +7034,7 @@ function renderWantedPost(
                             disabled
                         >
 
-                            👤 Your Request
+                            Your Request
 
                         </button>
 
@@ -7503,7 +7055,7 @@ function renderWantedPost(
                                 "
                             >
 
-                                💬 Contact Buyer
+                                Contact Buyer
 
                             </button>
 
@@ -7511,6 +7063,7 @@ function renderWantedPost(
 
                         : ""
             }
+
 
         </div>
 
@@ -7531,9 +7084,7 @@ async function startWantedPayment(
         );
 
 
-    button.disabled =
-        true;
-
+    button.disabled = true;
 
     button.textContent =
         "Creating invoice...";
@@ -7578,8 +7129,7 @@ async function startWantedPayment(
             async status => {
 
                 if (
-                    status ===
-                    "paid"
+                    status === "paid"
                 ) {
 
                     await waitWantedPayment(
@@ -7721,45 +7271,59 @@ async function loadMyWanted() {
 
                         <div class="card">
 
-                            <div class="username">
 
-                                @${escapeHtml(
-                                    post.desired_username
-                                )}
-
-                            </div>
+                            <div class="listing-header">
 
 
-                            <div
-                                class="badge ${
-                                    post.status ===
-                                    "active"
+                                <div class="listing-main">
 
-                                        ? "badge-active"
+                                    <div class="username">
 
-                                        : "badge-closed"
-                                }"
-                            >
+                                        @${escapeHtml(
+                                            post.desired_username
+                                        )}
 
-                                ${escapeHtml(
-                                    String(
-                                        post.status
-                                    ).toUpperCase()
-                                )}
-
-                            </div>
+                                    </div>
 
 
-                            <div class="wanted-label">
-                                BUDGET
-                            </div>
+                                    <div
+                                        class="badge ${
+                                            post.status ===
+                                            "active"
+
+                                                ? "badge-active"
+
+                                                : "badge-closed"
+                                        }"
+                                    >
+
+                                        ${escapeHtml(
+                                            String(
+                                                post.status
+                                            ).toUpperCase()
+                                        )}
+
+                                    </div>
+
+                                </div>
 
 
-                            <div class="wanted-budget">
+                                <div class="listing-price-box">
 
-                                $${formatPrice(
-                                    post.budget
-                                )}
+                                    <div class="listing-price">
+
+                                        $${formatPrice(
+                                            post.budget
+                                        )}
+
+                                    </div>
+
+                                    <div class="listing-price-label">
+                                        Budget
+                                    </div>
+
+                                </div>
+
 
                             </div>
 
@@ -7787,6 +7351,7 @@ async function loadMyWanted() {
 
                                     : ""
                             }
+
 
                         </div>
 
@@ -7865,8 +7430,7 @@ function resetWantedButton() {
         );
 
 
-    button.disabled =
-        false;
+    button.disabled = false;
 
 
     button.textContent =
@@ -7874,9 +7438,9 @@ function resetWantedButton() {
 }
 
 
-/* =====================================================
+/* =========================================================
    OFFERS
-===================================================== */
+   ========================================================= */
 
 async function openOfferModal(
     listingId,
@@ -7974,9 +7538,7 @@ async function submitOffer() {
         );
 
 
-    button.disabled =
-        true;
-
+    button.disabled = true;
 
     button.textContent =
         "Sending...";
@@ -8026,9 +7588,7 @@ async function submitOffer() {
 
     } finally {
 
-        button.disabled =
-            false;
-
+        button.disabled = false;
 
         button.textContent =
             "Send Offer";
@@ -8182,8 +7742,6 @@ function renderSentOffer(
 
         <div class="card">
 
-            <div class="card-glow"></div>
-
 
             <div class="username">
 
@@ -8200,9 +7758,7 @@ function renderSentOffer(
                     ? `
 
                         <div class="badge badge-frozen">
-
                             🧊 FROZEN
-
                         </div>
 
                     `
@@ -8251,9 +7807,7 @@ function renderSentOffer(
                         <div class="offer-summary">
 
                             <div class="offer-label">
-
                                 SELLER COUNTER
-
                             </div>
 
                             <div class="offer-big">
@@ -8285,7 +7839,7 @@ function renderSentOffer(
 
                                     <div class="frozen-note">
 
-                                        🧊 The listing is frozen. The counter cannot be accepted until moderation removes the freeze.
+                                        This listing is frozen. The counter cannot be accepted yet.
 
                                     </div>
 
@@ -8296,6 +7850,7 @@ function renderSentOffer(
 
 
                         <div class="buttons">
+
 
                             ${
                                 frozen
@@ -8336,6 +7891,7 @@ function renderSentOffer(
 
                             </button>
 
+
                         </div>
 
                     `
@@ -8368,6 +7924,7 @@ function renderSentOffer(
                         : ""
             }
 
+
         </div>
 
     `;
@@ -8395,8 +7952,6 @@ function renderReceivedOffer(
 
         <div class="card">
 
-            <div class="card-glow"></div>
-
 
             <div class="username">
 
@@ -8413,9 +7968,7 @@ function renderReceivedOffer(
                     ? `
 
                         <div class="badge badge-frozen">
-
                             🧊 FROZEN
-
                         </div>
 
                     `
@@ -8442,9 +7995,7 @@ function renderReceivedOffer(
             <div class="offer-summary">
 
                 <div class="offer-label">
-
                     BUYER OFFER
-
                 </div>
 
                 <div class="offer-big">
@@ -8471,7 +8022,7 @@ function renderReceivedOffer(
 
                                     <div class="frozen-note">
 
-                                        🧊 Accept and Counter are disabled while the listing is frozen.
+                                        Accept and Counter are disabled while this listing is frozen.
 
                                     </div>
 
@@ -8482,6 +8033,7 @@ function renderReceivedOffer(
 
 
                         <div class="buttons">
+
 
                             ${
                                 frozen
@@ -8540,12 +8092,14 @@ function renderReceivedOffer(
 
                             </button>
 
+
                         </div>
 
                     `
 
                     : ""
             }
+
 
         </div>
 
@@ -8700,9 +8254,9 @@ async function buyerOfferAction(
 }
 
 
-/* =====================================================
+/* =========================================================
    LISTING PAYMENT
-===================================================== */
+   ========================================================= */
 
 async function startListingPayment(
     event
@@ -8717,9 +8271,7 @@ async function startListingPayment(
         );
 
 
-    button.disabled =
-        true;
-
+    button.disabled = true;
 
     button.textContent =
         "Creating invoice...";
@@ -8774,8 +8326,7 @@ async function startListingPayment(
             async status => {
 
                 if (
-                    status ===
-                    "paid"
+                    status === "paid"
                 ) {
 
                     await waitListingPayment(
@@ -8888,8 +8439,7 @@ function resetListingButton() {
         );
 
 
-    button.disabled =
-        false;
+    button.disabled = false;
 
 
     button.textContent =
@@ -8897,9 +8447,9 @@ function resetListingButton() {
 }
 
 
-/* =====================================================
+/* =========================================================
    ADMIN
-===================================================== */
+   ========================================================= */
 
 function openAdmin() {
 
@@ -8964,20 +8514,35 @@ async function loadPendingListings() {
 
                         <div class="card">
 
-                            <div class="username">
 
-                                @${escapeHtml(
-                                    listing.whatsapp_username
-                                )}
-
-                            </div>
+                            <div class="listing-header">
 
 
-                            <div class="price">
+                                <div class="listing-main">
 
-                                $${formatPrice(
-                                    listing.asking_price
-                                )}
+                                    <div class="username">
+
+                                        @${escapeHtml(
+                                            listing.whatsapp_username
+                                        )}
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="listing-price-box">
+
+                                    <div class="listing-price">
+
+                                        $${formatPrice(
+                                            listing.asking_price
+                                        )}
+
+                                    </div>
+
+                                </div>
+
 
                             </div>
 
@@ -9013,7 +8578,7 @@ async function loadPendingListings() {
                                     "
                                 >
 
-                                    ✓ Approve
+                                    Approve
 
                                 </button>
 
@@ -9028,11 +8593,12 @@ async function loadPendingListings() {
                                     "
                                 >
 
-                                    ✕ Reject
+                                    Reject
 
                                 </button>
 
                             </div>
+
 
                         </div>
 
@@ -9131,19 +8697,15 @@ async function loadAdminReports() {
 
                             <div class="card report-card">
 
+
                                 <div class="badge badge-rejected">
-
                                     🚩 OPEN REPORT
-
                                 </div>
 
 
                                 <div
                                     class="username"
-                                    style="
-                                        margin-top:
-                                            10px;
-                                    "
+                                    style="margin-top:9px"
                                 >
 
                                     ${
@@ -9221,7 +8783,7 @@ async function loadAdminReports() {
                                                     "
                                                 >
 
-                                                    🧊 Freeze
+                                                    Freeze
 
                                                 </button>
 
@@ -9246,7 +8808,7 @@ async function loadAdminReports() {
                                                     "
                                                 >
 
-                                                    🗑 Remove
+                                                    Remove
 
                                                 </button>
 
@@ -9256,6 +8818,7 @@ async function loadAdminReports() {
                                     }
 
                                 </div>
+
 
                             </div>
 
@@ -9353,19 +8916,15 @@ async function loadFrozenListings() {
 
                         <div class="card frozen-card">
 
+
                             <div class="badge badge-frozen">
-
                                 🧊 FROZEN
-
                             </div>
 
 
                             <div
                                 class="username"
-                                style="
-                                    margin-top:
-                                        10px;
-                                "
+                                style="margin-top:9px"
                             >
 
                                 @${escapeHtml(
@@ -9414,7 +8973,7 @@ async function loadFrozenListings() {
                                     "
                                 >
 
-                                    🔓 Unfreeze
+                                    Unfreeze
 
                                 </button>
 
@@ -9431,11 +8990,12 @@ async function loadFrozenListings() {
                                     "
                                 >
 
-                                    🗑 Remove
+                                    Remove
 
                                 </button>
 
                             </div>
+
 
                         </div>
 
@@ -9538,9 +9098,9 @@ async function refreshAfterModeration() {
 }
 
 
-/* =====================================================
+/* =========================================================
    SEARCH
-===================================================== */
+   ========================================================= */
 
 function filterMarketplace(
     value
@@ -9570,9 +9130,7 @@ function filterMarketplace(
 
                         listing.whatsapp_username
                             .toLowerCase()
-                            .includes(
-                                query
-                            )
+                            .includes(query)
 
                         ||
 
@@ -9581,15 +9139,40 @@ function filterMarketplace(
                             ""
                         )
                             .toLowerCase()
-                            .includes(
-                                query
-                            )
+                            .includes(query)
                 );
 
 
-    renderMarketplace(
-        filtered
-    );
+    const market =
+        document.getElementById(
+            "marketListings"
+        );
+
+
+    if (
+        !filtered.length
+    ) {
+
+        market.innerHTML =
+            `<div class="empty">No usernames found.</div>`;
+
+    } else {
+
+        market.innerHTML =
+            filtered
+                .map(
+                    listing =>
+                        renderPublicListing(
+                            listing
+                        )
+                )
+                .join("");
+    }
+
+
+    updateAllWatchButtons();
+
+    updateAllReportButtons();
 
 
     if (
@@ -9603,9 +9186,9 @@ function filterMarketplace(
 }
 
 
-/* =====================================================
+/* =========================================================
    NAVIGATION
-===================================================== */
+   ========================================================= */
 
 function openPage(
     id,
@@ -9624,11 +9207,13 @@ function openPage(
         );
 
 
-    document.getElementById(
-        id
-    ).classList.add(
-        "active"
-    );
+    document
+        .getElementById(
+            id
+        )
+        .classList.add(
+            "active"
+        );
 
 
     document
@@ -9662,19 +9247,21 @@ function openPage(
 }
 
 
-/* =====================================================
+/* =========================================================
    MODALS
-===================================================== */
+   ========================================================= */
 
 function showModal(
     id
 ) {
 
-    document.getElementById(
-        id
-    ).classList.add(
-        "show"
-    );
+    document
+        .getElementById(
+            id
+        )
+        .classList.add(
+            "show"
+        );
 }
 
 
@@ -9682,11 +9269,13 @@ function closeModal(
     id
 ) {
 
-    document.getElementById(
-        id
-    ).classList.remove(
-        "show"
-    );
+    document
+        .getElementById(
+            id
+        )
+        .classList.remove(
+            "show"
+        );
 }
 
 
@@ -9707,9 +9296,125 @@ function backdropClose(
 }
 
 
-/* =====================================================
-   HELPERS
-===================================================== */
+/* =========================================================
+   ICON HELPERS
+   ========================================================= */
+
+function watchButtonHtml(
+    watched
+) {
+
+    return `
+
+        <svg
+            viewBox="0 0 24 24"
+            fill="${watched ? "currentColor" : "none"}"
+            stroke="currentColor"
+            stroke-width="1.8"
+        >
+
+            <path
+                d="m12 3 2.6 5.3 5.9.9-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.9z"
+            ></path>
+
+        </svg>
+
+        <span class="action-label">
+
+            ${watched ? "Saved" : "Watch"}
+
+        </span>
+
+    `;
+}
+
+
+function reportButtonHtml(
+    state
+) {
+
+    if (
+        state ===
+        "owner"
+    ) {
+
+        return `
+
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+            >
+
+                <circle cx="12" cy="8" r="3"></circle>
+
+                <path d="M6 20c.7-3.8 2.8-5.7 6-5.7s5.3 1.9 6 5.7"></path>
+
+            </svg>
+
+            <span class="action-label">
+                Yours
+            </span>
+
+        `;
+    }
+
+
+    if (
+        state ===
+        "reported"
+    ) {
+
+        return `
+
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+            >
+
+                <path d="M5 4v16"></path>
+
+                <path d="M5 5h11l-2 4 2 4H5"></path>
+
+            </svg>
+
+            <span class="action-label">
+                Sent
+            </span>
+
+        `;
+    }
+
+
+    return `
+
+        <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+        >
+
+            <path d="M5 4v16"></path>
+
+            <path d="M5 5h11l-2 4 2 4H5"></path>
+
+        </svg>
+
+        <span class="action-label">
+            Report
+        </span>
+
+    `;
+}
+
+
+/* =========================================================
+   OTHER HELPERS
+   ========================================================= */
 
 function openTelegramContact(
     value
@@ -9806,9 +9511,7 @@ function formatMemberDate(
 
 
     const date =
-        new Date(
-            value
-        );
+        new Date(value);
 
 
     if (
@@ -9824,11 +9527,8 @@ function formatMemberDate(
     return date.toLocaleDateString(
         "en-US",
         {
-            month:
-                "short",
-
-            year:
-                "numeric"
+            month: "short",
+            year: "numeric"
         }
     );
 }
@@ -9899,9 +9599,7 @@ function formatPrice(
 ) {
 
     const number =
-        Number(
-            value
-        );
+        Number(value);
 
 
     return Number.isFinite(
@@ -9911,8 +9609,7 @@ function formatPrice(
         ? number.toLocaleString(
             "en-US",
             {
-                maximumFractionDigits:
-                    2
+                maximumFractionDigits: 2
             }
         )
 
@@ -10025,15 +9722,16 @@ function escapeJs(
 }
 
 
-/* =====================================================
+/* =========================================================
    START
-===================================================== */
+   ========================================================= */
 
 authenticate();
 
 loadMarketplace();
 
 loadWanted();
+
 
 </script>
 
