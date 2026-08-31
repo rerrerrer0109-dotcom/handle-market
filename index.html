@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
@@ -11,9 +10,7 @@
     content="width=device-width, initial-scale=1.0"
 >
 
-<title>
-Handle Market
-</title>
+<title>Handle Market</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -66,11 +63,6 @@ header {
     color: #d93025;
 }
 
-
-/* ===================================== */
-/* PAGES */
-/* ===================================== */
-
 .page {
     display: none;
 }
@@ -78,11 +70,6 @@ header {
 .page.active {
     display: block;
 }
-
-
-/* ===================================== */
-/* SEARCH */
-/* ===================================== */
 
 .search {
     padding: 16px;
@@ -98,11 +85,6 @@ header {
     outline: none;
 }
 
-
-/* ===================================== */
-/* SECTIONS */
-/* ===================================== */
-
 .section {
     padding: 0 16px 20px;
 }
@@ -112,11 +94,6 @@ header {
     font-weight: 800;
     margin-bottom: 12px;
 }
-
-
-/* ===================================== */
-/* CATEGORIES */
-/* ===================================== */
 
 .categories {
     display: flex;
@@ -132,11 +109,6 @@ header {
     border-radius: 20px;
     padding: 9px 14px;
 }
-
-
-/* ===================================== */
-/* LISTING CARD */
-/* ===================================== */
 
 .card {
     background: white;
@@ -160,7 +132,7 @@ header {
 
 .meta {
     color: #777;
-    margin-top: 5px;
+    margin-top: 6px;
     font-size: 13px;
 }
 
@@ -205,11 +177,6 @@ header {
     gap: 8px;
 }
 
-
-/* ===================================== */
-/* BUTTONS */
-/* ===================================== */
-
 button {
     border: none;
     border-radius: 12px;
@@ -237,10 +204,34 @@ button {
     font-size: 16px;
 }
 
+.admin-button {
+    width: 100%;
+    background: #222;
+    color: white;
+    margin-top: 16px;
+    font-size: 16px;
+    font-weight: 700;
+}
 
-/* ===================================== */
-/* FORM */
-/* ===================================== */
+.approve-button {
+    flex: 1;
+    background: #19a651;
+    color: white;
+    font-weight: 700;
+}
+
+.reject-button {
+    flex: 1;
+    background: #e74747;
+    color: white;
+    font-weight: 700;
+}
+
+.refresh-button {
+    background: #eeeeee;
+    width: 100%;
+    margin-bottom: 15px;
+}
 
 .form-box {
     margin: 16px;
@@ -275,14 +266,12 @@ button {
 .field input,
 .field select,
 .field textarea {
-
     width: 100%;
     border: 1px solid #ddd;
     border-radius: 12px;
     padding: 12px 13px;
     font-size: 15px;
     background: white;
-    outline: none;
 }
 
 .field textarea {
@@ -315,11 +304,6 @@ button {
     color: #c62828;
 }
 
-
-/* ===================================== */
-/* INFO */
-/* ===================================== */
-
 .warning {
     margin: 16px;
     padding: 14px;
@@ -330,11 +314,6 @@ button {
     font-size: 13px;
     line-height: 1.5;
 }
-
-
-/* ===================================== */
-/* PROFILE */
-/* ===================================== */
 
 .profile-card {
     margin: 16px;
@@ -362,10 +341,36 @@ button {
     line-height: 1.5;
 }
 
+.admin-box {
+    margin: 16px;
+}
 
-/* ===================================== */
-/* EMPTY */
-/* ===================================== */
+.admin-header {
+    background: #222;
+    color: white;
+    padding: 18px;
+    border-radius: 18px;
+    margin-bottom: 15px;
+}
+
+.admin-header h2 {
+    margin: 0 0 6px;
+}
+
+.admin-header p {
+    margin: 0;
+    opacity: .7;
+    font-size: 13px;
+}
+
+.seller-info {
+    margin-top: 12px;
+    background: #f6f6f6;
+    padding: 11px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+}
 
 .empty {
     padding: 30px 15px;
@@ -375,66 +380,41 @@ button {
     border-radius: 16px;
 }
 
-
-/* ===================================== */
-/* NAVIGATION */
-/* ===================================== */
-
 .bottom-nav {
-
     position: fixed;
-
     bottom: 0;
     left: 0;
     right: 0;
-
     height: 70px;
-
     background: white;
-
-    border-top:
-        1px solid #ddd;
-
+    border-top: 1px solid #ddd;
     display: flex;
-
     z-index: 100;
 }
 
 .nav-item {
-
     flex: 1;
-
     text-align: center;
-
     font-size: 11px;
-
     padding-top: 9px;
-
     color: #777;
-
     cursor: pointer;
 }
 
 .nav-icon {
-
     display: block;
-
     font-size: 23px;
-
     margin-bottom: 3px;
 }
 
 .nav-item.active {
-
     color: #1687e8;
-
     font-weight: 700;
 }
 
 </style>
 
 </head>
-
 
 <body>
 
@@ -462,10 +442,7 @@ Connecting to Telegram...
 </header>
 
 
-
-<!-- ================================================= -->
 <!-- HOME -->
-<!-- ================================================= -->
 
 <div
     id="home"
@@ -475,14 +452,12 @@ Connecting to Telegram...
 <div class="search">
 
 <input
-    id="homeSearch"
     type="text"
     placeholder="Search @username"
     oninput="filterMarketplace(this.value)"
 >
 
 </div>
-
 
 <div class="section">
 
@@ -492,29 +467,12 @@ Categories
 
 <div class="categories">
 
-<div class="category">
-🔥 Premium
-</div>
-
-<div class="category">
-Business
-</div>
-
-<div class="category">
-AI
-</div>
-
-<div class="category">
-Short
-</div>
-
-<div class="category">
-Travel
-</div>
-
-<div class="category">
-Finance
-</div>
+<div class="category">🔥 Premium</div>
+<div class="category">Business</div>
+<div class="category">AI</div>
+<div class="category">Short</div>
+<div class="category">Travel</div>
+<div class="category">Finance</div>
 
 </div>
 
@@ -540,25 +498,19 @@ Loading marketplace...
 
 <div class="warning">
 
-⚠️ WhatsApp currently does not provide an
-official person-to-person username transfer mechanism.
+⚠️ WhatsApp currently does not provide an official
+person-to-person username transfer mechanism.
 
 <br><br>
 
-Handle Market does not guarantee transfer of a username.
-
-Users may communicate, negotiate and choose to wait
-for a safer or official transfer mechanism.
+Handle Market does not guarantee username transfer.
 
 </div>
 
 </div>
 
 
-
-<!-- ================================================= -->
 <!-- MARKET -->
-<!-- ================================================= -->
 
 <div
     id="marketplace"
@@ -568,14 +520,12 @@ for a safer or official transfer mechanism.
 <div class="search">
 
 <input
-    id="marketSearch"
     type="text"
     placeholder="Search Marketplace"
     oninput="filterMarketplace(this.value)"
 >
 
 </div>
-
 
 <div class="section">
 
@@ -596,16 +546,12 @@ Loading...
 </div>
 
 
-
-<!-- ================================================= -->
 <!-- LIST -->
-<!-- ================================================= -->
 
 <div
     id="list"
     class="page"
 >
-
 
 <div class="form-box">
 
@@ -632,17 +578,11 @@ WhatsApp username
 
 <input
     id="listingUsername"
-    type="text"
     placeholder="@username"
     required
 >
 
-<div class="field-hint">
-Enter the username you control.
 </div>
-
-</div>
-
 
 
 <div class="field">
@@ -663,7 +603,6 @@ Asking price (USD)
 </div>
 
 
-
 <div class="field">
 
 <label>
@@ -672,50 +611,20 @@ Category
 
 <select id="listingCategory">
 
-<option>
-Premium
-</option>
-
-<option>
-Business
-</option>
-
-<option>
-AI
-</option>
-
-<option>
-Short
-</option>
-
-<option>
-Travel
-</option>
-
-<option>
-Finance
-</option>
-
-<option>
-Gaming
-</option>
-
-<option>
-Crypto
-</option>
-
-<option>
-Media
-</option>
-
-<option>
-Other
-</option>
+<option>Premium</option>
+<option>Business</option>
+<option>AI</option>
+<option>Short</option>
+<option>Travel</option>
+<option>Finance</option>
+<option>Gaming</option>
+<option>Crypto</option>
+<option>Media</option>
+<option>Other</option>
 
 </select>
 
 </div>
-
 
 
 <div class="field">
@@ -731,7 +640,6 @@ Description
 ></textarea>
 
 </div>
-
 
 
 <div class="field">
@@ -759,7 +667,6 @@ Other
 </div>
 
 
-
 <div class="field">
 
 <label>
@@ -768,19 +675,16 @@ Seller contact
 
 <input
     id="contactValue"
-    type="text"
     maxlength="200"
     placeholder="@telegram_username"
     required
 >
 
 <div class="field-hint">
-This contact is stored privately and is NOT shown
-in the public marketplace.
+Stored privately. Not visible in public Marketplace.
 </div>
 
 </div>
-
 
 
 <button
@@ -803,7 +707,6 @@ Submit Listing
 </div>
 
 
-
 <div class="section">
 
 <div class="section-title">
@@ -820,14 +723,10 @@ Loading...
 
 </div>
 
-
 </div>
 
 
-
-<!-- ================================================= -->
 <!-- WANTED -->
-<!-- ================================================= -->
 
 <div
     id="wanted"
@@ -841,7 +740,7 @@ Loading...
 </div>
 
 <div class="form-subtitle">
-Wanted posts will be added in the next step.
+Wanted posts will be connected next.
 </div>
 
 <div class="empty">
@@ -853,10 +752,7 @@ Coming soon
 </div>
 
 
-
-<!-- ================================================= -->
 <!-- PROFILE -->
-<!-- ================================================= -->
 
 <div
     id="profile"
@@ -872,22 +768,58 @@ Coming soon
 Loading...
 </div>
 
-<div class="profile-username">
-Authenticating with Telegram
+</div>
+
+</div>
+
+
+<!-- ADMIN -->
+
+<div
+    id="admin"
+    class="page"
+>
+
+<div class="admin-box">
+
+<div class="admin-header">
+
+<h2>
+🛡 Admin Panel
+</h2>
+
+<p>
+Only marketplace administrators can access this section.
+</p>
+
+</div>
+
+
+<button
+    class="refresh-button"
+    onclick="loadPendingListings()"
+>
+↻ Refresh pending listings
+</button>
+
+
+<div id="pendingListings">
+
+<div class="empty">
+Loading...
 </div>
 
 </div>
 
 </div>
 
+</div>
+
 
 </div>
 
 
-
-<!-- ================================================= -->
-<!-- NAVIGATION -->
-<!-- ================================================= -->
+<!-- NAV -->
 
 <div class="bottom-nav">
 
@@ -896,13 +828,8 @@ Authenticating with Telegram
     class="nav-item active"
     onclick="openPage('home', this)"
 >
-
-<span class="nav-icon">
-🏠
-</span>
-
+<span class="nav-icon">🏠</span>
 Home
-
 </div>
 
 
@@ -910,13 +837,8 @@ Home
     class="nav-item"
     onclick="openPage('marketplace', this)"
 >
-
-<span class="nav-icon">
-🔎
-</span>
-
+<span class="nav-icon">🔎</span>
 Market
-
 </div>
 
 
@@ -924,13 +846,8 @@ Market
     class="nav-item"
     onclick="openPage('list', this); loadMyListings();"
 >
-
-<span class="nav-icon">
-➕
-</span>
-
+<span class="nav-icon">➕</span>
 List
-
 </div>
 
 
@@ -938,13 +855,8 @@ List
     class="nav-item"
     onclick="openPage('wanted', this)"
 >
-
-<span class="nav-icon">
-🎯
-</span>
-
+<span class="nav-icon">🎯</span>
 Wanted
-
 </div>
 
 
@@ -952,26 +864,16 @@ Wanted
     class="nav-item"
     onclick="openPage('profile', this)"
 >
-
-<span class="nav-icon">
-👤
-</span>
-
+<span class="nav-icon">👤</span>
 Profile
-
 </div>
 
 
 </div>
-
 
 
 <script>
 
-
-// =====================================================
-// CONFIG
-// =====================================================
 
 const API_URL =
     "https://handle-market.onrender.com";
@@ -981,30 +883,20 @@ const tg =
     window.Telegram?.WebApp;
 
 
-let authenticatedUser =
-    null;
+let authenticatedUser = null;
 
+let marketplaceListings = [];
 
-let marketplaceListings =
-    [];
-
-
-// =====================================================
-// TELEGRAM
-// =====================================================
 
 if (tg) {
-
     tg.ready();
-
     tg.expand();
-
 }
 
 
-// =====================================================
+// ======================================================
 // AUTH
-// =====================================================
+// ======================================================
 
 async function authenticateTelegramUser() {
 
@@ -1013,36 +905,19 @@ async function authenticateTelegramUser() {
             "authStatus"
         );
 
-
     const profile =
         document.getElementById(
             "profileContent"
         );
 
 
-    if (
-        !tg ||
-        !tg.initData
-    ) {
+    if (!tg || !tg.initData) {
 
         status.textContent =
             "⚠ Open inside Telegram";
 
         status.className =
             "auth-status auth-error";
-
-
-        profile.innerHTML = `
-
-            <div class="profile-name">
-            Telegram required
-            </div>
-
-            <div class="profile-username">
-            Open Handle Market from the Telegram bot.
-            </div>
-
-        `;
 
         return;
     }
@@ -1054,25 +929,17 @@ async function authenticateTelegramUser() {
             await fetch(
                 API_URL + "/auth",
                 {
-
-                    method:
-                        "POST",
+                    method: "POST",
 
                     headers: {
-
                         "Content-Type":
                             "application/json"
-
                     },
 
-                    body:
-                        JSON.stringify({
-
-                            initData:
-                                tg.initData
-
-                        })
-
+                    body: JSON.stringify({
+                        initData:
+                            tg.initData
+                    })
                 }
             );
 
@@ -1081,16 +948,11 @@ async function authenticateTelegramUser() {
             await response.json();
 
 
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-
+        if (!response.ok || !data.ok) {
             throw new Error(
                 data.error ||
                 "authentication_failed"
             );
-
         }
 
 
@@ -1114,11 +976,29 @@ async function authenticateTelegramUser() {
             .join(" ");
 
 
-        const telegramUsername =
+        const username =
             data.user.username
                 ? "@" +
-                  data.user.username
+                    data.user.username
                 : "No Telegram username";
+
+
+        let adminButton = "";
+
+
+        if (data.user.is_admin) {
+
+            adminButton = `
+
+                <button
+                    class="admin-button"
+                    onclick="openAdminPanel()"
+                >
+                    🛡 Open Admin Panel
+                </button>
+
+            `;
+        }
 
 
         profile.innerHTML = `
@@ -1131,9 +1011,7 @@ async function authenticateTelegramUser() {
             </div>
 
             <div class="profile-username">
-                ${escapeHtml(
-                    telegramUsername
-                )}
+                ${escapeHtml(username)}
             </div>
 
             <div class="verified-box">
@@ -1146,6 +1024,8 @@ async function authenticateTelegramUser() {
 
             </div>
 
+            ${adminButton}
+
         `;
 
 
@@ -1154,9 +1034,6 @@ async function authenticateTelegramUser() {
     }
 
     catch (error) {
-
-        console.error(error);
-
 
         status.textContent =
             "✕ Authentication failed";
@@ -1178,25 +1055,17 @@ async function authenticateTelegramUser() {
             </div>
 
         `;
-
     }
-
 }
 
 
-// =====================================================
+// ======================================================
 // CREATE LISTING
-// =====================================================
+// ======================================================
 
 async function submitListing(event) {
 
     event.preventDefault();
-
-
-    const message =
-        document.getElementById(
-            "listingMessage"
-        );
 
 
     const button =
@@ -1204,129 +1073,82 @@ async function submitListing(event) {
             "submitListingButton"
         );
 
-
-    message.className =
-        "message";
-
-    message.textContent =
-        "";
-
-
-    if (
-        !tg ||
-        !tg.initData
-    ) {
-
-        showListingError(
-            "Open Handle Market inside Telegram."
+    const message =
+        document.getElementById(
+            "listingMessage"
         );
 
-        return;
-    }
 
-
-    const username =
-        document
-            .getElementById(
-                "listingUsername"
-            )
-            .value
-            .trim();
-
-
-    const price =
-        document
-            .getElementById(
-                "listingPrice"
-            )
-            .value;
-
-
-    const category =
-        document
-            .getElementById(
-                "listingCategory"
-            )
-            .value;
-
-
-    const description =
-        document
-            .getElementById(
-                "listingDescription"
-            )
-            .value
-            .trim();
-
-
-    const contactType =
-        document
-            .getElementById(
-                "contactType"
-            )
-            .value;
-
-
-    const contactValue =
-        document
-            .getElementById(
-                "contactValue"
-            )
-            .value
-            .trim();
-
-
-    button.disabled =
-        true;
+    button.disabled = true;
 
     button.textContent =
         "Submitting...";
+
+
+    message.className =
+        "message";
 
 
     try {
 
         const response =
             await fetch(
-                API_URL +
-                "/listings",
+                API_URL + "/listings",
                 {
-
-                    method:
-                        "POST",
+                    method: "POST",
 
                     headers: {
-
                         "Content-Type":
                             "application/json"
-
                     },
 
-                    body:
-                        JSON.stringify({
+                    body: JSON.stringify({
 
-                            initData:
-                                tg.initData,
+                        initData:
+                            tg.initData,
 
-                            whatsapp_username:
-                                username,
+                        whatsapp_username:
+                            document
+                                .getElementById(
+                                    "listingUsername"
+                                )
+                                .value,
 
-                            asking_price:
-                                price,
+                        asking_price:
+                            document
+                                .getElementById(
+                                    "listingPrice"
+                                )
+                                .value,
 
-                            category:
-                                category,
+                        category:
+                            document
+                                .getElementById(
+                                    "listingCategory"
+                                )
+                                .value,
 
-                            description:
-                                description,
+                        description:
+                            document
+                                .getElementById(
+                                    "listingDescription"
+                                )
+                                .value,
 
-                            contact_type:
-                                contactType,
+                        contact_type:
+                            document
+                                .getElementById(
+                                    "contactType"
+                                )
+                                .value,
 
-                            contact_value:
-                                contactValue
-
-                        })
-
+                        contact_value:
+                            document
+                                .getElementById(
+                                    "contactValue"
+                                )
+                                .value
+                    })
                 }
             );
 
@@ -1335,26 +1157,21 @@ async function submitListing(event) {
             await response.json();
 
 
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
+        if (!response.ok || !data.ok) {
 
             throw new Error(
                 readableError(
                     data.error
                 )
             );
-
         }
 
 
         message.className =
             "message success";
 
-
         message.textContent =
-            "✓ Listing submitted. Status: Pending review.";
+            "✓ Listing submitted. Pending admin review.";
 
 
         document
@@ -1370,30 +1187,33 @@ async function submitListing(event) {
 
     catch (error) {
 
-        showListingError(
-            error.message
-        );
+        message.className =
+            "message error";
 
+        message.textContent =
+            "✕ " + error.message;
     }
 
     finally {
 
-        button.disabled =
-            false;
+        button.disabled = false;
 
         button.textContent =
             "Submit Listing";
-
     }
-
 }
 
 
-// =====================================================
+// ======================================================
 // MY LISTINGS
-// =====================================================
+// ======================================================
 
 async function loadMyListings() {
+
+    if (!tg?.initData) {
+        return;
+    }
+
 
     const container =
         document.getElementById(
@@ -1401,19 +1221,163 @@ async function loadMyListings() {
         );
 
 
-    if (
-        !tg ||
-        !tg.initData
-    ) {
+    try {
 
+        const response =
+            await fetch(
+                API_URL + "/my-listings",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        initData:
+                            tg.initData
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok || !data.ok) {
+            throw new Error();
+        }
+
+
+        if (!data.listings.length) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+                    You have no listings yet.
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        container.innerHTML =
+            data.listings
+                .map(renderMyListing)
+                .join("");
+
+    }
+
+    catch {
+
+        container.innerHTML = `
+
+            <div class="empty">
+                Failed to load listings.
+            </div>
+
+        `;
+    }
+}
+
+
+// ======================================================
+// MARKETPLACE
+// ======================================================
+
+async function loadMarketplace() {
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL + "/listings"
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok || !data.ok) {
+            throw new Error();
+        }
+
+
+        marketplaceListings =
+            data.listings || [];
+
+
+        renderMarketplace(
+            marketplaceListings
+        );
+
+    }
+
+    catch {
+
+        document
+            .getElementById(
+                "marketListings"
+            )
+            .innerHTML = `
+
+                <div class="empty">
+                    Marketplace unavailable.
+                </div>
+
+            `;
+    }
+}
+
+
+// ======================================================
+// ADMIN PANEL
+// ======================================================
+
+function openAdminPanel() {
+
+    if (
+        !authenticatedUser ||
+        !authenticatedUser.is_admin
+    ) {
         return;
     }
+
+
+    openPage(
+        "admin",
+        null
+    );
+
+
+    loadPendingListings();
+}
+
+
+async function loadPendingListings() {
+
+    if (
+        !authenticatedUser?.is_admin
+    ) {
+        return;
+    }
+
+
+    const container =
+        document.getElementById(
+            "pendingListings"
+        );
 
 
     container.innerHTML = `
 
         <div class="empty">
-        Loading...
+            Loading pending listings...
         </div>
 
     `;
@@ -1424,27 +1388,19 @@ async function loadMyListings() {
         const response =
             await fetch(
                 API_URL +
-                "/my-listings",
+                "/admin/pending-listings",
                 {
-
-                    method:
-                        "POST",
+                    method: "POST",
 
                     headers: {
-
                         "Content-Type":
                             "application/json"
-
                     },
 
-                    body:
-                        JSON.stringify({
-
-                            initData:
-                                tg.initData
-
-                        })
-
+                    body: JSON.stringify({
+                        initData:
+                            tg.initData
+                    })
                 }
             );
 
@@ -1453,26 +1409,20 @@ async function loadMyListings() {
             await response.json();
 
 
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
+        if (!response.ok || !data.ok) {
 
             throw new Error(
                 data.error
             );
-
         }
 
 
-        if (
-            !data.listings.length
-        ) {
+        if (!data.listings.length) {
 
             container.innerHTML = `
 
                 <div class="empty">
-                You have no listings yet.
+                    ✓ No pending listings.
                 </div>
 
             `;
@@ -1484,10 +1434,7 @@ async function loadMyListings() {
         container.innerHTML =
             data.listings
                 .map(
-                    listing =>
-                        renderMyListing(
-                            listing
-                        )
+                    renderAdminListing
                 )
                 .join("");
 
@@ -1498,28 +1445,74 @@ async function loadMyListings() {
         container.innerHTML = `
 
             <div class="empty">
-            Failed to load listings.
+                Failed to load admin listings.
             </div>
 
         `;
-
     }
-
 }
 
 
-// =====================================================
-// MARKETPLACE
-// =====================================================
+// ======================================================
+// ADMIN ACTION
+// ======================================================
 
-async function loadMarketplace() {
+async function adminSetStatus(
+    listingId,
+    username,
+    newStatus
+) {
+
+    let text;
+
+
+    if (newStatus === "active") {
+
+        text =
+            `Approve @${username} and publish it in Marketplace?`;
+
+    } else {
+
+        text =
+            `Reject @${username}?`;
+    }
+
+
+    const confirmed =
+        await askConfirm(text);
+
+
+    if (!confirmed) {
+        return;
+    }
+
 
     try {
 
         const response =
             await fetch(
                 API_URL +
-                "/listings"
+                "/admin/listing-status",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        initData:
+                            tg.initData,
+
+                        listing_id:
+                            listingId,
+
+                        status:
+                            newStatus
+                    })
+                }
             );
 
 
@@ -1527,148 +1520,74 @@ async function loadMarketplace() {
             await response.json();
 
 
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
+        if (!response.ok || !data.ok) {
 
             throw new Error(
-                "marketplace_error"
+                data.error ||
+                "admin_action_failed"
             );
-
         }
 
 
-        marketplaceListings =
-            data.listings;
+        if (tg?.showAlert) {
+
+            tg.showAlert(
+                newStatus === "active"
+                    ? "Listing approved ✓"
+                    : "Listing rejected"
+            );
+        }
 
 
-        renderMarketplace(
-            marketplaceListings
-        );
+        await loadPendingListings();
+
+        await loadMarketplace();
+
+        await loadMyListings();
 
     }
 
     catch (error) {
 
-        document
-            .getElementById(
-                "marketListings"
-            )
-            .innerHTML = `
+        if (tg?.showAlert) {
 
-                <div class="empty">
-                Failed to load Marketplace.
-                </div>
-
-            `;
-
-
-        document
-            .getElementById(
-                "homeListings"
-            )
-            .innerHTML = `
-
-                <div class="empty">
-                Marketplace unavailable.
-                </div>
-
-            `;
-
+            tg.showAlert(
+                "Error: " +
+                error.message
+            );
+        }
     }
-
 }
 
 
-// =====================================================
-// RENDER MARKETPLACE
-// =====================================================
+// ======================================================
+// RENDER ADMIN LISTING
+// ======================================================
 
-function renderMarketplace(listings) {
+function renderAdminListing(listing) {
 
-    const market =
-        document.getElementById(
-            "marketListings"
-        );
+    let sellerText =
+        "Unknown seller";
 
 
-    const home =
-        document.getElementById(
-            "homeListings"
-        );
+    if (listing.seller) {
+
+        const tgUsername =
+            listing.seller
+                .telegram_username
+                ? "@" +
+                    listing.seller.telegram_username
+                : "No Telegram username";
 
 
-    if (
-        !listings ||
-        listings.length === 0
-    ) {
-
-        market.innerHTML = `
-
-            <div class="empty">
-            No active listings yet.
-            </div>
-
-        `;
-
-
-        home.innerHTML = `
-
-            <div class="empty">
-            Featured usernames will appear here.
-            </div>
-
-        `;
-
-        return;
+        sellerText =
+            `${escapeHtml(
+                listing.seller.first_name ||
+                "Telegram User"
+            )}<br>${escapeHtml(
+                tgUsername
+            )}`;
     }
-
-
-    market.innerHTML =
-        listings
-            .map(
-                renderPublicListing
-            )
-            .join("");
-
-
-    const featured =
-        listings
-            .filter(
-                item =>
-                    item.is_featured
-            );
-
-
-    const homeItems =
-        featured.length
-            ? featured
-            : listings.slice(
-                0,
-                5
-            );
-
-
-    home.innerHTML =
-        homeItems
-            .map(
-                renderPublicListing
-            )
-            .join("");
-
-}
-
-
-// =====================================================
-// LISTING HTML
-// =====================================================
-
-function renderPublicListing(listing) {
-
-    const verified =
-        listing.verification_status ===
-        "verified";
 
 
     return `
@@ -1684,16 +1603,187 @@ function renderPublicListing(listing) {
             </div>
 
 
+            <div class="badge badge-pending">
+                PENDING
+            </div>
+
+
+            <div class="price">
+
+                $${formatPrice(
+                    listing.asking_price
+                )}
+
+            </div>
+
+
+            <div class="meta">
+
+                ${escapeHtml(
+                    listing.category ||
+                    "Other"
+                )}
+
+            </div>
+
+
             ${
-                verified
+                listing.description
                     ? `
 
-                    <div class="badge badge-verified">
-                    ✓ Owner verified
-                    </div>
+                        <div class="description">
+
+                            ${escapeHtml(
+                                listing.description
+                            )}
+
+                        </div>
 
                     `
                     : ""
+            }
+
+
+            <div class="seller-info">
+
+                <b>Seller</b><br>
+
+                ${sellerText}
+
+            </div>
+
+
+            <div class="buttons">
+
+                <button
+                    class="approve-button"
+                    onclick="adminSetStatus(
+                        '${listing.id}',
+                        '${escapeJs(
+                            listing.whatsapp_username
+                        )}',
+                        'active'
+                    )"
+                >
+                    ✓ Approve
+                </button>
+
+
+                <button
+                    class="reject-button"
+                    onclick="adminSetStatus(
+                        '${listing.id}',
+                        '${escapeJs(
+                            listing.whatsapp_username
+                        )}',
+                        'rejected'
+                    )"
+                >
+                    ✕ Reject
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+}
+
+
+// ======================================================
+// RENDER PUBLIC
+// ======================================================
+
+function renderMarketplace(listings) {
+
+    const market =
+        document.getElementById(
+            "marketListings"
+        );
+
+    const home =
+        document.getElementById(
+            "homeListings"
+        );
+
+
+    if (!listings.length) {
+
+        market.innerHTML = `
+
+            <div class="empty">
+                No active listings yet.
+            </div>
+
+        `;
+
+
+        home.innerHTML = `
+
+            <div class="empty">
+                Featured usernames will appear here.
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    market.innerHTML =
+        listings
+            .map(renderPublicListing)
+            .join("");
+
+
+    const featured =
+        listings.filter(
+            item =>
+                item.is_featured
+        );
+
+
+    const homeItems =
+        featured.length
+            ? featured
+            : listings.slice(0, 5);
+
+
+    home.innerHTML =
+        homeItems
+            .map(renderPublicListing)
+            .join("");
+}
+
+
+function renderPublicListing(listing) {
+
+    return `
+
+        <div class="card">
+
+            <div class="username">
+
+                @${escapeHtml(
+                    listing.whatsapp_username
+                )}
+
+            </div>
+
+
+            ${
+                listing.verification_status ===
+                "verified"
+
+                ? `
+
+                    <div class="badge badge-verified">
+                        ✓ Owner verified
+                    </div>
+
+                `
+
+                : ""
             }
 
 
@@ -1720,13 +1810,13 @@ function renderPublicListing(listing) {
                 listing.description
                     ? `
 
-                    <div class="description">
+                        <div class="description">
 
-                    ${escapeHtml(
-                        listing.description
-                    )}
+                            ${escapeHtml(
+                                listing.description
+                            )}
 
-                    </div>
+                        </div>
 
                     `
                     : ""
@@ -1739,7 +1829,7 @@ function renderPublicListing(listing) {
                     class="primary"
                     onclick="futureOffer()"
                 >
-                Make Offer
+                    Make Offer
                 </button>
 
 
@@ -1747,7 +1837,7 @@ function renderPublicListing(listing) {
                     class="secondary"
                     onclick="futureWatch()"
                 >
-                ☆ Watch
+                    ☆ Watch
                 </button>
 
             </div>
@@ -1755,39 +1845,28 @@ function renderPublicListing(listing) {
         </div>
 
     `;
-
 }
 
 
-// =====================================================
-// MY LISTING HTML
-// =====================================================
+// ======================================================
+// MY LISTING
+// ======================================================
 
 function renderMyListing(listing) {
 
-    let statusClass =
+    let badgeClass =
         "badge-pending";
 
 
-    if (
-        listing.status ===
-        "active"
-    ) {
-
-        statusClass =
+    if (listing.status === "active") {
+        badgeClass =
             "badge-active";
-
     }
 
 
-    if (
-        listing.status ===
-        "rejected"
-    ) {
-
-        statusClass =
+    if (listing.status === "rejected") {
+        badgeClass =
             "badge-rejected";
-
     }
 
 
@@ -1805,7 +1884,7 @@ function renderMyListing(listing) {
 
 
             <div
-                class="badge ${statusClass}"
+                class="badge ${badgeClass}"
             >
 
                 ${escapeHtml(
@@ -1847,13 +1926,12 @@ function renderMyListing(listing) {
         </div>
 
     `;
-
 }
 
 
-// =====================================================
+// ======================================================
 // SEARCH
-// =====================================================
+// ======================================================
 
 function filterMarketplace(value) {
 
@@ -1876,117 +1954,117 @@ function filterMarketplace(value) {
 
     const filtered =
         marketplaceListings
-            .filter(
-                item =>
+            .filter(item =>
 
-                    item
-                        .whatsapp_username
-                        .toLowerCase()
-                        .includes(query)
+                item.whatsapp_username
+                    .toLowerCase()
+                    .includes(query)
 
-                    ||
+                ||
 
-                    String(
-                        item.category || ""
-                    )
-                        .toLowerCase()
-                        .includes(query)
+                String(
+                    item.category || ""
+                )
+                    .toLowerCase()
+                    .includes(query)
 
             );
 
 
-    renderMarketplace(
-        filtered
-    );
-
+    renderMarketplace(filtered);
 }
 
 
-// =====================================================
-// NAVIGATION
-// =====================================================
+// ======================================================
+// PAGE NAVIGATION
+// ======================================================
 
 function openPage(
     pageId,
-    element
+    navElement
 ) {
 
     document
-        .querySelectorAll(
-            ".page"
-        )
+        .querySelectorAll(".page")
         .forEach(
             page =>
-
                 page.classList.remove(
                     "active"
                 )
-
         );
 
 
     document
-        .getElementById(
-            pageId
-        )
-        .classList.add(
-            "active"
-        );
+        .getElementById(pageId)
+        .classList.add("active");
 
 
     document
-        .querySelectorAll(
-            ".nav-item"
-        )
+        .querySelectorAll(".nav-item")
         .forEach(
             item =>
-
                 item.classList.remove(
                     "active"
                 )
-
         );
 
 
-    element
-        .classList
-        .add(
-            "active"
-        );
-
+    if (navElement) {
+        navElement
+            .classList
+            .add("active");
+    }
 }
 
 
-// =====================================================
+// ======================================================
+// CONFIRM
+// ======================================================
+
+function askConfirm(text) {
+
+    return new Promise(
+        resolve => {
+
+            if (tg?.showConfirm) {
+
+                tg.showConfirm(
+                    text,
+                    result =>
+                        resolve(result)
+                );
+
+            } else {
+
+                resolve(
+                    window.confirm(text)
+                );
+            }
+        }
+    );
+}
+
+
+// ======================================================
 // HELPERS
-// =====================================================
+// ======================================================
 
 function escapeHtml(value) {
 
-    return String(
-        value ?? ""
-    )
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
 
+
+function escapeJs(value) {
+
+    return String(value ?? "")
+        .replaceAll("\\", "\\\\")
+        .replaceAll("'", "\\'");
 }
 
 
@@ -1996,36 +2074,26 @@ function formatPrice(value) {
         Number(value);
 
 
-    if (
-        !Number.isFinite(number)
-    ) {
-
+    if (!Number.isFinite(number)) {
         return "0";
-
     }
 
 
-    return number
-        .toLocaleString(
-            "en-US",
-            {
-                maximumFractionDigits:
-                    2
-            }
-        );
-
+    return number.toLocaleString(
+        "en-US",
+        {
+            maximumFractionDigits: 2
+        }
+    );
 }
 
 
 function readableError(error) {
 
-    const errors = {
+    const map = {
 
         invalid_username:
             "Enter a valid username.",
-
-        invalid_username_characters:
-            "Username may contain letters, numbers, dots and underscores.",
 
         invalid_price:
             "Enter a valid price.",
@@ -2037,80 +2105,41 @@ function readableError(error) {
             "You already submitted this username.",
 
         initData_expired:
-            "Telegram session expired. Close and reopen the Mini App.",
+            "Close and reopen the Mini App.",
 
         account_blocked:
-            "This Handle Market account is blocked.",
-
-        listing_create_failed:
-            "Could not create listing.",
-
-        contact_create_failed:
-            "Could not save seller contact."
+            "Your account is blocked."
 
     };
 
 
     return (
-        errors[error] ||
+        map[error] ||
         error ||
         "Something went wrong."
     );
-
 }
 
-
-function showListingError(text) {
-
-    const message =
-        document.getElementById(
-            "listingMessage"
-        );
-
-
-    message.className =
-        "message error";
-
-
-    message.textContent =
-        "✕ " + text;
-
-}
-
-
-// =====================================================
-// FUTURE FEATURES
-// =====================================================
 
 function futureOffer() {
 
-    if (tg) {
-
-        tg.showAlert(
-            "Make Offer will be connected in the next stage."
-        );
-
-    }
-
+    tg?.showAlert(
+        "Make Offer will be connected soon."
+    );
 }
 
 
 function futureWatch() {
 
-    if (tg) {
-
-        tg.showAlert(
-            "Watchlist will be connected later."
-        );
-
-    }
-
+    tg?.showAlert(
+        "Watchlist will be connected soon."
+    );
 }
 
 
-// =====================================================
+// ======================================================
 // START
-// =====================================================
+// ======================================================
 
 authenticateTelegramUser();
 
@@ -2118,7 +2147,6 @@ loadMarketplace();
 
 
 </script>
-
 
 </body>
 
