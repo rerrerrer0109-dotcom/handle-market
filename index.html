@@ -4054,6 +4054,133 @@ button {
 
 </style>
 
+<!-- =====================================================
+     v52 MODERN ACTION ICONS
+     Heart · Bookmark · Shield Report
+     ===================================================== -->
+<style>
+
+.action-icon-button {
+    width:50px;
+    min-width:50px;
+    height:50px;
+    min-height:50px;
+    border-radius:16px;
+    position:relative;
+    overflow:hidden;
+    transition:transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+
+.action-icon-button:active {
+    transform:scale(.94);
+}
+
+.action-icon-button .hm-icon {
+    width:20px;
+    height:20px;
+    stroke-width:1.85;
+}
+
+.action-icon-button .hm-solid-dot {
+    fill:currentColor;
+    stroke:none;
+}
+
+.like-button {
+    color:#df3158;
+    border-color:rgba(223,49,88,.16);
+    background:linear-gradient(180deg,rgba(255,246,249,.98),rgba(255,236,242,.96));
+}
+
+.like-button.liked {
+    color:#fff;
+    border-color:rgba(215,24,68,.55);
+    background:linear-gradient(145deg,#d71946,#ef3c66);
+    box-shadow:0 7px 18px rgba(215,25,70,.20),inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+.like-button.liked .hm-icon {
+    fill:currentColor;
+}
+
+.watch-button {
+    color:#a27400;
+    border-color:rgba(190,139,17,.17);
+    background:linear-gradient(180deg,#fffaf0,#fff4d8);
+}
+
+.watch-button.watching {
+    color:#171004;
+    border-color:rgba(255,214,91,.62);
+    background:linear-gradient(110deg,#be8407,#e7b62b,#ffe071);
+    box-shadow:0 7px 18px rgba(192,139,14,.19),inset 0 1px 0 rgba(255,255,255,.34);
+}
+
+.watch-button.watching .hm-icon {
+    fill:currentColor;
+}
+
+.report-button {
+    color:#b94a56;
+    border-color:rgba(185,74,86,.14);
+    background:linear-gradient(180deg,#fff8f8,#fff0f1);
+}
+
+.report-button:disabled {
+    color:#5b8b6c;
+    border-color:rgba(91,139,108,.15);
+    background:linear-gradient(180deg,#f5fbf7,#eaf6ee);
+    opacity:1;
+}
+
+/* On a VIP card the three controls remain clearly visible instead of fading into the dark shell. */
+.promotion-vip .like-button {
+    color:#ff6281;
+    border-color:rgba(255,98,129,.24);
+    background:rgba(128,7,34,.52);
+}
+
+.promotion-vip .like-button.liked {
+    color:#fff;
+    border-color:rgba(255,107,137,.38);
+    background:linear-gradient(145deg,#a90732,#dc194b);
+}
+
+.promotion-vip .watch-button {
+    color:#ffd85c;
+    border-color:rgba(255,216,92,.22);
+    background:rgba(93,56,5,.42);
+}
+
+.promotion-vip .watch-button.watching {
+    color:#171004;
+    border-color:rgba(255,224,126,.58);
+    background:linear-gradient(110deg,#a86f06,#d8a522,#ffe071);
+}
+
+.promotion-vip .report-button {
+    color:#ff8b9a;
+    border-color:rgba(255,139,154,.17);
+    background:rgba(108,14,35,.38);
+}
+
+.promotion-vip .report-button:disabled {
+    color:#a8dec0;
+    border-color:rgba(168,222,192,.18);
+    background:rgba(35,94,61,.30);
+}
+
+@media (max-width:390px) {
+    .action-icon-button {
+        width:48px;
+        min-width:48px;
+        height:48px;
+        min-height:48px;
+    }
+}
+
+</style>
+
 
 
 <!-- =====================================================
@@ -7892,23 +8019,25 @@ function hmActionIconSvg(kind, active = false) {
     const icons = {
         heart: `
             <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20.8 4.8a5.4 5.4 0 0 0-7.6 0L12 6l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.6a5.4 5.4 0 0 0 0-7.6Z"></path>
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"></path>
             </svg>
         `,
-        star: `
+        bookmark: `
             <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"></path>
+                <path d="M6.5 4.75A1.75 1.75 0 0 1 8.25 3h7.5a1.75 1.75 0 0 1 1.75 1.75V21L12 17.7 6.5 21V4.75Z"></path>
             </svg>
         `,
-        flag: `
+        shieldAlert: `
             <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 21V4"></path>
-                <path d="M6 5h10.5l-1.8 3 1.8 3H6"></path>
+                <path d="M12 3 19 6v5.2c0 4.65-2.85 7.85-7 9.8-4.15-1.95-7-5.15-7-9.8V6l7-3Z"></path>
+                <path d="M12 8v5"></path>
+                <circle cx="12" cy="16.4" r=".8" class="hm-solid-dot"></circle>
             </svg>
         `,
-        check: `
+        shieldCheck: `
             <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m5 12.5 4.2 4.2L19 7"></path>
+                <path d="M12 3 19 6v5.2c0 4.65-2.85 7.85-7 9.8-4.15-1.95-7-5.15-7-9.8V6l7-3Z"></path>
+                <path d="m9.1 12.2 2 2 4-4"></path>
             </svg>
         `,
         user: `
@@ -9641,7 +9770,7 @@ function renderListingCard(
                 aria-label="${watched ? "Remove from watchlist" : "Add to watchlist"}"
                 title="${watched ? "Watching" : "Watch"}"
                 >
-                    ${hmActionIconSvg("star", watched)}
+                    ${hmActionIconSvg("bookmark", watched)}
                 </button>
 
 
@@ -9664,7 +9793,7 @@ function renderListingCard(
                 aria-label="${reported ? "Reported" : "Report listing"}"
                 title="${reported ? "Reported" : "Report"}"
                 >
-                    ${hmActionIconSvg(reported ? "check" : "flag", reported)}
+                    ${hmActionIconSvg(reported ? "shieldCheck" : "shieldAlert", reported)}
                 </button>
 
             </div>
@@ -10237,7 +10366,7 @@ async function openListingPage(
                 aria-label="${watched ? "Remove from watchlist" : "Add to watchlist"}"
                 title="${watched ? "Watching" : "Watch"}"
                 >
-                    ${hmActionIconSvg("star", watched)}
+                    ${hmActionIconSvg("bookmark", watched)}
                 </button>
 
 
@@ -10260,7 +10389,7 @@ async function openListingPage(
                 aria-label="${reported ? "Reported" : "Report listing"}"
                 title="${reported ? "Reported" : "Report"}"
                 >
-                    ${hmActionIconSvg(reported ? "check" : "flag", reported)}
+                    ${hmActionIconSvg(reported ? "shieldCheck" : "shieldAlert", reported)}
                 </button>
 
             </div>
