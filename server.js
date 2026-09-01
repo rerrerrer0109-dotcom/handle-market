@@ -1193,6 +1193,69 @@ function validateListingInput(
     }
 
 
+    const priceType =
+        String(
+            body.price_type ||
+            "negotiable"
+        )
+            .trim()
+            .toLowerCase();
+
+
+    if (
+        ![
+            "fixed",
+            "negotiable"
+        ].includes(
+            priceType
+        )
+    ) {
+
+        return {
+            ok: false,
+            error:
+                "invalid_price_type"
+        };
+    }
+
+
+    let minimumOffer =
+        null;
+
+
+    if (
+        priceType ===
+        "negotiable" &&
+        String(
+            body.minimum_offer ??
+            ""
+        ).trim() !==
+        ""
+    ) {
+
+        minimumOffer =
+            Number(
+                body.minimum_offer
+            );
+
+
+        if (
+            !Number.isFinite(
+                minimumOffer
+            ) ||
+            minimumOffer <= 0 ||
+            minimumOffer > price
+        ) {
+
+            return {
+                ok: false,
+                error:
+                    "invalid_minimum_offer"
+            };
+        }
+    }
+
+
     const category =
         normalizeCategory(
             body.category
@@ -1289,6 +1352,8 @@ function validateListingInput(
 
             username,
             price,
+            priceType,
+            minimumOffer,
             category,
             description,
 
@@ -1557,6 +1622,12 @@ async function createFreeListing(
 
                         asking_price:
                             input.price,
+
+                        price_type:
+                            input.priceType,
+
+                        minimum_offer:
+                            input.minimumOffer,
 
                         currency:
                             "USD",
@@ -2051,6 +2122,9 @@ async function closeOtherOpenOffers(
                 {
                     status:
                         "declined",
+
+                    buyer_unread:
+                        true,
 
                     updated_at:
                         nowIso()
@@ -2908,7 +2982,7 @@ async function buildSellerProfilePayload(
         await supabase
             .from("listings")
             .select(
-                "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
+                "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
             )
             .eq(
                 "seller_telegram_id",
@@ -3476,7 +3550,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v34-support-center"
+                    "v35-marketplace-offers"
             }
         );
     }
@@ -3918,6 +3992,12 @@ app.post(
 
                         asking_price:
                             input.price,
+
+                        price_type:
+                            input.priceType,
+
+                        minimum_offer:
+                            input.minimumOffer,
 
                         category:
                             input.category,
@@ -4558,7 +4638,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,listing_number,whatsapp_username,asking_price,currency,category,description,status,verification_status,is_premium_name,is_featured,views_count,likes_count,is_paused,is_frozen,frozen_reason,frozen_at,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at,last_renewed_at,renewal_count"
+                    "id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,status,verification_status,is_premium_name,is_featured,views_count,likes_count,is_paused,is_frozen,frozen_reason,frozen_at,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at,last_renewed_at,renewal_count"
                 )
                 .eq(
                     "seller_telegram_id",
@@ -5223,7 +5303,7 @@ app.get(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
                 )
                 .eq(
                     "status",
@@ -5297,6 +5377,92 @@ app.get(
 
 
 /* =========================================================
+   WATCHLIST ALERTS
+   ========================================================= */
+
+async function notifyListingWatchers(
+    listingId,
+    text,
+    sellerTelegramId = null
+) {
+
+    try {
+
+        const {
+            data:
+                rows,
+            error
+        } =
+            await supabase
+                .from("watchlist")
+                .select("telegram_id")
+                .eq(
+                    "listing_id",
+                    listingId
+                );
+
+
+        if (error) {
+
+            console.error(
+                "Watchlist alert lookup:",
+                error
+            );
+
+            return;
+        }
+
+
+        const ids =
+            [
+                ...new Set(
+                    (
+                        rows ||
+                        []
+                    )
+                    .map(
+                        row =>
+                            Number(
+                                row.telegram_id
+                            )
+                    )
+                    .filter(
+                        id =>
+                            Number.isSafeInteger(
+                                id
+                            ) &&
+                            id > 0 &&
+                            id !==
+                            Number(
+                                sellerTelegramId
+                            )
+                    )
+                )
+            ];
+
+
+        for (
+            const telegramId of
+            ids
+        ) {
+
+            await safeSendMessage(
+                telegramId,
+                text
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Watchlist alert:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
    LISTING EDIT
    ========================================================= */
 
@@ -5351,12 +5517,60 @@ app.post(
                 );
 
 
+        const priceType =
+            String(
+                req.body.price_type ||
+                "negotiable"
+            )
+                .trim()
+                .toLowerCase();
+
+
+        let minimumOffer =
+            null;
+
+
+        if (
+            priceType ===
+            "negotiable" &&
+            String(
+                req.body.minimum_offer ??
+                ""
+            ).trim() !==
+            ""
+        ) {
+
+            minimumOffer =
+                Number(
+                    req.body.minimum_offer
+                );
+        }
+
+
         if (
             !listingId ||
             !Number.isFinite(price) ||
             price <= 0 ||
             price >
-            100000000
+            100000000 ||
+            ![
+                "fixed",
+                "negotiable"
+            ].includes(
+                priceType
+            ) ||
+            (
+                priceType ===
+                "negotiable" &&
+                minimumOffer !== null &&
+                (
+                    !Number.isFinite(
+                        minimumOffer
+                    ) ||
+                    minimumOffer <= 0 ||
+                    minimumOffer > price
+                )
+            )
         ) {
 
             return res
@@ -5378,7 +5592,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,status,is_frozen"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,status,is_frozen"
                 )
                 .eq(
                     "id",
@@ -5457,6 +5671,15 @@ app.post(
                         asking_price:
                             price,
 
+                        price_type:
+                            priceType,
+
+                        minimum_offer:
+                            priceType ===
+                            "negotiable"
+                                ? minimumOffer
+                                : null,
+
                         description,
 
                         updated_at:
@@ -5482,6 +5705,21 @@ app.post(
                             "listing_update_failed"
                     }
                 );
+        }
+
+
+        if (
+            Number(
+                listing.asking_price
+            ) >
+            price
+        ) {
+
+            await notifyListingWatchers(
+                listingId,
+                `📉 Price dropped on LOT ${listing.listing_number ? "#" + String(listing.listing_number).padStart(6,"0") : ""} · @${listing.whatsapp_username}\n\n$${Number(listing.asking_price).toLocaleString("en-US")} → $${price.toLocaleString("en-US")}\n\nOpen Handle Market → Watchlist.`,
+                auth.user.telegram_id
+            );
         }
 
 
@@ -5568,7 +5806,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,status,is_frozen,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_frozen,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "id",
@@ -5729,6 +5967,13 @@ app.post(
         }
 
 
+        await notifyListingWatchers(
+            listingId,
+            `${action === "pause" ? "⏸" : "▶️"} Watchlist update: LOT ${listing.listing_number ? "#" + String(listing.listing_number).padStart(6,"0") : ""} · @${listing.whatsapp_username} was ${action === "pause" ? "paused" : "resumed"}.`,
+            auth.user.telegram_id
+        );
+
+
         res.json(
             {
                 ok: true,
@@ -5886,6 +6131,13 @@ app.post(
             listingId,
 
             `❌ @${listing.whatsapp_username} was removed. Your open offer was closed.`
+        );
+
+
+        await notifyListingWatchers(
+            listingId,
+            `🗑 Watchlist update: LOT ${listing.listing_number ? "#" + String(listing.listing_number).padStart(6,"0") : ""} · @${listing.whatsapp_username} was removed by the seller.`,
+            auth.user.telegram_id
         );
 
 
@@ -7191,7 +7443,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,status,is_paused,is_frozen,listing_plan,listing_period_started_at,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,status,is_paused,is_frozen,listing_plan,listing_period_started_at,listing_expires_at"
                 )
                 .in(
                     "id",
@@ -8722,7 +8974,7 @@ app.post(
                             "chat_messages"
                         )
                         .select(
-                            "id,chat_id,sender_telegram_id,message,created_at"
+                            "id,chat_id,sender_telegram_id,message,read_at,created_at"
                         )
                         .in(
                             "chat_id",
@@ -9025,7 +9277,7 @@ app.post(
                     "chat_messages"
                 )
                 .select(
-                    "id,chat_id,sender_telegram_id,message,created_at"
+                    "id,chat_id,sender_telegram_id,message,read_at,created_at"
                 )
                 .eq(
                     "chat_id",
@@ -9058,6 +9310,28 @@ app.post(
                     }
                 );
         }
+
+
+        await supabase
+            .from("chat_messages")
+            .update(
+                {
+                    read_at:
+                        nowIso()
+                }
+            )
+            .eq(
+                "chat_id",
+                chatId
+            )
+            .neq(
+                "sender_telegram_id",
+                userId
+            )
+            .is(
+                "read_at",
+                null
+            );
 
 
         return res.json(
@@ -9280,7 +9554,7 @@ app.post(
                     }
                 )
                 .select(
-                    "id,chat_id,sender_telegram_id,message,created_at"
+                    "id,chat_id,sender_telegram_id,message,read_at,created_at"
                 )
                 .single();
 
@@ -10072,7 +10346,7 @@ app.post(
                             "support_messages"
                         )
                         .select(
-                            "id,ticket_id,sender_telegram_id,sender_role,message,created_at"
+                            "id,ticket_id,sender_telegram_id,sender_role,message,read_at,created_at"
                         )
                         .in(
                             "ticket_id",
@@ -10232,7 +10506,7 @@ app.post(
                     "support_messages"
                 )
                 .select(
-                    "id,ticket_id,sender_telegram_id,sender_role,message,created_at"
+                    "id,ticket_id,sender_telegram_id,sender_role,message,read_at,created_at"
                 )
                 .eq(
                     "ticket_id",
@@ -10263,6 +10537,56 @@ app.post(
                         error:
                             "support_messages_load_failed"
                     }
+                );
+        }
+
+
+        if (
+            auth.user.is_admin
+        ) {
+
+            await supabase
+                .from("support_messages")
+                .update(
+                    {
+                        read_at:
+                            nowIso()
+                    }
+                )
+                .eq(
+                    "ticket_id",
+                    ticketId
+                )
+                .eq(
+                    "sender_role",
+                    "user"
+                )
+                .is(
+                    "read_at",
+                    null
+                );
+
+        } else {
+
+            await supabase
+                .from("support_messages")
+                .update(
+                    {
+                        read_at:
+                            nowIso()
+                    }
+                )
+                .eq(
+                    "ticket_id",
+                    ticketId
+                )
+                .eq(
+                    "sender_role",
+                    "admin"
+                )
+                .is(
+                    "read_at",
+                    null
                 );
         }
 
@@ -10490,7 +10814,7 @@ app.post(
                     }
                 )
                 .select(
-                    "id,ticket_id,sender_telegram_id,sender_role,message,created_at"
+                    "id,ticket_id,sender_telegram_id,sender_role,message,read_at,created_at"
                 )
                 .single();
 
@@ -10899,7 +11223,7 @@ app.post(
                             "support_messages"
                         )
                         .select(
-                            "id,ticket_id,sender_telegram_id,sender_role,message,created_at"
+                            "id,ticket_id,sender_telegram_id,sender_role,message,read_at,created_at"
                         )
                         .in(
                             "ticket_id",
@@ -11179,6 +11503,506 @@ app.post(
 
 
 /* =========================================================
+   UNREAD COUNTS
+   ========================================================= */
+
+app.post(
+    "/unread-counts",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        await expireStaleOffers();
+
+
+        const userId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const {
+            data:
+                chats
+        } =
+            await supabase
+                .from("listing_chats")
+                .select("id")
+                .or(
+                    `buyer_telegram_id.eq.${userId},seller_telegram_id.eq.${userId}`
+                );
+
+
+        const chatIds =
+            (
+                chats ||
+                []
+            ).map(
+                row =>
+                    row.id
+            );
+
+
+        let chatUnread =
+            0;
+
+
+        if (chatIds.length) {
+
+            const {
+                count
+            } =
+                await supabase
+                    .from("chat_messages")
+                    .select(
+                        "id",
+                        {
+                            count:"exact",
+                            head:true
+                        }
+                    )
+                    .in(
+                        "chat_id",
+                        chatIds
+                    )
+                    .neq(
+                        "sender_telegram_id",
+                        userId
+                    )
+                    .is(
+                        "read_at",
+                        null
+                    );
+
+
+            chatUnread =
+                Number(
+                    count ||
+                    0
+                );
+        }
+
+
+        const {
+            count:
+                buyerOfferUnread
+        } =
+            await supabase
+                .from("offers")
+                .select(
+                    "id",
+                    {
+                        count:"exact",
+                        head:true
+                    }
+                )
+                .eq(
+                    "buyer_telegram_id",
+                    userId
+                )
+                .eq(
+                    "buyer_unread",
+                    true
+                );
+
+
+        const {
+            data:
+                sellerListings
+        } =
+            await supabase
+                .from("listings")
+                .select("id")
+                .eq(
+                    "seller_telegram_id",
+                    userId
+                );
+
+
+        let sellerOfferUnread =
+            0;
+
+
+        const sellerListingIds =
+            (
+                sellerListings ||
+                []
+            ).map(
+                row =>
+                    row.id
+            );
+
+
+        if (sellerListingIds.length) {
+
+            const {
+                count
+            } =
+                await supabase
+                    .from("offers")
+                    .select(
+                        "id",
+                        {
+                            count:"exact",
+                            head:true
+                        }
+                    )
+                    .in(
+                        "listing_id",
+                        sellerListingIds
+                    )
+                    .eq(
+                        "seller_unread",
+                        true
+                    );
+
+
+            sellerOfferUnread =
+                Number(
+                    count ||
+                    0
+                );
+        }
+
+
+        const {
+            data:
+                ownTickets
+        } =
+            await supabase
+                .from("support_tickets")
+                .select("id")
+                .eq(
+                    "user_telegram_id",
+                    userId
+                );
+
+
+        let supportUnread =
+            0;
+
+
+        const ownTicketIds =
+            (
+                ownTickets ||
+                []
+            ).map(
+                row =>
+                    row.id
+            );
+
+
+        if (ownTicketIds.length) {
+
+            const {
+                count
+            } =
+                await supabase
+                    .from("support_messages")
+                    .select(
+                        "id",
+                        {
+                            count:"exact",
+                            head:true
+                        }
+                    )
+                    .in(
+                        "ticket_id",
+                        ownTicketIds
+                    )
+                    .eq(
+                        "sender_role",
+                        "admin"
+                    )
+                    .is(
+                        "read_at",
+                        null
+                    );
+
+
+            supportUnread =
+                Number(
+                    count ||
+                    0
+                );
+        }
+
+
+        return res.json(
+            {
+                ok:true,
+                chats:
+                    chatUnread,
+                offers:
+                    Number(
+                        buyerOfferUnread ||
+                        0
+                    ) +
+                    sellerOfferUnread,
+                support:
+                    supportUnread
+            }
+        );
+    }
+);
+
+
+/* =========================================================
+   OFFER V35 HELPERS
+   ========================================================= */
+
+async function recordOfferEvent(
+    offerId,
+    actorTelegramId,
+    eventType,
+    amount = null
+) {
+
+    try {
+
+        await supabase
+            .from("offer_events")
+            .insert(
+                {
+                    id:
+                        crypto.randomUUID(),
+                    offer_id:
+                        offerId,
+                    actor_telegram_id:
+                        actorTelegramId === null
+                            ? null
+                            : Number(
+                                actorTelegramId
+                            ),
+                    event_type:
+                        eventType,
+                    amount:
+                        amount === null
+                            ? null
+                            : Number(
+                                amount
+                            )
+                }
+            );
+
+    } catch (error) {
+
+        console.error(
+            "Offer event:",
+            error
+        );
+    }
+}
+
+
+async function expireStaleOffers() {
+
+    try {
+
+        const {
+            data:
+                stale
+        } =
+            await supabase
+                .from("offers")
+                .select("id,buyer_telegram_id")
+                .in(
+                    "status",
+                    [
+                        "pending",
+                        "countered"
+                    ]
+                )
+                .lte(
+                    "expires_at",
+                    nowIso()
+                );
+
+
+        if (!stale?.length) {
+
+            return;
+        }
+
+
+        const ids =
+            stale.map(
+                row =>
+                    row.id
+            );
+
+
+        await supabase
+            .from("offers")
+            .update(
+                {
+                    status:
+                        "expired",
+                    buyer_unread:
+                        true,
+                    seller_unread:
+                        true,
+                    updated_at:
+                        nowIso()
+                }
+            )
+            .in(
+                "id",
+                ids
+            );
+
+
+        for (
+            const row of
+            stale
+        ) {
+
+            await recordOfferEvent(
+                row.id,
+                null,
+                "expired"
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Expire offers:",
+            error
+        );
+    }
+}
+
+
+async function attachOfferEvents(
+    offers
+) {
+
+    const rows =
+        offers ||
+        [];
+
+
+    const ids =
+        rows.map(
+            row =>
+                row.id
+        );
+
+
+    if (!ids.length) {
+
+        return rows;
+    }
+
+
+    const {
+        data:
+            events,
+        error
+    } =
+        await supabase
+            .from("offer_events")
+            .select(
+                "id,offer_id,actor_telegram_id,event_type,amount,created_at"
+            )
+            .in(
+                "offer_id",
+                ids
+            )
+            .order(
+                "created_at",
+                {
+                    ascending:true
+                }
+            );
+
+
+    if (error) {
+
+        console.error(
+            "Offer history:",
+            error
+        );
+
+        return rows.map(
+            row => ({
+                ...row,
+                history:[]
+            })
+        );
+    }
+
+
+    const map =
+        new Map();
+
+
+    for (
+        const event of
+        events ||
+        []
+    ) {
+
+        const list =
+            map.get(
+                String(
+                    event.offer_id
+                )
+            ) ||
+            [];
+
+
+        list.push(
+            event
+        );
+
+
+        map.set(
+            String(
+                event.offer_id
+            ),
+            list
+        );
+    }
+
+
+    return rows.map(
+        row => ({
+            ...row,
+            history:
+                map.get(
+                    String(
+                        row.id
+                    )
+                ) ||
+                []
+        })
+    );
+}
+
+
+/* =========================================================
    OFFERS CREATE
    ========================================================= */
 
@@ -11239,6 +12063,13 @@ app.post(
                 );
 
 
+        const durationHours =
+            Number(
+                req.body.duration_hours ||
+                24
+            );
+
+
         if (
             !listingId ||
             !Number.isFinite(
@@ -11246,7 +12077,14 @@ app.post(
             ) ||
             amount <= 0 ||
             amount >
-            100000000
+            100000000 ||
+            ![
+                24,
+                72,
+                168
+            ].includes(
+                durationHours
+            )
         ) {
 
             return res
@@ -11270,7 +12108,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,status,is_paused,is_frozen,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "id",
@@ -11318,6 +12156,64 @@ app.post(
 
 
         if (
+            String(
+                listing.price_type ||
+                "negotiable"
+            ) ===
+            "fixed" &&
+            Math.abs(
+                amount -
+                Number(
+                    listing.asking_price
+                )
+            ) >
+            0.009
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "fixed_price_required"
+                    }
+                );
+        }
+
+
+        if (
+            String(
+                listing.price_type ||
+                "negotiable"
+            ) ===
+            "negotiable" &&
+            listing.minimum_offer !==
+            null &&
+            Number.isFinite(
+                Number(
+                    listing.minimum_offer
+                )
+            ) &&
+            amount <
+            Number(
+                listing.minimum_offer
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "offer_below_minimum"
+                    }
+                );
+        }
+
+
+        if (
             !await buyerHasContactAccess(
                 buyerId,
                 listingId
@@ -11334,6 +12230,9 @@ app.post(
                     }
                 );
         }
+
+
+        await expireStaleOffers();
 
 
         const {
@@ -11438,6 +12337,18 @@ app.post(
                         seller_counter_amount:
                             null,
 
+                        expires_at:
+                            addHoursIso(
+                                nowIso(),
+                                durationHours
+                            ),
+
+                        buyer_unread:
+                            false,
+
+                        seller_unread:
+                            true,
+
                         status:
                             "pending"
                     }
@@ -11458,6 +12369,14 @@ app.post(
                     }
                 );
         }
+
+
+        await recordOfferEvent(
+            offer.id,
+            buyerId,
+            "offer_created",
+            amount
+        );
 
 
         safeSendMessage(
@@ -11508,6 +12427,9 @@ app.post(
         }
 
 
+        await expireStaleOffers();
+
+
         const {
             data:
                 offers,
@@ -11516,7 +12438,7 @@ app.post(
             await supabase
                 .from("offers")
                 .select(
-                    "id,listing_id,amount,currency,message,seller_counter_amount,status,created_at,updated_at"
+                    "id,listing_id,amount,currency,message,seller_counter_amount,status,expires_at,buyer_unread,seller_unread,created_at,updated_at"
                 )
                 .eq(
                     "buyer_telegram_id",
@@ -11570,7 +12492,7 @@ app.post(
                 await supabase
                     .from("listings")
                     .select(
-                        "id,listing_number,whatsapp_username,asking_price,category,is_frozen,is_paused,status,listing_plan,listing_expires_at"
+                        "id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,category,is_frozen,is_paused,status,listing_plan,listing_expires_at"
                     )
                     .in(
                         "id",
@@ -11602,14 +12524,48 @@ app.post(
             );
 
 
+        const enhancedOffers =
+            await attachOfferEvents(
+                offers ||
+                []
+            );
+
+
+        const buyerUnreadIds =
+            enhancedOffers
+                .filter(
+                    row =>
+                        row.buyer_unread
+                )
+                .map(
+                    row =>
+                        row.id
+                );
+
+
+        if (buyerUnreadIds.length) {
+
+            await supabase
+                .from("offers")
+                .update(
+                    {
+                        buyer_unread:false
+                    }
+                )
+                .in(
+                    "id",
+                    buyerUnreadIds
+                );
+        }
+
+
         res.json(
             {
                 ok: true,
 
                 offers:
                     (
-                        offers ||
-                        []
+                        enhancedOffers
                     ).map(
                         row => ({
 
@@ -11666,6 +12622,9 @@ app.post(
             );
 
 
+        await expireStaleOffers();
+
+
         const {
             data:
                 sellerListings,
@@ -11675,7 +12634,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,listing_number,whatsapp_username,asking_price,category,is_frozen,is_paused,status,listing_plan,listing_expires_at"
+                    "id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,category,is_frozen,is_paused,status,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "seller_telegram_id",
@@ -11730,7 +12689,7 @@ app.post(
             await supabase
                 .from("offers")
                 .select(
-                    "id,listing_id,buyer_telegram_id,amount,currency,message,seller_counter_amount,status,created_at,updated_at"
+                    "id,listing_id,buyer_telegram_id,amount,currency,message,seller_counter_amount,status,expires_at,buyer_unread,seller_unread,created_at,updated_at"
                 )
                 .in(
                     "listing_id",
@@ -11831,14 +12790,48 @@ app.post(
             );
 
 
+        const enhancedOffers =
+            await attachOfferEvents(
+                offers ||
+                []
+            );
+
+
+        const sellerUnreadIds =
+            enhancedOffers
+                .filter(
+                    row =>
+                        row.seller_unread
+                )
+                .map(
+                    row =>
+                        row.id
+                );
+
+
+        if (sellerUnreadIds.length) {
+
+            await supabase
+                .from("offers")
+                .update(
+                    {
+                        seller_unread:false
+                    }
+                )
+                .in(
+                    "id",
+                    sellerUnreadIds
+                );
+        }
+
+
         res.json(
             {
                 ok: true,
 
                 offers:
                     (
-                        offers ||
-                        []
+                        enhancedOffers
                     ).map(
                         row => ({
 
@@ -11946,6 +12939,9 @@ app.post(
         }
 
 
+        await expireStaleOffers();
+
+
         const {
             data:
                 offer
@@ -11981,7 +12977,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,is_frozen,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,is_frozen,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "id",
@@ -12080,6 +13076,28 @@ app.post(
         if (
             action ===
             "counter" &&
+            String(
+                listing.price_type ||
+                "negotiable"
+            ) ===
+            "fixed"
+        ) {
+
+            return res
+                .status(409)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "fixed_price_no_counter"
+                    }
+                );
+        }
+
+
+        if (
+            action ===
+            "counter" &&
             (
                 !Number.isFinite(
                     counterAmount
@@ -12148,7 +13166,11 @@ app.post(
 
         const updateData = {
             updated_at:
-                nowIso()
+                nowIso(),
+            buyer_unread:
+                true,
+            seller_unread:
+                false
         };
 
 
@@ -12221,6 +13243,22 @@ app.post(
                     }
                 );
         }
+
+
+        await recordOfferEvent(
+            offer.id,
+            sellerId,
+            action === "accept"
+                ? "seller_accepted"
+                : action === "decline"
+                    ? "seller_declined"
+                    : "seller_countered",
+            action === "counter"
+                ? counterAmount
+                : action === "accept"
+                    ? offer.amount
+                    : null
+        );
 
 
         if (
@@ -12394,6 +13432,9 @@ app.post(
         }
 
 
+        await expireStaleOffers();
+
+
         const {
             data:
                 offer
@@ -12430,6 +13471,14 @@ app.post(
             data:
                 listing
         } =
+            await recordOfferEvent(
+                offer.id,
+                buyerId,
+                "buyer_accepted_counter",
+                offer.seller_counter_amount
+            );
+
+
             await supabase
                 .from("listings")
                 .select(
@@ -12570,6 +13619,12 @@ app.post(
                             status:
                                 "accepted",
 
+                            buyer_unread:
+                                false,
+
+                            seller_unread:
+                                true,
+
                             updated_at:
                                 nowIso()
                         }
@@ -12689,6 +13744,12 @@ app.post(
                         status:
                             "cancelled",
 
+                        buyer_unread:
+                            false,
+
+                        seller_unread:
+                            true,
+
                         updated_at:
                             nowIso()
                     }
@@ -12713,6 +13774,13 @@ app.post(
                     }
                 );
         }
+
+
+        await recordOfferEvent(
+            offer.id,
+            buyerId,
+            "buyer_cancelled"
+        );
 
 
         safeSendMessage(
@@ -13505,6 +14573,12 @@ app.post(
                             asking_price:
                                 input.price,
 
+                            price_type:
+                                input.priceType,
+
+                            minimum_offer:
+                                input.minimumOffer,
+
                             currency:
                                 "USD",
 
@@ -13564,7 +14638,7 @@ app.post(
                         }
                     )
                     .select(
-                        "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,is_featured,views_count,likes_count,is_paused,is_frozen,created_at,listing_plan,listing_period_started_at,listing_expires_at"
+                        "id,seller_telegram_id,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,status,is_premium_name,is_featured,views_count,likes_count,is_paused,is_frozen,created_at,listing_plan,listing_period_started_at,listing_expires_at"
                     )
                     .single();
 
@@ -14873,7 +15947,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,created_at,listing_plan"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,status,is_premium_name,created_at,listing_plan"
                 )
                 .eq(
                     "status",
@@ -15526,7 +16600,7 @@ app.post(
                 await supabase
                     .from("listings")
                     .select(
-                        "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,category,status,is_premium_name,is_paused,is_frozen,frozen_reason,listing_plan,listing_expires_at"
+                        "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,category,status,is_premium_name,is_paused,is_frozen,frozen_reason,listing_plan,listing_expires_at"
                     )
                     .in(
                         "id",
@@ -15623,7 +16697,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,is_paused,is_frozen,frozen_reason,frozen_at,frozen_by,created_at,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,status,is_premium_name,is_paused,is_frozen,frozen_reason,frozen_at,frozen_by,created_at,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "is_frozen",
@@ -17152,6 +18226,14 @@ app.post(
 
                                         asking_price:
                                             order.asking_price,
+
+                                        price_type:
+                                            order.price_type ||
+                                            "negotiable",
+
+                                        minimum_offer:
+                                            order.minimum_offer ??
+                                            null,
 
                                         currency:
                                             "USD",

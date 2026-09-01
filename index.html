@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#ffffff">
 
 <title>Handle Market</title>
-<!-- UI version: v34-support-center -->
+<!-- UI version: v35-marketplace-offers -->
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -3365,7 +3365,7 @@ New sellers can publish their first listing free. The 24-hour timer begins only 
 
 <input
     id="homeSearchInput"
-    placeholder="Search @username"
+    placeholder="Search @username or LOT #"
     oninput="setMarketplaceSearch(this.value)"
 >
 
@@ -3508,7 +3508,7 @@ is awarded by Handle Market to selected unique and high-quality usernames. Selle
 
 <input
     id="marketSearchInput"
-    placeholder="Search @username"
+    placeholder="Search @username or LOT #"
     oninput="setMarketplaceSearch(this.value)"
 >
 
@@ -3876,6 +3876,54 @@ Asking price (USD)
     placeholder="5000"
     required
 >
+
+</div>
+
+
+<div class="field">
+
+<label>
+Price type
+</label>
+
+<select
+    id="listingPriceType"
+    onchange="updateListingPricingUi()"
+>
+
+<option value="negotiable" selected>
+💬 Negotiable
+</option>
+
+<option value="fixed">
+🔒 Fixed Price
+</option>
+
+</select>
+
+</div>
+
+
+<div
+    class="field"
+    id="listingMinimumOfferField"
+>
+
+<label>
+Minimum offer (USD) · optional
+</label>
+
+<input
+    id="listingMinimumOffer"
+    type="number"
+    min="1"
+    step="0.01"
+    placeholder="3500"
+>
+
+<div class="field-hint">
+Buyers cannot send an offer below this amount. Leave empty for no minimum.
+</div>
 
 </div>
 
@@ -4782,6 +4830,46 @@ Asking price (USD)
 <div class="field">
 
 <label>
+Price type
+</label>
+
+<select
+    id="adminListingPriceType"
+    onchange="updateAdminListingPricingUi()"
+    required
+>
+<option value="negotiable" selected>💬 Negotiable</option>
+<option value="fixed">🔒 Fixed Price</option>
+</select>
+
+</div>
+
+
+<div
+    class="field"
+    id="adminListingMinimumOfferField"
+>
+
+<label>
+Minimum offer (USD) · optional
+</label>
+
+<input
+    id="adminListingMinimumOffer"
+    type="number"
+    inputmode="decimal"
+    min="1"
+    max="100000000"
+    step="0.01"
+    placeholder="3500"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
 Category
 </label>
 
@@ -5306,6 +5394,12 @@ const tg =
 
 let authenticatedUser =
     null;
+
+let unreadCounts = {
+    chats:0,
+    offers:0,
+    support:0
+};
 
 let listingPriceStars =
     1;
@@ -5943,7 +6037,8 @@ async function authenticate() {
             [
                 loadWatchlistState(),
                 loadLikeState(),
-                loadMyReports()
+                loadMyReports(),
+                loadUnreadCounts()
             ]
         );
 
@@ -6693,6 +6788,119 @@ async function loadMarketplace() {
 }
 
 
+function marketplaceSearchMatches(
+    listing,
+    rawSearch
+) {
+
+    const search =
+        String(
+            rawSearch ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
+
+
+    if (!search) {
+
+        return true;
+    }
+
+
+    const usernameSearch =
+        search
+            .replace(
+                /^@/,
+                ""
+            );
+
+
+    const username =
+        String(
+            listing.whatsapp_username ||
+            ""
+        ).toLowerCase();
+
+
+    if (
+        username.includes(
+            usernameSearch
+        )
+    ) {
+
+        return true;
+    }
+
+
+    const lotSearch =
+        search
+            .replace(
+                /^lot\s*#?\s*/i,
+                ""
+            )
+            .replace(
+                /\s+/g,
+                ""
+            );
+
+
+    if (
+        !/^\d+$/.test(
+            lotSearch
+        )
+    ) {
+
+        return false;
+    }
+
+
+    const number =
+        Number(
+            listing.listing_number
+        );
+
+
+    if (
+        !Number.isSafeInteger(
+            number
+        ) ||
+        number <= 0
+    ) {
+
+        return false;
+    }
+
+
+    const rawNumber =
+        String(
+            number
+        );
+
+
+    const paddedNumber =
+        rawNumber.padStart(
+            6,
+            "0"
+        );
+
+
+    const normalizedLotSearch =
+        lotSearch.replace(
+            /^0+(?=\d)/,
+            ""
+        );
+
+
+    return (
+        rawNumber ===
+        normalizedLotSearch ||
+        paddedNumber ===
+        lotSearch
+    );
+}
+
+
 function getFilteredMarketplaceListings() {
 
     let listings =
@@ -6711,26 +6919,18 @@ function getFilteredMarketplaceListings() {
         String(
             marketFilters.search ||
             ""
-        )
-        .replace("@","")
-        .trim()
-        .toLowerCase();
+        );
 
 
     if (
-        search
+        search.trim()
     ) {
 
         listings =
             listings.filter(
                 listing =>
-
-                    String(
-                        listing.whatsapp_username ||
-                        ""
-                    )
-                    .toLowerCase()
-                    .includes(
+                    marketplaceSearchMatches(
+                        listing,
                         search
                     )
             );
@@ -7019,26 +7219,18 @@ function renderHomeListings() {
         String(
             marketFilters.search ||
             ""
-        )
-        .replace("@","")
-        .trim()
-        .toLowerCase();
+        );
 
 
     if (
-        search
+        search.trim()
     ) {
 
         listings =
             listings.filter(
                 listing =>
-
-                    String(
-                        listing.whatsapp_username ||
-                        ""
-                    )
-                    .toLowerCase()
-                    .includes(
+                    marketplaceSearchMatches(
+                        listing,
                         search
                     )
             );
@@ -7634,6 +7826,92 @@ function renderActiveFilterBar() {
 }
 
 
+function isNewListing(
+    listing
+) {
+
+    const created =
+        new Date(
+            listing?.created_at ||
+            0
+        ).getTime();
+
+
+    return (
+        Number.isFinite(
+            created
+        ) &&
+        created > 0 &&
+        currentServerTimeMs() -
+        created <
+        24 * 60 * 60 * 1000
+    );
+}
+
+
+function newListingBadgeHtml(
+    listing
+) {
+
+    return isNewListing(
+        listing
+    )
+        ? '<span class="badge badge-active">🆕 NEW</span>'
+        : "";
+}
+
+
+function pricingBadgeHtml(
+    listing
+) {
+
+    return String(
+        listing?.price_type ||
+        "negotiable"
+    ) ===
+    "fixed"
+
+        ? '<span class="badge badge-paused">🔒 Fixed Price</span>'
+
+        : '<span class="badge badge-active">💬 Negotiable</span>';
+}
+
+
+function minimumOfferHtml(
+    listing
+) {
+
+    if (
+        String(
+            listing?.price_type ||
+            "negotiable"
+        ) !==
+        "negotiable" ||
+        listing?.minimum_offer ===
+        null ||
+        listing?.minimum_offer ===
+        undefined ||
+        !Number.isFinite(
+            Number(
+                listing.minimum_offer
+            )
+        )
+    ) {
+
+        return "";
+    }
+
+
+    return `
+        <div class="listing-lifetime">
+            💵 Minimum offer: $${formatPrice(
+                listing.minimum_offer
+            )}
+        </div>
+    `;
+}
+
+
 /* =========================================================
    PUBLIC LISTING
    ========================================================= */
@@ -7741,6 +8019,14 @@ function renderListingCard(
                             listing
                         )}
 
+                        ${newListingBadgeHtml(
+                            listing
+                        )}
+
+                        ${pricingBadgeHtml(
+                            listing
+                        )}
+
                         <span class="category-badge">
 
                             ${escapeHtml(
@@ -7817,6 +8103,10 @@ function renderListingCard(
                 listing
             )}
 
+            ${minimumOfferHtml(
+                listing
+            )}
+
 
             <div class="listing-actions">
 
@@ -7836,7 +8126,15 @@ function renderListingCard(
                         )
                     "
                 >
-                    Make Offer
+                    ${
+                        String(
+                            listing.price_type ||
+                            "negotiable"
+                        ) ===
+                        "fixed"
+                            ? "Offer Asking Price"
+                            : "Make Offer"
+                    }
                 </button>
 
 
@@ -9766,6 +10064,108 @@ function updateContactFieldUi() {
 
 
 /* =========================================================
+   LISTING PRICING UI
+   ========================================================= */
+
+function updateListingPricingUi() {
+
+    const type =
+        document.getElementById(
+            "listingPriceType"
+        )?.value ||
+        "negotiable";
+
+
+    const field =
+        document.getElementById(
+            "listingMinimumOfferField"
+        );
+
+
+    const input =
+        document.getElementById(
+            "listingMinimumOffer"
+        );
+
+
+    if (!field) {
+
+        return;
+    }
+
+
+    const negotiable =
+        type ===
+        "negotiable";
+
+
+    field.style.display =
+        negotiable
+            ? "block"
+            : "none";
+
+
+    if (
+        !negotiable &&
+        input
+    ) {
+
+        input.value =
+            "";
+    }
+}
+
+
+function updateAdminListingPricingUi() {
+
+    const type =
+        document.getElementById(
+            "adminListingPriceType"
+        )?.value ||
+        "negotiable";
+
+
+    const field =
+        document.getElementById(
+            "adminListingMinimumOfferField"
+        );
+
+
+    const input =
+        document.getElementById(
+            "adminListingMinimumOffer"
+        );
+
+
+    if (!field) {
+
+        return;
+    }
+
+
+    const negotiable =
+        type ===
+        "negotiable";
+
+
+    field.style.display =
+        negotiable
+            ? "block"
+            : "none";
+
+
+    if (
+        !negotiable &&
+        input
+    ) {
+
+        input.value =
+            "";
+    }
+}
+
+
+/* =========================================================
    LISTING CREATE
    ========================================================= */
 
@@ -9805,6 +10205,16 @@ async function startListingPayment(
                             "listingPrice"
                         ).value,
 
+                    price_type:
+                        document.getElementById(
+                            "listingPriceType"
+                        ).value,
+
+                    minimum_offer:
+                        document.getElementById(
+                            "listingMinimumOffer"
+                        ).value,
+
                     category:
                         document.getElementById(
                             "listingCategory"
@@ -9837,6 +10247,8 @@ async function startListingPayment(
             document.getElementById(
                 "listingForm"
             ).reset();
+
+            updateListingPricingUi();
 
 
             freeListingAvailable =
@@ -10848,6 +11260,55 @@ function promotionStatusHtml(
    EDIT / PAUSE / REMOVE
    ========================================================= */
 
+function updateEditListingPricingUi() {
+
+    const type =
+        document.getElementById(
+            "editPriceTypeInput"
+        )?.value ||
+        "negotiable";
+
+
+    const field =
+        document.getElementById(
+            "editMinimumOfferField"
+        );
+
+
+    const input =
+        document.getElementById(
+            "editMinimumOfferInput"
+        );
+
+
+    if (!field) {
+
+        return;
+    }
+
+
+    const negotiable =
+        type ===
+        "negotiable";
+
+
+    field.style.display =
+        negotiable
+            ? "block"
+            : "none";
+
+
+    if (
+        !negotiable &&
+        input
+    ) {
+
+        input.value =
+            "";
+    }
+}
+
+
 function openEditListing(
     listingId
 ) {
@@ -10911,6 +11372,57 @@ function openEditListing(
         <div class="field">
 
             <label>
+                Price type
+            </label>
+
+            <select
+                id="editPriceTypeInput"
+                onchange="updateEditListingPricingUi()"
+            >
+                <option
+                    value="negotiable"
+                    ${String(listing.price_type || "negotiable") === "negotiable" ? "selected" : ""}
+                >
+                    💬 Negotiable
+                </option>
+
+                <option
+                    value="fixed"
+                    ${String(listing.price_type || "negotiable") === "fixed" ? "selected" : ""}
+                >
+                    🔒 Fixed Price
+                </option>
+            </select>
+
+        </div>
+
+
+        <div
+            class="field"
+            id="editMinimumOfferField"
+        >
+
+            <label>
+                Minimum offer (USD) · optional
+            </label>
+
+            <input
+                id="editMinimumOfferInput"
+                type="number"
+                min="1"
+                step="0.01"
+                value="${escapeHtml(
+                    listing.minimum_offer ??
+                    ""
+                )}"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
                 Description
             </label>
 
@@ -10925,6 +11437,9 @@ function openEditListing(
         </div>
 
     `;
+
+
+    updateEditListingPricingUi();
 
 
     const action =
@@ -10954,6 +11469,16 @@ function openEditListing(
                         asking_price:
                             document.getElementById(
                                 "editPriceInput"
+                            ).value,
+
+                        price_type:
+                            document.getElementById(
+                                "editPriceTypeInput"
+                            ).value,
+
+                        minimum_offer:
+                            document.getElementById(
+                                "editMinimumOfferInput"
                             ).value,
 
                         description:
@@ -11590,18 +12115,61 @@ function openOfferModal(
     askingPrice
 ) {
 
+    const listing =
+        marketplaceListings.find(
+            item =>
+                String(
+                    item.id
+                ) ===
+                String(
+                    listingId
+                )
+        ) ||
+        null;
+
+
+    const priceType =
+        String(
+            listing?.price_type ||
+            "negotiable"
+        );
+
+
+    const minimumOffer =
+        listing?.minimum_offer !==
+        null &&
+        listing?.minimum_offer !==
+        undefined
+            ? Number(
+                listing.minimum_offer
+            )
+            : null;
+
+
+    const fixed =
+        priceType ===
+        "fixed";
+
+
     document.getElementById(
         "inputModalTitle"
     ).textContent =
-        `Offer for @${username}`;
+        fixed
+            ? `Offer asking price for @${username}`
+            : `Offer for @${username}`;
 
 
     document.getElementById(
         "inputModalSubtitle"
     ).textContent =
-        `Asking price: $${formatPrice(
-            askingPrice
-        )}`;
+        fixed
+            ? `Fixed price: $${formatPrice(askingPrice)}`
+            : minimumOffer !== null &&
+                Number.isFinite(
+                    minimumOffer
+                )
+                ? `Asking: $${formatPrice(askingPrice)} · Minimum: $${formatPrice(minimumOffer)}`
+                : `Asking price: $${formatPrice(askingPrice)}`;
 
 
     document.getElementById(
@@ -11617,12 +12185,41 @@ function openOfferModal(
             <input
                 id="offerAmountInput"
                 type="number"
-                min="1"
+                min="${escapeHtml(
+                    fixed
+                        ? askingPrice
+                        : minimumOffer ??
+                            1
+                )}"
                 step="0.01"
                 value="${escapeHtml(
                     askingPrice
                 )}"
+                ${fixed ? "readonly" : ""}
             >
+
+            ${
+                fixed
+                    ? '<div class="field-hint">This seller uses a fixed price. The offer amount cannot be changed.</div>'
+                    : minimumOffer !== null && Number.isFinite(minimumOffer)
+                        ? `<div class="field-hint">Minimum accepted offer: $${formatPrice(minimumOffer)}</div>`
+                        : ""
+            }
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Offer valid for
+            </label>
+
+            <select id="offerDurationInput">
+                <option value="24" selected>24 hours</option>
+                <option value="72">3 days</option>
+                <option value="168">7 days</option>
+            </select>
 
         </div>
 
@@ -11672,6 +12269,11 @@ function openOfferModal(
                                 "offerAmountInput"
                             ).value,
 
+                        duration_hours:
+                            document.getElementById(
+                                "offerDurationInput"
+                            ).value,
+
                         message:
                             document.getElementById(
                                 "offerMessageInput"
@@ -11683,6 +12285,9 @@ function openOfferModal(
                 closeModal(
                     "inputModal"
                 );
+
+
+                await loadUnreadCounts();
 
 
                 tg?.showAlert(
@@ -11720,6 +12325,138 @@ function openOfferModal(
 }
 
 
+function offerExpiresHtml(
+    offer
+) {
+
+    if (!offer?.expires_at) {
+
+        return "";
+    }
+
+
+    if (
+        [
+            "accepted",
+            "declined",
+            "cancelled",
+            "expired"
+        ].includes(
+            String(
+                offer.status
+            )
+        )
+    ) {
+
+        return "";
+    }
+
+
+    return `
+        <div class="listing-lifetime">
+            ⏳ Offer expires
+            <span
+                data-countdown-kind="offer"
+                data-expires-at="${escapeHtml(
+                    offer.expires_at
+                )}"
+            >
+                ${formatCountdown(
+                    offer.expires_at
+                )}
+            </span>
+        </div>
+    `;
+}
+
+
+function offerHistoryHtml(
+    offer
+) {
+
+    const history =
+        Array.isArray(
+            offer?.history
+        )
+            ? offer.history
+            : [];
+
+
+    if (!history.length) {
+
+        const legacy = [];
+
+
+        if (
+            Number.isFinite(
+                Number(
+                    offer?.amount
+                )
+            )
+        ) {
+
+            legacy.push(
+                `Buyer offered $${formatPrice(offer.amount)}`
+            );
+        }
+
+
+        if (
+            Number.isFinite(
+                Number(
+                    offer?.seller_counter_amount
+                )
+            ) &&
+            Number(
+                offer.seller_counter_amount
+            ) > 0
+        ) {
+
+            legacy.push(
+                `Seller countered $${formatPrice(offer.seller_counter_amount)}`
+            );
+        }
+
+
+        if (!legacy.length) {
+
+            return "";
+        }
+
+
+        return `
+            <div class="field-hint" style="margin-top:10px">
+                ${legacy.map(escapeHtml).join(" → ")}
+            </div>
+        `;
+    }
+
+
+    const labels = {
+        offer_created:"Buyer offered",
+        seller_countered:"Seller countered",
+        seller_accepted:"Seller accepted",
+        seller_declined:"Seller declined",
+        buyer_accepted_counter:"Buyer accepted counter",
+        buyer_cancelled:"Buyer cancelled",
+        expired:"Offer expired"
+    };
+
+
+    return `
+        <div style="margin-top:12px">
+            <div class="offer-label">NEGOTIATION HISTORY</div>
+            ${history.map(event => `
+                <div class="field-hint" style="margin-top:5px">
+                    ${escapeHtml(labels[event.event_type] || event.event_type)}
+                    ${event.amount !== null && event.amount !== undefined ? ` · $${formatPrice(event.amount)}` : ""}
+                </div>
+            `).join("")}
+        </div>
+    `;
+}
+
+
 function openOffers() {
 
     openPage(
@@ -11740,6 +12477,12 @@ async function loadOfferCenter() {
             loadReceivedOffers()
         ]
     );
+
+
+    await loadUnreadCounts();
+
+
+    updateLiveCountdowns();
 }
 
 
@@ -11841,6 +12584,14 @@ async function loadSentOffers() {
                                         offer.status
                                     ).toUpperCase()}
                                 </div>
+
+                                ${offerExpiresHtml(
+                                    offer
+                                )}
+
+                                ${offerHistoryHtml(
+                                    offer
+                                )}
 
 
                                 ${
@@ -12004,6 +12755,14 @@ async function loadReceivedOffers() {
                                     ).toUpperCase()}
                                 </div>
 
+                                ${offerExpiresHtml(
+                                    offer
+                                )}
+
+                                ${offerHistoryHtml(
+                                    offer
+                                )}
+
 
                                 ${
                                     offer.status ===
@@ -12034,21 +12793,33 @@ async function loadReceivedOffers() {
                                                             </button>
 
 
-                                                            <button
-                                                                class="counter-button"
-                                                                onclick="
-                                                                    openCounterOffer(
-                                                                        '${offer.id}',
-                                                                        '${escapeJs(
-                                                                            offer.listing?.whatsapp_username ||
-                                                                            ""
-                                                                        )}',
-                                                                        '${offer.amount}'
-                                                                    )
-                                                                "
-                                                            >
-                                                                Counter
-                                                            </button>
+                                                            ${
+                                                                String(
+                                                                    offer.listing?.price_type ||
+                                                                    "negotiable"
+                                                                ) ===
+                                                                "fixed"
+
+                                                                    ? ""
+
+                                                                    : `
+                                                                        <button
+                                                                            class="counter-button"
+                                                                            onclick="
+                                                                                openCounterOffer(
+                                                                                    '${offer.id}',
+                                                                                    '${escapeJs(
+                                                                                        offer.listing?.whatsapp_username ||
+                                                                                        ""
+                                                                                    )}',
+                                                                                    '${offer.amount}'
+                                                                                )
+                                                                            "
+                                                                        >
+                                                                            Counter
+                                                                        </button>
+                                                                    `
+                                                            }
 
                                                         `
                                                 }
@@ -13298,6 +14069,9 @@ async function loadChatMessages(
         }
 
 
+        await loadUnreadCounts();
+
+
     } catch (
         error
     ) {
@@ -14398,6 +15172,9 @@ async function loadSupportTicketMessages(
         }
 
 
+        await loadUnreadCounts();
+
+
     } catch (
         error
     ) {
@@ -14866,6 +15643,127 @@ async function adminSetSupportStatus(
 
 
 /* =========================================================
+   UNREAD COUNTS
+   ========================================================= */
+
+function unreadBadgeHtml(
+    count
+) {
+
+    const number =
+        Number(
+            count ||
+            0
+        );
+
+
+    if (
+        !Number.isFinite(
+            number
+        ) ||
+        number <= 0
+    ) {
+
+        return "";
+    }
+
+
+    return `
+        <span
+            style="
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                min-width:20px;
+                height:20px;
+                padding:0 6px;
+                margin-left:7px;
+                border-radius:999px;
+                background:var(--button-color,#2481cc);
+                color:#fff;
+                font-size:11px;
+                font-weight:800;
+                vertical-align:middle;
+            "
+        >
+            ${Math.min(
+                99,
+                Math.floor(
+                    number
+                )
+            )}${number > 99 ? "+" : ""}
+        </span>
+    `;
+}
+
+
+async function loadUnreadCounts() {
+
+    if (
+        !authenticatedUser ||
+        !tg?.initData
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/unread-counts",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        unreadCounts = {
+            chats:
+                Number(
+                    data.chats ||
+                    0
+                ),
+            offers:
+                Number(
+                    data.offers ||
+                    0
+                ),
+            support:
+                Number(
+                    data.support ||
+                    0
+                )
+        };
+
+
+        if (
+            authenticatedUser &&
+            document.getElementById(
+                "profileContent"
+            )
+        ) {
+
+            renderMainProfile(
+                authenticatedUser
+            );
+        }
+
+    } catch (
+        error
+    ) {
+
+        console.log(
+            "Unread counts:",
+            error.message
+        );
+    }
+}
+
+
+/* =========================================================
    PROFILE
    ========================================================= */
 
@@ -14974,7 +15872,7 @@ function renderMainProfile(
                     <div>
 
                         <div class="profile-tile-title">
-                            My Offers
+                            My Offers ${unreadBadgeHtml(unreadCounts.offers)}
                         </div>
 
                         <div class="profile-tile-subtitle">
@@ -14998,7 +15896,7 @@ function renderMainProfile(
                     <div>
 
                         <div class="profile-tile-title">
-                            Chats
+                            Chats ${unreadBadgeHtml(unreadCounts.chats)}
                         </div>
 
                         <div class="profile-tile-subtitle">
@@ -15022,7 +15920,7 @@ function renderMainProfile(
                     <div>
 
                         <div class="profile-tile-title">
-                            Help & Support
+                            Help & Support ${unreadBadgeHtml(unreadCounts.support)}
                         </div>
 
                         <div class="profile-tile-subtitle">
@@ -15745,6 +16643,16 @@ async function adminCreateListing(
                             "adminListingPrice"
                         ).value,
 
+                    price_type:
+                        document.getElementById(
+                            "adminListingPriceType"
+                        ).value,
+
+                    minimum_offer:
+                        document.getElementById(
+                            "adminListingMinimumOffer"
+                        ).value,
+
                     category:
                         document.getElementById(
                             "adminListingCategory"
@@ -15784,6 +16692,7 @@ async function adminCreateListing(
 
 
         updateAdminContactFieldUi();
+        updateAdminListingPricingUi();
 
 
         await Promise.all(
@@ -18209,7 +19118,25 @@ function friendlyError(
             "You already have this username listed.",
 
         cannot_like_own_listing:
-            "You cannot like your own listing."
+            "You cannot like your own listing.",
+
+        invalid_price_type:
+            "Choose Fixed Price or Negotiable.",
+
+        invalid_minimum_offer:
+            "Minimum offer must be greater than $0 and cannot exceed the asking price.",
+
+        fixed_price_required:
+            "This is a fixed-price listing. Your offer must equal the asking price.",
+
+        fixed_price_no_counter:
+            "Counter offers are disabled for fixed-price listings.",
+
+        offer_below_minimum:
+            "Your offer is below the seller's minimum offer.",
+
+        offer_expired:
+            "This offer has expired."
     };
 
 
@@ -18435,6 +19362,8 @@ function cssEscape(
 async function startApp() {
 
     updateContactFieldUi();
+    updateListingPricingUi();
+    updateAdminListingPricingUi();
     updateAdminContactFieldUi();
 
     await loadMarketplace();
