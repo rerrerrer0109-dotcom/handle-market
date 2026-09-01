@@ -1366,6 +1366,408 @@ function validateListingInput(
 }
 
 
+/* =========================================================
+   V38 TRUST / MODERATION HELPERS
+   ========================================================= */
+
+function validateContactInput(
+    body
+) {
+
+    const contactType =
+        String(
+            body.contact_type ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
+
+
+    if (
+        ![
+            "telegram",
+            "email",
+            "other"
+        ].includes(
+            contactType
+        )
+    ) {
+
+        return {
+            ok:false,
+            error:"invalid_contact_type"
+        };
+    }
+
+
+    const contactValue =
+        String(
+            body.contact_value ||
+            ""
+        )
+            .trim()
+            .slice(
+                0,
+                200
+            );
+
+
+    if (!contactValue) {
+
+        return {
+            ok:false,
+            error:"contact_required"
+        };
+    }
+
+
+    if (
+        contactType ===
+        "email" &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            .test(
+                contactValue
+            )
+    ) {
+
+        return {
+            ok:false,
+            error:"invalid_email"
+        };
+    }
+
+
+    return {
+        ok:true,
+        data:{
+            contactType,
+            contactValue
+        }
+    };
+}
+
+
+function contactHasExternalLink(
+    value
+) {
+
+    const raw =
+        String(
+            value ||
+            ""
+        ).trim();
+
+
+    return /(?:https?:\/\/|www\.|(?:[a-z0-9-]+\.)+(?:com|net|org|io|co|me|app|site|shop|xyz|info|biz|dev|ai|ru|kg)(?:\/|\b))/i
+        .test(
+            raw
+        );
+}
+
+
+async function addListingChangeHistory(
+    listingId,
+    actorType,
+    actorTelegramId,
+    changeType,
+    oldValue,
+    newValue
+) {
+
+    try {
+
+        await supabase
+            .from(
+                "listing_change_history"
+            )
+            .insert(
+                {
+                    listing_id:
+                        listingId,
+
+                    actor_type:
+                        actorType,
+
+                    actor_telegram_id:
+                        actorTelegramId
+                            ? Number(
+                                actorTelegramId
+                              )
+                            : null,
+
+                    change_type:
+                        changeType,
+
+                    old_value:
+                        oldValue ?? null,
+
+                    new_value:
+                        newValue ?? null
+                }
+            );
+
+    } catch (error) {
+
+        console.error(
+            "Listing change history:",
+            error
+        );
+    }
+}
+
+
+async function addPriceHistory(
+    listing,
+    oldPrice,
+    newPrice
+) {
+
+    try {
+
+        await supabase
+            .from(
+                "listing_price_history"
+            )
+            .insert(
+                {
+                    listing_id:
+                        listing.id,
+
+                    seller_telegram_id:
+                        listing.seller_telegram_id,
+
+                    old_price:
+                        oldPrice,
+
+                    new_price:
+                        newPrice,
+
+                    changed_at:
+                        nowIso()
+                }
+            );
+
+    } catch (error) {
+
+        console.error(
+            "Price history:",
+            error
+        );
+    }
+}
+
+
+async function ensureRiskFlag(
+    listingId,
+    flagType,
+    severity = "medium",
+    details = null
+) {
+
+    try {
+
+        const {
+            data:existing
+        } =
+            await supabase
+                .from(
+                    "listing_risk_flags"
+                )
+                .select("id")
+                .eq(
+                    "listing_id",
+                    listingId
+                )
+                .eq(
+                    "flag_type",
+                    flagType
+                )
+                .eq(
+                    "status",
+                    "open"
+                )
+                .limit(1);
+
+
+        if (
+            existing?.length
+        ) {
+
+            return existing[0];
+        }
+
+
+        const {
+            data
+        } =
+            await supabase
+                .from(
+                    "listing_risk_flags"
+                )
+                .insert(
+                    {
+                        listing_id:
+                            listingId,
+
+                        flag_type:
+                            flagType,
+
+                        severity:
+                            severity,
+
+                        status:
+                            "open",
+
+                        details:
+                            details
+                    }
+                )
+                .select()
+                .single();
+
+
+        return data || null;
+
+    } catch (error) {
+
+        console.error(
+            "Risk flag:",
+            error
+        );
+
+        return null;
+    }
+}
+
+
+async function resolveRiskFlagType(
+    listingId,
+    flagType,
+    adminTelegramId,
+    note = "Resolved by moderation"
+) {
+
+    try {
+
+        await supabase
+            .from(
+                "listing_risk_flags"
+            )
+            .update(
+                {
+                    status:
+                        "resolved",
+
+                    resolved_at:
+                        nowIso(),
+
+                    resolved_by:
+                        Number(
+                            adminTelegramId
+                        ),
+
+                    resolution_note:
+                        note
+                }
+            )
+            .eq(
+                "listing_id",
+                listingId
+            )
+            .eq(
+                "flag_type",
+                flagType
+            )
+            .eq(
+                "status",
+                "open"
+            );
+
+    } catch (error) {
+
+        console.error(
+            "Resolve risk flag:",
+            error
+        );
+    }
+}
+
+
+async function logAdminActivity(
+    adminTelegramId,
+    action,
+    targetType,
+    targetId,
+    details = null
+) {
+
+    try {
+
+        await supabase
+            .from(
+                "admin_activity_log"
+            )
+            .insert(
+                {
+                    admin_telegram_id:
+                        Number(
+                            adminTelegramId
+                        ),
+
+                    action:
+                        String(
+                            action ||
+                            "admin_action"
+                        ).slice(
+                            0,
+                            120
+                        ),
+
+                    target_type:
+                        targetType
+                            ? String(
+                                targetType
+                              ).slice(0,80)
+                            : null,
+
+                    target_id:
+                        targetId
+                            ? String(
+                                targetId
+                              ).slice(0,160)
+                            : null,
+
+                    details:
+                        details
+                }
+            );
+
+    } catch (error) {
+
+        console.error(
+            "Admin activity log:",
+            error
+        );
+    }
+}
+
+
+async function notifyAdminsContactChanged(
+    listing
+) {
+
+    const lot =
+        listing.listing_number
+            ? `LOT #${String(listing.listing_number).padStart(6,"0")}`
+            : "Listing";
+
+
+    await notifyAdmins(
+        `⚠️ Contact changed · ${lot}\n@${listing.whatsapp_username}\n\nThe listing was sent back to moderation and is hidden until the new contact is reviewed.`
+    );
+}
+
+
 function normalizeWantedUsername(
     value
 ) {
@@ -5699,7 +6101,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v37-discovery"
+                    "v38-trust-moderation"
             }
         );
     }
@@ -6787,7 +7189,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,status,verification_status,is_premium_name,is_featured,views_count,likes_count,is_paused,is_frozen,frozen_reason,frozen_at,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at,last_renewed_at,renewal_count"
+                    "id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,status,verification_status,is_premium_name,is_featured,views_count,likes_count,is_paused,is_frozen,frozen_reason,frozen_at,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at,last_renewed_at,renewal_count,contact_review_required,contact_last_changed_at"
                 )
                 .eq(
                     "seller_telegram_id",
@@ -6830,6 +7232,55 @@ app.post(
             );
 
 
+        const listingIds =
+            listingsWithStats.map(
+                row =>
+                    row.id
+            );
+
+
+        let contacts = [];
+
+
+        if (
+            listingIds.length
+        ) {
+
+            const {
+                data:contactRows
+            } =
+                await supabase
+                    .from(
+                        "listing_contacts"
+                    )
+                    .select(
+                        "listing_id,contact_type,contact_value"
+                    )
+                    .in(
+                        "listing_id",
+                        listingIds
+                    );
+
+
+            contacts =
+                contactRows ||
+                [];
+        }
+
+
+        const contactMap =
+            new Map(
+                contacts.map(
+                    row => [
+                        String(
+                            row.listing_id
+                        ),
+                        row
+                    ]
+                )
+            );
+
+
         res.json(
             {
                 ok: true,
@@ -6850,7 +7301,31 @@ app.post(
                     PAID_LISTING_DURATION_DAYS,
 
                 listings:
-                    listingsWithStats
+                    listingsWithStats.map(
+                        row => {
+
+                            const contact =
+                                contactMap.get(
+                                    String(
+                                        row.id
+                                    )
+                                ) ||
+                                null;
+
+
+                            return {
+                                ...row,
+
+                                contact_type:
+                                    contact?.contact_type ||
+                                    "telegram",
+
+                                contact_value:
+                                    contact?.contact_value ||
+                                    ""
+                            };
+                        }
+                    )
             }
         );
     }
@@ -7615,6 +8090,7 @@ async function notifyListingWatchers(
 
 /* =========================================================
    LISTING EDIT
+   V38: contact changes trigger re-moderation.
    ========================================================= */
 
 app.post(
@@ -7635,9 +8111,8 @@ app.post(
                 )
                 .json(
                     {
-                        ok: false,
-                        error:
-                            auth.error
+                        ok:false,
+                        error:auth.error
                     }
                 );
         }
@@ -7662,10 +8137,7 @@ app.post(
                 ""
             )
                 .trim()
-                .slice(
-                    0,
-                    500
-                );
+                .slice(0,500);
 
 
         const priceType =
@@ -7702,8 +8174,7 @@ app.post(
             !listingId ||
             !Number.isFinite(price) ||
             price <= 0 ||
-            price >
-            100000000 ||
+            price > 100000000 ||
             ![
                 "fixed",
                 "negotiable"
@@ -7728,22 +8199,49 @@ app.post(
                 .status(400)
                 .json(
                     {
-                        ok: false,
+                        ok:false,
+                        error:"invalid_price"
+                    }
+                );
+        }
+
+
+        const contactValidation =
+            validateContactInput(
+                req.body
+            );
+
+
+        if (
+            !contactValidation.ok
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
                         error:
-                            "invalid_price"
+                            contactValidation.error
                     }
                 );
         }
 
 
         const {
-            data:
-                listing
+            contactType,
+            contactValue
+        } =
+            contactValidation.data;
+
+
+        const {
+            data:listing
         } =
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,status,is_frozen"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,description,status,is_frozen,contact_review_required"
                 )
                 .eq(
                     "id",
@@ -7766,9 +8264,8 @@ app.post(
                 .status(404)
                 .json(
                     {
-                        ok: false,
-                        error:
-                            "listing_not_found"
+                        ok:false,
+                        error:"listing_not_found"
                     }
                 );
         }
@@ -7782,9 +8279,8 @@ app.post(
                 .status(409)
                 .json(
                     {
-                        ok: false,
-                        error:
-                            "listing_frozen"
+                        ok:false,
+                        error:"listing_frozen"
                     }
                 );
         }
@@ -7803,39 +8299,135 @@ app.post(
                 .status(409)
                 .json(
                     {
-                        ok: false,
-                        error:
-                            "listing_not_editable"
+                        ok:false,
+                        error:"listing_not_editable"
                     }
                 );
         }
 
 
         const {
-            data,
-            error
+            data:oldContact,
+            error:contactLoadError
+        } =
+            await supabase
+                .from(
+                    "listing_contacts"
+                )
+                .select(
+                    "contact_type,contact_value"
+                )
+                .eq(
+                    "listing_id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (
+            contactLoadError ||
+            !oldContact
+        ) {
+
+            return res
+                .status(404)
+                .json(
+                    {
+                        ok:false,
+                        error:"seller_contact_not_found"
+                    }
+                );
+        }
+
+
+        const contactChanged =
+            String(
+                oldContact.contact_type ||
+                ""
+            ) !==
+            contactType ||
+            String(
+                oldContact.contact_value ||
+                ""
+            ).trim() !==
+            contactValue;
+
+
+        const priceChanged =
+            Number(
+                listing.asking_price
+            ) !==
+            price;
+
+
+        const priceTypeChanged =
+            String(
+                listing.price_type ||
+                "negotiable"
+            ) !==
+            priceType;
+
+
+        const minimumOfferChanged =
+            Number(
+                listing.minimum_offer ||
+                0
+            ) !==
+            Number(
+                minimumOffer ||
+                0
+            );
+
+
+        const descriptionChanged =
+            String(
+                listing.description ||
+                ""
+            ) !==
+            description;
+
+
+        const update = {
+            asking_price:price,
+            price_type:priceType,
+            minimum_offer:
+                priceType ===
+                "negotiable"
+                    ? minimumOffer
+                    : null,
+            description,
+            updated_at:nowIso()
+        };
+
+
+        if (
+            contactChanged
+        ) {
+
+            update.status =
+                "pending";
+
+            update.contact_review_required =
+                true;
+
+            update.contact_last_changed_at =
+                nowIso();
+
+            update.contact_last_changed_by =
+                Number(
+                    auth.user.telegram_id
+                );
+        }
+
+
+        const {
+            data:updatedListing,
+            error:updateError
         } =
             await supabase
                 .from("listings")
                 .update(
-                    {
-                        asking_price:
-                            price,
-
-                        price_type:
-                            priceType,
-
-                        minimum_offer:
-                            priceType ===
-                            "negotiable"
-                                ? minimumOffer
-                                : null,
-
-                        description,
-
-                        updated_at:
-                            nowIso()
-                    }
+                    update
                 )
                 .eq(
                     "id",
@@ -7845,41 +8437,281 @@ app.post(
                 .single();
 
 
-        if (error) {
+        if (
+            updateError
+        ) {
 
             return res
                 .status(500)
                 .json(
                     {
-                        ok: false,
-                        error:
-                            "listing_update_failed"
+                        ok:false,
+                        error:"listing_update_failed"
                     }
                 );
         }
 
 
         if (
-            Number(
-                listing.asking_price
-            ) >
-            price
+            contactChanged
         ) {
 
-            await notifyListingWatchers(
+            const {
+                error:contactUpdateError
+            } =
+                await supabase
+                    .from(
+                        "listing_contacts"
+                    )
+                    .update(
+                        {
+                            contact_type:
+                                contactType,
+
+                            contact_value:
+                                contactValue
+                        }
+                    )
+                    .eq(
+                        "listing_id",
+                        listingId
+                    );
+
+
+            if (
+                contactUpdateError
+            ) {
+
+                console.error(
+                    "Contact update:",
+                    contactUpdateError
+                );
+
+
+                return res
+                    .status(500)
+                    .json(
+                        {
+                            ok:false,
+                            error:"contact_update_failed"
+                        }
+                    );
+            }
+        }
+
+
+        const sellerId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        if (
+            priceChanged
+        ) {
+
+            await addPriceHistory(
+                listing,
+                Number(
+                    listing.asking_price
+                ),
+                price
+            );
+
+
+            await addListingChangeHistory(
                 listingId,
-                `📉 Price dropped on LOT ${listing.listing_number ? "#" + String(listing.listing_number).padStart(6,"0") : ""} · @${listing.whatsapp_username}\n\n$${Number(listing.asking_price).toLocaleString("en-US")} → $${price.toLocaleString("en-US")}\n\nOpen Handle Market → Watchlist.`,
-                auth.user.telegram_id,
-                "price_drops"
+                "seller",
+                sellerId,
+                "price",
+                {
+                    asking_price:
+                        Number(
+                            listing.asking_price
+                        )
+                },
+                {
+                    asking_price:
+                        price
+                }
+            );
+
+
+            const oldPrice =
+                Number(
+                    listing.asking_price
+                );
+
+
+            if (
+                oldPrice > 0 &&
+                Math.abs(
+                    price -
+                    oldPrice
+                ) /
+                oldPrice >=
+                0.5
+            ) {
+
+                await ensureRiskFlag(
+                    listingId,
+                    "large_price_change",
+                    "medium",
+                    {
+                        old_price:oldPrice,
+                        new_price:price
+                    }
+                );
+            }
+
+
+            if (
+                oldPrice >
+                price
+            ) {
+
+                await notifyListingWatchers(
+                    listingId,
+                    `📉 Price dropped on LOT ${listing.listing_number ? "#" + String(listing.listing_number).padStart(6,"0") : ""} · @${listing.whatsapp_username}\n\n$${oldPrice.toLocaleString("en-US")} → $${price.toLocaleString("en-US")}\n\nOpen Handle Market → Watchlist.`,
+                    sellerId,
+                    "price_drops"
+                );
+            }
+        }
+
+
+        if (
+            priceTypeChanged ||
+            minimumOfferChanged
+        ) {
+
+            await addListingChangeHistory(
+                listingId,
+                "seller",
+                sellerId,
+                "pricing_terms",
+                {
+                    price_type:
+                        listing.price_type ||
+                        "negotiable",
+                    minimum_offer:
+                        listing.minimum_offer
+                },
+                {
+                    price_type:
+                        priceType,
+                    minimum_offer:
+                        minimumOffer
+                }
             );
         }
 
 
-        res.json(
+        if (
+            descriptionChanged
+        ) {
+
+            await addListingChangeHistory(
+                listingId,
+                "seller",
+                sellerId,
+                "description",
+                {
+                    description:
+                        listing.description ||
+                        ""
+                },
+                {
+                    description:
+                        description
+                }
+            );
+        }
+
+
+        if (
+            contactChanged
+        ) {
+
+            await addListingChangeHistory(
+                listingId,
+                "seller",
+                sellerId,
+                "contact",
+                {
+                    contact_type:
+                        oldContact.contact_type,
+                    contact_value:
+                        oldContact.contact_value
+                },
+                {
+                    contact_type:
+                        contactType,
+                    contact_value:
+                        contactValue
+                }
+            );
+
+
+            await ensureRiskFlag(
+                listingId,
+                "contact_changed",
+                "medium",
+                {
+                    previous_type:
+                        oldContact.contact_type,
+                    new_type:
+                        contactType,
+                    changed_at:
+                        nowIso()
+                }
+            );
+
+
+            if (
+                contactHasExternalLink(
+                    contactValue
+                )
+            ) {
+
+                await ensureRiskFlag(
+                    listingId,
+                    "external_link_contact",
+                    "medium",
+                    {
+                        contact_type:
+                            contactType
+                    }
+                );
+            }
+
+
+            await notifyAdminsContactChanged(
+                listing
+            );
+
+
+            await safeSendMessage(
+                sellerId,
+                `⚠️ Your contact for @${listing.whatsapp_username} was changed.\n\nThe listing has been sent back to moderation and is temporarily hidden. Its existing listing timer continues to run.`
+            );
+        }
+
+
+        return res.json(
             {
-                ok: true,
+                ok:true,
+                contact_changed:
+                    contactChanged,
+                review_required:
+                    contactChanged ||
+                    Boolean(
+                        listing.contact_review_required
+                    ),
                 listing:
-                    data
+                    withLifecycle(
+                        updatedListing
+                    )
             }
         );
     }
@@ -16221,6 +17053,152 @@ app.post(
 
 
 /* =========================================================
+   V38 ADMIN AUDIT MIDDLEWARE
+   Logs successful mutating admin actions without initData/contact secrets.
+   ========================================================= */
+
+const ADMIN_AUDIT_MUTATION_PATHS =
+    new Set([
+        "/admin/create-listing",
+        "/admin/seller-block",
+        "/admin/listing-promotion",
+        "/admin/listing-status",
+        "/admin/listing-premium",
+        "/admin/report-action",
+        "/admin/listing-freeze",
+        "/admin/listing-remove",
+        "/admin/support-status",
+        "/admin/risk-flag-action"
+    ]);
+
+
+app.use(
+    "/admin",
+    (req, res, next) => {
+
+        const auditPath =
+            String(
+                req.originalUrl ||
+                ""
+            ).split("?")[0];
+
+
+        if (
+            req.method !==
+            "POST" ||
+            !ADMIN_AUDIT_MUTATION_PATHS.has(
+                auditPath
+            )
+        ) {
+
+            return next();
+        }
+
+
+        res.on(
+            "finish",
+            async () => {
+
+                if (
+                    res.statusCode < 200 ||
+                    res.statusCode >= 400
+                ) {
+
+                    return;
+                }
+
+
+                try {
+
+                    const admin =
+                        await requireAdmin(
+                            req.body?.initData
+                        );
+
+
+                    if (
+                        !admin.ok
+                    ) {
+
+                        return;
+                    }
+
+
+                    const body =
+                        req.body ||
+                        {};
+
+
+                    const details = {};
+
+
+                    for (
+                        const [key,value] of
+                        Object.entries(
+                            body
+                        )
+                    ) {
+
+                        if (
+                            [
+                                "initData",
+                                "contact_value"
+                            ].includes(
+                                key
+                            )
+                        ) {
+
+                            continue;
+                        }
+
+
+                        details[key] =
+                            value;
+                    }
+
+
+                    const targetId =
+                        body.listing_id ||
+                        body.seller_telegram_id ||
+                        body.report_id ||
+                        body.ticket_id ||
+                        body.flag_id ||
+                        null;
+
+
+                    await logAdminActivity(
+                        admin.user.telegram_id,
+                        auditPath,
+                        body.listing_id
+                            ? "listing"
+                            : body.seller_telegram_id
+                                ? "seller"
+                                : body.ticket_id
+                                    ? "support_ticket"
+                                    : body.flag_id
+                                        ? "risk_flag"
+                                        : "admin",
+                        targetId,
+                        details
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        "Admin audit middleware:",
+                        error
+                    );
+                }
+            }
+        );
+
+
+        next();
+    }
+);
+
+
+/* =========================================================
    ADMIN CONTACT REVIEW
    Admin-only access to the raw seller contact for moderation.
    No Stars payment or buyer unlock is required.
@@ -18099,7 +19077,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,status,is_premium_name,created_at,listing_plan"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,status,is_premium_name,created_at,listing_plan,contact_review_required,contact_last_changed_at"
                 )
                 .eq(
                     "status",
@@ -18278,7 +19256,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_premium_name,listing_plan,listing_period_started_at,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_premium_name,listing_plan,listing_period_started_at,listing_expires_at,contact_review_required,contact_last_changed_by"
                 )
                 .eq(
                     "id",
@@ -18324,7 +19302,33 @@ app.post(
                 nowIso();
 
 
+            /*
+             * A contact re-review must not restart the seller's
+             * existing FREE/PAID listing timer.
+             */
+
+            const restartingExistingPeriod =
+                Boolean(
+                    existing.contact_review_required &&
+                    existing.listing_period_started_at
+                );
+
+
             if (
+                restartingExistingPeriod
+            ) {
+
+                update.contact_review_required =
+                    false;
+
+                update.contact_last_changed_by =
+                    existing.contact_last_changed_by ||
+                    null;
+            }
+
+
+            if (
+                !restartingExistingPeriod &&
                 existing.listing_plan ===
                 "free"
             ) {
@@ -18350,6 +19354,7 @@ app.post(
 
 
             if (
+                !restartingExistingPeriod &&
                 existing.listing_plan ===
                 "paid"
             ) {
@@ -18375,6 +19380,15 @@ app.post(
         }
 
 
+        if (
+            existing.contact_review_required
+        ) {
+
+            update.contact_review_required =
+                false;
+        }
+
+
         const {
             data,
             error
@@ -18393,7 +19407,7 @@ app.post(
                     "pending"
                 )
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status,is_premium_name,listing_plan,listing_period_started_at,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_premium_name,listing_plan,listing_period_started_at,listing_expires_at,contact_review_required"
                 )
                 .maybeSingle();
 
@@ -18419,6 +19433,24 @@ app.post(
 
 
         if (
+            existing.contact_review_required &&
+            newStatus ===
+            "active"
+        ) {
+
+            message =
+                `✅ The updated contact for @${data.whatsapp_username} was approved. The listing is live again.\n\nYour original listing expiration timer continues unchanged.`;
+
+        } else if (
+            existing.contact_review_required &&
+            newStatus ===
+            "rejected"
+        ) {
+
+            message =
+                `❌ The updated contact for @${data.whatsapp_username} was rejected by moderation.`;
+
+        } else if (
             newStatus ===
             "active"
         ) {
@@ -18458,6 +19490,37 @@ app.post(
 
             message =
                 `❌ @${data.whatsapp_username} was rejected by moderation.`;
+        }
+
+
+        if (
+            existing.contact_review_required
+        ) {
+
+            if (
+                newStatus ===
+                "active"
+            ) {
+
+                await resolveRiskFlagType(
+                    listingId,
+                    "contact_changed",
+                    admin.user.telegram_id,
+                    "New seller contact approved"
+                );
+            }
+
+
+            await addListingChangeHistory(
+                listingId,
+                "admin",
+                admin.user.telegram_id,
+                newStatus === "active"
+                    ? "contact_review_approved"
+                    : "contact_review_rejected",
+                null,
+                { status:newStatus }
+            );
         }
 
 
@@ -19492,6 +20555,626 @@ app.post(
                     }
                 );
         }
+    }
+);
+
+
+/* =========================================================
+   V38 PUBLIC PRICE HISTORY
+   ========================================================= */
+
+app.get(
+    "/listing/price-history/:listingId",
+    async (req, res) => {
+
+        const listingId =
+            String(
+                req.params.listingId ||
+                ""
+            ).trim();
+
+
+        const {
+            data:listing
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at"
+                )
+                .eq(
+                    "id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (
+            !listingIsPubliclyAvailable(
+                listing
+            )
+        ) {
+
+            return res
+                .status(404)
+                .json(
+                    {
+                        ok:false,
+                        error:"listing_not_available"
+                    }
+                );
+        }
+
+
+        const {
+            data:history,
+            error
+        } =
+            await supabase
+                .from(
+                    "listing_price_history"
+                )
+                .select(
+                    "old_price,new_price,changed_at"
+                )
+                .eq(
+                    "listing_id",
+                    listingId
+                )
+                .order(
+                    "changed_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(30);
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:"price_history_load_failed"
+                    }
+                );
+        }
+
+
+        return res.json(
+            {
+                ok:true,
+                listing:{
+                    id:listing.id,
+                    listing_number:
+                        listing.listing_number ||
+                        null,
+                    whatsapp_username:
+                        listing.whatsapp_username
+                },
+                history:
+                    history ||
+                    []
+            }
+        );
+    }
+);
+
+
+/* =========================================================
+   V38 ADMIN RISK FLAGS
+   ========================================================= */
+
+app.post(
+    "/admin/risk-flags",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(admin.status)
+                .json({
+                    ok:false,
+                    error:admin.error
+                });
+        }
+
+
+        /* Existing and future external links are reviewed, not called scams. */
+        try {
+
+            const {
+                data:contacts
+            } =
+                await supabase
+                    .from(
+                        "listing_contacts"
+                    )
+                    .select(
+                        "listing_id,contact_type,contact_value"
+                    )
+                    .limit(1000);
+
+
+            for (
+                const contact of
+                contacts || []
+            ) {
+
+                if (
+                    contactHasExternalLink(
+                        contact.contact_value
+                    )
+                ) {
+
+                    await ensureRiskFlag(
+                        contact.listing_id,
+                        "external_link_contact",
+                        "medium",
+                        {
+                            contact_type:
+                                contact.contact_type
+                        }
+                    );
+                }
+            }
+
+
+            const {
+                data:openReports
+            } =
+                await supabase
+                    .from("reports")
+                    .select("listing_id")
+                    .eq("status","open")
+                    .limit(2000);
+
+
+            const counts =
+                new Map();
+
+
+            for (
+                const row of
+                openReports || []
+            ) {
+
+                const key =
+                    String(
+                        row.listing_id
+                    );
+
+                counts.set(
+                    key,
+                    (
+                        counts.get(key) ||
+                        0
+                    ) + 1
+                );
+            }
+
+
+            for (
+                const [listingId,count] of
+                counts.entries()
+            ) {
+
+                if (
+                    count >= 2
+                ) {
+
+                    await ensureRiskFlag(
+                        listingId,
+                        "multiple_reports",
+                        count >= 4
+                            ? "high"
+                            : "medium",
+                        {
+                            open_reports:count
+                        }
+                    );
+                }
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Risk scan:",
+                error
+            );
+        }
+
+
+        const {
+            data:flags,
+            error
+        } =
+            await supabase
+                .from(
+                    "listing_risk_flags"
+                )
+                .select(
+                    "id,listing_id,flag_type,severity,status,details,created_at"
+                )
+                .eq(
+                    "status",
+                    "open"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(100);
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"risk_flags_load_failed"
+                });
+        }
+
+
+        const listingIds =
+            [
+                ...new Set(
+                    (flags || [])
+                        .map(row => row.listing_id)
+                )
+            ];
+
+
+        let listings = [];
+
+
+        if (
+            listingIds.length
+        ) {
+
+            const {
+                data
+            } =
+                await supabase
+                    .from("listings")
+                    .select(
+                        "id,listing_number,whatsapp_username,seller_telegram_id,status,is_frozen,contact_review_required"
+                    )
+                    .in(
+                        "id",
+                        listingIds
+                    );
+
+
+            listings =
+                data || [];
+        }
+
+
+        const listingMap =
+            new Map(
+                listings.map(
+                    row => [
+                        String(row.id),
+                        row
+                    ]
+                )
+            );
+
+
+        return res.json({
+            ok:true,
+            flags:(flags || []).map(
+                row => ({
+                    ...row,
+                    listing:
+                        listingMap.get(
+                            String(row.listing_id)
+                        ) || null
+                })
+            )
+        });
+    }
+);
+
+
+app.post(
+    "/admin/risk-flag-action",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(admin.status)
+                .json({
+                    ok:false,
+                    error:admin.error
+                });
+        }
+
+
+        const flagId =
+            Number(
+                req.body.flag_id
+            );
+
+
+        const action =
+            String(
+                req.body.action ||
+                ""
+            ).trim();
+
+
+        if (
+            !Number.isSafeInteger(flagId) ||
+            ![
+                "resolve",
+                "dismiss"
+            ].includes(action)
+        ) {
+
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:"invalid_risk_action"
+                });
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from(
+                    "listing_risk_flags"
+                )
+                .update({
+                    status:
+                        action === "resolve"
+                            ? "resolved"
+                            : "dismissed",
+                    resolved_at:nowIso(),
+                    resolved_by:
+                        Number(
+                            admin.user.telegram_id
+                        ),
+                    resolution_note:
+                        String(
+                            req.body.note ||
+                            ""
+                        ).trim().slice(0,300) || null
+                })
+                .eq("id",flagId)
+                .eq("status","open")
+                .select()
+                .maybeSingle();
+
+
+        if (
+            error ||
+            !data
+        ) {
+
+            return res
+                .status(404)
+                .json({
+                    ok:false,
+                    error:"risk_flag_not_found"
+                });
+        }
+
+
+        return res.json({
+            ok:true,
+            flag:data
+        });
+    }
+);
+
+
+/* =========================================================
+   V38 ADMIN LISTING HISTORY
+   ========================================================= */
+
+app.post(
+    "/admin/listing-history",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(admin.status)
+                .json({
+                    ok:false,
+                    error:admin.error
+                });
+        }
+
+
+        const raw =
+            String(
+                req.body.lookup ||
+                req.body.listing_id ||
+                ""
+            )
+                .trim()
+                .replace(/^LOT\s*#?/i,"")
+                .trim();
+
+
+        let query =
+            supabase
+                .from("listings")
+                .select(
+                    "id,listing_number,whatsapp_username,seller_telegram_id,asking_price,status,contact_review_required,created_at,updated_at"
+                );
+
+
+        if (
+            /^\d+$/.test(raw)
+        ) {
+
+            query =
+                query.eq(
+                    "listing_number",
+                    Number(raw)
+                );
+
+        } else {
+
+            query =
+                query.eq(
+                    "id",
+                    raw
+                );
+        }
+
+
+        const {
+            data:listing
+        } =
+            await query.maybeSingle();
+
+
+        if (!listing) {
+
+            return res
+                .status(404)
+                .json({
+                    ok:false,
+                    error:"listing_not_found"
+                });
+        }
+
+
+        const [
+            changeResult,
+            priceResult,
+            riskResult
+        ] =
+            await Promise.all([
+                supabase
+                    .from("listing_change_history")
+                    .select("id,actor_type,actor_telegram_id,change_type,old_value,new_value,created_at")
+                    .eq("listing_id",listing.id)
+                    .order("created_at",{ascending:false})
+                    .limit(100),
+                supabase
+                    .from("listing_price_history")
+                    .select("old_price,new_price,changed_at")
+                    .eq("listing_id",listing.id)
+                    .order("changed_at",{ascending:false})
+                    .limit(50),
+                supabase
+                    .from("listing_risk_flags")
+                    .select("id,flag_type,severity,status,details,created_at,resolved_at,resolved_by,resolution_note")
+                    .eq("listing_id",listing.id)
+                    .order("created_at",{ascending:false})
+                    .limit(100)
+            ]);
+
+
+        return res.json({
+            ok:true,
+            listing,
+            changes:
+                changeResult.data || [],
+            price_history:
+                priceResult.data || [],
+            risk_flags:
+                riskResult.data || []
+        });
+    }
+);
+
+
+/* =========================================================
+   V38 ADMIN ACTIVITY LOG
+   ========================================================= */
+
+app.post(
+    "/admin/activity-log",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(admin.status)
+                .json({
+                    ok:false,
+                    error:admin.error
+                });
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from(
+                    "admin_activity_log"
+                )
+                .select(
+                    "id,admin_telegram_id,action,target_type,target_id,details,created_at"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(100);
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"admin_activity_load_failed"
+                });
+        }
+
+
+        return res.json({
+            ok:true,
+            activities:data || []
+        });
     }
 );
 

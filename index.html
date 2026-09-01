@@ -5323,6 +5323,75 @@ Loading support tickets...
 <div class="admin-section">
 
 <div class="admin-section-title">
+🚩 Risk Flags
+</div>
+
+<div class="section-subtitle">
+Automatic moderation warnings. A risk flag is not proof of fraud and does not automatically ban or remove a listing.
+</div>
+
+<div id="adminRiskFlags">
+<div class="empty">Loading risk flags...</div>
+</div>
+
+</div>
+
+
+<div class="admin-section">
+
+<div class="admin-section-title">
+🕓 Listing History
+</div>
+
+<div class="section-subtitle">
+Enter a LOT number or listing ID to review price, contact and other listing changes.
+</div>
+
+<div class="field">
+<label>LOT # or Listing ID</label>
+<input
+    id="adminHistoryLookup"
+    type="text"
+    placeholder="000123"
+>
+</div>
+
+<button
+    class="secondary"
+    style="width:100%"
+    onclick="adminLoadListingHistory()"
+>
+🕓 View History
+</button>
+
+<div
+    id="adminListingHistoryResult"
+    style="margin-top:12px"
+></div>
+
+</div>
+
+
+<div class="admin-section">
+
+<div class="admin-section-title">
+📜 Admin Activity
+</div>
+
+<div class="section-subtitle">
+Recent moderation and administrative changes.
+</div>
+
+<div id="adminActivityLog">
+<div class="empty">Loading activity...</div>
+</div>
+
+</div>
+
+
+<div class="admin-section">
+
+<div class="admin-section-title">
 🚩 Open Reports
 </div>
 
@@ -11623,6 +11692,108 @@ function updateEditListingPricingUi() {
 }
 
 
+function updateEditContactFieldUi() {
+
+    const type =
+        document.getElementById(
+            "editContactTypeInput"
+        )?.value ||
+        "telegram";
+
+
+    const label =
+        document.getElementById(
+            "editContactFieldLabel"
+        );
+
+
+    const input =
+        document.getElementById(
+            "editContactValueInput"
+        );
+
+
+    const hint =
+        document.getElementById(
+            "editContactFieldHint"
+        );
+
+
+    if (
+        !label ||
+        !input ||
+        !hint
+    ) {
+
+        return;
+    }
+
+
+    if (
+        type ===
+        "email"
+    ) {
+
+        label.textContent =
+            "Email address";
+
+        input.type =
+            "email";
+
+        input.inputMode =
+            "email";
+
+        input.placeholder =
+            "seller@example.com";
+
+        hint.textContent =
+            "Changing this contact sends the listing back to moderation.";
+
+        return;
+    }
+
+
+    if (
+        type ===
+        "other"
+    ) {
+
+        label.textContent =
+            "Contact details";
+
+        input.type =
+            "text";
+
+        input.inputMode =
+            "text";
+
+        input.placeholder =
+            "Discord, website or other contact";
+
+        hint.textContent =
+            "External links may receive a moderation risk flag for manual review.";
+
+        return;
+    }
+
+
+    label.textContent =
+        "Telegram username";
+
+    input.type =
+        "text";
+
+    input.inputMode =
+        "text";
+
+    input.placeholder =
+        "@telegramusername";
+
+    hint.textContent =
+        "Changing this contact sends the listing back to moderation.";
+}
+
+
 function openEditListing(
     listingId
 ) {
@@ -11632,17 +11803,14 @@ function openEditListing(
             item =>
                 String(
                     item.id
-                )
-                ===
+                ) ===
                 String(
                     listingId
                 )
         );
 
 
-    if (
-        !listing
-    ) {
+    if (!listing) {
 
         return;
     }
@@ -11657,7 +11825,7 @@ function openEditListing(
     document.getElementById(
         "inputModalSubtitle"
     ).textContent =
-        "Username and contact cannot be changed.";
+        "Username cannot be changed. If you change the seller contact, the listing is hidden and sent back to moderation. The existing listing timer continues.";
 
 
     document.getElementById(
@@ -11750,10 +11918,82 @@ function openEditListing(
 
         </div>
 
+
+        <div
+            class="card"
+            style="margin-top:12px"
+        >
+
+            <div class="section-title">
+                🔒 Seller Contact
+            </div>
+
+            <div
+                class="field-hint"
+                style="margin:4px 0 12px"
+            >
+                Buyers still need to unlock this contact. Changing it requires moderation again.
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Contact method
+                </label>
+
+                <select
+                    id="editContactTypeInput"
+                    onchange="updateEditContactFieldUi()"
+                >
+                    <option
+                        value="telegram"
+                        ${String(listing.contact_type || "telegram") === "telegram" ? "selected" : ""}
+                    >Telegram</option>
+
+                    <option
+                        value="email"
+                        ${String(listing.contact_type || "telegram") === "email" ? "selected" : ""}
+                    >Email</option>
+
+                    <option
+                        value="other"
+                        ${String(listing.contact_type || "telegram") === "other" ? "selected" : ""}
+                    >Other</option>
+                </select>
+
+            </div>
+
+
+            <div class="field">
+
+                <label id="editContactFieldLabel">
+                    Seller contact
+                </label>
+
+                <input
+                    id="editContactValueInput"
+                    maxlength="200"
+                    value="${escapeHtml(
+                        listing.contact_value ||
+                        ""
+                    )}"
+                >
+
+                <div
+                    id="editContactFieldHint"
+                    class="field-hint"
+                ></div>
+
+            </div>
+
+        </div>
+
     `;
 
 
     updateEditListingPricingUi();
+    updateEditContactFieldUi();
 
 
     const action =
@@ -11771,36 +12011,47 @@ function openEditListing(
 
             try {
 
-                await api(
-                    "/listing/manage/edit",
-                    {
-                        initData:
-                            tg.initData,
+                const data =
+                    await api(
+                        "/listing/manage/edit",
+                        {
+                            initData:
+                                tg.initData,
 
-                        listing_id:
-                            listing.id,
+                            listing_id:
+                                listing.id,
 
-                        asking_price:
-                            document.getElementById(
-                                "editPriceInput"
-                            ).value,
+                            asking_price:
+                                document.getElementById(
+                                    "editPriceInput"
+                                ).value,
 
-                        price_type:
-                            document.getElementById(
-                                "editPriceTypeInput"
-                            ).value,
+                            price_type:
+                                document.getElementById(
+                                    "editPriceTypeInput"
+                                ).value,
 
-                        minimum_offer:
-                            document.getElementById(
-                                "editMinimumOfferInput"
-                            ).value,
+                            minimum_offer:
+                                document.getElementById(
+                                    "editMinimumOfferInput"
+                                ).value,
 
-                        description:
-                            document.getElementById(
-                                "editDescriptionInput"
-                            ).value
-                    }
-                );
+                            description:
+                                document.getElementById(
+                                    "editDescriptionInput"
+                                ).value,
+
+                            contact_type:
+                                document.getElementById(
+                                    "editContactTypeInput"
+                                ).value,
+
+                            contact_value:
+                                document.getElementById(
+                                    "editContactValueInput"
+                                ).value
+                        }
+                    );
 
 
                 closeModal(
@@ -11817,7 +12068,9 @@ function openEditListing(
 
 
                 tg?.showAlert(
-                    "Listing updated ✓"
+                    data.contact_changed
+                        ? "⚠️ Contact changed. The listing was sent back to moderation and is temporarily hidden. Your original listing timer continues."
+                        : "Listing updated ✓"
                 );
 
             } catch (
@@ -17216,7 +17469,9 @@ async function loadAdminPanel() {
             loadAdminReports(),
             loadFrozenListings(),
             loadBlockedSellers(),
-            loadAdminSupportTickets()
+            loadAdminSupportTickets(),
+            loadAdminRiskFlags(),
+            loadAdminActivityLog()
         ]
     );
 }
@@ -18424,6 +18679,19 @@ async function loadPendingListings() {
                                 ${listingNumberHtml(
                                     listing
                                 )}
+
+                                ${
+                                    listing.contact_review_required
+                                        ? `
+                                            <div
+                                                class="badge badge-paused"
+                                                style="margin-top:8px"
+                                            >
+                                                ⚠️ CONTACT CHANGED · REVIEW REQUIRED
+                                            </div>
+                                          `
+                                        : ""
+                                }
 
 
                                 <div class="price">
@@ -21035,6 +21303,693 @@ async function startApp() {
 
 
 startApp();
+
+</script>
+
+
+<style>
+.v38-history-list,
+.v38-activity-list {
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+}
+
+.v38-history-item,
+.v38-activity-item,
+.v38-risk-card {
+    border:1px solid var(--border, #e4e8ef);
+    border-radius:14px;
+    padding:12px;
+    background:var(--card, #fff);
+}
+
+.v38-history-time,
+.v38-activity-time {
+    margin-top:6px;
+    font-size:11px;
+    color:var(--muted, #7d8797);
+}
+
+.v38-risk-high {
+    border-color:#e06464;
+}
+
+.v38-risk-medium {
+    border-color:#e8ba57;
+}
+
+.v38-risk-low {
+    border-color:#9aa8bb;
+}
+
+.v38-json {
+    margin-top:7px;
+    white-space:pre-wrap;
+    word-break:break-word;
+    font-size:12px;
+    color:var(--muted, #6f7887);
+}
+</style>
+
+<script>
+
+/* =========================================================
+   V38 PUBLIC PRICE HISTORY
+   ========================================================= */
+
+function v38DateTime(
+    value
+) {
+
+    if (!value) {
+        return "";
+    }
+
+
+    try {
+        return new Date(value)
+            .toLocaleString();
+    } catch {
+        return String(value);
+    }
+}
+
+
+async function openPublicPriceHistory(
+    listingId
+) {
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL +
+                "/listing/price-history/" +
+                encodeURIComponent(
+                    listingId
+                )
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+            throw new Error(
+                data.error ||
+                "price_history_load_failed"
+            );
+        }
+
+
+        const lot =
+            data.listing?.listing_number
+                ? `LOT #${String(data.listing.listing_number).padStart(6,"0")}`
+                : "Price History";
+
+
+        document.getElementById(
+            "inputModalTitle"
+        ).textContent =
+            `📊 Price History · ${lot}`;
+
+
+        document.getElementById(
+            "inputModalSubtitle"
+        ).textContent =
+            `@${data.listing?.whatsapp_username || "username"}`;
+
+
+        const history =
+            data.history ||
+            [];
+
+
+        document.getElementById(
+            "inputModalFields"
+        ).innerHTML =
+            history.length
+                ? `
+                    <div class="v38-history-list">
+                        ${history.map(row => `
+                            <div class="v38-history-item">
+                                <strong>
+                                    ${
+                                        row.old_price === null ||
+                                        row.old_price === undefined
+                                            ? `Listed at $${formatPrice(row.new_price)}`
+                                            : `$${formatPrice(row.old_price)} → $${formatPrice(row.new_price)}`
+                                    }
+                                </strong>
+                                <div class="v38-history-time">
+                                    ${escapeHtml(v38DateTime(row.changed_at))}
+                                </div>
+                            </div>
+                        `).join("")}
+                    </div>
+                  `
+                : '<div class="empty">No price changes yet.</div>';
+
+
+        const action =
+            document.getElementById(
+                "inputModalAction"
+            );
+
+
+        action.textContent =
+            "Close";
+
+        action.onclick =
+            () => closeModal("inputModal");
+
+
+        showModal(
+            "inputModal"
+        );
+
+    } catch (error) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+    }
+}
+
+
+const v38OriginalOpenListingPage =
+    openListingPage;
+
+
+openListingPage =
+async function(
+    listingId
+) {
+
+    await v38OriginalOpenListingPage(
+        listingId
+    );
+
+
+    const share =
+        document.querySelector(
+            "#listingDetailContent .detail-share-section"
+        );
+
+
+    if (
+        !share ||
+        share.querySelector(
+            ".v38-price-history-button"
+        )
+    ) {
+        return;
+    }
+
+
+    const button =
+        document.createElement(
+            "button"
+        );
+
+
+    button.className =
+        "secondary v38-price-history-button";
+
+    button.textContent =
+        "📊 Price History";
+
+    button.onclick =
+        () =>
+            openPublicPriceHistory(
+                listingId
+            );
+
+
+    share.appendChild(
+        button
+    );
+};
+
+
+/* =========================================================
+   V38 ADMIN RISK FLAGS
+   ========================================================= */
+
+function v38RiskLabel(
+    type
+) {
+
+    const labels = {
+        contact_changed:
+            "⚠️ Contact changed after approval",
+        external_link_contact:
+            "🔗 External link/domain in contact",
+        large_price_change:
+            "📈 Large price change",
+        multiple_reports:
+            "🚩 Multiple open reports"
+    };
+
+
+    return labels[type] ||
+        String(type || "Risk flag");
+}
+
+
+async function loadAdminRiskFlags() {
+
+    const container =
+        document.getElementById(
+            "adminRiskFlags"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/risk-flags",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        container.innerHTML =
+            data.flags?.length
+                ? data.flags.map(flag => {
+
+                    const listing =
+                        flag.listing ||
+                        {};
+
+                    const lot =
+                        listing.listing_number
+                            ? `LOT #${String(listing.listing_number).padStart(6,"0")}`
+                            : "Listing";
+
+
+                    return `
+                        <div class="v38-risk-card v38-risk-${escapeHtml(flag.severity || "medium")}">
+
+                            <div class="username">
+                                ${escapeHtml(lot)}
+                                ${listing.whatsapp_username ? `· @${escapeHtml(listing.whatsapp_username)}` : ""}
+                            </div>
+
+                            <div style="margin-top:7px;font-weight:700">
+                                ${escapeHtml(v38RiskLabel(flag.flag_type))}
+                            </div>
+
+                            <div class="field-hint" style="margin-top:5px">
+                                Severity: ${escapeHtml(String(flag.severity || "medium").toUpperCase())}
+                                · ${escapeHtml(v38DateTime(flag.created_at))}
+                            </div>
+
+                            ${flag.details ? `
+                                <div class="v38-json">${escapeHtml(JSON.stringify(flag.details, null, 2))}</div>
+                            ` : ""}
+
+                            <div class="buttons" style="margin-top:10px">
+
+                                ${listing.id ? `
+                                    <button
+                                        class="secondary"
+                                        onclick="adminViewListingContact('${escapeJs(listing.id)}','${escapeJs(listing.whatsapp_username || "listing")}')"
+                                    >
+                                        🔎 Contact
+                                    </button>
+
+                                    <button
+                                        class="secondary"
+                                        onclick="adminOpenListingHistory('${escapeJs(listing.listing_number || listing.id)}')"
+                                    >
+                                        🕓 History
+                                    </button>
+                                ` : ""}
+
+                                <button
+                                    class="approve-button"
+                                    onclick="adminRiskFlagAction('${flag.id}','resolve')"
+                                >
+                                    ✅ Resolve
+                                </button>
+
+                                <button
+                                    class="secondary"
+                                    onclick="adminRiskFlagAction('${flag.id}','dismiss')"
+                                >
+                                    Dismiss
+                                </button>
+
+                            </div>
+
+                        </div>
+                    `;
+                }).join("")
+                : '<div class="empty">No open risk flags.</div>';
+
+    } catch (error) {
+
+        container.innerHTML =
+            '<div class="empty">Failed to load risk flags.</div>';
+    }
+}
+
+
+async function adminRiskFlagAction(
+    flagId,
+    action
+) {
+
+    try {
+
+        await api(
+            "/admin/risk-flag-action",
+            {
+                initData:
+                    tg.initData,
+                flag_id:
+                    Number(flagId),
+                action:
+                    action
+            }
+        );
+
+
+        await Promise.all([
+            loadAdminRiskFlags(),
+            loadAdminActivityLog()
+        ]);
+
+    } catch (error) {
+
+        tg?.showAlert(
+            error.message
+        );
+    }
+}
+
+
+/* =========================================================
+   V38 ADMIN LISTING HISTORY
+   ========================================================= */
+
+function adminOpenListingHistory(
+    lookup
+) {
+
+    const input =
+        document.getElementById(
+            "adminHistoryLookup"
+        );
+
+
+    if (input) {
+        input.value =
+            String(lookup || "");
+    }
+
+
+    adminLoadListingHistory();
+}
+
+
+function v38HistoryValue(
+    value
+) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "—";
+    }
+
+
+    if (
+        typeof value ===
+        "object"
+    ) {
+        return JSON.stringify(
+            value,
+            null,
+            2
+        );
+    }
+
+
+    return String(value);
+}
+
+
+async function adminLoadListingHistory() {
+
+    const container =
+        document.getElementById(
+            "adminListingHistoryResult"
+        );
+
+
+    const lookup =
+        document.getElementById(
+            "adminHistoryLookup"
+        )?.value?.trim();
+
+
+    if (
+        !container ||
+        !lookup
+    ) {
+
+        tg?.showAlert(
+            "Enter a LOT number or listing ID."
+        );
+
+        return;
+    }
+
+
+    container.innerHTML =
+        '<div class="empty">Loading history...</div>';
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/listing-history",
+                {
+                    initData:
+                        tg.initData,
+                    lookup:
+                        lookup
+                }
+            );
+
+
+        const listing =
+            data.listing;
+
+
+        const changes =
+            data.changes ||
+            [];
+
+
+        const prices =
+            data.price_history ||
+            [];
+
+
+        const risks =
+            data.risk_flags ||
+            [];
+
+
+        container.innerHTML = `
+
+            <div class="card">
+                <div class="username">
+                    LOT #${String(listing.listing_number || "").padStart(6,"0")} · @${escapeHtml(listing.whatsapp_username)}
+                </div>
+                <div class="field-hint" style="margin-top:5px">
+                    Status: ${escapeHtml(listing.status)} · Seller ID: ${escapeHtml(listing.seller_telegram_id)}
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top:14px">
+                🕓 Changes
+            </div>
+
+            <div class="v38-history-list" style="margin-top:8px">
+                ${changes.length ? changes.map(row => `
+                    <div class="v38-history-item">
+                        <strong>${escapeHtml(row.change_type)}</strong>
+                        <div class="field-hint">
+                            ${escapeHtml(row.actor_type)}${row.actor_telegram_id ? ` · ${escapeHtml(row.actor_telegram_id)}` : ""}
+                        </div>
+                        <div class="v38-json">OLD: ${escapeHtml(v38HistoryValue(row.old_value))}</div>
+                        <div class="v38-json">NEW: ${escapeHtml(v38HistoryValue(row.new_value))}</div>
+                        <div class="v38-history-time">${escapeHtml(v38DateTime(row.created_at))}</div>
+                    </div>
+                `).join("") : '<div class="empty">No recorded changes yet.</div>'}
+            </div>
+
+            <div class="section-title" style="margin-top:14px">
+                📊 Price History
+            </div>
+
+            <div class="v38-history-list" style="margin-top:8px">
+                ${prices.length ? prices.map(row => `
+                    <div class="v38-history-item">
+                        <strong>
+                            ${row.old_price === null || row.old_price === undefined
+                                ? `Listed at $${formatPrice(row.new_price)}`
+                                : `$${formatPrice(row.old_price)} → $${formatPrice(row.new_price)}`}
+                        </strong>
+                        <div class="v38-history-time">${escapeHtml(v38DateTime(row.changed_at))}</div>
+                    </div>
+                `).join("") : '<div class="empty">No price history.</div>'}
+            </div>
+
+            <div class="section-title" style="margin-top:14px">
+                🚩 Risk History
+            </div>
+
+            <div class="v38-history-list" style="margin-top:8px">
+                ${risks.length ? risks.map(row => `
+                    <div class="v38-history-item">
+                        <strong>${escapeHtml(v38RiskLabel(row.flag_type))}</strong>
+                        <div class="field-hint">
+                            ${escapeHtml(String(row.severity || "medium").toUpperCase())} · ${escapeHtml(String(row.status || "open").toUpperCase())}
+                        </div>
+                        ${row.details ? `<div class="v38-json">${escapeHtml(JSON.stringify(row.details, null, 2))}</div>` : ""}
+                        <div class="v38-history-time">${escapeHtml(v38DateTime(row.created_at))}</div>
+                    </div>
+                `).join("") : '<div class="empty">No risk history.</div>'}
+            </div>
+
+        `;
+
+    } catch (error) {
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+    }
+}
+
+
+/* =========================================================
+   V38 ADMIN ACTIVITY LOG
+   ========================================================= */
+
+function v38AdminActionLabel(
+    row
+) {
+
+    const action =
+        String(
+            row.action ||
+            "admin action"
+        )
+            .replace(
+                "/admin/",
+                ""
+            )
+            .replaceAll(
+                "-",
+                " "
+            );
+
+
+    const details =
+        row.details ||
+        {};
+
+
+    const suffix =
+        details.action
+            ? ` · ${details.action}`
+            : details.status
+                ? ` · ${details.status}`
+                : "";
+
+
+    return action + suffix;
+}
+
+
+async function loadAdminActivityLog() {
+
+    const container =
+        document.getElementById(
+            "adminActivityLog"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/activity-log",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const rows =
+            data.activities ||
+            [];
+
+
+        container.innerHTML =
+            rows.length
+                ? `
+                    <div class="v38-activity-list">
+                        ${rows.slice(0,30).map(row => `
+                            <div class="v38-activity-item">
+                                <strong>${escapeHtml(v38AdminActionLabel(row))}</strong>
+                                <div class="field-hint">
+                                    Admin ID: ${escapeHtml(row.admin_telegram_id)}
+                                    ${row.target_id ? ` · Target: ${escapeHtml(row.target_id)}` : ""}
+                                </div>
+                                <div class="v38-activity-time">
+                                    ${escapeHtml(v38DateTime(row.created_at))}
+                                </div>
+                            </div>
+                        `).join("")}
+                    </div>
+                  `
+                : '<div class="empty">No administrative changes recorded yet.</div>';
+
+    } catch (error) {
+
+        container.innerHTML =
+            '<div class="empty">Failed to load admin activity.</div>';
+    }
+}
 
 </script>
 
