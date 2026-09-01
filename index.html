@@ -11,6 +11,7 @@
 <meta name="theme-color" content="#ffffff">
 
 <title>Handle Market</title>
+<!-- UI version: v32-compact-chat-bubbles -->
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -4357,12 +4358,10 @@ Loading conversation...
     id="chatMessages"
     class="card"
     style="
-        min-height:180px;
-        max-height:44vh;
+        min-height:120px;
+        max-height:46vh;
         overflow-y:auto;
-        display:flex;
-        flex-direction:column;
-        gap:6px;
+        display:block;
         padding:10px;
     "
 >
@@ -12880,45 +12879,84 @@ async function loadChatMessages(
                                 myId;
 
 
+                            const cleanMessage =
+                                String(
+                                    item.message ||
+                                    ""
+                                )
+                                .trim()
+                                .replace(
+                                    /\n{3,}/g,
+                                    "\n\n"
+                                );
+
+
                             return `
                                 <div
                                     style="
-                                        align-self:${mine ? "flex-end" : "flex-start"};
-                                        flex:0 0 auto;
-                                        width:fit-content;
-                                        min-width:0;
-                                        min-height:0;
-                                        height:auto;
-                                        max-width:74%;
-                                        padding:7px 10px;
-                                        border-radius:12px;
-                                        background:${mine ? "var(--button-color, #2481cc)" : "rgba(127,127,127,.14)"};
-                                        color:${mine ? "#fff" : "inherit"};
-                                        font-size:12px;
-                                        line-height:1.35;
-                                        white-space:pre-wrap;
-                                        overflow-wrap:anywhere;
+                                        width:100%;
+                                        display:flex;
+                                        justify-content:${mine ? "flex-end" : "flex-start"};
+                                        margin:0 0 6px 0;
+                                        padding:0;
                                     "
                                 >
-                                    <div>
-                                        ${escapeHtml(
-                                            item.message
-                                        )}
-                                    </div>
-
                                     <div
                                         style="
-                                            margin-top:3px;
-                                            font-size:9.5px;
-                                            line-height:1.15;
-                                            opacity:.72;
+                                            display:inline-block;
+                                            width:auto;
+                                            min-width:0;
+                                            max-width:76%;
+                                            min-height:0 !important;
+                                            height:auto !important;
+                                            max-height:none !important;
+                                            margin:0;
+                                            padding:7px 10px 6px;
+                                            border-radius:14px;
+                                            background:${mine ? "var(--button-color, #2481cc)" : "rgba(127,127,127,.14)"};
+                                            color:${mine ? "#fff" : "inherit"};
+                                            font-size:12px;
+                                            line-height:1.32;
+                                            overflow-wrap:anywhere;
+                                            word-break:break-word;
+                                            box-sizing:border-box;
                                         "
                                     >
-                                        ${escapeHtml(
-                                            chatTimeLabel(
-                                                item.created_at
-                                            )
-                                        )}
+                                        <div
+                                            style="
+                                                display:block;
+                                                margin:0;
+                                                padding:0;
+                                                min-height:0 !important;
+                                                height:auto !important;
+                                                white-space:pre-wrap;
+                                            "
+                                        >
+                                            ${escapeHtml(
+                                                cleanMessage
+                                            )}
+                                        </div>
+
+                                        <div
+                                            style="
+                                                display:block;
+                                                margin:3px 0 0 0;
+                                                padding:0;
+                                                min-height:0 !important;
+                                                height:auto !important;
+                                                font-size:9px;
+                                                line-height:1.1;
+                                                opacity:.68;
+                                                text-align:right;
+                                                white-space:nowrap;
+                                            "
+                                        >
+                                            ${escapeHtml(
+                                                chatTimeLabel(
+                                                    item.created_at
+                                                )
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             `;
