@@ -4317,7 +4317,249 @@ Loading...
 
 </div>
 
+<div class="admin-section">
 
+<div class="admin-section-title">
+➕ Add Listing Without Payment
+</div>
+
+<div class="section-subtitle">
+Create a listing for a registered Handle Market user. No Telegram Stars are charged.
+</div>
+
+<form
+    id="adminCreateListingForm"
+    class="card"
+    onsubmit="adminCreateListing(event)"
+>
+
+<div class="field">
+
+<label>
+Seller Telegram ID
+</label>
+
+<input
+    id="adminSellerTelegramId"
+    type="number"
+    inputmode="numeric"
+    min="1"
+    step="1"
+    placeholder="123456789"
+    required
+>
+
+<div class="field-hint">
+The seller must have opened Handle Market at least once.
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label>
+WhatsApp username
+</label>
+
+<input
+    id="adminListingUsername"
+    placeholder="@username"
+    required
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Asking price (USD)
+</label>
+
+<input
+    id="adminListingPrice"
+    type="number"
+    min="1"
+    step="0.01"
+    placeholder="5000"
+    required
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Category
+</label>
+
+<select id="adminListingCategory">
+
+<option>Brand</option>
+<option>Business</option>
+<option>Tech & AI</option>
+<option>Short</option>
+<option>Travel</option>
+<option>Finance</option>
+<option>Gaming</option>
+<option>Crypto</option>
+<option>Media</option>
+<option>Generic</option>
+<option>Other</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Description
+</label>
+
+<textarea
+    id="adminListingDescription"
+    maxlength="500"
+></textarea>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Contact method
+</label>
+
+<select
+    id="adminContactType"
+    onchange="updateAdminContactFieldUi()"
+>
+
+<option value="telegram">
+Telegram
+</option>
+
+<option value="email">
+Email
+</option>
+
+<option value="other">
+Other
+</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label id="adminContactFieldLabel">
+Telegram username
+</label>
+
+<input
+    id="adminContactValue"
+    type="text"
+    inputmode="text"
+    autocomplete="off"
+    placeholder="@telegramusername"
+    maxlength="200"
+    required
+>
+
+<div
+    id="adminContactFieldHint"
+    class="field-hint"
+>
+Private seller contact. Buyers see it only after unlocking the contact.
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Listing plan
+</label>
+
+<select id="adminListingPlan">
+
+<option value="paid" selected>
+🟢 Paid plan · 30 days · no charge
+</option>
+
+<option value="free">
+🎁 Free · 24 hours
+</option>
+
+<option value="legacy">
+∞ Legacy · no automatic expiration
+</option>
+
+</select>
+
+<div class="field-hint">
+This admin action bypasses the normal Stars payment.
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Status
+</label>
+
+<select id="adminListingStatus">
+
+<option value="active" selected>
+✅ Active immediately
+</option>
+
+<option value="pending">
+⏳ Pending moderation
+</option>
+
+</select>
+
+</div>
+
+
+<div class="payment-box">
+
+<div class="payment-label">
+ADMIN LISTING
+</div>
+
+<div class="payment-price">
+FREE / NO PAYMENT
+</div>
+
+<div class="payment-subtitle">
+Only administrators can use this form.
+</div>
+
+</div>
+
+
+<button
+    id="adminCreateListingButton"
+    class="payment-button"
+    type="submit"
+>
+Add Listing Without Payment
+</button>
+
+</form>
+
+</div>
 <div class="admin-section">
 
 <div class="admin-section-title">
@@ -13784,6 +14026,1010 @@ async function startApp() {
 startApp();
 
 </script>
+<script>
 
+/* =========================================================
+   ADMIN — ADD LISTING WITHOUT PAYMENT
+   ========================================================= */
+
+(function initAdminCreateListingFeature() {
+
+    /*
+     * If the form was already manually added,
+     * do not create a duplicate.
+     */
+
+    if (
+        document.getElementById(
+            "adminCreateListingForm"
+        )
+    ) {
+
+        return;
+    }
+
+
+    const adminBox =
+        document.querySelector(
+            "#admin .admin-box"
+        );
+
+
+    if (!adminBox) {
+
+        console.log(
+            "Admin panel container not found"
+        );
+
+        return;
+    }
+
+
+    const adminHeader =
+        adminBox.querySelector(
+            ".admin-header"
+        );
+
+
+    const section = `
+        <div
+            class="admin-section"
+            id="adminCreateListingSection"
+        >
+
+            <div class="admin-section-title">
+                ➕ Add Listing Without Payment
+            </div>
+
+            <div class="section-subtitle">
+                Create a listing for a registered Handle Market user.
+                No Telegram Stars are charged.
+            </div>
+
+
+            <form
+                id="adminCreateListingForm"
+                class="card"
+                onsubmit="adminCreateListing(event)"
+            >
+
+                <div class="field">
+
+                    <label>
+                        Seller Telegram ID
+                    </label>
+
+                    <input
+                        id="adminSellerTelegramId"
+                        type="number"
+                        inputmode="numeric"
+                        min="1"
+                        step="1"
+                        placeholder="123456789"
+                        required
+                    >
+
+                    <div class="field-hint">
+                        The seller must have opened Handle Market at least once.
+                    </div>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        WhatsApp username
+                    </label>
+
+                    <input
+                        id="adminListingUsername"
+                        type="text"
+                        placeholder="@username"
+                        maxlength="64"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Asking price (USD)
+                    </label>
+
+                    <input
+                        id="adminListingPrice"
+                        type="number"
+                        inputmode="decimal"
+                        min="1"
+                        max="100000000"
+                        step="0.01"
+                        placeholder="5000"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Category
+                    </label>
+
+                    <select
+                        id="adminListingCategory"
+                        required
+                    >
+
+                        <option value="Business">
+                            Business
+                        </option>
+
+                        <option value="Brand">
+                            Brand
+                        </option>
+
+                        <option value="Tech &amp; AI">
+                            Tech & AI
+                        </option>
+
+                        <option value="Short">
+                            Short
+                        </option>
+
+                        <option value="Travel">
+                            Travel
+                        </option>
+
+                        <option value="Finance">
+                            Finance
+                        </option>
+
+                        <option value="Gaming">
+                            Gaming
+                        </option>
+
+                        <option value="Crypto">
+                            Crypto
+                        </option>
+
+                        <option value="Media">
+                            Media
+                        </option>
+
+                        <option value="Generic">
+                            Generic
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Description
+                    </label>
+
+                    <textarea
+                        id="adminListingDescription"
+                        maxlength="500"
+                        placeholder="Listing description"
+                    ></textarea>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Contact method
+                    </label>
+
+                    <select
+                        id="adminContactType"
+                        onchange="updateAdminContactFieldUi()"
+                        required
+                    >
+
+                        <option value="telegram">
+                            Telegram
+                        </option>
+
+                        <option value="email">
+                            Email
+                        </option>
+
+                        <option value="other">
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label id="adminContactFieldLabel">
+                        Telegram username
+                    </label>
+
+                    <input
+                        id="adminContactValue"
+                        type="text"
+                        inputmode="text"
+                        autocomplete="off"
+                        placeholder="@telegramusername"
+                        maxlength="200"
+                        required
+                    >
+
+                    <div
+                        id="adminContactFieldHint"
+                        class="field-hint"
+                    >
+                        Enter the seller's Telegram username.
+                        It stays private until a buyer unlocks the contact.
+                    </div>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Listing plan
+                    </label>
+
+                    <select
+                        id="adminListingPlan"
+                        required
+                    >
+
+                        <option
+                            value="paid"
+                            selected
+                        >
+                            🟢 Paid plan · 30 days · no charge
+                        </option>
+
+                        <option value="free">
+                            🎁 Free · 24 hours
+                        </option>
+
+                        <option value="legacy">
+                            ∞ Legacy · no automatic expiration
+                        </option>
+
+                    </select>
+
+                    <div class="field-hint">
+                        This admin action bypasses the normal Stars payment.
+                    </div>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Status
+                    </label>
+
+                    <select
+                        id="adminListingStatus"
+                        required
+                    >
+
+                        <option
+                            value="active"
+                            selected
+                        >
+                            ✅ Active immediately
+                        </option>
+
+                        <option value="pending">
+                            ⏳ Pending moderation
+                        </option>
+
+                    </select>
+
+                    <div class="field-hint">
+                        For Pending listings, the 24-hour or 30-day timer
+                        starts only after approval.
+                    </div>
+
+                </div>
+
+
+                <div class="payment-box">
+
+                    <div class="payment-label">
+                        ADMIN LISTING
+                    </div>
+
+                    <div class="payment-price">
+                        FREE / NO PAYMENT
+                    </div>
+
+                    <div class="payment-subtitle">
+                        Only administrators can use this function.
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="adminCreateListingButton"
+                    class="payment-button"
+                    type="submit"
+                >
+                    Add Listing Without Payment
+                </button>
+
+            </form>
+
+        </div>
+    `;
+
+
+    if (adminHeader) {
+
+        adminHeader.insertAdjacentHTML(
+            "afterend",
+            section
+        );
+
+    } else {
+
+        adminBox.insertAdjacentHTML(
+            "afterbegin",
+            section
+        );
+    }
+
+
+    updateAdminContactFieldUi();
+
+})();
+
+
+/* =========================================================
+   ADMIN CONTACT METHOD
+   ========================================================= */
+
+window.updateAdminContactFieldUi =
+function updateAdminContactFieldUi() {
+
+    const type =
+        document.getElementById(
+            "adminContactType"
+        )?.value ||
+        "telegram";
+
+
+    const label =
+        document.getElementById(
+            "adminContactFieldLabel"
+        );
+
+
+    const input =
+        document.getElementById(
+            "adminContactValue"
+        );
+
+
+    const hint =
+        document.getElementById(
+            "adminContactFieldHint"
+        );
+
+
+    if (
+        !label ||
+        !input ||
+        !hint
+    ) {
+
+        return;
+    }
+
+
+    /*
+     * EMAIL
+     */
+
+    if (
+        type ===
+        "email"
+    ) {
+
+        label.textContent =
+            "Email address";
+
+
+        input.type =
+            "email";
+
+
+        input.inputMode =
+            "email";
+
+
+        input.autocomplete =
+            "email";
+
+
+        input.placeholder =
+            "seller@example.com";
+
+
+        hint.textContent =
+            "Enter a valid seller email address. It stays private until a buyer unlocks the contact.";
+
+
+        return;
+    }
+
+
+    /*
+     * OTHER
+     */
+
+    if (
+        type ===
+        "other"
+    ) {
+
+        label.textContent =
+            "Contact details";
+
+
+        input.type =
+            "text";
+
+
+        input.inputMode =
+            "text";
+
+
+        input.autocomplete =
+            "off";
+
+
+        input.placeholder =
+            "Discord, website or other contact";
+
+
+        hint.textContent =
+            "Enter another seller contact method. It stays private until a buyer unlocks the contact.";
+
+
+        return;
+    }
+
+
+    /*
+     * TELEGRAM
+     */
+
+    label.textContent =
+        "Telegram username";
+
+
+    input.type =
+        "text";
+
+
+    input.inputMode =
+        "text";
+
+
+    input.autocomplete =
+        "off";
+
+
+    input.placeholder =
+        "@telegramusername";
+
+
+    hint.textContent =
+        "Enter the seller's Telegram username. It stays private until a buyer unlocks the contact.";
+};
+
+
+/* =========================================================
+   ADMIN CREATE LISTING
+   ========================================================= */
+
+window.adminCreateListing =
+async function adminCreateListing(
+    event
+) {
+
+    event.preventDefault();
+
+
+    const button =
+        document.getElementById(
+            "adminCreateListingButton"
+        );
+
+
+    if (!button) {
+
+        return;
+    }
+
+
+    button.disabled =
+        true;
+
+
+    const originalButtonText =
+        button.textContent;
+
+
+    button.textContent =
+        "Creating...";
+
+
+    try {
+
+        const sellerTelegramId =
+            document.getElementById(
+                "adminSellerTelegramId"
+            ).value.trim();
+
+
+        const username =
+            document.getElementById(
+                "adminListingUsername"
+            ).value.trim();
+
+
+        const price =
+            document.getElementById(
+                "adminListingPrice"
+            ).value;
+
+
+        const category =
+            document.getElementById(
+                "adminListingCategory"
+            ).value;
+
+
+        const description =
+            document.getElementById(
+                "adminListingDescription"
+            ).value;
+
+
+        const contactType =
+            document.getElementById(
+                "adminContactType"
+            ).value;
+
+
+        const contactValue =
+            document.getElementById(
+                "adminContactValue"
+            ).value.trim();
+
+
+        const listingPlan =
+            document.getElementById(
+                "adminListingPlan"
+            ).value;
+
+
+        const listingStatus =
+            document.getElementById(
+                "adminListingStatus"
+            ).value;
+
+
+        /*
+         * Basic frontend validation.
+         */
+
+        if (
+            !sellerTelegramId ||
+            Number(sellerTelegramId) <= 0
+        ) {
+
+            throw new Error(
+                "invalid_seller_telegram_id"
+            );
+        }
+
+
+        if (!username) {
+
+            throw new Error(
+                "invalid_username"
+            );
+        }
+
+
+        if (
+            !price ||
+            Number(price) <= 0
+        ) {
+
+            throw new Error(
+                "invalid_price"
+            );
+        }
+
+
+        if (!contactValue) {
+
+            throw new Error(
+                "contact_required"
+            );
+        }
+
+
+        if (
+            contactType ===
+            "email"
+        ) {
+
+            const emailValid =
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                    .test(
+                        contactValue
+                    );
+
+
+            if (!emailValid) {
+
+                throw new Error(
+                    "invalid_email"
+                );
+            }
+        }
+
+
+        /*
+         * Send request to protected admin endpoint.
+         */
+
+        const data =
+            await api(
+                "/admin/create-listing",
+                {
+                    initData:
+                        tg.initData,
+
+                    seller_telegram_id:
+                        sellerTelegramId,
+
+                    whatsapp_username:
+                        username,
+
+                    asking_price:
+                        price,
+
+                    category:
+                        category,
+
+                    description:
+                        description,
+
+                    contact_type:
+                        contactType,
+
+                    contact_value:
+                        contactValue,
+
+                    listing_plan:
+                        listingPlan,
+
+                    status:
+                        listingStatus
+                }
+            );
+
+
+        /*
+         * Reset form after successful creation.
+         */
+
+        const form =
+            document.getElementById(
+                "adminCreateListingForm"
+            );
+
+
+        if (form) {
+
+            form.reset();
+        }
+
+
+        const planSelect =
+            document.getElementById(
+                "adminListingPlan"
+            );
+
+
+        if (planSelect) {
+
+            planSelect.value =
+                "paid";
+        }
+
+
+        const statusSelect =
+            document.getElementById(
+                "adminListingStatus"
+            );
+
+
+        if (statusSelect) {
+
+            statusSelect.value =
+                "active";
+        }
+
+
+        updateAdminContactFieldUi();
+
+
+        /*
+         * Reload marketplace/admin data.
+         */
+
+        const reloadTasks =
+            [];
+
+
+        if (
+            typeof loadAdminPanel ===
+            "function"
+        ) {
+
+            reloadTasks.push(
+                loadAdminPanel()
+            );
+        }
+
+
+        if (
+            typeof loadMarketplace ===
+            "function"
+        ) {
+
+            reloadTasks.push(
+                loadMarketplace()
+            );
+        }
+
+
+        if (
+            typeof loadMyListings ===
+            "function"
+        ) {
+
+            reloadTasks.push(
+                loadMyListings()
+            );
+        }
+
+
+        if (
+            reloadTasks.length
+        ) {
+
+            await Promise.all(
+                reloadTasks
+            );
+        }
+
+
+        const listing =
+            data?.listing ||
+            null;
+
+
+        let statusText =
+            "Active";
+
+
+        if (
+            listing?.status ===
+            "pending"
+        ) {
+
+            statusText =
+                "Pending moderation";
+        }
+
+
+        let planText =
+            "Paid · 30 days";
+
+
+        if (
+            listing?.listing_plan ===
+            "free"
+        ) {
+
+            planText =
+                "Free · 24 hours";
+        }
+
+
+        if (
+            listing?.listing_plan ===
+            "legacy"
+        ) {
+
+            planText =
+                "Legacy · no expiration";
+        }
+
+
+        const createdUsername =
+            listing?.whatsapp_username ||
+            username.replace(
+                /^@/,
+                ""
+            );
+
+
+        if (
+            tg?.showAlert
+        ) {
+
+            tg.showAlert(
+                `✅ @${createdUsername} added without payment.\n\nPlan: ${planText}\nStatus: ${statusText}`
+            );
+
+        } else {
+
+            alert(
+                `@${createdUsername} added without payment.`
+            );
+        }
+
+
+    } catch (
+        error
+    ) {
+
+        console.error(
+            "Admin create listing:",
+            error
+        );
+
+
+        const errorCode =
+            String(
+                error?.message ||
+                "unknown_error"
+            );
+
+
+        const messages = {
+
+            admin_required:
+                "Admin access is required.",
+
+
+            invalid_seller_telegram_id:
+                "Enter a valid Seller Telegram ID.",
+
+
+            seller_not_found:
+                "Seller not found. The seller must open Handle Market at least once before you can add a listing for them.",
+
+
+            invalid_username:
+                "Enter a valid WhatsApp username.",
+
+
+            invalid_price:
+                "Enter a valid asking price.",
+
+
+            invalid_contact_type:
+                "Choose a valid contact method.",
+
+
+            contact_required:
+                "Enter the seller contact.",
+
+
+            invalid_email:
+                "Enter a valid seller email address.",
+
+
+            invalid_listing_plan:
+                "Choose a valid listing plan.",
+
+
+            invalid_listing_status:
+                "Choose Active or Pending.",
+
+
+            listing_already_exists:
+                "This seller already has this username listed.",
+
+
+            listing_check_failed:
+                "Could not check existing listings.",
+
+
+            seller_lookup_failed:
+                "Could not find the seller account.",
+
+
+            admin_listing_create_failed:
+                "Could not create the listing. Please try again.",
+
+
+            database_error:
+                "Database error. Please try again."
+        };
+
+
+        const message =
+            messages[
+                errorCode
+            ] ||
+            (
+                typeof friendlyError ===
+                "function"
+
+                    ? friendlyError(
+                        errorCode
+                    )
+
+                    : errorCode
+            );
+
+
+        if (
+            tg?.showAlert
+        ) {
+
+            tg.showAlert(
+                message
+            );
+
+        } else {
+
+            alert(
+                message
+            );
+        }
+
+
+    } finally {
+
+        button.disabled =
+            false;
+
+
+        button.textContent =
+            originalButtonText;
+    }
+};
+
+</script>
 </body>
 </html>
