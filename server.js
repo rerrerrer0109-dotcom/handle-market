@@ -3476,7 +3476,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v24-admin-pending-notifications"
+                    "v25-admin-free-listing"
             }
         );
     }
@@ -10012,7 +10012,572 @@ app.post(
     }
 );
 
+/* =========================================================
+   ADMIN CREATE LISTING WITHOUT PAYMENT
+   ========================================================= */
 
+app.post(
+    "/admin/create-listing",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            admin.error
+                    }
+                );
+        }
+
+
+        const sellerTelegramId =
+            Number(
+                req.body.seller_telegram_id
+            );
+
+
+        if (
+            !Number.isSafeInteger(
+                sellerTelegramId
+            ) ||
+            sellerTelegramId <= 0
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "invalid_seller_telegram_id"
+                    }
+                );
+        }
+
+
+        const validation =
+            validateListingInput(
+                req.body
+            );
+
+
+        if (
+            !validation.ok
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            validation.error
+                    }
+                );
+        }
+
+
+        const listingPlan =
+            String(
+                req.body.listing_plan ||
+                "paid"
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            ![
+                "legacy",
+                "free",
+                "paid"
+            ].includes(
+                listingPlan
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "invalid_listing_plan"
+                    }
+                );
+        }
+
+
+        const listingStatus =
+            String(
+                req.body.status ||
+                "active"
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            ![
+                "pending",
+                "active"
+            ].includes(
+                listingStatus
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "invalid_listing_status"
+                    }
+                );
+        }
+
+
+        const input =
+            validation.data;
+
+
+        const {
+            data:
+                seller,
+            error:
+                sellerError
+        } =
+            await supabase
+                .from("users")
+                .select(
+                    "telegram_id,first_name,last_name,telegram_username,free_listing_used,free_listing_used_at"
+                )
+                .eq(
+                    "telegram_id",
+                    sellerTelegramId
+                )
+                .maybeSingle();
+
+
+        if (
+            sellerError
+        ) {
+
+            console.error(
+                "Admin seller lookup:",
+                sellerError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "seller_lookup_failed"
+                    }
+                );
+        }
+
+
+        if (
+            !seller
+        ) {
+
+            return res
+                .status(404)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "seller_not_found"
+                    }
+                );
+        }
+
+
+        const {
+            data:
+                duplicate,
+            error:
+                duplicateError
+        } =
+            await supabase
+                .from("listings")
+                .select("id")
+                .eq(
+                    "seller_telegram_id",
+                    sellerTelegramId
+                )
+                .ilike(
+                    "whatsapp_username",
+                    input.username
+                )
+                .in(
+                    "status",
+                    [
+                        "pending",
+                        "active",
+                        "reserved"
+                    ]
+                )
+                .limit(1);
+
+
+        if (
+            duplicateError
+        ) {
+
+            console.error(
+                "Admin duplicate listing check:",
+                duplicateError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "listing_check_failed"
+                    }
+                );
+        }
+
+
+        if (
+            duplicate?.length
+        ) {
+
+            return res
+                .status(409)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "listing_already_exists"
+                    }
+                );
+        }
+
+
+        const listingId =
+            crypto.randomUUID();
+
+
+        const startedAt =
+            listingStatus ===
+            "active"
+                ? nowIso()
+                : null;
+
+
+        let expiresAt =
+            null;
+
+
+        if (
+            startedAt &&
+            listingPlan ===
+            "free"
+        ) {
+
+            expiresAt =
+                addHoursIso(
+                    startedAt,
+                    FREE_LISTING_DURATION_HOURS
+                );
+        }
+
+
+        if (
+            startedAt &&
+            listingPlan ===
+            "paid"
+        ) {
+
+            expiresAt =
+                addDaysIso(
+                    startedAt,
+                    PAID_LISTING_DURATION_DAYS
+                );
+        }
+
+
+        try {
+
+            const {
+                data:
+                    listing,
+                error:
+                    listingError
+            } =
+                await supabase
+                    .from("listings")
+                    .insert(
+                        {
+                            id:
+                                listingId,
+
+                            seller_telegram_id:
+                                sellerTelegramId,
+
+                            whatsapp_username:
+                                input.username,
+
+                            asking_price:
+                                input.price,
+
+                            currency:
+                                "USD",
+
+                            category:
+                                input.category,
+
+                            description:
+                                input.description,
+
+                            status:
+                                listingStatus,
+
+                            verification_status:
+                                "unverified",
+
+                            is_premium_name:
+                                false,
+
+                            is_featured:
+                                false,
+
+                            views_count:
+                                0,
+
+                            likes_count:
+                                0,
+
+                            is_paused:
+                                false,
+
+                            is_frozen:
+                                false,
+
+                            listing_plan:
+                                listingPlan,
+
+                            listing_period_started_at:
+                                listingPlan ===
+                                "legacy"
+                                    ? null
+                                    : startedAt,
+
+                            listing_expires_at:
+                                listingPlan ===
+                                "legacy"
+                                    ? null
+                                    : expiresAt,
+
+                            listing_expiry_1h_notified_at:
+                                null,
+
+                            listing_expired_notified_at:
+                                null,
+
+                            renewal_count:
+                                0
+                        }
+                    )
+                    .select(
+                        "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,is_featured,views_count,likes_count,is_paused,is_frozen,created_at,listing_plan,listing_period_started_at,listing_expires_at"
+                    )
+                    .single();
+
+
+            if (
+                listingError
+            ) {
+
+                throw listingError;
+            }
+
+
+            const {
+                error:
+                    contactError
+            } =
+                await supabase
+                    .from(
+                        "listing_contacts"
+                    )
+                    .insert(
+                        {
+                            listing_id:
+                                listingId,
+
+                            contact_type:
+                                input.contactType,
+
+                            contact_value:
+                                input.contactValue
+                        }
+                    );
+
+
+            if (
+                contactError
+            ) {
+
+                throw contactError;
+            }
+
+
+            await ensureSellerProfile(
+                sellerTelegramId
+            );
+
+
+            if (
+                listingPlan ===
+                "free"
+            ) {
+
+                const {
+                    error:
+                        freeFlagError
+                } =
+                    await supabase
+                        .from("users")
+                        .update(
+                            {
+                                free_listing_used:
+                                    true,
+
+                                free_listing_used_at:
+                                    seller.free_listing_used_at ||
+                                    nowIso()
+                            }
+                        )
+                        .eq(
+                            "telegram_id",
+                            sellerTelegramId
+                        );
+
+
+                if (
+                    freeFlagError
+                ) {
+
+                    throw freeFlagError;
+                }
+            }
+
+
+            let sellerMessage =
+                `🛡 Handle Market admin added @${input.username} to your account without a payment.`;
+
+
+            if (
+                listingStatus ===
+                "pending"
+            ) {
+
+                sellerMessage +=
+                    "\n\nStatus: ⏳ Pending moderation.";
+
+            } else if (
+                listingPlan ===
+                "free"
+            ) {
+
+                sellerMessage +=
+                    `\n\nStatus: ✅ Active\n🎁 Free listing · ${FREE_LISTING_DURATION_HOURS} hours.`;
+
+            } else if (
+                listingPlan ===
+                "paid"
+            ) {
+
+                sellerMessage +=
+                    `\n\nStatus: ✅ Active\n🟢 Listing period · ${PAID_LISTING_DURATION_DAYS} days.`;
+
+            } else {
+
+                sellerMessage +=
+                    "\n\nStatus: ✅ Active\n∞ Legacy listing · no automatic expiration.";
+            }
+
+
+            await safeSendMessage(
+                sellerTelegramId,
+                sellerMessage
+            );
+
+
+            return res.json(
+                {
+                    ok: true,
+                    no_payment: true,
+                    listing:
+                        withLifecycle(
+                            listing
+                        )
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Admin listing create:",
+                error
+            );
+
+
+            await supabase
+                .from(
+                    "listing_contacts"
+                )
+                .delete()
+                .eq(
+                    "listing_id",
+                    listingId
+                );
+
+
+            await supabase
+                .from("listings")
+                .delete()
+                .eq(
+                    "id",
+                    listingId
+                );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "admin_listing_create_failed"
+                    }
+                );
+        }
+    }
+);
 /* =========================================================
    ADMIN PENDING
    ========================================================= */
