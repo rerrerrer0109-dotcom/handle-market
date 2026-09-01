@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 
 <meta
@@ -57,7 +56,6 @@
     --nav-height:64px;
 }
 
-
 @media (prefers-color-scheme:dark) {
 
     :root {
@@ -86,22 +84,18 @@
     }
 }
 
-
 * {
     box-sizing:border-box;
     -webkit-tap-highlight-color:transparent;
 }
 
-
 html {
     scroll-behavior:smooth;
 }
 
-
 body {
 
     margin:0;
-
     min-height:100vh;
 
     font-family:
@@ -142,7 +136,6 @@ body {
     line-height:1.45;
 }
 
-
 button,
 input,
 textarea,
@@ -150,26 +143,22 @@ select {
     font:inherit;
 }
 
-
 button {
     border:0;
     cursor:pointer;
     touch-action:manipulation;
 }
 
-
 button:disabled {
     cursor:default;
-    opacity:.5;
+    opacity:.48;
 }
-
 
 .app {
     width:100%;
     max-width:820px;
     margin:0 auto;
 }
-
 
 header {
 
@@ -198,7 +187,6 @@ header {
         blur(20px);
 }
 
-
 @media (prefers-color-scheme:dark) {
 
     header {
@@ -207,13 +195,11 @@ header {
     }
 }
 
-
 .header-main {
     display:flex;
     align-items:center;
     gap:11px;
 }
-
 
 .brand-icon {
 
@@ -244,14 +230,12 @@ header {
         rgba(22,136,232,.23);
 }
 
-
 .brand-title {
     font-size:22px;
     font-weight:900;
     line-height:1.05;
     letter-spacing:-.7px;
 }
-
 
 .brand-subtitle {
 
@@ -265,7 +249,6 @@ header {
 
     font-size:11px;
 }
-
 
 .auth-status {
 
@@ -281,23 +264,19 @@ header {
     font-weight:800;
 }
 
-
 .auth-ok {
     color:var(--green);
     background:var(--green-soft);
 }
-
 
 .auth-error {
     color:var(--red);
     background:var(--red-soft);
 }
 
-
 .page {
     display:none;
 }
-
 
 .page.active {
 
@@ -306,7 +285,6 @@ header {
     animation:
         page-in .16s ease;
 }
-
 
 @keyframes page-in {
 
@@ -320,7 +298,6 @@ header {
         transform:translateY(0);
     }
 }
-
 
 .hero {
 
@@ -347,7 +324,6 @@ header {
         rgba(22,136,232,.19);
 }
 
-
 .hero::after {
 
     content:"";
@@ -366,7 +342,6 @@ header {
         rgba(255,255,255,.11);
 }
 
-
 .hero-label {
 
     position:relative;
@@ -377,7 +352,6 @@ header {
     letter-spacing:1px;
     opacity:.78;
 }
-
 
 .hero-title {
 
@@ -394,7 +368,6 @@ header {
     letter-spacing:-1px;
 }
 
-
 .hero-text {
 
     position:relative;
@@ -408,7 +381,6 @@ header {
     line-height:1.55;
     opacity:.91;
 }
-
 
 .hero-premium-info {
 
@@ -434,7 +406,6 @@ header {
         blur(10px);
 }
 
-
 .hero-premium-title {
     display:flex;
     align-items:center;
@@ -442,7 +413,6 @@ header {
     font-size:10.5px;
     font-weight:900;
 }
-
 
 .hero-premium-text {
 
@@ -454,7 +424,6 @@ header {
     font-size:9px;
     line-height:1.5;
 }
-
 
 .hero-promotion-text {
 
@@ -472,18 +441,15 @@ header {
     line-height:1.45;
 }
 
-
 .page-heading {
     padding:19px 16px 9px;
 }
-
 
 .page-title {
     font-size:21px;
     font-weight:900;
     letter-spacing:-.55px;
 }
-
 
 .page-description {
 
@@ -498,18 +464,15 @@ header {
     font-size:11px;
 }
 
-
 .section {
     padding:0 16px 24px;
 }
-
 
 .section-title {
     font-size:18px;
     font-weight:900;
     letter-spacing:-.4px;
 }
-
 
 .section-subtitle {
 
@@ -526,16 +489,13 @@ header {
     line-height:1.45;
 }
 
-
 .search {
     padding:0 16px 14px;
 }
 
-
 .search-wrap {
     position:relative;
 }
-
 
 .search-wrap svg {
 
@@ -562,7 +522,6 @@ header {
     stroke-linecap:round;
     pointer-events:none;
 }
-
 
 .search input {
 
@@ -596,12 +555,7 @@ header {
         var(--shadow);
 
     font-size:13px;
-
-    transition:
-        border-color .15s,
-        box-shadow .15s;
 }
-
 
 .search input:focus {
 
@@ -614,24 +568,20 @@ header {
         var(--shadow);
 }
 
-
 .categories {
 
     display:flex;
     gap:8px;
 
     overflow-x:auto;
-
     padding-bottom:3px;
 
     scrollbar-width:none;
 }
 
-
 .categories::-webkit-scrollbar {
     display:none;
 }
-
 
 .category {
 
@@ -661,7 +611,6 @@ header {
     font-weight:750;
 }
 
-
 .market-premium-note {
 
     margin:4px 16px 14px;
@@ -686,7 +635,6 @@ header {
     line-height:1.5;
 }
 
-
 @media (prefers-color-scheme:dark) {
 
     .market-premium-note {
@@ -700,7 +648,6 @@ header {
             rgba(225,184,79,.20);
     }
 }
-
 
 .market-tools {
 
@@ -722,7 +669,6 @@ header {
         var(--shadow);
 }
 
-
 .market-tools-top {
 
     display:flex;
@@ -730,7 +676,6 @@ header {
     justify-content:space-between;
     gap:9px;
 }
-
 
 .market-result-count {
 
@@ -746,7 +691,6 @@ header {
     font-size:10px;
     font-weight:800;
 }
-
 
 .market-sort-select {
 
@@ -778,7 +722,6 @@ header {
     font-weight:800;
 }
 
-
 .market-filter-button {
 
     min-width:86px;
@@ -799,11 +742,9 @@ header {
     white-space:nowrap;
 }
 
-
 .market-filter-button.has-filters {
 
     color:#fff;
-
     border-color:transparent;
 
     background:
@@ -813,7 +754,6 @@ header {
             #6c52db
         );
 }
-
 
 .filter-panel {
 
@@ -827,16 +767,13 @@ header {
         var(--border);
 }
 
-
 .filter-panel.show {
     display:block;
 }
 
-
 .filter-section {
     margin-bottom:14px;
 }
-
 
 .filter-label {
 
@@ -853,7 +790,6 @@ header {
     letter-spacing:.55px;
     text-transform:uppercase;
 }
-
 
 .filter-select {
 
@@ -882,7 +818,6 @@ header {
     font-weight:750;
 }
 
-
 .filter-promotion-row {
 
     display:flex;
@@ -895,11 +830,9 @@ header {
     scrollbar-width:none;
 }
 
-
 .filter-promotion-row::-webkit-scrollbar {
     display:none;
 }
-
 
 .filter-chip {
 
@@ -927,11 +860,9 @@ header {
     white-space:nowrap;
 }
 
-
 .filter-chip.active {
 
     color:#fff;
-
     border-color:transparent;
 
     background:
@@ -941,7 +872,6 @@ header {
             #6a4fd2
         );
 }
-
 
 .filter-price-grid {
 
@@ -955,7 +885,6 @@ header {
 
     gap:8px;
 }
-
 
 .filter-price-input {
 
@@ -982,7 +911,6 @@ header {
 
     font-size:10.5px;
 }
-
 
 .premium-toggle {
 
@@ -1013,12 +941,10 @@ header {
     text-align:left;
 }
 
-
 .premium-toggle-title {
     font-size:10.5px;
     font-weight:900;
 }
-
 
 .premium-toggle-subtitle {
 
@@ -1032,7 +958,6 @@ header {
 
     font-size:8px;
 }
-
 
 .toggle-switch {
 
@@ -1048,7 +973,6 @@ header {
     background:
         rgba(110,115,125,.22);
 }
-
 
 .toggle-switch::after {
 
@@ -1074,7 +998,6 @@ header {
         transform .15s;
 }
 
-
 .premium-toggle.active
 .toggle-switch {
 
@@ -1086,12 +1009,10 @@ header {
         );
 }
 
-
 .premium-toggle.active
 .toggle-switch::after {
     transform:translateX(16px);
 }
-
 
 .filter-footer {
 
@@ -1103,20 +1024,17 @@ header {
     margin-top:4px;
 }
 
-
 .filter-reset {
     flex:1;
     color:var(--muted);
     background:var(--surface-3);
 }
 
-
 .filter-done {
     flex:1;
     color:#fff;
     background:var(--blue);
 }
-
 
 .active-filter-bar {
 
@@ -1133,16 +1051,13 @@ header {
     scrollbar-width:none;
 }
 
-
 .active-filter-bar.show {
     display:flex;
 }
 
-
 .active-filter-bar::-webkit-scrollbar {
     display:none;
 }
-
 
 .active-filter-pill {
 
@@ -1159,12 +1074,10 @@ header {
     font-weight:850;
 }
 
-
 .active-filter-pill.gold {
     color:#85600a;
     background:var(--gold-soft);
 }
-
 
 .card {
 
@@ -1188,7 +1101,6 @@ header {
         var(--shadow);
 }
 
-
 .username {
 
     font-size:21px;
@@ -1198,12 +1110,10 @@ header {
     word-break:break-word;
 }
 
-
 .price {
     font-size:20px;
     font-weight:900;
 }
-
 
 .description {
 
@@ -1218,7 +1128,7 @@ header {
 
 
 /* =========================================================
-   PUBLIC VIEWS + LIKES
+   PUBLIC STATS
    ========================================================= */
 
 .public-stats {
@@ -1230,7 +1140,6 @@ header {
 
     margin-top:13px;
 }
-
 
 .public-stat {
 
@@ -1253,11 +1162,9 @@ header {
     font-weight:850;
 }
 
-
 .public-stat strong {
     color:var(--text);
 }
-
 
 .promotion-vip .public-stat {
 
@@ -1270,9 +1177,158 @@ header {
         rgba(255,255,255,.055);
 }
 
-
 .promotion-vip .public-stat strong {
     color:#fff;
+}
+
+
+/* =========================================================
+   LISTING LIFETIME TIMER
+   ========================================================= */
+
+.listing-lifetime {
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+
+    margin-top:12px;
+    padding:10px 12px;
+
+    border-radius:13px;
+
+    font-size:9.5px;
+    font-weight:850;
+}
+
+.listing-lifetime-free {
+
+    color:#087b42;
+
+    border:
+        1px solid
+        rgba(21,149,74,.16);
+
+    background:
+        linear-gradient(
+            135deg,
+            #effcf4,
+            #e2f8eb
+        );
+}
+
+.listing-lifetime-paid {
+
+    color:var(--blue);
+
+    border:
+        1px solid
+        rgba(22,136,232,.16);
+
+    background:
+        var(--blue-soft);
+}
+
+.listing-lifetime-expired {
+
+    color:var(--red);
+
+    border:
+        1px solid
+        rgba(223,69,69,.18);
+
+    background:
+        var(--red-soft);
+}
+
+.lifetime-title {
+    font-weight:900;
+}
+
+.lifetime-countdown {
+
+    flex:0 0 auto;
+
+    font-variant-numeric:
+        tabular-nums;
+
+    font-weight:900;
+}
+
+.promotion-vip
+.listing-lifetime {
+
+    color:#f4d981;
+
+    border-color:
+        rgba(243,210,111,.15);
+
+    background:
+        rgba(255,255,255,.05);
+}
+
+
+/* =========================================================
+   LISTING FORM PLAN
+   ========================================================= */
+
+.listing-plan-box {
+
+    margin-bottom:16px;
+    padding:14px;
+
+    border-radius:16px;
+
+    border:
+        1px solid
+        var(--border);
+
+    background:
+        var(--surface-2);
+}
+
+.listing-plan-box.free {
+
+    border-color:
+        rgba(21,149,74,.18);
+
+    background:
+        var(--green-soft);
+}
+
+.listing-plan-box.paid {
+
+    border-color:
+        rgba(22,136,232,.18);
+
+    background:
+        var(--blue-soft);
+}
+
+.listing-plan-title {
+
+    font-size:12px;
+    font-weight:900;
+}
+
+.listing-plan-text {
+
+    margin-top:5px;
+
+    color:var(--text-2);
+
+    font-size:9.5px;
+    line-height:1.5;
+}
+
+.payment-subtitle {
+
+    margin-top:4px;
+
+    color:var(--muted);
+
+    font-size:9px;
 }
 
 
@@ -1295,7 +1351,6 @@ header {
     margin-top:13px;
 }
 
-
 .listing-stat {
 
     min-width:0;
@@ -1314,14 +1369,12 @@ header {
     text-align:center;
 }
 
-
 .listing-stat-number {
 
     font-size:13px;
     font-weight:900;
     line-height:1.1;
 }
-
 
 .listing-stat-label {
 
@@ -1339,10 +1392,71 @@ header {
 }
 
 
+/* =========================================================
+   RENEWAL
+   ========================================================= */
+
+.expired-listing-box {
+
+    margin-top:13px;
+    padding:14px;
+
+    border:
+        1px solid
+        rgba(223,69,69,.20);
+
+    border-radius:16px;
+
+    background:
+        var(--red-soft);
+}
+
+.expired-listing-title {
+
+    color:var(--red);
+
+    font-size:12px;
+    font-weight:900;
+}
+
+.expired-listing-text {
+
+    margin-top:5px;
+
+    color:var(--text-2);
+
+    font-size:9.5px;
+    line-height:1.5;
+}
+
+.renew-listing-button {
+
+    width:100%;
+
+    margin-top:11px;
+    padding:13px;
+
+    color:#fff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #1688e8,
+            #6548d4
+        );
+
+    font-size:11px;
+    font-weight:900;
+}
+
+
+/* =========================================================
+   PREMIUM + PROMOTION
+   ========================================================= */
+
 .premium-name-badge {
 
     display:inline-flex;
-
     align-items:center;
 
     padding:5px 9px;
@@ -1369,20 +1483,22 @@ header {
     font-weight:900;
 }
 
-
 .promotion-badge {
 
     display:inline-flex;
     align-items:center;
+    gap:4px;
 
     padding:5px 9px;
 
     border-radius:999px;
 
-    font-size:9.5px;
+    font-size:9px;
     font-weight:900;
-}
 
+    font-variant-numeric:
+        tabular-nums;
+}
 
 .promotion-badge-vip {
 
@@ -1400,7 +1516,6 @@ header {
         );
 }
 
-
 .promotion-badge-hot {
 
     color:#fff;
@@ -1413,13 +1528,11 @@ header {
         );
 }
 
-
 .promotion-badge-bump {
 
     color:var(--blue);
     background:var(--blue-soft);
 }
-
 
 .listing-card.promotion-vip,
 .detail-card.promotion-vip {
@@ -1480,37 +1593,31 @@ header {
         rgba(130,4,25,.19);
 }
 
-
 .listing-card.promotion-vip > *,
 .detail-card.promotion-vip > * {
     position:relative;
     z-index:3;
 }
 
-
 .promotion-vip .username,
 .promotion-vip .detail-username {
     color:#fff;
 }
-
 
 .promotion-vip .listing-price,
 .promotion-vip .detail-price {
     color:#fffaf0;
 }
 
-
 .promotion-vip .listing-price-label,
 .promotion-vip .detail-label {
     color:#d9b852;
 }
 
-
 .promotion-vip .description,
 .promotion-vip .detail-description {
     color:rgba(255,255,255,.72);
 }
-
 
 .promotion-vip .premium-name-badge {
 
@@ -1527,24 +1634,20 @@ header {
         );
 }
 
-
 .promotion-vip .category-badge {
     color:rgba(255,255,255,.73);
     background:rgba(255,255,255,.065);
 }
-
 
 .promotion-vip .seller-link {
     color:#e2d1ff;
     background:rgba(98,52,139,.19);
 }
 
-
 .promotion-vip .listing-view-link {
     color:#b9ddff;
     background:rgba(39,96,141,.20);
 }
-
 
 .promotion-vip .offer-button {
 
@@ -1563,7 +1666,6 @@ header {
     font-weight:900;
 }
 
-
 .promotion-vip .watch-button {
 
     color:#f1d16b;
@@ -1571,7 +1673,6 @@ header {
     background:
         rgba(255,255,255,.055);
 }
-
 
 .promotion-vip .like-button {
 
@@ -1581,7 +1682,6 @@ header {
         rgba(145,15,38,.23);
 }
 
-
 .promotion-vip .like-button.liked {
 
     color:#ff536e;
@@ -1590,7 +1690,6 @@ header {
         rgba(186,14,45,.28);
 }
 
-
 .promotion-vip .report-button {
 
     color:#ff7886;
@@ -1598,7 +1697,6 @@ header {
     background:
         rgba(142,13,32,.18);
 }
-
 
 .listing-card.promotion-hot,
 .detail-card.promotion-hot {
@@ -1625,7 +1723,6 @@ header {
         border-box;
 }
 
-
 .listing-card.promotion-bump,
 .detail-card.promotion-bump {
 
@@ -1640,13 +1737,11 @@ header {
         );
 }
 
-
 .listing-card {
     position:relative;
     overflow:hidden;
     padding:17px;
 }
-
 
 .listing-header {
 
@@ -1656,18 +1751,15 @@ header {
     gap:14px;
 }
 
-
 .listing-main {
     min-width:0;
     flex:1;
 }
 
-
 .listing-price-box {
     flex:0 0 auto;
     text-align:right;
 }
-
 
 .listing-price {
 
@@ -1675,7 +1767,6 @@ header {
     font-weight:900;
     letter-spacing:-.45px;
 }
-
 
 .listing-price-label {
 
@@ -1687,7 +1778,6 @@ header {
     font-weight:700;
 }
 
-
 .listing-info-row {
 
     display:flex;
@@ -1697,7 +1787,6 @@ header {
 
     margin-top:9px;
 }
-
 
 .category-badge,
 .listing-view-link,
@@ -1714,24 +1803,20 @@ header {
     font-weight:800;
 }
 
-
 .category-badge {
     color:var(--muted);
     background:var(--surface-3);
 }
-
 
 .seller-link {
     color:var(--purple);
     background:var(--purple-soft);
 }
 
-
 .listing-view-link {
     color:var(--blue);
     background:var(--blue-soft);
 }
-
 
 .listing-actions {
 
@@ -1744,10 +1829,8 @@ header {
         auto;
 
     gap:7px;
-
     margin-top:15px;
 }
-
 
 .action-icon-button {
 
@@ -1762,53 +1845,40 @@ header {
     border-radius:13px;
 }
 
-
 .like-button {
-
     color:#d85768;
     background:var(--red-soft);
 }
 
-
 .like-button.liked {
-
     color:#e61f45;
     background:#ffe4e9;
 }
 
-
 .watch-button {
-
     color:var(--text);
     background:var(--surface-3);
 }
 
-
 .watch-button.watching {
-
     color:var(--yellow);
     background:var(--yellow-soft);
 }
 
-
 .report-button {
-
     color:var(--red);
     background:var(--red-soft);
 }
 
-
 .listing-detail-page {
     padding:16px;
 }
-
 
 .detail-back-button {
 
     margin-bottom:12px;
 
     color:var(--text);
-
     background:var(--surface);
 
     border:
@@ -1816,11 +1886,9 @@ header {
         var(--border);
 }
 
-
 .detail-card {
 
     position:relative;
-
     padding:22px;
 
     border-radius:26px;
@@ -1829,7 +1897,6 @@ header {
         var(--shadow-lg);
 }
 
-
 .detail-label {
 
     color:var(--muted);
@@ -1837,7 +1904,6 @@ header {
     font-size:9px;
     font-weight:900;
 }
-
 
 .detail-username {
 
@@ -1849,7 +1915,6 @@ header {
     letter-spacing:-1px;
 }
 
-
 .detail-price {
 
     margin-top:13px;
@@ -1857,7 +1922,6 @@ header {
     font-size:28px;
     font-weight:900;
 }
-
 
 .detail-info {
 
@@ -1868,7 +1932,6 @@ header {
 
     margin-top:12px;
 }
-
 
 .detail-description {
 
@@ -1885,7 +1948,6 @@ header {
     line-height:1.6;
 }
 
-
 .detail-actions {
 
     display:grid;
@@ -1897,10 +1959,8 @@ header {
         auto;
 
     gap:8px;
-
     margin-top:18px;
 }
-
 
 .detail-share-section {
 
@@ -1914,7 +1974,6 @@ header {
 
     gap:8px;
 }
-
 
 .share-listing-button {
 
@@ -1931,7 +1990,6 @@ header {
     font-weight:900;
 }
 
-
 .copy-link-button {
 
     min-width:48px;
@@ -1939,7 +1997,6 @@ header {
     color:var(--text);
     background:var(--surface-3);
 }
-
 
 .detail-share-note {
 
@@ -1950,7 +2007,6 @@ header {
     font-size:9px;
     text-align:center;
 }
-
 
 .contact-lock-card {
 
@@ -1976,7 +2032,6 @@ header {
     text-align:left;
 }
 
-
 .contact-lock-left {
 
     display:flex;
@@ -1984,12 +2039,10 @@ header {
     gap:9px;
 }
 
-
 .contact-lock-title {
     font-size:10.5px;
     font-weight:850;
 }
-
 
 .contact-lock-subtitle {
     margin-top:1px;
@@ -1997,13 +2050,11 @@ header {
     font-size:8.5px;
 }
 
-
 .contact-lock-price {
     color:var(--blue);
     font-size:11px;
     font-weight:900;
 }
-
 
 .contact-box,
 .owner-contact-box {
@@ -2018,16 +2069,13 @@ header {
     border-radius:14px;
 }
 
-
 .contact-box {
     background:var(--green-soft);
 }
 
-
 .owner-contact-box {
     background:var(--surface-2);
 }
-
 
 .contact-title {
     color:var(--green);
@@ -2035,12 +2083,10 @@ header {
     font-weight:900;
 }
 
-
 .owner-title {
     font-size:10.5px;
     font-weight:900;
 }
-
 
 .contact-value {
 
@@ -2051,7 +2097,6 @@ header {
     word-break:break-word;
 }
 
-
 .contact-actions {
 
     display:flex;
@@ -2060,11 +2105,9 @@ header {
     margin-top:10px;
 }
 
-
 .contact-actions button {
     flex:1;
 }
-
 
 button {
 
@@ -2075,7 +2118,6 @@ button {
     font-size:10.5px;
     font-weight:800;
 }
-
 
 .primary {
 
@@ -2089,19 +2131,15 @@ button {
         );
 }
 
-
 .secondary {
-
     color:var(--text);
     background:var(--surface-3);
 }
-
 
 .danger {
     color:#fff;
     background:var(--red);
 }
-
 
 .buttons {
 
@@ -2111,7 +2149,6 @@ button {
 
     margin-top:14px;
 }
-
 
 .promote-launch-button {
 
@@ -2133,7 +2170,6 @@ button {
     font-weight:900;
 }
 
-
 .form-box {
 
     margin:16px;
@@ -2152,12 +2188,10 @@ button {
         var(--shadow);
 }
 
-
 .form-title {
     font-size:21px;
     font-weight:900;
 }
-
 
 .form-subtitle {
 
@@ -2169,11 +2203,9 @@ button {
     line-height:1.5;
 }
 
-
 .field {
     margin-bottom:15px;
 }
-
 
 .field label {
 
@@ -2184,7 +2216,6 @@ button {
     font-size:10.5px;
     font-weight:800;
 }
-
 
 .field input,
 .field select,
@@ -2208,12 +2239,10 @@ button {
     font-size:12px;
 }
 
-
 .field textarea {
     min-height:92px;
     resize:vertical;
 }
-
 
 .field-hint {
 
@@ -2223,7 +2252,6 @@ button {
 
     font-size:9px;
 }
-
 
 .premium-form-info {
 
@@ -2243,7 +2271,6 @@ button {
     line-height:1.5;
 }
 
-
 .payment-box {
 
     margin-bottom:14px;
@@ -2254,13 +2281,11 @@ button {
     background:var(--blue-soft);
 }
 
-
 .payment-label {
     color:var(--muted);
     font-size:9px;
     font-weight:800;
 }
-
 
 .payment-price {
 
@@ -2269,7 +2294,6 @@ button {
     font-size:23px;
     font-weight:900;
 }
-
 
 .payment-button {
 
@@ -2290,7 +2314,6 @@ button {
     font-weight:900;
 }
 
-
 .warning {
 
     margin:0 16px 22px;
@@ -2305,7 +2328,6 @@ button {
     line-height:1.5;
 }
 
-
 .badge {
 
     display:inline-flex;
@@ -2318,12 +2340,10 @@ button {
     font-weight:900;
 }
 
-
 .badge-pending {
     color:var(--yellow);
     background:var(--yellow-soft);
 }
-
 
 .badge-active,
 .badge-accepted {
@@ -2331,25 +2351,26 @@ button {
     background:var(--green-soft);
 }
 
-
 .badge-paused,
 .badge-countered {
     color:var(--blue);
     background:var(--blue-soft);
 }
 
-
 .badge-frozen {
     color:var(--cyan);
     background:var(--cyan-soft);
 }
 
+.badge-expired {
+    color:var(--red);
+    background:var(--red-soft);
+}
 
 .badge-rejected {
     color:var(--red);
     background:var(--red-soft);
 }
-
 
 .badge-removed,
 .badge-declined,
@@ -2360,11 +2381,9 @@ button {
     background:var(--surface-3);
 }
 
-
 .profile-shell {
     margin:16px;
 }
-
 
 .profile-card,
 .seller-header-card {
@@ -2385,7 +2404,6 @@ button {
         var(--shadow);
 }
 
-
 .profile-top,
 .seller-top {
 
@@ -2393,7 +2411,6 @@ button {
     align-items:center;
     gap:13px;
 }
-
 
 .profile-avatar,
 .seller-avatar {
@@ -2417,13 +2434,11 @@ button {
         );
 }
 
-
 .profile-name,
 .seller-name {
     font-size:20px;
     font-weight:900;
 }
-
 
 .profile-username,
 .seller-member {
@@ -2434,7 +2449,6 @@ button {
 
     font-size:10px;
 }
-
 
 .profile-auth,
 .seller-auth {
@@ -2453,7 +2467,6 @@ button {
     font-weight:800;
 }
 
-
 .profile-menu {
 
     display:grid;
@@ -2465,10 +2478,8 @@ button {
         );
 
     gap:9px;
-
     margin-top:15px;
 }
-
 
 .profile-tile {
 
@@ -2492,7 +2503,6 @@ button {
     text-align:left;
 }
 
-
 .profile-tile-icon {
 
     width:32px;
@@ -2507,7 +2517,6 @@ button {
     background:var(--surface);
 }
 
-
 .profile-tile-title {
 
     margin-top:10px;
@@ -2515,7 +2524,6 @@ button {
     font-size:10.5px;
     font-weight:900;
 }
-
 
 .profile-tile-subtitle {
 
@@ -2526,11 +2534,9 @@ button {
     font-size:8.5px;
 }
 
-
 .seller-page {
     padding:16px;
 }
-
 
 .back-button {
 
@@ -2544,7 +2550,6 @@ button {
         var(--border);
 }
 
-
 .seller-bio {
 
     margin-top:15px;
@@ -2555,7 +2560,6 @@ button {
     line-height:1.55;
 }
 
-
 .seller-stats {
 
     display:grid;
@@ -2564,10 +2568,8 @@ button {
         repeat(3,1fr);
 
     gap:8px;
-
     margin-top:16px;
 }
-
 
 .seller-stat {
 
@@ -2580,16 +2582,13 @@ button {
     border-radius:14px;
 
     text-align:center;
-
     background:var(--surface-2);
 }
-
 
 .seller-stat-number {
     font-size:19px;
     font-weight:900;
 }
-
 
 .seller-stat-label {
     margin-top:3px;
@@ -2597,17 +2596,14 @@ button {
     font-size:8px;
 }
 
-
 .seller-edit-button {
 
     width:100%;
-
     margin-top:12px;
 
     color:var(--purple);
     background:var(--purple-soft);
 }
-
 
 .seller-visibility-public,
 .seller-visibility-private {
@@ -2620,18 +2616,15 @@ button {
     font-size:9.5px;
 }
 
-
 .seller-visibility-public {
     color:var(--green);
     background:var(--green-soft);
 }
 
-
 .seller-visibility-private {
     color:var(--yellow);
     background:var(--yellow-soft);
 }
-
 
 .seller-listings-title {
 
@@ -2641,39 +2634,32 @@ button {
     font-weight:900;
 }
 
-
 .wanted-card {
     border-left:3px solid var(--blue);
 }
-
 
 .contact-buyer-button,
 .your-request-button,
 .close-request-button {
 
     width:100%;
-
     margin-top:11px;
 }
-
 
 .contact-buyer-button {
     color:#fff;
     background:var(--blue);
 }
 
-
 .your-request-button {
     color:var(--green);
     background:var(--green-soft);
 }
 
-
 .close-request-button {
     color:var(--red);
     background:var(--red-soft);
 }
-
 
 .manage-buttons {
 
@@ -2684,36 +2670,30 @@ button {
     margin-top:13px;
 }
 
-
 .manage-buttons button {
     flex:1;
     min-width:80px;
 }
-
 
 .edit-listing-button {
     color:var(--blue);
     background:var(--blue-soft);
 }
 
-
 .pause-listing-button {
     color:var(--yellow);
     background:var(--yellow-soft);
 }
-
 
 .resume-listing-button {
     color:var(--green);
     background:var(--green-soft);
 }
 
-
 .remove-listing-button {
     color:var(--red);
     background:var(--red-soft);
 }
-
 
 .paused-note,
 .frozen-note {
@@ -2726,18 +2706,24 @@ button {
     font-size:9.5px;
 }
 
-
 .paused-note {
     color:var(--blue);
     background:var(--blue-soft);
 }
-
 
 .frozen-note {
     color:var(--cyan);
     background:var(--cyan-soft);
 }
 
+.promotion-status-stack {
+
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+
+    margin-top:12px;
+}
 
 .promotion-status {
 
@@ -2746,32 +2732,30 @@ button {
     justify-content:space-between;
     gap:10px;
 
-    margin-top:12px;
     padding:11px 12px;
 
     border-radius:13px;
 
     font-size:9.5px;
-}
 
+    font-variant-numeric:
+        tabular-nums;
+}
 
 .promotion-status-vip {
     color:#e2c46c;
     background:linear-gradient(135deg,#16100e,#241015);
 }
 
-
 .promotion-status-hot {
     color:#d75718;
     background:var(--orange-soft);
 }
 
-
 .promotion-status-bump {
     color:var(--blue);
     background:var(--blue-soft);
 }
-
 
 .offer-summary {
 
@@ -2787,12 +2771,10 @@ button {
     background:var(--surface-2);
 }
 
-
 .offer-label {
     color:var(--muted);
     font-size:8.5px;
 }
-
 
 .offer-big {
 
@@ -2802,11 +2784,9 @@ button {
     font-weight:900;
 }
 
-
 .admin-box {
     margin:16px;
 }
-
 
 .admin-header {
 
@@ -2826,11 +2806,9 @@ button {
         );
 }
 
-
 .admin-section {
     margin-bottom:27px;
 }
-
 
 .admin-section-title {
 
@@ -2840,13 +2818,11 @@ button {
     font-weight:900;
 }
 
-
 .approve-button {
     flex:1;
     color:#fff;
     background:var(--green);
 }
-
 
 .reject-button {
     flex:1;
@@ -2854,46 +2830,38 @@ button {
     background:var(--red);
 }
 
-
 .counter-button {
     flex:1;
     color:var(--blue);
     background:var(--blue-soft);
 }
 
-
 .freeze-button {
     color:var(--cyan);
     background:var(--cyan-soft);
 }
-
 
 .unfreeze-button {
     color:var(--green);
     background:var(--green-soft);
 }
 
-
 .dismiss-button {
     background:var(--surface-3);
 }
-
 
 .admin-remove-button {
     color:var(--red);
     background:var(--red-soft);
 }
 
-
 .report-card {
     border-left:3px solid var(--red);
 }
 
-
 .frozen-card {
     border-left:3px solid var(--cyan);
 }
-
 
 .premium-admin-card {
 
@@ -2909,7 +2877,6 @@ button {
         );
 }
 
-
 .premium-mark-button {
 
     color:#634605;
@@ -2922,12 +2889,10 @@ button {
         );
 }
 
-
 .premium-remove-button {
     color:#87671a;
     background:var(--gold-soft);
 }
-
 
 .empty {
 
@@ -2945,7 +2910,6 @@ button {
     text-align:center;
     font-size:10px;
 }
-
 
 .bottom-nav {
 
@@ -2989,7 +2953,6 @@ button {
         rgba(27,36,50,.13);
 }
 
-
 @media (prefers-color-scheme:dark) {
 
     .bottom-nav {
@@ -2997,7 +2960,6 @@ button {
             rgba(24,27,32,.95);
     }
 }
-
 
 .nav-item {
 
@@ -3019,7 +2981,6 @@ button {
     cursor:pointer;
 }
 
-
 .nav-item svg {
 
     width:19px;
@@ -3033,7 +2994,6 @@ button {
     stroke-linejoin:round;
 }
 
-
 .nav-item.active {
 
     color:var(--blue);
@@ -3041,7 +3001,6 @@ button {
 
     font-weight:900;
 }
-
 
 .modal-backdrop {
 
@@ -3066,11 +3025,9 @@ button {
         rgba(0,0,0,.44);
 }
 
-
 .modal-backdrop.show {
     display:flex;
 }
-
 
 .modal {
 
@@ -3092,12 +3049,10 @@ button {
     background:var(--surface);
 }
 
-
 .modal-title {
     font-size:20px;
     font-weight:900;
 }
-
 
 .modal-subtitle {
 
@@ -3109,7 +3064,6 @@ button {
     line-height:1.5;
 }
 
-
 .modal-actions {
 
     display:flex;
@@ -3118,11 +3072,9 @@ button {
     margin-top:14px;
 }
 
-
 .modal-actions button {
     flex:1;
 }
-
 
 .promotion-plan {
 
@@ -3138,7 +3090,6 @@ button {
     background:var(--surface-2);
 }
 
-
 .promotion-plan-hot {
 
     border-color:
@@ -3146,7 +3097,6 @@ button {
 
     background:var(--orange-soft);
 }
-
 
 .promotion-plan-vip {
 
@@ -3164,12 +3114,10 @@ button {
         );
 }
 
-
 .promotion-plan-name {
     font-size:14px;
     font-weight:900;
 }
-
 
 .promotion-plan-subtitle {
 
@@ -3180,12 +3128,10 @@ button {
     font-size:9px;
 }
 
-
 .promotion-plan-vip
 .promotion-plan-subtitle {
     color:rgba(255,255,255,.62);
 }
-
 
 .promotion-duration-grid {
 
@@ -3202,6 +3148,9 @@ button {
     margin-top:12px;
 }
 
+.promotion-duration-grid.single {
+    grid-template-columns:1fr;
+}
 
 .promotion-buy-button {
 
@@ -3216,6 +3165,9 @@ button {
     background:var(--surface);
 }
 
+.promotion-buy-button:disabled {
+    opacity:.38;
+}
 
 .promotion-plan-vip
 .promotion-buy-button {
@@ -3229,12 +3181,17 @@ button {
         rgba(255,255,255,.065);
 }
 
-
 .promotion-buy-button strong,
 .promotion-buy-button span {
     display:block;
 }
 
+.promotion-buy-button span {
+
+    margin-top:3px;
+
+    font-size:8px;
+}
 
 .promotion-rules {
 
@@ -3250,7 +3207,6 @@ button {
     line-height:1.55;
 }
 
-
 @media (min-width:650px) {
 
     .modal-backdrop {
@@ -3265,7 +3221,6 @@ button {
         font-size:30px;
     }
 }
-
 
 @media (max-width:430px) {
 
@@ -3301,7 +3256,6 @@ button {
 }
 
 </style>
-
 </head>
 
 <body>
@@ -3340,6 +3294,10 @@ Connecting...
 </header>
 
 
+<!-- =====================================================
+     HOME
+     ===================================================== -->
+
 <div id="home" class="page active">
 
 <div class="hero">
@@ -3359,15 +3317,15 @@ Browse listings, discover sellers and negotiate directly through Handle Market.
 <div class="hero-premium-info">
 
 <div class="hero-premium-title">
-⭐ Premium
+🎁 First listing free for 24 hours
 </div>
 
 <div class="hero-premium-text">
-Awarded by Handle Market to selected unique, high-quality usernames. Premium status cannot be purchased by sellers.
+New sellers can publish their first listing free. The 24-hour timer begins only after moderation approval.
 </div>
 
 <div class="hero-promotion-text">
-💎 VIP, 🔥 HOT and ⬆️ Bump are paid advertising placements and are separate from Premium status.
+⭐ Premium is awarded by Handle Market. 💎 VIP, 🔥 HOT and ⬆️ Bump are paid advertising options.
 </div>
 
 </div>
@@ -3472,11 +3430,25 @@ Loading marketplace...
 
 
 <div class="warning">
-⭐ Premium is awarded by Handle Market and cannot be purchased. 💎 VIP, 🔥 HOT and ⬆️ Bump are paid advertising placements only.
-</div>
+
+🎁 First listing: free for 24 hours after approval.
+
+<br><br>
+
+Paid listings and renewals stay active for 30 days.
+
+<br><br>
+
+⭐ Premium cannot be purchased.
 
 </div>
 
+</div>
+
+
+<!-- =====================================================
+     MARKETPLACE
+     ===================================================== -->
 
 <div id="marketplace" class="page">
 
@@ -3768,6 +3740,10 @@ Loading...
 </div>
 
 
+<!-- =====================================================
+     LISTING DETAIL
+     ===================================================== -->
+
 <div
     id="listingDetail"
     class="page"
@@ -3795,6 +3771,10 @@ Loading listing...
 </div>
 
 
+<!-- =====================================================
+     LIST
+     ===================================================== -->
+
 <div id="list" class="page">
 
 <div class="form-box">
@@ -3806,6 +3786,27 @@ List Username
 <div class="form-subtitle">
 Submit your username for marketplace moderation.
 </div>
+
+
+<div
+    id="listingPlanBox"
+    class="listing-plan-box"
+>
+
+<div
+    id="listingPlanTitle"
+    class="listing-plan-title"
+>
+Loading listing plan...
+</div>
+
+<div
+    id="listingPlanText"
+    class="listing-plan-text"
+></div>
+
+</div>
+
 
 <div class="premium-form-info">
 
@@ -3944,7 +3945,10 @@ Your contact stays private until a buyer unlocks it.
 
 <div class="payment-box">
 
-<div class="payment-label">
+<div
+    id="listingFeeLabel"
+    class="payment-label"
+>
 LISTING FEE
 </div>
 
@@ -3952,8 +3956,13 @@ LISTING FEE
     id="listingFee"
     class="payment-price"
 >
-1 ⭐
+Loading...
 </div>
+
+<div
+    id="listingFeeSubtitle"
+    class="payment-subtitle"
+></div>
 
 </div>
 
@@ -3963,7 +3972,7 @@ LISTING FEE
     class="payment-button"
     type="submit"
 >
-Pay 1 ⭐ & Submit
+Loading...
 </button>
 
 </form>
@@ -3993,6 +4002,10 @@ Loading...
 
 </div>
 
+
+<!-- =====================================================
+     WANTED
+     ===================================================== -->
 
 <div id="wanted" class="page">
 
@@ -4152,6 +4165,10 @@ Loading...
 </div>
 
 
+<!-- =====================================================
+     PROFILE
+     ===================================================== -->
+
 <div id="profile" class="page">
 
 <div
@@ -4275,6 +4292,10 @@ Loading...
 </div>
 
 
+<!-- =====================================================
+     ADMIN
+     ===================================================== -->
+
 <div id="admin" class="page">
 
 <div class="admin-box">
@@ -4364,6 +4385,10 @@ Loading...
 </div>
 
 
+<!-- =====================================================
+     NAV
+     ===================================================== -->
+
 <div class="bottom-nav">
 
 
@@ -4452,6 +4477,10 @@ Profile
 </div>
 
 
+<!-- =====================================================
+     PROMOTION MODAL
+     ===================================================== -->
+
 <div
     id="promotionModal"
     class="modal-backdrop"
@@ -4524,7 +4553,10 @@ Maximum visibility.
 </div>
 
 
-<div class="promotion-rules">
+<div
+    id="promotionRules"
+    class="promotion-rules"
+>
 
 VIP → HOT → Bump → regular listings.
 
@@ -4550,6 +4582,10 @@ Close
 
 </div>
 
+
+<!-- =====================================================
+     GENERIC INPUT MODAL
+     ===================================================== -->
 
 <div
     id="inputModal"
@@ -4612,11 +4648,35 @@ let authenticatedUser =
 let listingPriceStars =
     1;
 
+let listingRenewalPriceStars =
+    1;
+
+let listingRenewalPriceUsd =
+    15;
+
+let freeListingDurationHours =
+    24;
+
+let paidListingDurationDays =
+    30;
+
+let freeListingAvailable =
+    false;
+
 let contactUnlockPriceStars =
     1;
 
 let wantedPriceStars =
     1;
+
+let serverClockOffsetMs =
+    0;
+
+let currentDetailListingId =
+    null;
+
+let lifecycleRefreshScheduled =
+    false;
 
 
 let promotionPrices = {
@@ -4739,6 +4799,359 @@ async function api(
 
 
 /* =========================================================
+   CLOCK + COUNTDOWNS
+   ========================================================= */
+
+function syncServerClock(
+    serverTime
+) {
+
+    const value =
+        new Date(
+            serverTime
+        ).getTime();
+
+
+    if (
+        Number.isFinite(
+            value
+        )
+    ) {
+
+        serverClockOffsetMs =
+            value -
+            Date.now();
+    }
+}
+
+
+function currentServerTimeMs() {
+
+    return (
+        Date.now()
+        +
+        serverClockOffsetMs
+    );
+}
+
+
+function remainingMs(
+    expiresAt
+) {
+
+    const expiry =
+        new Date(
+            expiresAt
+        ).getTime();
+
+
+    if (
+        !Number.isFinite(
+            expiry
+        )
+    ) {
+
+        return 0;
+    }
+
+
+    return (
+        expiry
+        -
+        currentServerTimeMs()
+    );
+}
+
+
+function isClientExpired(
+    listing
+) {
+
+    if (
+        listing?.is_expired
+    ) {
+
+        return true;
+    }
+
+
+    const plan =
+        String(
+            listing?.listing_plan ||
+            "legacy"
+        );
+
+
+    if (
+        plan ===
+        "legacy"
+    ) {
+
+        return false;
+    }
+
+
+    if (
+        !listing?.listing_expires_at
+    ) {
+
+        return false;
+    }
+
+
+    return (
+        remainingMs(
+            listing.listing_expires_at
+        )
+        <=
+        0
+    );
+}
+
+
+function formatCountdown(
+    expiresAt
+) {
+
+    let diff =
+        remainingMs(
+            expiresAt
+        );
+
+
+    if (
+        diff <= 0
+    ) {
+
+        return "Expired";
+    }
+
+
+    const totalSeconds =
+        Math.max(
+            0,
+            Math.floor(
+                diff /
+                1000
+            )
+        );
+
+
+    const days =
+        Math.floor(
+            totalSeconds /
+            86400
+        );
+
+
+    const hours =
+        Math.floor(
+            (
+                totalSeconds %
+                86400
+            )
+            /
+            3600
+        );
+
+
+    const minutes =
+        Math.floor(
+            (
+                totalSeconds %
+                3600
+            )
+            /
+            60
+        );
+
+
+    const seconds =
+        totalSeconds %
+        60;
+
+
+    const hh =
+        String(
+            hours
+        ).padStart(
+            2,
+            "0"
+        );
+
+
+    const mm =
+        String(
+            minutes
+        ).padStart(
+            2,
+            "0"
+        );
+
+
+    const ss =
+        String(
+            seconds
+        ).padStart(
+            2,
+            "0"
+        );
+
+
+    if (
+        days > 0
+    ) {
+
+        return `${days}d ${hh}:${mm}:${ss}`;
+    }
+
+
+    return `${hh}:${mm}:${ss}`;
+}
+
+
+function updateLiveCountdowns() {
+
+    let somethingExpired =
+        false;
+
+
+    document.querySelectorAll(
+        "[data-live-countdown]"
+    ).forEach(
+        element => {
+
+            const expiresAt =
+                element.dataset
+                    .expiresAt;
+
+
+            const diff =
+                remainingMs(
+                    expiresAt
+                );
+
+
+            element.textContent =
+                diff <= 0
+
+                    ? "Expired"
+
+                    : formatCountdown(
+                        expiresAt
+                    );
+
+
+            if (
+                diff <= 0 &&
+                element.dataset
+                    .expiredHandled !==
+                    "1"
+            ) {
+
+                element.dataset
+                    .expiredHandled =
+                        "1";
+
+                somethingExpired =
+                    true;
+            }
+        }
+    );
+
+
+    if (
+        somethingExpired
+    ) {
+
+        scheduleLifecycleRefresh();
+    }
+}
+
+
+function scheduleLifecycleRefresh() {
+
+    if (
+        lifecycleRefreshScheduled
+    ) {
+
+        return;
+    }
+
+
+    lifecycleRefreshScheduled =
+        true;
+
+
+    setTimeout(
+
+        async () => {
+
+            try {
+
+                await loadMarketplace();
+
+
+                if (
+                    authenticatedUser
+                ) {
+
+                    await loadMyListings();
+                }
+
+
+                if (
+                    currentDetailListingId
+                ) {
+
+                    const stillAvailable =
+                        marketplaceListings.some(
+                            listing =>
+                                String(
+                                    listing.id
+                                )
+                                ===
+                                String(
+                                    currentDetailListingId
+                                )
+                        );
+
+
+                    if (
+                        !stillAvailable &&
+                        document.getElementById(
+                            "listingDetail"
+                        ).classList.contains(
+                            "active"
+                        )
+                    ) {
+
+                        document.getElementById(
+                            "listingDetailContent"
+                        ).innerHTML =
+                            '<div class="empty">This listing has expired or is unavailable.</div>';
+                    }
+                }
+
+            } catch {}
+
+
+            lifecycleRefreshScheduled =
+                false;
+
+        },
+        1200
+    );
+}
+
+
+setInterval(
+    updateLiveCountdowns,
+    1000
+);
+
+
+/* =========================================================
    AUTH
    ========================================================= */
 
@@ -4752,7 +5165,9 @@ async function authenticate() {
 
     try {
 
-        if (!tg?.initData) {
+        if (
+            !tg?.initData
+        ) {
 
             throw new Error(
                 "telegram_required"
@@ -4781,6 +5196,41 @@ async function authenticate() {
             );
 
 
+        listingRenewalPriceStars =
+            Number(
+                data.listing_renewal_price_stars ||
+                1
+            );
+
+
+        listingRenewalPriceUsd =
+            Number(
+                data.listing_renewal_price_usd ||
+                15
+            );
+
+
+        freeListingDurationHours =
+            Number(
+                data.free_listing_duration_hours ||
+                24
+            );
+
+
+        paidListingDurationDays =
+            Number(
+                data.paid_listing_duration_days ||
+                30
+            );
+
+
+        freeListingAvailable =
+            Boolean(
+                data.user
+                    ?.free_listing_available
+            );
+
+
         contactUnlockPriceStars =
             Number(
                 data.contact_unlock_price_stars ||
@@ -4804,16 +5254,7 @@ async function authenticate() {
         }
 
 
-        document.getElementById(
-            "listingFee"
-        ).textContent =
-            `${listingPriceStars} ⭐`;
-
-
-        document.getElementById(
-            "listingButton"
-        ).textContent =
-            `Pay ${listingPriceStars} ⭐ & Submit`;
+        updateListingPlanUi();
 
 
         document.getElementById(
@@ -4879,6 +5320,113 @@ async function authenticate() {
         status.className =
             "auth-status auth-error";
     }
+}
+
+
+/* =========================================================
+   LISTING PLAN UI
+   ========================================================= */
+
+function updateListingPlanUi() {
+
+    const box =
+        document.getElementById(
+            "listingPlanBox"
+        );
+
+    const title =
+        document.getElementById(
+            "listingPlanTitle"
+        );
+
+    const text =
+        document.getElementById(
+            "listingPlanText"
+        );
+
+    const feeLabel =
+        document.getElementById(
+            "listingFeeLabel"
+        );
+
+    const fee =
+        document.getElementById(
+            "listingFee"
+        );
+
+    const feeSubtitle =
+        document.getElementById(
+            "listingFeeSubtitle"
+        );
+
+    const button =
+        document.getElementById(
+            "listingButton"
+        );
+
+
+    if (
+        freeListingAvailable
+    ) {
+
+        box.className =
+            "listing-plan-box free";
+
+
+        title.textContent =
+            `🎁 First Listing — FREE`;
+
+
+        text.textContent =
+            `Your first listing is free for ${freeListingDurationHours} hours. The timer starts only after moderation approval.`;
+
+
+        feeLabel.textContent =
+            "FIRST LISTING";
+
+
+        fee.textContent =
+            "FREE";
+
+
+        feeSubtitle.textContent =
+            `${freeListingDurationHours} hours of Marketplace visibility after approval.`;
+
+
+        button.textContent =
+            "Submit Free Listing";
+
+
+        return;
+    }
+
+
+    box.className =
+        "listing-plan-box paid";
+
+
+    title.textContent =
+        `🟢 Paid Listing — ${paidListingDurationDays} Days`;
+
+
+    text.textContent =
+        `Your free listing has already been used. New paid listings stay active for ${paidListingDurationDays} days after approval.`;
+
+
+    feeLabel.textContent =
+        "LISTING PLAN";
+
+
+    fee.textContent =
+        `${listingPriceStars} ⭐`;
+
+
+    feeSubtitle.textContent =
+        `$${listingRenewalPriceUsd} plan · ${paidListingDurationDays} days after approval.`;
+
+
+    button.textContent =
+        `Pay ${listingPriceStars} ⭐ & Submit`;
 }
 
 
@@ -4950,7 +5498,8 @@ function promotionClass(
 
 
     if (
-        type === "vip"
+        type ===
+        "vip"
     ) {
 
         return "promotion-vip";
@@ -4958,7 +5507,8 @@ function promotionClass(
 
 
     if (
-        type === "hot"
+        type ===
+        "hot"
     ) {
 
         return "promotion-hot";
@@ -4966,7 +5516,8 @@ function promotionClass(
 
 
     if (
-        type === "bump"
+        type ===
+        "bump"
     ) {
 
         return "promotion-bump";
@@ -4982,7 +5533,8 @@ function promotionLabel(
 ) {
 
     if (
-        type === "vip"
+        type ===
+        "vip"
     ) {
 
         return "💎 VIP";
@@ -4990,7 +5542,8 @@ function promotionLabel(
 
 
     if (
-        type === "hot"
+        type ===
+        "hot"
     ) {
 
         return "🔥 HOT";
@@ -4998,7 +5551,8 @@ function promotionLabel(
 
 
     if (
-        type === "bump"
+        type ===
+        "bump"
     ) {
 
         return "⬆️ BUMP";
@@ -5025,11 +5579,38 @@ function promotionBadgeHtml(
             "vip",
             "hot",
             "bump"
-        ].includes(type)
+        ].includes(
+            type
+        )
     ) {
 
         return "";
     }
+
+
+    const timer =
+
+        listing.promotion_until
+
+            ? `
+
+                ·
+
+                <span
+                    data-live-countdown
+                    data-countdown-kind="promotion"
+                    data-expires-at="${escapeHtml(
+                        listing.promotion_until
+                    )}"
+                >
+                    ${formatCountdown(
+                        listing.promotion_until
+                    )}
+                </span>
+
+            `
+
+            : "";
 
 
     return `
@@ -5038,7 +5619,151 @@ function promotionBadgeHtml(
             class="promotion-badge promotion-badge-${type}"
         >
             ${promotionLabel(type)}
+            ${timer}
         </span>
+
+    `;
+}
+
+
+/* =========================================================
+   LISTING LIFETIME
+   ========================================================= */
+
+function listingLifetimeHtml(
+    listing
+) {
+
+    const plan =
+        String(
+            listing?.listing_plan ||
+            "legacy"
+        );
+
+
+    if (
+        plan ===
+        "legacy"
+    ) {
+
+        return "";
+    }
+
+
+    if (
+        !listing.listing_expires_at
+    ) {
+
+        if (
+            listing.status ===
+            "pending"
+        ) {
+
+            return `
+
+                <div
+                    class="listing-lifetime ${
+                        plan ===
+                        "free"
+                            ? "listing-lifetime-free"
+                            : "listing-lifetime-paid"
+                    }"
+                >
+
+                    <span class="lifetime-title">
+
+                        ${
+                            plan ===
+                            "free"
+                                ? "🎁 FREE"
+                                : "🟢 PAID"
+                        }
+
+                    </span>
+
+                    <span>
+                        Starts after approval
+                    </span>
+
+                </div>
+
+            `;
+        }
+
+
+        return "";
+    }
+
+
+    const expired =
+        isClientExpired(
+            listing
+        );
+
+
+    if (
+        expired
+    ) {
+
+        return `
+
+            <div
+                class="listing-lifetime listing-lifetime-expired"
+            >
+
+                <span class="lifetime-title">
+                    ⌛ EXPIRED
+                </span>
+
+                <span>
+                    00:00:00
+                </span>
+
+            </div>
+
+        `;
+    }
+
+
+    const free =
+        plan ===
+        "free";
+
+
+    return `
+
+        <div
+            class="listing-lifetime ${
+                free
+                    ? "listing-lifetime-free"
+                    : "listing-lifetime-paid"
+            }"
+        >
+
+            <span class="lifetime-title">
+
+                ${
+                    free
+                        ? "🎁 FREE LISTING"
+                        : "🟢 LISTING ACTIVE"
+                }
+
+            </span>
+
+            <span
+                class="lifetime-countdown"
+                data-live-countdown
+                data-countdown-kind="listing"
+                data-expires-at="${escapeHtml(
+                    listing.listing_expires_at
+                )}"
+            >
+                ${formatCountdown(
+                    listing.listing_expires_at
+                )}
+            </span>
+
+        </div>
 
     `;
 }
@@ -5121,8 +5846,7 @@ function updatePublicStatsDisplays(
 ) {
 
     if (
-        views !== undefined
-        &&
+        views !== undefined &&
         views !== null
     ) {
 
@@ -5144,8 +5868,7 @@ function updatePublicStatsDisplays(
 
 
     if (
-        likes !== undefined
-        &&
+        likes !== undefined &&
         likes !== null
     ) {
 
@@ -5194,7 +5917,8 @@ function updateListingLocalCounts(
                     ...listing,
 
                     ...(
-                        values.views_count !== undefined
+                        values.views_count !==
+                        undefined
 
                             ? {
                                 views_count:
@@ -5208,7 +5932,8 @@ function updateListingLocalCounts(
                     ),
 
                     ...(
-                        values.likes_count !== undefined
+                        values.likes_count !==
+                        undefined
 
                             ? {
                                 likes_count:
@@ -5252,6 +5977,16 @@ async function loadMarketplace() {
 
             throw new Error(
                 "marketplace_error"
+            );
+        }
+
+
+        if (
+            data.server_time
+        ) {
+
+            syncServerClock(
+                data.server_time
             );
         }
 
@@ -5413,8 +6148,7 @@ function getFilteredMarketplaceListings() {
 
 
     if (
-        marketFilters.minPrice !== ""
-        &&
+        marketFilters.minPrice !== "" &&
         Number.isFinite(
             minPrice
         )
@@ -5439,8 +6173,7 @@ function getFilteredMarketplaceListings() {
 
 
     if (
-        marketFilters.maxPrice !== ""
-        &&
+        marketFilters.maxPrice !== "" &&
         Number.isFinite(
             maxPrice
         )
@@ -5600,6 +6333,11 @@ function renderMarketplace() {
 
     renderHomeListings();
     applyMarketplaceFilters();
+
+    setTimeout(
+        updateLiveCountdowns,
+        0
+    );
 }
 
 
@@ -5752,6 +6490,12 @@ function applyMarketplaceFilters() {
             listings
         );
     }
+
+
+    setTimeout(
+        updateLiveCountdowns,
+        0
+    );
 }
 
 
@@ -6082,12 +6826,14 @@ function updateMarketplaceFilterUI(
 
 
     if (
-        marketFilters.minPrice !== ""
+        marketFilters.minPrice !==
+        ""
     ) activeCount++;
 
 
     if (
-        marketFilters.maxPrice !== ""
+        marketFilters.maxPrice !==
+        ""
     ) activeCount++;
 
 
@@ -6099,7 +6845,9 @@ function updateMarketplaceFilterUI(
 
     filterButton.textContent =
         activeCount
+
             ? `⚙ Filters · ${activeCount}`
+
             : "⚙ Filters";
 
 
@@ -6192,7 +6940,8 @@ function renderActiveFilterBar() {
 
 
     if (
-        marketFilters.minPrice !== ""
+        marketFilters.minPrice !==
+        ""
     ) {
 
         pills.push(
@@ -6202,7 +6951,8 @@ function renderActiveFilterBar() {
 
 
     if (
-        marketFilters.maxPrice !== ""
+        marketFilters.maxPrice !==
+        ""
     ) {
 
         pills.push(
@@ -6393,6 +7143,11 @@ function renderListingCard(
 
 
             ${publicStatsHtml(
+                listing
+            )}
+
+
+            ${listingLifetimeHtml(
                 listing
             )}
 
@@ -6617,7 +7372,6 @@ async function toggleLike(
 
         updateAllLikeButtons();
 
-
     } catch (
         error
     ) {
@@ -6678,7 +7432,7 @@ function updateAllLikeButtons() {
 
 
 /* =========================================================
-   LISTING VIEW TRACKING
+   VIEW TRACKING
    ========================================================= */
 
 async function recordListingView(
@@ -6686,10 +7440,8 @@ async function recordListingView(
 ) {
 
     if (
-        !authenticatedUser
-        ||
-        !tg?.initData
-        ||
+        !authenticatedUser ||
+        !tg?.initData ||
         recordedListingViewIds.has(
             String(
                 listingId
@@ -6767,12 +7519,20 @@ async function openListingPage(
     listingId
 ) {
 
+    currentDetailListingId =
+        listingId;
+
+
     let listing =
         marketplaceListings.find(
             item =>
-                String(item.id)
+                String(
+                    item.id
+                )
                 ===
-                String(listingId)
+                String(
+                    listingId
+                )
         );
 
 
@@ -6786,9 +7546,13 @@ async function openListingPage(
         listing =
             marketplaceListings.find(
                 item =>
-                    String(item.id)
+                    String(
+                        item.id
+                    )
                     ===
-                    String(listingId)
+                    String(
+                        listingId
+                    )
             );
     }
 
@@ -6810,7 +7574,7 @@ async function openListingPage(
     ) {
 
         container.innerHTML =
-            '<div class="empty">This listing is unavailable.</div>';
+            '<div class="empty">This listing is unavailable or expired.</div>';
 
         return;
     }
@@ -6901,6 +7665,7 @@ async function openListingPage(
 
                 </span>
 
+
                 ${
                     listing.seller_profile_id
 
@@ -6947,6 +7712,11 @@ async function openListingPage(
 
 
             ${publicStatsHtml(
+                listing
+            )}
+
+
+            ${listingLifetimeHtml(
                 listing
             )}
 
@@ -7084,6 +7854,12 @@ async function openListingPage(
         </div>
 
     `;
+
+
+    setTimeout(
+        updateLiveCountdowns,
+        0
+    );
 
 
     await recordListingView(
@@ -7248,8 +8024,7 @@ async function checkUnlockedContacts(
 ) {
 
     if (
-        !authenticatedUser
-        ||
+        !authenticatedUser ||
         !Array.isArray(
             listings
         )
@@ -7655,9 +8430,6 @@ function markOwnListing(
 
                 like.disabled =
                     true;
-
-                like.title =
-                    "You cannot like your own listing";
             }
 
 
@@ -7930,6 +8702,8 @@ async function openWatchlist() {
         updateAllWatchButtons();
         updateAllReportButtons();
 
+        updateLiveCountdowns();
+
 
         await checkUnlockedContacts(
             listings
@@ -8194,7 +8968,7 @@ function openReportModal(
 
 
 /* =========================================================
-   LISTING PAYMENT
+   LISTING CREATE
    ========================================================= */
 
 async function startListingPayment(
@@ -8202,6 +8976,16 @@ async function startListingPayment(
 ) {
 
     event.preventDefault();
+
+
+    const button =
+        document.getElementById(
+            "listingButton"
+        );
+
+
+    button.disabled =
+        true;
 
 
     try {
@@ -8245,6 +9029,52 @@ async function startListingPayment(
                 }
             );
 
+
+        /* FREE FIRST LISTING */
+
+        if (
+            data.free
+        ) {
+
+            document.getElementById(
+                "listingForm"
+            ).reset();
+
+
+            freeListingAvailable =
+                false;
+
+
+            if (
+                authenticatedUser
+            ) {
+
+                authenticatedUser
+                    .free_listing_available =
+                        false;
+
+                authenticatedUser
+                    .free_listing_used =
+                        true;
+            }
+
+
+            updateListingPlanUi();
+
+
+            await loadMyListings();
+
+
+            tg?.showAlert(
+                `🎁 Free listing submitted. Your ${freeListingDurationHours}-hour timer will start after moderation approval.`
+            );
+
+
+            return;
+        }
+
+
+        /* PAID LISTING */
 
         tg.openInvoice(
 
@@ -8302,7 +9132,7 @@ async function startListingPayment(
 
 
                             tg?.showAlert(
-                                "Listing submitted ✓"
+                                `Listing submitted ✓ Your ${paidListingDurationDays}-day timer will start after approval.`
                             );
 
 
@@ -8319,8 +9149,17 @@ async function startListingPayment(
     ) {
 
         tg?.showAlert(
-            error.message
+            friendlyError(
+                error.message
+            )
         );
+
+    } finally {
+
+        button.disabled =
+            false;
+
+        updateListingPlanUi();
     }
 }
 
@@ -8357,6 +9196,45 @@ async function loadMyListings() {
             );
 
 
+        if (
+            data.renewal_price_usd !==
+            undefined
+        ) {
+
+            listingRenewalPriceUsd =
+                Number(
+                    data.renewal_price_usd ||
+                    15
+                );
+        }
+
+
+        if (
+            data.renewal_price_stars !==
+            undefined
+        ) {
+
+            listingRenewalPriceStars =
+                Number(
+                    data.renewal_price_stars ||
+                    1
+                );
+        }
+
+
+        if (
+            data.paid_duration_days !==
+            undefined
+        ) {
+
+            paidListingDurationDays =
+                Number(
+                    data.paid_duration_days ||
+                    30
+                );
+        }
+
+
         myListingsData =
             data.listings ||
             [];
@@ -8373,6 +9251,12 @@ async function loadMyListings() {
                     .join("")
 
                 : '<div class="empty">You have no listings yet.</div>';
+
+
+        setTimeout(
+            updateLiveCountdowns,
+            0
+        );
 
     } catch (
         error
@@ -8491,6 +9375,12 @@ function renderMyListing(
     listing
 ) {
 
+    const expired =
+        isClientExpired(
+            listing
+        );
+
+
     let status =
         String(
             listing.status ||
@@ -8511,6 +9401,18 @@ function renderMyListing(
 
         badge =
             "badge-frozen";
+
+    } else if (
+        listing.status ===
+        "active" &&
+        expired
+    ) {
+
+        status =
+            "⌛ EXPIRED";
+
+        badge =
+            "badge-expired";
 
     } else if (
         listing.status ===
@@ -8554,6 +9456,40 @@ function renderMyListing(
     }
 
 
+    const plan =
+        String(
+            listing.listing_plan ||
+            "legacy"
+        );
+
+
+    const planBadge =
+
+        plan ===
+        "free"
+
+            ? `
+
+                <span class="badge badge-active">
+                    🎁 FREE
+                </span>
+
+            `
+
+            : plan ===
+                "paid"
+
+                ? `
+
+                    <span class="badge badge-paused">
+                        🟢 PAID
+                    </span>
+
+                `
+
+                : "";
+
+
     return `
 
         <div class="card">
@@ -8576,6 +9512,8 @@ function renderMyListing(
                         ${premiumNameBadgeHtml(
                             listing
                         )}
+
+                        ${planBadge}
 
                         <span class="category-badge">
 
@@ -8634,9 +9572,34 @@ function renderMyListing(
             )}
 
 
+            ${listingLifetimeHtml(
+                listing
+            )}
+
+
             ${promotionStatusHtml(
                 listing
             )}
+
+
+            ${
+                expired &&
+                listing.status ===
+                "active" &&
+                !listing.is_frozen &&
+                [
+                    "free",
+                    "paid"
+                ].includes(
+                    plan
+                )
+
+                    ? expiredListingHtml(
+                        listing
+                    )
+
+                    : ""
+            }
 
 
             ${
@@ -8662,8 +9625,11 @@ function renderMyListing(
 
                     `
 
-                    : listing.status ===
-                        "active"
+                    : (
+                        listing.status ===
+                        "active" &&
+                        !expired
+                    )
 
                         ? `
 
@@ -8780,13 +9746,246 @@ function renderMyListing(
 }
 
 
+function expiredListingHtml(
+    listing
+) {
+
+    return `
+
+        <div class="expired-listing-box">
+
+            <div class="expired-listing-title">
+                ⌛ Listing Expired
+            </div>
+
+            <div class="expired-listing-text">
+
+                This listing is now hidden from Marketplace.
+
+                <br><br>
+
+                Renew for
+
+                <strong>
+                    $${formatPrice(
+                        listingRenewalPriceUsd
+                    )}
+                </strong>
+
+                to activate it for another
+
+                <strong>
+                    ${paidListingDurationDays} days
+                </strong>.
+
+                <br><br>
+
+                Current test payment:
+                ${listingRenewalPriceStars} ⭐
+
+            </div>
+
+
+            <button
+                class="renew-listing-button"
+                onclick="
+                    startListingRenewal(
+                        '${escapeJs(
+                            listing.id
+                        )}',
+                        '${escapeJs(
+                            listing.whatsapp_username
+                        )}'
+                    )
+                "
+            >
+
+                Renew Listing ·
+                ${listingRenewalPriceStars} ⭐
+
+            </button>
+
+        </div>
+
+    `;
+}
+
+
+/* =========================================================
+   RENEW LISTING
+   ========================================================= */
+
+async function startListingRenewal(
+    listingId,
+    username
+) {
+
+    try {
+
+        const data =
+            await api(
+                "/listing-renewal/create",
+                {
+                    initData:
+                        tg.initData,
+
+                    listing_id:
+                        listingId
+                }
+            );
+
+
+        tg.openInvoice(
+
+            data.invoice_link,
+
+            async status => {
+
+                if (
+                    status !==
+                    "paid"
+                ) {
+
+                    return;
+                }
+
+
+                for (
+                    let i = 0;
+                    i < 18;
+                    i++
+                ) {
+
+                    await sleep(
+                        1600
+                    );
+
+
+                    try {
+
+                        const result =
+                            await api(
+                                "/listing-renewal/status",
+                                {
+                                    initData:
+                                        tg.initData,
+
+                                    order_id:
+                                        data.order_id
+                                }
+                            );
+
+
+                        if (
+                            result.order.status ===
+                            "completed"
+                        ) {
+
+                            await Promise.all(
+                                [
+                                    loadMyListings(),
+                                    loadMarketplace()
+                                ]
+                            );
+
+
+                            tg?.showAlert(
+                                `✅ @${username} renewed for ${paidListingDurationDays} days.`
+                            );
+
+
+                            return;
+                        }
+
+
+                        if (
+                            result.order.status ===
+                            "refunded"
+                        ) {
+
+                            tg?.showAlert(
+                                "Renewal was refunded."
+                            );
+
+                            return;
+                        }
+
+                    } catch {}
+                }
+            }
+        );
+
+    } catch (
+        error
+    ) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+    }
+}
+
+
+/* =========================================================
+   PROMOTION STATUS — OWNER
+   ========================================================= */
+
 function promotionStatusHtml(
     listing
 ) {
 
+    const active = [];
+
+
     if (
-        !listing.promotion_type ||
-        !listing.promotion_until
+        listing.vip_until &&
+        remainingMs(
+            listing.vip_until
+        ) > 0
+    ) {
+
+        active.push({
+            type:"vip",
+            until:
+                listing.vip_until
+        });
+    }
+
+
+    if (
+        listing.hot_until &&
+        remainingMs(
+            listing.hot_until
+        ) > 0
+    ) {
+
+        active.push({
+            type:"hot",
+            until:
+                listing.hot_until
+        });
+    }
+
+
+    if (
+        listing.bump_until &&
+        remainingMs(
+            listing.bump_until
+        ) > 0
+    ) {
+
+        active.push({
+            type:"bump",
+            until:
+                listing.bump_until
+        });
+    }
+
+
+    if (
+        !active.length
     ) {
 
         return "";
@@ -8795,88 +9994,51 @@ function promotionStatusHtml(
 
     return `
 
-        <div
-            class="promotion-status promotion-status-${listing.promotion_type}"
-        >
+        <div class="promotion-status-stack">
 
-            <strong>
-                ${promotionLabel(
-                    listing.promotion_type
-                )}
-            </strong>
+            ${
+                active
+                    .map(
+                        item => `
 
-            <span>
-                ${escapeHtml(
-                    formatPromotionRemaining(
-                        listing.promotion_until
+                            <div
+                                class="promotion-status promotion-status-${item.type}"
+                            >
+
+                                <strong>
+                                    ${promotionLabel(
+                                        item.type
+                                    )}
+                                </strong>
+
+                                <span>
+
+                                    <span
+                                        data-live-countdown
+                                        data-countdown-kind="promotion"
+                                        data-expires-at="${escapeHtml(
+                                            item.until
+                                        )}"
+                                    >
+                                        ${formatCountdown(
+                                            item.until
+                                        )}
+                                    </span>
+
+                                    left
+
+                                </span>
+
+                            </div>
+
+                        `
                     )
-                )}
-            </span>
+                    .join("")
+            }
 
         </div>
 
     `;
-}
-
-
-function formatPromotionRemaining(
-    value
-) {
-
-    const diff =
-        new Date(
-            value
-        ).getTime()
-        -
-        Date.now();
-
-
-    if (
-        !Number.isFinite(
-            diff
-        )
-        ||
-        diff <= 0
-    ) {
-
-        return "Expired";
-    }
-
-
-    const minutes =
-        Math.ceil(
-            diff /
-            60000
-        );
-
-
-    const days =
-        Math.floor(
-            minutes /
-            1440
-        );
-
-
-    const hours =
-        Math.floor(
-            (
-                minutes %
-                1440
-            )
-            /
-            60
-        );
-
-
-    if (
-        days > 0
-    ) {
-
-        return `${days}d ${hours}h left`;
-    }
-
-
-    return `${hours}h left`;
 }
 
 
@@ -9022,7 +10184,9 @@ function openEditListing(
             ) {
 
                 tg?.showAlert(
-                    error.message
+                    friendlyError(
+                        error.message
+                    )
                 );
             }
         };
@@ -9067,7 +10231,9 @@ async function changeListingPause(
     ) {
 
         tg?.showAlert(
-            error.message
+            friendlyError(
+                error.message
+            )
         );
     }
 }
@@ -9115,14 +10281,16 @@ async function removeListing(
     ) {
 
         tg?.showAlert(
-            error.message
+            friendlyError(
+                error.message
+            )
         );
     }
 }
 
 
 /* =========================================================
-   PROMOTION
+   PROMOTION MODAL
    ========================================================= */
 
 function openPromotionModal(
@@ -9136,9 +10304,13 @@ function openPromotionModal(
     const listing =
         myListingsData.find(
             item =>
-                String(item.id)
+                String(
+                    item.id
+                )
                 ===
-                String(listingId)
+                String(
+                    listingId
+                )
         );
 
 
@@ -9150,28 +10322,96 @@ function openPromotionModal(
     }
 
 
+    if (
+        isClientExpired(
+            listing
+        )
+    ) {
+
+        tg?.showAlert(
+            "Renew this listing before purchasing promotion."
+        );
+
+        return;
+    }
+
+
+    const free =
+        String(
+            listing.listing_plan ||
+            "legacy"
+        )
+        ===
+        "free";
+
+
     document.getElementById(
         "promotionModalSubtitle"
     ).textContent =
-        `Choose promotion for @${listing.whatsapp_username}`;
+
+        free
+
+            ? `@${listing.whatsapp_username} · Free listing · only 24-hour promotion is available.`
+
+            : `Choose promotion for @${listing.whatsapp_username}.`;
 
 
     renderPromotionButtons(
         "bump",
-        "promotionBumpButtons"
+        "promotionBumpButtons",
+        listing
     );
 
 
     renderPromotionButtons(
         "hot",
-        "promotionHotButtons"
+        "promotionHotButtons",
+        listing
     );
 
 
     renderPromotionButtons(
         "vip",
-        "promotionVipButtons"
+        "promotionVipButtons",
+        listing
     );
+
+
+    document.getElementById(
+        "promotionRules"
+    ).innerHTML =
+
+        free
+
+            ? `
+
+                🎁 Free listing rule:
+                Bump, HOT and VIP are available only as a 24-hour option.
+
+                <br><br>
+
+                Promotion automatically ends when the free listing itself expires.
+
+                <br><br>
+
+                ⭐ Premium is separate and cannot be purchased.
+
+            `
+
+            : `
+
+                Paid and Legacy listings may purchase
+                24 hours, 3 days or 7 days of Bump, HOT or VIP.
+
+                <br><br>
+
+                A promotion cannot extend beyond the listing's paid expiration date.
+
+                <br><br>
+
+                ⭐ Premium is separate and cannot be purchased.
+
+            `;
 
 
     showModal(
@@ -9180,68 +10420,240 @@ function openPromotionModal(
 }
 
 
-function renderPromotionButtons(
-    type,
-    containerId
+function getPromotionUntilField(
+    type
 ) {
 
-    document.getElementById(
-        containerId
-    ).innerHTML =
+    if (
+        type ===
+        "vip"
+    ) return "vip_until";
 
-        [
-            24,
-            72,
-            168
-        ]
+
+    if (
+        type ===
+        "hot"
+    ) return "hot_until";
+
+
+    return "bump_until";
+}
+
+
+function promotionDurationAvailable(
+    listing,
+    type,
+    hours
+) {
+
+    const plan =
+        String(
+            listing.listing_plan ||
+            "legacy"
+        );
+
+
+    if (
+        plan ===
+        "free"
+    ) {
+
+        return (
+            Number(
+                hours
+            )
+            ===
+            24
+        );
+    }
+
+
+    if (
+        plan ===
+        "legacy" ||
+        !listing.listing_expires_at
+    ) {
+
+        return true;
+    }
+
+
+    const field =
+        getPromotionUntilField(
+            type
+        );
+
+
+    const now =
+        currentServerTimeMs();
+
+
+    const activeUntil =
+        new Date(
+            listing[
+                field
+            ] ||
+            0
+        ).getTime();
+
+
+    const base =
+        Number.isFinite(
+            activeUntil
+        ) &&
+        activeUntil >
+        now
+
+            ? activeUntil
+
+            : now;
+
+
+    const requestedUntil =
+        base +
+        Number(
+            hours
+        ) *
+        60 *
+        60 *
+        1000;
+
+
+    const listingExpiry =
+        new Date(
+            listing.listing_expires_at
+        ).getTime();
+
+
+    return (
+        Number.isFinite(
+            listingExpiry
+        ) &&
+        requestedUntil <=
+        listingExpiry
+    );
+}
+
+
+function renderPromotionButtons(
+    type,
+    containerId,
+    listing
+) {
+
+    const container =
+        document.getElementById(
+            containerId
+        );
+
+
+    const free =
+        String(
+            listing.listing_plan ||
+            "legacy"
+        )
+        ===
+        "free";
+
+
+    const durations =
+        free
+
+            ? [
+                24
+            ]
+
+            : [
+                24,
+                72,
+                168
+            ];
+
+
+    container.classList.toggle(
+        "single",
+        free
+    );
+
+
+    container.innerHTML =
+        durations
         .map(
-            hours => `
+            hours => {
 
-                <button
-                    class="promotion-buy-button"
-                    onclick="
-                        startPromotionPayment(
-                            '${type}',
-                            ${hours}
-                        )
-                    "
-                >
+                const available =
+                    promotionDurationAvailable(
+                        listing,
+                        type,
+                        hours
+                    );
 
-                    <strong>
 
-                        ${
-                            hours === 24
+                const label =
+                    hours ===
+                    24
 
-                                ? "24 Hours"
+                        ? "24 Hours"
 
-                                : hours === 72
+                        : hours ===
+                            72
 
-                                    ? "3 Days"
+                            ? "3 Days"
 
-                                    : "7 Days"
-                        }
+                            : "7 Days";
 
-                    </strong>
 
-                    <span>
-                        ${
-                            Number(
-                                promotionPrices
-                                    ?.[type]
-                                    ?.[hours]
-                                ||
-                                1
+                const price =
+                    Number(
+                        promotionPrices
+                            ?.[type]
+                            ?.[hours]
+                        ||
+                        1
+                    );
+
+
+                return `
+
+                    <button
+                        class="promotion-buy-button"
+                        onclick="
+                            startPromotionPayment(
+                                '${type}',
+                                ${hours}
                             )
-                        } ⭐
-                    </span>
+                        "
+                        ${available ? "" : "disabled"}
+                    >
 
-                </button>
+                        <strong>
+                            ${label}
+                        </strong>
 
-            `
+                        <span>
+
+                            ${
+                                available
+
+                                    ? `${price} ⭐`
+
+                                    : "Not available"
+                            }
+
+                        </span>
+
+                    </button>
+
+                `;
+            }
         )
         .join("");
 }
 
+
+/* =========================================================
+   PROMOTION PAYMENT
+   ========================================================= */
 
 async function startPromotionPayment(
     type,
@@ -9334,6 +10746,21 @@ async function startPromotionPayment(
 
                         return;
                     }
+
+
+                    if (
+                        result.order.status
+                        ===
+                        "refunded"
+                    ) {
+
+                        tg?.showAlert(
+                            "Promotion payment was refunded."
+                        );
+
+
+                        return;
+                    }
                 }
             }
         );
@@ -9343,7 +10770,9 @@ async function startPromotionPayment(
     ) {
 
         tg?.showAlert(
-            error.message
+            friendlyError(
+                error.message
+            )
         );
     }
 }
@@ -9474,7 +10903,9 @@ function openOfferModal(
                 } else {
 
                     tg?.showAlert(
-                        error.message
+                        friendlyError(
+                            error.message
+                        )
                     );
                 }
             }
@@ -9615,7 +11046,8 @@ async function loadSentOffers() {
                                             <div class="buttons">
 
                                                 ${
-                                                    offer.listing?.is_frozen
+                                                    offer.listing?.is_frozen ||
+                                                    offer.listing?.is_expired
 
                                                         ? ""
 
@@ -9772,7 +11204,8 @@ async function loadReceivedOffers() {
                                             <div class="buttons">
 
                                                 ${
-                                                    offer.listing?.is_frozen
+                                                    offer.listing?.is_frozen ||
+                                                    offer.listing?.is_expired
 
                                                         ? ""
 
@@ -9880,7 +11313,9 @@ async function sellerOfferAction(
     ) {
 
         tg?.showAlert(
-            error.message
+            friendlyError(
+                error.message
+            )
         );
     }
 }
@@ -9976,7 +11411,9 @@ function openCounterOffer(
             ) {
 
                 tg?.showAlert(
-                    error.message
+                    friendlyError(
+                        error.message
+                    )
                 );
             }
         };
@@ -10021,7 +11458,9 @@ async function buyerOfferAction(
     ) {
 
         tg?.showAlert(
-            error.message
+            friendlyError(
+                error.message
+            )
         );
     }
 }
@@ -10292,7 +11731,9 @@ async function startWantedPayment(
     ) {
 
         tg?.showAlert(
-            error.message
+            friendlyError(
+                error.message
+            )
         );
     }
 }
@@ -10903,6 +12344,8 @@ function renderSellerProfile(
     updateAllWatchButtons();
     updateAllReportButtons();
 
+    updateLiveCountdowns();
+
 
     if (
         authenticatedUser
@@ -11135,6 +12578,7 @@ async function loadPendingListings() {
 
                                 </div>
 
+
                                 <div class="price">
 
                                     $${formatPrice(
@@ -11143,11 +12587,38 @@ async function loadPendingListings() {
 
                                 </div>
 
+
                                 <div class="listing-info-row">
 
                                     ${premiumNameBadgeHtml(
                                         listing
                                     )}
+
+                                    ${
+                                        listing.listing_plan ===
+                                        "free"
+
+                                            ? `
+
+                                                <span class="badge badge-active">
+                                                    🎁 FREE · 24H
+                                                </span>
+
+                                            `
+
+                                            : listing.listing_plan ===
+                                                "paid"
+
+                                                ? `
+
+                                                    <span class="badge badge-paused">
+                                                        🟢 PAID · 30 DAYS
+                                                    </span>
+
+                                                `
+
+                                                : ""
+                                    }
 
                                     <span class="category-badge">
 
@@ -11253,6 +12724,16 @@ async function loadAdminPremiumListings() {
             await response.json();
 
 
+        if (
+            data.server_time
+        ) {
+
+            syncServerClock(
+                data.server_time
+            );
+        }
+
+
         const listings =
             data.listings ||
             [];
@@ -11304,6 +12785,11 @@ async function loadAdminPremiumListings() {
                                 )}
 
 
+                                ${listingLifetimeHtml(
+                                    listing
+                                )}
+
+
                                 <button
                                     class="${
                                         listing.is_premium_name
@@ -11334,6 +12820,9 @@ async function loadAdminPremiumListings() {
                     .join("")
 
                 : '<div class="empty">No active listings.</div>';
+
+
+        updateLiveCountdowns();
 
     } catch {
 
@@ -11503,6 +12992,7 @@ async function loadAdminReports() {
                                         Dismiss
                                     </button>
 
+
                                     ${
                                         report.listing &&
                                         !report.listing.is_frozen
@@ -11525,6 +13015,7 @@ async function loadAdminReports() {
 
                                             : ""
                                     }
+
 
                                     ${
                                         report.listing
@@ -11646,6 +13137,11 @@ async function loadFrozenListings() {
                                 </div>
 
 
+                                ${listingLifetimeHtml(
+                                    listing
+                                )}
+
+
                                 <div class="buttons">
 
                                     <button
@@ -11679,6 +13175,9 @@ async function loadFrozenListings() {
                     .join("")
 
                 : '<div class="empty">No frozen listings.</div>';
+
+
+        updateLiveCountdowns();
 
     } catch {
 
@@ -11827,6 +13326,16 @@ function openPage(
     }
 
 
+    if (
+        id !==
+        "listingDetail"
+    ) {
+
+        currentDetailListingId =
+            null;
+    }
+
+
     window.scrollTo(
         {
             top:0,
@@ -11911,6 +13420,65 @@ function offerStatusClass(
     ]
     ||
     "badge-pending";
+}
+
+
+function friendlyError(
+    code
+) {
+
+    const messages = {
+
+        listing_expired:
+            "This listing has expired.",
+
+        listing_not_expired:
+            "This listing is still active.",
+
+        listing_not_renewable:
+            "This listing cannot be renewed.",
+
+        legacy_listing_does_not_need_renewal:
+            "This Legacy listing does not require renewal.",
+
+        promotion_duration_not_allowed:
+            "This promotion duration is not available for this listing.",
+
+        promotion_exceeds_listing_period:
+            "The promotion would continue beyond the listing expiration date.",
+
+        promotion_no_additional_time:
+            "There is not enough listing time remaining for this promotion.",
+
+        listing_not_promotable:
+            "This listing cannot currently be promoted.",
+
+        listing_frozen:
+            "This listing is frozen by moderation.",
+
+        listing_has_agreement:
+            "This listing already has an accepted agreement.",
+
+        listing_not_available:
+            "This listing is no longer available.",
+
+        listing_already_exists:
+            "You already have this username listed.",
+
+        cannot_like_own_listing:
+            "You cannot like your own listing."
+    };
+
+
+    return (
+        messages[
+            code
+        ]
+        ||
+        code
+        ||
+        "Something went wrong."
+    );
 }
 
 
@@ -12053,7 +13621,9 @@ function cssEscape(
     ) {
 
         return CSS.escape(
-            String(value)
+            String(
+                value
+            )
         );
     }
 
@@ -12080,6 +13650,8 @@ async function startApp() {
     loadWanted();
 
     await handleStartParameter();
+
+    updateLiveCountdowns();
 }
 
 
