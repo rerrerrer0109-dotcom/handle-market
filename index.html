@@ -2132,13 +2132,13 @@ header {
 .owner-contact-box {
 
     margin-top:10px;
-    padding:13px;
+    padding:14px;
 
     border:
         1px solid
         var(--border);
 
-    border-radius:14px;
+    border-radius:18px;
 }
 
 .contact-box {
@@ -2149,36 +2149,198 @@ header {
     background:var(--surface-2);
 }
 
+.contact-unlocked-header,
+.owner-contact-header {
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.contact-unlocked-icon,
+.owner-contact-icon {
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:11px;
+}
+
+.contact-unlocked-icon {
+    color:var(--green);
+    background:rgba(25,170,91,.10);
+    border:1px solid rgba(25,170,91,.15);
+}
+
+.owner-contact-icon {
+    color:var(--blue);
+    background:var(--blue-soft);
+    border:1px solid rgba(22,136,232,.13);
+}
+
+.contact-unlocked-icon .hm-ui-icon,
+.owner-contact-icon .hm-ui-icon {
+    width:18px;
+    height:18px;
+    margin:0;
+}
+
 .contact-title {
     color:var(--green);
-    font-size:10.5px;
+    font-size:11px;
     font-weight:900;
+    line-height:1.2;
+}
+
+.contact-subtitle,
+.owner-contact-subtitle {
+    margin-top:2px;
+    color:var(--muted);
+    font-size:8.5px;
+    font-weight:700;
+    line-height:1.3;
 }
 
 .owner-title {
-    font-size:10.5px;
+    font-size:11px;
     font-weight:900;
 }
 
-.contact-value {
+.contact-detail-card {
+    display:flex;
+    align-items:center;
+    gap:10px;
 
-    margin-top:7px;
+    margin-top:12px;
+    padding:11px 12px;
 
-    font-size:14px;
+    border:1px solid var(--border);
+    border-radius:14px;
+
+    color:var(--text);
+    background:var(--surface);
+}
+
+.contact-method-icon {
+    width:36px;
+    height:36px;
+    flex:0 0 36px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:11px;
+
+    color:var(--blue);
+    background:var(--blue-soft);
+}
+
+.contact-method-icon .hm-ui-icon {
+    width:18px;
+    height:18px;
+    margin:0;
+}
+
+.contact-detail-copy {
+    min-width:0;
+    flex:1;
+}
+
+.contact-type-label {
+    color:var(--muted);
+    font-size:8px;
     font-weight:800;
+    line-height:1.2;
+    text-transform:uppercase;
+    letter-spacing:.45px;
+}
+
+.contact-value {
+    margin-top:3px;
+    color:var(--text);
+    font-size:14px;
+    font-weight:900;
+    line-height:1.25;
     word-break:break-word;
 }
 
-.contact-actions {
+.contact-seller-note {
+    margin-top:3px;
+    color:var(--muted);
+    font-size:8px;
+    font-weight:650;
+}
 
+.contact-actions {
     display:flex;
     gap:8px;
-
     margin-top:10px;
 }
 
 .contact-actions button {
+    min-width:0;
     flex:1;
+}
+
+.contact-action-button {
+    min-height:40px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:9px 10px;
+    border-radius:12px;
+}
+
+.contact-action-button .hm-ui-icon {
+    width:15px;
+    height:15px;
+    margin:0;
+}
+
+.contact-market-chat {
+    width:100%;
+    min-height:36px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+
+    margin-top:8px;
+    padding:8px 10px;
+
+    border:1px solid rgba(22,136,232,.12);
+    border-radius:11px;
+
+    color:var(--blue);
+    background:rgba(22,136,232,.065);
+
+    font-size:9.5px;
+    font-weight:850;
+}
+
+.contact-market-chat .hm-ui-icon {
+    width:14px;
+    height:14px;
+    margin:0;
+}
+
+@media (max-width:360px) {
+    .contact-box,
+    .owner-contact-box {
+        padding:12px;
+    }
+
+    .contact-action-button {
+        min-height:38px;
+        padding:8px;
+        font-size:9.5px;
+    }
 }
 
 button {
@@ -8810,6 +8972,125 @@ function hmActionIconSvg(kind, active = false) {
 }
 
 
+
+
+/* =========================================================
+   CONTACT ICONS
+   Same rounded outline language as Categories / v55 icons.
+   ========================================================= */
+
+function hmContactIconSvg(kind) {
+
+    const icons = {
+
+        unlock: `
+            <svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="5" y="10" width="14" height="10" rx="2"></rect>
+                <path d="M8 10V7a4 4 0 0 1 7.3-2.2"></path>
+            </svg>
+        `,
+
+        telegram: `
+            <svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 4 3.8 10.7c-.9.35-.85 1.65.08 1.92l4.35 1.27 1.68 5.2c.28.88 1.4 1.08 1.96.35l2.45-3.17 4.18 3.08c.73.54 1.78.14 1.98-.74L22.35 5.2C22.55 4.27 21.88 3.66 21 4Z"></path>
+                <path d="m8.25 13.9 9.85-6.35"></path>
+                <path d="m9.9 19.05.35-5.95"></path>
+            </svg>
+        `,
+
+        mail: `
+            <svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="2.5"></rect>
+                <path d="m4.5 7 7.5 6 7.5-6"></path>
+            </svg>
+        `,
+
+        contact: `
+            <svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="3" width="16" height="18" rx="3"></rect>
+                <circle cx="12" cy="9" r="2.5"></circle>
+                <path d="M8 17c.5-2.2 1.8-3.4 4-3.4s3.5 1.2 4 3.4"></path>
+            </svg>
+        `,
+
+        copy: `
+            <svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="8" y="8" width="11" height="11" rx="2"></rect>
+                <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
+            </svg>
+        `,
+
+        message: `
+            <svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.8 8.8 0 0 1-3.4-.7L4 19.5l1.2-4A7.4 7.4 0 0 1 4 11.5a8 8 0 0 1 16 0Z"></path>
+            </svg>
+        `,
+
+        user: `
+            <svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.3"></circle>
+                <path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6"></path>
+            </svg>
+        `
+    };
+
+    return icons[kind] || "";
+}
+
+
+function sellerContactPresentation(
+    contact
+) {
+
+    const type =
+        String(
+            contact?.type ||
+            "other"
+        )
+        .trim()
+        .toLowerCase();
+
+
+    if (
+        type ===
+        "telegram"
+    ) {
+
+        return {
+            type,
+            icon:"telegram",
+            label:"Telegram username",
+            copyLabel:"Copy username",
+            externalLabel:"Open Telegram"
+        };
+    }
+
+
+    if (
+        type ===
+        "email"
+    ) {
+
+        return {
+            type,
+            icon:"mail",
+            label:"Email address",
+            copyLabel:"Copy email",
+            externalLabel:"Send email"
+        };
+    }
+
+
+    return {
+        type:"other",
+        icon:"contact",
+        label:"Other contact method",
+        copyLabel:"Copy contact",
+        externalLabel:""
+    };
+}
+
+
 function publicStatsHtml(
     listing
 ) {
@@ -11659,6 +11940,19 @@ function showSellerContact(
     owner
 ) {
 
+    const presentation =
+        sellerContactPresentation(
+            contact
+        );
+
+
+    const contactValue =
+        String(
+            contact?.value ||
+            ""
+        );
+
+
     document.querySelectorAll(
         ".contact-area"
     ).forEach(
@@ -11685,15 +11979,48 @@ function showSellerContact(
 
                     <div class="owner-contact-box">
 
-                        <div class="owner-title">
-                            👤 Your Listing
+                        <div class="owner-contact-header">
+
+                            <div class="owner-contact-icon">
+                                ${hmContactIconSvg("user")}
+                            </div>
+
+                            <div>
+                                <div class="owner-title">
+                                    Your listing contact
+                                </div>
+
+                                <div class="owner-contact-subtitle">
+                                    This is what buyers receive after unlocking.
+                                </div>
+                            </div>
+
                         </div>
 
-                        <div class="contact-value">
 
-                            ${escapeHtml(
-                                contact.value
-                            )}
+                        <div class="contact-detail-card">
+
+                            <div class="contact-method-icon">
+                                ${hmContactIconSvg(
+                                    presentation.icon
+                                )}
+                            </div>
+
+                            <div class="contact-detail-copy">
+
+                                <div class="contact-type-label">
+                                    ${escapeHtml(
+                                        presentation.label
+                                    )}
+                                </div>
+
+                                <div class="contact-value">
+                                    ${escapeHtml(
+                                        contactValue
+                                    )}
+                                </div>
+
+                            </div>
 
                         </div>
 
@@ -11703,75 +12030,138 @@ function showSellerContact(
 
             } else {
 
+                const externalAction =
+                    presentation.type ===
+                    "telegram"
+
+                        ? `
+                            <button
+                                class="primary contact-action-button"
+                                onclick="
+                                    openTelegramContact(
+                                        '${escapeJs(
+                                            contactValue
+                                        )}'
+                                    )
+                                "
+                            >
+                                ${hmContactIconSvg("telegram")}
+                                Open Telegram
+                            </button>
+                        `
+
+                        : presentation.type ===
+                            "email"
+
+                            ? `
+                                <button
+                                    class="primary contact-action-button"
+                                    onclick="
+                                        openEmailContact(
+                                            '${escapeJs(
+                                                contactValue
+                                            )}'
+                                        )
+                                    "
+                                >
+                                    ${hmContactIconSvg("mail")}
+                                    Send email
+                                </button>
+                            `
+
+                            : "";
+
+
                 area.innerHTML = `
 
                     <div class="contact-box">
 
-                        <div class="contact-title">
-                            🔓 Seller Contact Unlocked
+                        <div class="contact-unlocked-header">
+
+                            <div class="contact-unlocked-icon">
+                                ${hmContactIconSvg("unlock")}
+                            </div>
+
+                            <div>
+                                <div class="contact-title">
+                                    Seller contact unlocked
+                                </div>
+
+                                <div class="contact-subtitle">
+                                    You can now contact the seller directly.
+                                </div>
+                            </div>
+
                         </div>
 
-                        <div class="contact-value">
 
-                            ${escapeHtml(
-                                contact.value
-                            )}
+                        <div class="contact-detail-card">
+
+                            <div class="contact-method-icon">
+                                ${hmContactIconSvg(
+                                    presentation.icon
+                                )}
+                            </div>
+
+                            <div class="contact-detail-copy">
+
+                                <div class="contact-type-label">
+                                    ${escapeHtml(
+                                        presentation.label
+                                    )}
+                                </div>
+
+                                <div class="contact-value">
+                                    ${escapeHtml(
+                                        contactValue
+                                    )}
+                                </div>
+
+                                <div class="contact-seller-note">
+                                    Seller-provided contact
+                                </div>
+
+                            </div>
 
                         </div>
+
 
                         <div class="contact-actions">
 
-                            ${
-                                contact.type ===
-                                "telegram"
-
-                                    ? `
-
-                                        <button
-                                            class="primary"
-                                            onclick="
-                                                openTelegramContact(
-                                                    '${escapeJs(
-                                                        contact.value
-                                                    )}'
-                                                )
-                                            "
-                                        >
-                                            Open Telegram
-                                        </button>
-
-                                    `
-
-                                    : ""
-                            }
+                            ${externalAction}
 
                             <button
-                                class="primary"
-                                onclick="
-                                    openChatByListing(
-                                        '${escapeJs(
-                                            listingId
-                                        )}'
-                                    )
-                                "
-                            >
-                                💬 Chat
-                            </button>
-
-                            <button
-                                class="secondary"
+                                class="secondary contact-action-button"
                                 onclick="
                                     copyContact(
                                         '${escapeJs(
-                                            contact.value
+                                            contactValue
                                         )}'
                                     )
                                 "
                             >
-                                Copy
+                                ${hmContactIconSvg("copy")}
+                                ${escapeHtml(
+                                    presentation.copyLabel
+                                )}
                             </button>
 
                         </div>
+
+
+                        <button
+                            class="contact-market-chat"
+                            onclick="
+                                openChatByListing(
+                                    '${escapeJs(
+                                        listingId
+                                    )}'
+                                )
+                            "
+                        >
+                            ${hmContactIconSvg("message")}
+                            Chat in Handle Market
+                        </button>
 
                     </div>
 
@@ -11790,7 +12180,6 @@ function showSellerContact(
         );
     }
 }
-
 
 function markOwnListing(
     listingId
@@ -11907,6 +12296,36 @@ function openTelegramContact(
             )
         );
     }
+}
+
+
+
+function openEmailContact(
+    value
+) {
+
+    const email =
+        String(
+            value ||
+            ""
+        )
+        .trim();
+
+
+    if (
+        !email
+    ) {
+
+        return;
+    }
+
+
+    window.location.href =
+        "mailto:"
+        +
+        encodeURIComponent(
+            email
+        );
 }
 
 
