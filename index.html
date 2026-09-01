@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#ffffff">
 
 <title>Handle Market</title>
-<!-- UI version: v45-launch-performance-maintenance-fix -->
+<!-- UI version: v47-production-pricing -->
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -4508,7 +4508,7 @@ PUBLICATION FEE
     id="wantedFee"
     class="payment-price"
 >
-1 ⭐
+250 ⭐
 </div>
 
 </div>
@@ -4519,7 +4519,7 @@ PUBLICATION FEE
     class="payment-button"
     type="submit"
 >
-Pay 1 ⭐ & Publish
+Pay 250 ⭐ & Publish
 </button>
 
 </form>
@@ -5844,10 +5844,10 @@ let unreadCounts = {
 };
 
 let listingPriceStars =
-    1;
+    750;
 
 let listingRenewalPriceStars =
-    1;
+    750;
 
 let listingRenewalPriceUsd =
     15;
@@ -5862,10 +5862,10 @@ let freeListingAvailable =
     false;
 
 let contactUnlockPriceStars =
-    1;
+    50;
 
 let wantedPriceStars =
-    1;
+    250;
 
 let serverClockOffsetMs =
     0;
@@ -5880,21 +5880,21 @@ let lifecycleRefreshScheduled =
 let promotionPrices = {
 
     bump:{
-        24:1,
-        72:1,
-        168:1
+        24:50,
+        72:120,
+        168:250
     },
 
     hot:{
-        24:1,
-        72:1,
-        168:1
+        24:150,
+        72:350,
+        168:700
     },
 
     vip:{
-        24:1,
-        72:1,
-        168:1
+        24:300,
+        72:750,
+        168:1500
     }
 };
 
@@ -11635,7 +11635,7 @@ function expiredListingHtml(
 
                 <br><br>
 
-                Current test payment:
+                Payment amount:
                 ${listingRenewalPriceStars} ⭐
 
             </div>

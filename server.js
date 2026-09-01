@@ -63,7 +63,7 @@ const OLD_LISTING_PRICE_STARS =
         1,
         Number(
             process.env.LISTING_PRICE_STARS ||
-            "1"
+            "750"
         )
     );
 
@@ -74,7 +74,7 @@ const LISTING_RENEWAL_PRICE_STARS =
         Number(
             process.env.LISTING_RENEWAL_PRICE_STARS ||
             OLD_LISTING_PRICE_STARS ||
-            "1"
+            "750"
         )
     );
 
@@ -88,7 +88,7 @@ const CONTACT_UNLOCK_PRICE_STARS =
         1,
         Number(
             process.env.CONTACT_UNLOCK_PRICE_STARS ||
-            "1"
+            "50"
         )
     );
 
@@ -98,7 +98,7 @@ const WANTED_PRICE_STARS =
         1,
         Number(
             process.env.WANTED_PRICE_STARS ||
-            "1"
+            "250"
         )
     );
 
@@ -154,21 +154,9 @@ const REFERRAL_LISTING_DURATION_HOURS =
    PROMOTIONS
    ========================================================= */
 
+/* Production pricing build: test-price overrides are intentionally disabled. */
 const PROMOTION_TEST_MODE =
-    String(
-        process.env.PROMOTION_TEST_MODE ||
-        "false"
-    ).toLowerCase() === "true";
-
-
-const PROMOTION_TEST_PRICE_STARS =
-    Math.max(
-        1,
-        Number(
-            process.env.PROMOTION_TEST_PRICE_STARS ||
-            "1"
-        )
-    );
+    false;
 
 
 const PROMOTION_PRICES = {
@@ -179,7 +167,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.BUMP_24H_STARS ||
-                "1"
+                "50"
             )
         ),
 
@@ -187,7 +175,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.BUMP_72H_STARS ||
-                "1"
+                "120"
             )
         ),
 
@@ -195,7 +183,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.BUMP_168H_STARS ||
-                "1"
+                "250"
             )
         )
     },
@@ -207,7 +195,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.HOT_24H_STARS ||
-                "1"
+                "150"
             )
         ),
 
@@ -215,7 +203,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.HOT_72H_STARS ||
-                "1"
+                "350"
             )
         ),
 
@@ -223,7 +211,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.HOT_168H_STARS ||
-                "1"
+                "700"
             )
         )
     },
@@ -235,7 +223,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.VIP_24H_STARS ||
-                "1"
+                "300"
             )
         ),
 
@@ -243,7 +231,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.VIP_72H_STARS ||
-                "1"
+                "750"
             )
         ),
 
@@ -251,7 +239,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.VIP_168H_STARS ||
-                "1"
+                "1500"
             )
         )
     }
@@ -2891,17 +2879,13 @@ function promotionPrice(
     }
 
 
-    return PROMOTION_TEST_MODE
-
-        ? PROMOTION_TEST_PRICE_STARS
-
-        : PROMOTION_PRICES[
-            type
-        ][
-            Number(
-                durationHours
-            )
-        ];
+    return PROMOTION_PRICES[
+        type
+    ][
+        Number(
+            durationHours
+        )
+    ];
 }
 
 
@@ -7684,7 +7668,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v46-referral-system"
+                    "v47-production-pricing"
             }
         );
     }
@@ -17380,7 +17364,7 @@ app.post(
         return res.json({
             ok:true,
             version:
-                "v46-referral-system",
+                "v47-production-pricing",
             uptime_seconds:
                 Math.floor(
                     process.uptime()
@@ -28784,7 +28768,7 @@ app.get(
             return res.json({
                 ok:true,
                 version:
-                    "v46-referral-system",
+                    "v47-production-pricing",
                 server_time:
                     nowIso(),
                 page:
@@ -28847,7 +28831,7 @@ app.get(
         return res.json({
             ok:true,
             version:
-                "v46-referral-system",
+                "v47-production-pricing",
             service:
                 "Handle Market API",
             maintenance:
@@ -28938,7 +28922,7 @@ app.post(
         return res.json({
             ok:true,
             version:
-                "v46-referral-system",
+                "v47-production-pricing",
             maintenance,
             marketplace:{
                 ok:
