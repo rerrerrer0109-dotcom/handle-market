@@ -3476,7 +3476,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v27-admin-free-promotions"
+                    "v28-admin-contact-review"
             }
         );
     }
@@ -10007,6 +10007,176 @@ app.post(
             {
                 ok: true,
                 report
+            }
+        );
+    }
+);
+
+
+/* =========================================================
+   ADMIN CONTACT REVIEW
+   Admin-only access to the raw seller contact for moderation.
+   No Stars payment or buyer unlock is required.
+   ========================================================= */
+
+app.post(
+    "/admin/listing-contact",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            admin.error
+                    }
+                );
+        }
+
+
+        const listingId =
+            String(
+                req.body.listing_id ||
+                ""
+            ).trim();
+
+
+        if (!listingId) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "listing_id_required"
+                    }
+                );
+        }
+
+
+        const {
+            data:
+                listing,
+            error:
+                listingError
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,category"
+                )
+                .eq(
+                    "id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (
+            listingError ||
+            !listing
+        ) {
+
+            return res
+                .status(404)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "listing_not_found"
+                    }
+                );
+        }
+
+
+        const {
+            data:
+                contact,
+            error:
+                contactError
+        } =
+            await supabase
+                .from(
+                    "listing_contacts"
+                )
+                .select(
+                    "contact_type,contact_value"
+                )
+                .eq(
+                    "listing_id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (
+            contactError ||
+            !contact
+        ) {
+
+            return res
+                .status(404)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "seller_contact_not_found"
+                    }
+                );
+        }
+
+
+        return res.json(
+            {
+                ok: true,
+
+                listing: {
+                    id:
+                        listing.id,
+
+                    seller_telegram_id:
+                        listing.seller_telegram_id,
+
+                    whatsapp_username:
+                        listing.whatsapp_username,
+
+                    status:
+                        listing.status,
+
+                    is_paused:
+                        Boolean(
+                            listing.is_paused
+                        ),
+
+                    is_frozen:
+                        Boolean(
+                            listing.is_frozen
+                        ),
+
+                    category:
+                        listing.category ||
+                        "Other"
+                },
+
+                contact: {
+                    type:
+                        contact.contact_type,
+
+                    value:
+                        contact.contact_value
+                }
             }
         );
     }

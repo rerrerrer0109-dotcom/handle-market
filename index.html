@@ -13337,6 +13337,272 @@ async function adminRemoveListingConfirmed(
 }
 
 
+async function adminViewListingContact(
+    listingId,
+    username
+) {
+
+    try {
+
+        const data =
+            await api(
+                "/admin/listing-contact",
+                {
+                    initData:
+                        tg.initData,
+
+                    listing_id:
+                        listingId
+                }
+            );
+
+
+        const contact =
+            data.contact ||
+            {};
+
+
+        const listing =
+            data.listing ||
+            {};
+
+
+        const contactType =
+            String(
+                contact.type ||
+                "other"
+            ).toLowerCase();
+
+
+        const contactValue =
+            String(
+                contact.value ||
+                ""
+            );
+
+
+        const typeLabel =
+            contactType ===
+            "telegram"
+                ? "Telegram"
+                : contactType ===
+                    "email"
+                    ? "Email"
+                    : "Other";
+
+
+        /*
+         * We deliberately do not make seller-provided URLs clickable.
+         * The administrator can inspect the exact raw value first.
+         */
+        const containsExternalLink =
+            contactType !==
+            "email" &&
+            /(?:https?:\/\/|www\.|(?:[a-z0-9-]+\.)+[a-z]{2,}(?:[\/:?#]|$))/i
+                .test(
+                    contactValue
+                );
+
+
+        const title =
+            document.getElementById(
+                "inputModalTitle"
+            );
+
+
+        const subtitle =
+            document.getElementById(
+                "inputModalSubtitle"
+            );
+
+
+        const fields =
+            document.getElementById(
+                "inputModalFields"
+            );
+
+
+        const action =
+            document.getElementById(
+                "inputModalAction"
+            );
+
+
+        if (
+            !title ||
+            !subtitle ||
+            !fields ||
+            !action
+        ) {
+
+            tg?.showAlert(
+                contactValue ||
+                "Seller contact not found."
+            );
+
+            return;
+        }
+
+
+        title.textContent =
+            `🔎 Contact Review · @${listing.whatsapp_username || username || "username"}`;
+
+
+        subtitle.textContent =
+            "Admin-only moderation view. Seller contact is shown exactly as it was submitted.";
+
+
+        fields.innerHTML = `
+
+            <div class="field">
+                <label>Seller Telegram ID</label>
+                <div
+                    style="
+                        padding:12px;
+                        border:1px solid var(--border);
+                        border-radius:12px;
+                        background:var(--surface-2);
+                        word-break:break-word;
+                    "
+                >
+                    ${escapeHtml(
+                        String(
+                            listing.seller_telegram_id ||
+                            "Unknown"
+                        )
+                    )}
+                </div>
+            </div>
+
+
+            <div class="field">
+                <label>Contact type</label>
+                <div
+                    style="
+                        padding:12px;
+                        border:1px solid var(--border);
+                        border-radius:12px;
+                        background:var(--surface-2);
+                    "
+                >
+                    ${escapeHtml(
+                        typeLabel
+                    )}
+                </div>
+            </div>
+
+
+            <div class="field">
+                <label>Seller contact</label>
+                <div
+                    style="
+                        padding:12px;
+                        border:1px solid var(--border);
+                        border-radius:12px;
+                        background:var(--surface-2);
+                        font-weight:800;
+                        word-break:break-all;
+                        white-space:pre-wrap;
+                        user-select:text;
+                    "
+                >${escapeHtml(
+                    contactValue
+                )}</div>
+
+                <div
+                    class="field-hint"
+                    style="margin-top:8px"
+                >
+                    Shown as plain text. Handle Market will not open this contact automatically.
+                </div>
+            </div>
+
+
+            ${
+                containsExternalLink
+                    ? `
+                        <div
+                            style="
+                                margin-top:10px;
+                                padding:12px;
+                                border:1px solid #ffb020;
+                                border-radius:12px;
+                                background:rgba(255,176,32,.10);
+                                line-height:1.45;
+                                font-size:12px;
+                                font-weight:700;
+                            "
+                        >
+                            ⚠️ External link or domain detected.<br>
+                            Review it carefully before approving or keeping this listing.
+                            This warning does not automatically mean the link is fraudulent.
+                        </div>
+                    `
+                    : ""
+            }
+        `;
+
+
+        action.textContent =
+            "Copy Contact";
+
+
+        action.onclick =
+            async () => {
+
+                try {
+
+                    await navigator.clipboard.writeText(
+                        contactValue
+                    );
+
+
+                    tg?.showAlert(
+                        "Contact copied."
+                    );
+
+                } catch {
+
+                    tg?.showAlert(
+                        "Could not copy automatically. Press and hold the contact text to copy it."
+                    );
+                }
+            };
+
+
+        showModal(
+            "inputModal"
+        );
+
+    } catch (
+        error
+    ) {
+
+        const messages = {
+
+            listing_not_found:
+                "Listing not found.",
+
+            seller_contact_not_found:
+                "Seller contact was not found.",
+
+            admin_required:
+                "Admin access is required."
+        };
+
+
+        tg?.showAlert(
+            messages[
+                error.message
+            ] ||
+            friendlyError(
+                error.message
+            )
+        );
+    }
+}
+
+
 async function loadPendingListings() {
 
     const container =
@@ -13430,6 +13696,21 @@ async function loadPendingListings() {
 
 
                                 <div class="buttons">
+
+                                    <button
+                                        class="secondary"
+                                        onclick="
+                                            adminViewListingContact(
+                                                '${listing.id}',
+                                                '${escapeJs(
+                                                    listing.whatsapp_username
+                                                )}'
+                                            )
+                                        "
+                                    >
+                                        🔎 View Contact
+                                    </button>
+
 
                                     <button
                                         class="${
@@ -13709,6 +13990,21 @@ async function loadAdminPremiumListings() {
                                     class="buttons"
                                     style="margin-top:12px"
                                 >
+
+                                    <button
+                                        class="secondary"
+                                        onclick="
+                                            adminViewListingContact(
+                                                '${listing.id}',
+                                                '${escapeJs(
+                                                    listing.whatsapp_username
+                                                )}'
+                                            )
+                                        "
+                                    >
+                                        🔎 View Contact
+                                    </button>
+
 
                                     <button
                                         class="${
@@ -14184,6 +14480,29 @@ async function loadAdminReports() {
 
                                 <div class="buttons">
 
+                                    ${
+                                        report.listing
+
+                                            ? `
+                                                <button
+                                                    class="secondary"
+                                                    onclick="
+                                                        adminViewListingContact(
+                                                            '${report.listing.id}',
+                                                            '${escapeJs(
+                                                                report.listing.whatsapp_username
+                                                            )}'
+                                                        )
+                                                    "
+                                                >
+                                                    🔎 View Contact
+                                                </button>
+                                            `
+
+                                            : ""
+                                    }
+
+
                                     <button
                                         class="dismiss-button"
                                         onclick="
@@ -14347,6 +14666,21 @@ async function loadFrozenListings() {
 
 
                                 <div class="buttons">
+
+                                    <button
+                                        class="secondary"
+                                        onclick="
+                                            adminViewListingContact(
+                                                '${listing.id}',
+                                                '${escapeJs(
+                                                    listing.whatsapp_username
+                                                )}'
+                                            )
+                                        "
+                                    >
+                                        🔎 View Contact
+                                    </button>
+
 
                                     <button
                                         class="unfreeze-button"
