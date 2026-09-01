@@ -3714,6 +3714,303 @@ button {
 
 </style>
 
+
+
+<!-- =====================================================
+     v49 MODERN UI SYSTEM
+     Buttons · navigation · icons · badges
+     ===================================================== -->
+<style>
+
+/* ---------- Shared vector icons ---------- */
+.hm-icon,
+.hm-badge-icon {
+    display:block;
+    flex:0 0 auto;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.hm-icon {
+    width:18px;
+    height:18px;
+}
+
+.hm-badge-icon {
+    width:14px;
+    height:14px;
+    stroke-width:1.85;
+}
+
+.hm-button-with-icon {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+
+/* ---------- Buttons ---------- */
+.primary,
+.secondary,
+.danger {
+    min-height:44px;
+    padding:10px 15px;
+    border-radius:13px;
+    border:1px solid transparent;
+    font-family:inherit;
+    font-size:13px;
+    font-weight:800;
+    line-height:1.15;
+    letter-spacing:-.08px;
+    transition:
+        transform .14s ease,
+        box-shadow .14s ease,
+        background-color .14s ease,
+        border-color .14s ease,
+        filter .14s ease;
+}
+
+.primary {
+    color:#fff;
+    border-color:rgba(12,111,201,.16);
+    background:#1688e8;
+    box-shadow:0 7px 16px rgba(22,136,232,.20);
+}
+
+.secondary {
+    color:var(--text);
+    border-color:var(--border);
+    background:var(--surface);
+    box-shadow:0 2px 7px rgba(28,39,56,.045);
+}
+
+.danger {
+    color:#fff;
+    border-color:rgba(176,37,42,.18);
+    background:#e5484d;
+    box-shadow:0 7px 16px rgba(229,72,77,.16);
+}
+
+.primary:active,
+.secondary:active,
+.danger:active {
+    transform:scale(.975);
+}
+
+@media (hover:hover) {
+    .primary:hover,
+    .secondary:hover,
+    .danger:hover {
+        transform:translateY(-1px);
+    }
+
+    .primary:hover {
+        filter:brightness(1.035);
+        box-shadow:0 9px 20px rgba(22,136,232,.24);
+    }
+
+    .secondary:hover {
+        border-color:rgba(22,136,232,.20);
+        background:var(--surface-2);
+    }
+}
+
+/* ---------- How it works ---------- */
+.how-it-works-btn {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:max-content;
+    min-width:150px;
+    min-height:42px;
+    margin:17px auto 0;
+    padding:10px 17px;
+    border:1px solid rgba(255,255,255,.28);
+    border-radius:13px;
+    color:#fff;
+    background:rgba(255,255,255,.13);
+    -webkit-backdrop-filter:blur(10px);
+    backdrop-filter:blur(10px);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.16),
+        0 6px 16px rgba(31,72,164,.10);
+    font-size:13px;
+    font-weight:850;
+    letter-spacing:-.08px;
+}
+
+.how-it-works-btn .hm-icon {
+    width:17px;
+    height:17px;
+    opacity:.96;
+}
+
+@media (hover:hover) {
+    .how-it-works-btn:hover {
+        background:rgba(255,255,255,.18);
+        filter:none;
+    }
+}
+
+/* ---------- Premium & promotion badges ---------- */
+.premium-name-badge,
+.promotion-badge {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    min-height:27px;
+    padding:5px 9px;
+    border-radius:9px;
+    font-size:10px;
+    font-weight:850;
+    line-height:1;
+    letter-spacing:.02em;
+    box-shadow:none;
+}
+
+.premium-name-badge {
+    color:#76520a;
+    border:1px solid rgba(210,161,47,.30);
+    background:#fff7d7;
+}
+
+.promotion-badge-vip {
+    color:#6841c6;
+    border:1px solid rgba(111,72,207,.18);
+    background:#f1ebff;
+}
+
+.promotion-badge-hot {
+    color:#c64a29;
+    border:1px solid rgba(216,91,49,.17);
+    background:#fff0e9;
+}
+
+.promotion-badge-bump {
+    color:#1476cf;
+    border:1px solid rgba(22,136,232,.17);
+    background:#eaf5ff;
+}
+
+.promotion-vip .premium-name-badge {
+    color:#5f4305;
+    border-color:rgba(238,204,105,.36);
+    background:#fff0b8;
+}
+
+.promotion-vip .promotion-badge-vip {
+    color:#f0e8ff;
+    border-color:rgba(219,201,255,.22);
+    background:rgba(130,88,206,.22);
+}
+
+/* ---------- Bottom navigation ---------- */
+.bottom-nav {
+    gap:2px;
+    padding:6px 7px;
+    border:1px solid rgba(137,151,171,.18);
+    border-radius:20px;
+    background:rgba(255,255,255,.96);
+    -webkit-backdrop-filter:blur(18px);
+    backdrop-filter:blur(18px);
+    box-shadow:
+        0 11px 30px rgba(28,39,56,.11),
+        inset 0 1px 0 rgba(255,255,255,.75);
+}
+
+.nav-item {
+    min-height:50px;
+    gap:4px;
+    border-radius:13px;
+    background:transparent;
+    font-size:8.5px;
+    font-weight:750;
+    transition:
+        color .14s ease,
+        background-color .14s ease,
+        transform .14s ease;
+}
+
+.nav-item svg {
+    width:20px;
+    height:20px;
+    stroke-width:1.8;
+}
+
+.nav-item.active {
+    color:var(--blue);
+    background:rgba(22,136,232,.075);
+    font-weight:850;
+}
+
+.nav-item:active {
+    transform:scale(.97);
+}
+
+/* Sell is the primary navigation action */
+.nav-item[data-page="list"] {
+    color:var(--blue);
+    font-weight:850;
+}
+
+.nav-item[data-page="list"] svg {
+    width:20px;
+    height:20px;
+    padding:7px;
+    box-sizing:content-box;
+    border-radius:11px;
+    color:#fff;
+    background:#1688e8;
+    box-shadow:0 6px 14px rgba(22,136,232,.24);
+}
+
+.nav-item[data-page="list"].active {
+    background:transparent;
+}
+
+@media (prefers-color-scheme:dark) {
+    .bottom-nav {
+        border-color:rgba(255,255,255,.08);
+        background:rgba(24,27,32,.96);
+        box-shadow:0 11px 30px rgba(0,0,0,.26);
+    }
+
+    .secondary {
+        background:var(--surface-2);
+    }
+
+    .premium-name-badge {
+        color:#f0cf75;
+        border-color:rgba(240,207,117,.18);
+        background:rgba(240,207,117,.08);
+    }
+
+    .promotion-badge-vip {
+        color:#d4c0ff;
+        border-color:rgba(182,151,255,.18);
+        background:rgba(117,77,203,.14);
+    }
+
+    .promotion-badge-hot {
+        color:#ffac8e;
+        border-color:rgba(255,139,98,.16);
+        background:rgba(219,83,42,.12);
+    }
+
+    .promotion-badge-bump {
+        color:#8fcaff;
+        border-color:rgba(90,174,247,.16);
+        background:rgba(22,136,232,.11);
+    }
+}
+
+</style>
+
 </head>
 
 <body>
@@ -3789,7 +4086,12 @@ New sellers can publish their first listing free. The 24-hour timer begins only 
 </div>
 
 <button class="how-it-works-btn" id="howItWorksBtn" type="button">
-How it works
+<svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+<circle cx="12" cy="12" r="9"></circle>
+<path d="M9.8 9.3a2.45 2.45 0 0 1 4.7 1c0 1.8-2.5 2.1-2.5 3.7"></path>
+<path d="M12 17.5h.01"></path>
+</svg>
+<span>How it works</span>
 </button>
 
 </div>
@@ -4247,10 +4549,13 @@ Show Results
 
 <div class="market-save-search-bar">
 <button
-    class="secondary"
+    class="secondary hm-button-with-icon"
     onclick="openSaveSearchModal()"
 >
-📌 Save this search
+<svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M6 4.8A1.8 1.8 0 0 1 7.8 3h8.4A1.8 1.8 0 0 1 18 4.8V21l-6-3.6L6 21V4.8Z"></path>
+</svg>
+<span>Save this search</span>
 </button>
 </div>
 
@@ -5811,7 +6116,7 @@ Market
 <path d="M5 12h14"></path>
 </svg>
 
-List
+Sell
 
 </div>
 
@@ -6883,7 +7188,10 @@ function premiumNameBadgeHtml(
             class="premium-name-badge"
             onclick="showPremiumInfo()"
         >
-            ⭐ Premium
+            <svg class="hm-badge-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"></path>
+            </svg>
+            <span>Premium</span>
         </button>
 
     `;
@@ -6968,7 +7276,13 @@ function promotionLabel(
         "vip"
     ) {
 
-        return "💎 VIP";
+        return `
+            <svg class="hm-badge-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 9 8 4h8l4 5-8 11L4 9Z"></path>
+                <path d="M4 9h16M8 4l4 16 4-16"></path>
+            </svg>
+            <span>VIP</span>
+        `;
     }
 
 
@@ -6977,7 +7291,12 @@ function promotionLabel(
         "hot"
     ) {
 
-        return "🔥 HOT";
+        return `
+            <svg class="hm-badge-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M13.5 3.5c.4 3-1.7 4.2-3 5.7-1.1 1.2-1.8 2.5-1.2 4.2.5 1.4 1.7 2.2 3 2.2 2.2 0 3.7-1.8 3.6-4.2 1.7 1.4 2.6 3.1 2.6 5 0 3.1-2.7 5.6-6.2 5.6-3.8 0-6.8-2.7-6.8-6.3 0-3.8 2.3-6.2 4.5-8.3.4 1.8 1.1 2.5 1.8 2.9.2-2.6.2-4.6 1.7-6.8Z"></path>
+            </svg>
+            <span>HOT</span>
+        `;
     }
 
 
@@ -6986,7 +7305,13 @@ function promotionLabel(
         "bump"
     ) {
 
-        return "⬆️ BUMP";
+        return `
+            <svg class="hm-badge-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 19V5"></path>
+                <path d="m6.5 10.5 5.5-5.5 5.5 5.5"></path>
+            </svg>
+            <span>BUMP</span>
+        `;
     }
 
 
