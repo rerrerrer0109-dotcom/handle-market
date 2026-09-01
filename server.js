@@ -7518,7 +7518,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v44-ui-convenience"
+                    "v45-launch-performance"
             }
         );
     }
@@ -9692,6 +9692,31 @@ app.post(
 app.get(
     "/listings",
     async (req, res) => {
+
+        const v45Maintenance =
+            await v45GetMaintenanceState();
+
+
+        if (
+            v45Maintenance.enabled
+        ) {
+
+            res.set(
+                "Retry-After",
+                "60"
+            );
+
+
+            return res
+                .status(503)
+                .json({
+                    ok:false,
+                    error:"maintenance_mode",
+                    message:
+                        v45Maintenance.message,
+                    retry_after_seconds:60
+                });
+        }
 
         const {
             data,
@@ -17070,7 +17095,7 @@ app.post(
         return res.json({
             ok:true,
             version:
-                "v44-ui-convenience",
+                "v45-launch-performance",
             uptime_seconds:
                 Math.floor(
                     process.uptime()
@@ -27790,6 +27815,940 @@ app.post(
                 error
             );
         }
+    }
+);
+
+
+
+/* =========================================================
+   V45 — LAUNCH READINESS & PERFORMANCE
+   - Server-side marketplace pagination / filtering / sorting.
+   - Short-lived response cache to absorb duplicate refreshes.
+   - Persistent Maintenance Mode controlled by Owner.
+   - Public system status + Owner launch diagnostics.
+   ========================================================= */
+
+const V45_MARKETPLACE_PAGE_SIZE =
+    24;
+
+const V45_MARKETPLACE_MAX_PAGE_SIZE =
+    48;
+
+const V45_MARKETPLACE_CACHE_MS =
+    8 * 1000;
+
+const v45MarketplaceCache =
+    new Map();
+
+let v45MaintenanceCache = {
+    expires_at:0,
+    value:{
+        enabled:false,
+        message:
+            "Handle Market is temporarily undergoing maintenance. Please try again shortly.",
+        updated_at:null
+    }
+};
+
+
+function v45SafeMaintenanceMessage(
+    value
+) {
+
+    const text =
+        String(
+            value ||
+            ""
+        )
+            .trim()
+            .slice(
+                0,
+                240
+            );
+
+
+    return text ||
+        "Handle Market is temporarily undergoing maintenance. Please try again shortly.";
+}
+
+
+async function v45GetMaintenanceState(
+    force = false
+) {
+
+    if (
+        !force &&
+        Date.now() <
+        Number(
+            v45MaintenanceCache.expires_at ||
+            0
+        )
+    ) {
+        return v45MaintenanceCache.value;
+    }
+
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from(
+                    "platform_settings"
+                )
+                .select(
+                    "value,updated_at"
+                )
+                .eq(
+                    "key",
+                    "maintenance_mode"
+                )
+                .maybeSingle();
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        const raw =
+            data?.value &&
+            typeof data.value ===
+            "object"
+                ? data.value
+                : {};
+
+
+        v45MaintenanceCache = {
+            expires_at:
+                Date.now() +
+                10 * 1000,
+            value:{
+                enabled:
+                    Boolean(
+                        raw.enabled
+                    ),
+                message:
+                    v45SafeMaintenanceMessage(
+                        raw.message
+                    ),
+                updated_at:
+                    data?.updated_at ||
+                    null
+            }
+        };
+
+
+        return v45MaintenanceCache.value;
+
+    } catch (error) {
+
+        await logSystemError(
+            "v45_maintenance_state",
+            error
+        );
+
+
+        v45MaintenanceCache.expires_at =
+            Date.now() +
+            5 * 1000;
+
+
+        return v45MaintenanceCache.value;
+    }
+}
+
+
+function v45MarketplaceParams(
+    req
+) {
+
+    const page =
+        Math.max(
+            1,
+            Math.min(
+                100000,
+                Math.trunc(
+                    Number(
+                        req.query.page ||
+                        1
+                    )
+                ) ||
+                1
+            )
+        );
+
+
+    const limit =
+        Math.max(
+            1,
+            Math.min(
+                V45_MARKETPLACE_MAX_PAGE_SIZE,
+                Math.trunc(
+                    Number(
+                        req.query.limit ||
+                        V45_MARKETPLACE_PAGE_SIZE
+                    )
+                ) ||
+                V45_MARKETPLACE_PAGE_SIZE
+            )
+        );
+
+
+    const rawSearch =
+        String(
+            req.query.search ||
+            ""
+        )
+            .trim()
+            .slice(
+                0,
+                80
+            );
+
+
+    const lotText =
+        rawSearch
+            .replace(
+                /^lot\s*#?\s*/i,
+                ""
+            )
+            .replace(
+                /\s+/g,
+                ""
+            );
+
+
+    let lotNumber =
+        null;
+
+
+    if (
+        /^\d+$/.test(
+            lotText
+        )
+    ) {
+
+        const parsed =
+            Number(
+                lotText.replace(
+                    /^0+(?=\d)/,
+                    ""
+                ) ||
+                "0"
+            );
+
+
+        if (
+            Number.isSafeInteger(
+                parsed
+            ) &&
+            parsed > 0
+        ) {
+            lotNumber =
+                parsed;
+        }
+    }
+
+
+    const explicitLotSearch =
+        /^lot\s*#?\s*\d+\s*$/i.test(
+            rawSearch
+        );
+
+
+    const search =
+        explicitLotSearch
+            ? ""
+            : rawSearch
+                .replace(
+                    /^@/,
+                    ""
+                )
+                .replace(
+                    /%/g,
+                    ""
+                )
+                .trim();
+
+
+    const category =
+        String(
+            req.query.category ||
+            "all"
+        )
+            .trim()
+            .slice(
+                0,
+                80
+            ) ||
+        "all";
+
+
+    const promotionCandidate =
+        String(
+            req.query.promotion ||
+            "all"
+        ).toLowerCase();
+
+
+    const promotion =
+        [
+            "all",
+            "vip",
+            "hot",
+            "bump",
+            "regular"
+        ].includes(
+            promotionCandidate
+        )
+            ? promotionCandidate
+            : "all";
+
+
+    const sortCandidate =
+        String(
+            req.query.sort ||
+            "recommended"
+        ).toLowerCase();
+
+
+    const sort =
+        [
+            "recommended",
+            "newest",
+            "price_low",
+            "price_high",
+            "az",
+            "za"
+        ].includes(
+            sortCandidate
+        )
+            ? sortCandidate
+            : "recommended";
+
+
+    const minCandidate =
+        req.query.min_price ===
+        undefined ||
+        req.query.min_price ===
+        ""
+            ? null
+            : Number(
+                req.query.min_price
+            );
+
+
+    const maxCandidate =
+        req.query.max_price ===
+        undefined ||
+        req.query.max_price ===
+        ""
+            ? null
+            : Number(
+                req.query.max_price
+            );
+
+
+    const minPrice =
+        Number.isFinite(
+            minCandidate
+        ) &&
+        minCandidate >= 0
+            ? minCandidate
+            : null;
+
+
+    const maxPrice =
+        Number.isFinite(
+            maxCandidate
+        ) &&
+        maxCandidate >= 0
+            ? maxCandidate
+            : null;
+
+
+    return {
+        page,
+        limit,
+        offset:
+            (page - 1) *
+            limit,
+        search,
+        lot_number:
+            lotNumber,
+        category,
+        promotion,
+        premium_only:
+            String(
+                req.query.premium_only ||
+                ""
+            ) ===
+            "1" ||
+            String(
+                req.query.premium_only ||
+                ""
+            ).toLowerCase() ===
+            "true",
+        min_price:
+            minPrice,
+        max_price:
+            maxPrice,
+        sort
+    };
+}
+
+
+function v45MarketplaceCacheKey(
+    params
+) {
+    return JSON.stringify(
+        params
+    );
+}
+
+
+function v45PruneMarketplaceCache() {
+
+    const now =
+        Date.now();
+
+
+    for (
+        const [
+            key,
+            entry
+        ] of
+        v45MarketplaceCache
+    ) {
+
+        if (
+            Number(
+                entry.expires_at ||
+                0
+            ) <=
+            now
+        ) {
+            v45MarketplaceCache.delete(
+                key
+            );
+        }
+    }
+
+
+    while (
+        v45MarketplaceCache.size >
+        80
+    ) {
+
+        const oldestKey =
+            v45MarketplaceCache
+                .keys()
+                .next()
+                .value;
+
+
+        if (!oldestKey) {
+            break;
+        }
+
+
+        v45MarketplaceCache.delete(
+            oldestKey
+        );
+    }
+}
+
+
+async function v45LoadMarketplacePage(
+    params
+) {
+
+    v45PruneMarketplaceCache();
+
+
+    const key =
+        v45MarketplaceCacheKey(
+            params
+        );
+
+
+    const cached =
+        v45MarketplaceCache.get(
+            key
+        );
+
+
+    if (
+        cached &&
+        Date.now() <
+        cached.expires_at
+    ) {
+        return await cached.promise;
+    }
+
+
+    const promise =
+        (async () => {
+
+            const {
+                data,
+                error
+            } =
+                await supabase.rpc(
+                    "get_marketplace_page_v45",
+                    {
+                        p_search:
+                            params.search ||
+                            null,
+                        p_lot_number:
+                            params.lot_number,
+                        p_category:
+                            params.category ===
+                            "all"
+                                ? null
+                                : params.category,
+                        p_promotion:
+                            params.promotion ===
+                            "all"
+                                ? null
+                                : params.promotion,
+                        p_premium_only:
+                            Boolean(
+                                params.premium_only
+                            ),
+                        p_min_price:
+                            params.min_price,
+                        p_max_price:
+                            params.max_price,
+                        p_sort:
+                            params.sort,
+                        p_limit:
+                            params.limit,
+                        p_offset:
+                            params.offset
+                    }
+                );
+
+
+            if (error) {
+                throw error;
+            }
+
+
+            const rows =
+                data ||
+                [];
+
+
+            const items =
+                rows
+                    .map(
+                        row =>
+                            row?.item ||
+                            null
+                    )
+                    .filter(Boolean);
+
+
+            const total =
+                rows.length
+                    ? Math.max(
+                        0,
+                        Number(
+                            rows[0]
+                                .total_count ||
+                            0
+                        )
+                    )
+                    : 0;
+
+
+            const listings =
+                await attachPublicSellerProfiles(
+                    items
+                );
+
+
+            return {
+                listings,
+                total
+            };
+        })();
+
+
+    v45MarketplaceCache.set(
+        key,
+        {
+            expires_at:
+                Date.now() +
+                V45_MARKETPLACE_CACHE_MS,
+            promise
+        }
+    );
+
+
+    try {
+        return await promise;
+    } catch (error) {
+        v45MarketplaceCache.delete(
+            key
+        );
+        throw error;
+    }
+}
+
+
+app.get(
+    "/marketplace/listings",
+    async (req, res) => {
+
+        const startedAt =
+            Date.now();
+
+
+        try {
+
+            const maintenance =
+                await v45GetMaintenanceState();
+
+
+            if (
+                maintenance.enabled
+            ) {
+
+                res.set(
+                    "Retry-After",
+                    "60"
+                );
+
+
+                return res
+                    .status(503)
+                    .json({
+                        ok:false,
+                        error:"maintenance_mode",
+                        message:
+                            maintenance.message,
+                        retry_after_seconds:60,
+                        server_time:
+                            nowIso()
+                    });
+            }
+
+
+            const params =
+                v45MarketplaceParams(
+                    req
+                );
+
+
+            const result =
+                await v45LoadMarketplacePage(
+                    params
+                );
+
+
+            const shown =
+                params.offset +
+                result.listings.length;
+
+
+            res.set(
+                "Cache-Control",
+                "public, max-age=5, stale-while-revalidate=10"
+            );
+
+
+            return res.json({
+                ok:true,
+                version:
+                    "v45-launch-performance",
+                server_time:
+                    nowIso(),
+                page:
+                    params.page,
+                page_size:
+                    params.limit,
+                total:
+                    result.total,
+                has_more:
+                    shown <
+                    result.total,
+                response_ms:
+                    Date.now() -
+                    startedAt,
+                listings:
+                    result.listings
+            });
+
+        } catch (error) {
+
+            await logSystemError(
+                "v45_marketplace_page",
+                error,
+                {
+                    query:
+                        String(
+                            req.originalUrl ||
+                            ""
+                        )
+                            .split("?")[0]
+                }
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"marketplace_load_failed"
+                });
+        }
+    }
+);
+
+
+app.get(
+    "/system-status",
+    async (req, res) => {
+
+        const maintenance =
+            await v45GetMaintenanceState();
+
+
+        res.set(
+            "Cache-Control",
+            "no-store"
+        );
+
+
+        return res.json({
+            ok:true,
+            version:
+                "v45-launch-performance",
+            service:
+                "Handle Market API",
+            maintenance:
+                maintenance.enabled,
+            maintenance_message:
+                maintenance.enabled
+                    ? maintenance.message
+                    : null,
+            uptime_seconds:
+                Math.floor(
+                    process.uptime()
+                ),
+            server_time:
+                nowIso()
+        });
+    }
+);
+
+
+app.post(
+    "/admin/launch-status",
+    async (req, res) => {
+
+        const startedAt =
+            Date.now();
+
+
+        const maintenance =
+            await v45GetMaintenanceState(
+                true
+            );
+
+
+        const marketplaceStarted =
+            Date.now();
+
+
+        const {
+            data:
+                marketplaceRows,
+            error:
+                marketplaceError
+        } =
+            await supabase.rpc(
+                "get_marketplace_page_v45",
+                {
+                    p_search:null,
+                    p_lot_number:null,
+                    p_category:null,
+                    p_promotion:null,
+                    p_premium_only:false,
+                    p_min_price:null,
+                    p_max_price:null,
+                    p_sort:"recommended",
+                    p_limit:1,
+                    p_offset:0
+                }
+            );
+
+
+        const marketplaceLatency =
+            Date.now() -
+            marketplaceStarted;
+
+
+        if (marketplaceError) {
+            await logSystemError(
+                "v45_launch_status_marketplace",
+                marketplaceError
+            );
+        }
+
+
+        const activeCount =
+            marketplaceRows?.length
+                ? Number(
+                    marketplaceRows[0]
+                        .total_count ||
+                    0
+                )
+                : 0;
+
+
+        const memory =
+            process.memoryUsage();
+
+
+        return res.json({
+            ok:true,
+            version:
+                "v45-launch-performance",
+            maintenance,
+            marketplace:{
+                ok:
+                    !marketplaceError,
+                active_listings:
+                    activeCount,
+                latency_ms:
+                    marketplaceLatency,
+                page_size:
+                    V45_MARKETPLACE_PAGE_SIZE
+            },
+            process:{
+                uptime_seconds:
+                    Math.floor(
+                        process.uptime()
+                    ),
+                rss_mb:
+                    Math.round(
+                        memory.rss /
+                        1024 /
+                        1024
+                    ),
+                heap_used_mb:
+                    Math.round(
+                        memory.heapUsed /
+                        1024 /
+                        1024
+                    )
+            },
+            response_ms:
+                Date.now() -
+                startedAt
+        });
+    }
+);
+
+
+app.post(
+    "/admin/maintenance-set",
+    async (req, res) => {
+
+        const enabled =
+            Boolean(
+                req.body.enabled
+            );
+
+
+        const message =
+            v45SafeMaintenanceMessage(
+                req.body.message
+            );
+
+
+        const {
+            error
+        } =
+            await supabase
+                .from(
+                    "platform_settings"
+                )
+                .upsert(
+                    {
+                        key:
+                            "maintenance_mode",
+                        value:{
+                            enabled,
+                            message
+                        },
+                        updated_at:
+                            nowIso(),
+                        updated_by:
+                            Number(
+                                req.adminAuth
+                                    ?.user
+                                    ?.telegram_id ||
+                                0
+                            ) ||
+                            null
+                    },
+                    {
+                        onConflict:
+                            "key"
+                    }
+                );
+
+
+        if (error) {
+
+            await logSystemError(
+                "v45_maintenance_set",
+                error
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"maintenance_update_failed"
+                });
+        }
+
+
+        v45MaintenanceCache.expires_at =
+            0;
+
+        v45MarketplaceCache.clear();
+
+
+        await logAdminActivity(
+            req.adminAuth.user.telegram_id,
+            enabled
+                ? "maintenance_enabled"
+                : "maintenance_disabled",
+            "platform",
+            "maintenance_mode",
+            {
+                message
+            }
+        );
+
+
+        return res.json({
+            ok:true,
+            maintenance:
+                await v45GetMaintenanceState(
+                    true
+                )
+        });
     }
 );
 

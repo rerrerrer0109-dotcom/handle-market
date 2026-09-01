@@ -3416,6 +3416,127 @@ button {
 .notification-check{width:22px;height:22px;accent-color:#2481cc;flex:none}
 </style>
 
+
+<style>
+/* =========================================================
+   V45 — Launch Readiness & Performance
+   ========================================================= */
+.v45-market-footer {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:9px;
+    padding:14px 4px 4px;
+}
+
+.v45-market-count {
+    font-size:12px;
+    color:var(--muted, #7a8494);
+    text-align:center;
+}
+
+.v45-load-more {
+    width:min(320px, 100%);
+    min-height:44px;
+    border-radius:14px;
+}
+
+.v45-load-more[disabled] {
+    opacity:.62;
+    cursor:default;
+}
+
+.v45-sentinel {
+    width:100%;
+    height:2px;
+}
+
+.v45-error-card,
+.v45-maintenance-card {
+    border:1px solid var(--border, #e3e8ef);
+    border-radius:18px;
+    padding:18px;
+    background:var(--card, #fff);
+    text-align:center;
+}
+
+.v45-maintenance-card {
+    border-color:rgba(245,158,11,.34);
+    background:linear-gradient(180deg, rgba(245,158,11,.09), rgba(245,158,11,.03));
+}
+
+.v45-error-icon {
+    font-size:30px;
+    margin-bottom:8px;
+}
+
+.v45-error-title {
+    font-size:16px;
+    font-weight:800;
+    margin-bottom:6px;
+}
+
+.v45-error-text {
+    color:var(--muted, #7a8494);
+    font-size:13px;
+    line-height:1.45;
+    margin-bottom:12px;
+}
+
+.v45-launch-controls {
+    margin-top:16px;
+    border-top:1px solid var(--border, #e3e8ef);
+    padding-top:16px;
+}
+
+.v45-launch-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+    margin-top:10px;
+}
+
+.v45-launch-card {
+    border:1px solid var(--border, #e3e8ef);
+    border-radius:14px;
+    padding:11px;
+    background:var(--card, #fff);
+}
+
+.v45-launch-value {
+    font-weight:800;
+    font-size:13px;
+}
+
+.v45-launch-label {
+    margin-top:4px;
+    color:var(--muted, #7a8494);
+    font-size:11px;
+}
+
+.v45-maintenance-input {
+    width:100%;
+    min-height:74px;
+    resize:vertical;
+    margin-top:10px;
+}
+
+.v45-maintenance-on {
+    border:1px solid rgba(245,158,11,.35);
+    background:rgba(245,158,11,.08);
+    border-radius:12px;
+    padding:10px;
+    margin-top:10px;
+    font-size:12px;
+}
+
+@media (max-width:420px) {
+    .v45-launch-grid {
+        grid-template-columns:1fr;
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -21820,7 +21941,20 @@ async function startApp() {
     updateAdminListingPricingUi();
     updateAdminContactFieldUi();
 
-    await loadMarketplace();
+    /* v45: wait until the final paginated loader is registered, then preserve the original startup order. */
+    for (let i = 0; i < 200; i++) {
+        if (typeof window.__hmLoadMarketplaceV45 === "function") {
+            break;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+
+    if (typeof window.__hmLoadMarketplaceV45 === "function") {
+        await window.__hmLoadMarketplaceV45();
+    } else {
+        await loadMarketplace();
+    }
 
     await authenticate();
 
@@ -27544,6 +27678,1272 @@ if (authenticatedUser) {
     );
     loadUnreadCounts();
 }
+</script>
+
+
+<script>
+/* =========================================================
+   V45 — LAUNCH READINESS & PERFORMANCE
+   Marketplace pages are fetched 24 at a time from the server.
+   Existing v20 filter state and UI are preserved.
+   ========================================================= */
+
+const V45_MARKET_PAGE_SIZE = 24;
+
+const v45MarketState = {
+    page:0,
+    total:0,
+    hasMore:false,
+    loading:false,
+    ready:false,
+    requestId:0,
+    controller:null,
+    filterTimer:null,
+    observer:null,
+    lastError:null
+};
+
+
+function v45MarketplaceUrl(
+    page
+) {
+
+    const params =
+        new URLSearchParams();
+
+
+    params.set(
+        "page",
+        String(page)
+    );
+
+    params.set(
+        "limit",
+        String(
+            V45_MARKET_PAGE_SIZE
+        )
+    );
+
+    params.set(
+        "sort",
+        String(
+            marketFilters.sort ||
+            "recommended"
+        )
+    );
+
+
+    if (
+        String(
+            marketFilters.search ||
+            ""
+        ).trim()
+    ) {
+        params.set(
+            "search",
+            String(
+                marketFilters.search
+            ).trim()
+        );
+    }
+
+
+    if (
+        marketFilters.category !==
+        "all"
+    ) {
+        params.set(
+            "category",
+            marketFilters.category
+        );
+    }
+
+
+    if (
+        marketFilters.promotion !==
+        "all"
+    ) {
+        params.set(
+            "promotion",
+            marketFilters.promotion
+        );
+    }
+
+
+    if (
+        marketFilters.premiumOnly
+    ) {
+        params.set(
+            "premium_only",
+            "1"
+        );
+    }
+
+
+    if (
+        marketFilters.minPrice !==
+        ""
+    ) {
+        params.set(
+            "min_price",
+            marketFilters.minPrice
+        );
+    }
+
+
+    if (
+        marketFilters.maxPrice !==
+        ""
+    ) {
+        params.set(
+            "max_price",
+            marketFilters.maxPrice
+        );
+    }
+
+
+    return (
+        API_URL +
+        "/marketplace/listings?" +
+        params.toString()
+    );
+}
+
+
+function v45EnsureMarketFooter() {
+
+    if (
+        document.getElementById(
+            "v45MarketFooter"
+        )
+    ) {
+        return;
+    }
+
+
+    const listings =
+        document.getElementById(
+            "marketListings"
+        );
+
+
+    if (!listings) {
+        return;
+    }
+
+
+    listings.insertAdjacentHTML(
+        "afterend",
+        `
+            <div class="v45-market-footer" id="v45MarketFooter">
+                <div class="v45-market-count" id="v45MarketCount"></div>
+                <button class="secondary v45-load-more" id="v45LoadMoreButton" onclick="v45LoadMoreMarketplace()" style="display:none">
+                    ${typeof v39T === "function" ? v39T("Load more","Загрузить ещё") : "Load more"}
+                </button>
+                <div class="v45-sentinel" id="v45MarketSentinel"></div>
+            </div>
+        `
+    );
+
+
+    const sentinel =
+        document.getElementById(
+            "v45MarketSentinel"
+        );
+
+
+    if (
+        sentinel &&
+        "IntersectionObserver" in window
+    ) {
+
+        v45MarketState.observer =
+            new IntersectionObserver(
+                entries => {
+
+                    const visible =
+                        entries.some(
+                            item =>
+                                item.isIntersecting
+                        );
+
+
+                    const marketOpen =
+                        document
+                            .getElementById(
+                                "marketplace"
+                            )
+                            ?.classList
+                            .contains(
+                                "active"
+                            );
+
+
+                    if (
+                        visible &&
+                        marketOpen &&
+                        v45MarketState.hasMore &&
+                        !v45MarketState.loading
+                    ) {
+                        v45LoadMoreMarketplace();
+                    }
+                },
+                {
+                    rootMargin:
+                        "500px 0px"
+                }
+            );
+
+
+        v45MarketState.observer.observe(
+            sentinel
+        );
+    }
+}
+
+
+function v45RenderMarketFooter() {
+
+    v45EnsureMarketFooter();
+
+
+    const count =
+        document.getElementById(
+            "v45MarketCount"
+        );
+
+    const button =
+        document.getElementById(
+            "v45LoadMoreButton"
+        );
+
+
+    if (count) {
+
+        const shown =
+            Math.min(
+                marketplaceListings.length,
+                v45MarketState.total
+            );
+
+
+        count.textContent =
+            v45MarketState.ready
+                ? `${typeof v39T === "function" ? v39T("Showing","Показано") : "Showing"} ${shown} ${typeof v39T === "function" ? v39T("of","из") : "of"} ${v45MarketState.total}`
+                : "";
+    }
+
+
+    if (button) {
+
+        button.style.display =
+            v45MarketState.hasMore
+                ? ""
+                : "none";
+
+        button.disabled =
+            v45MarketState.loading;
+
+        button.textContent =
+            v45MarketState.loading
+                ? (typeof v39T === "function" ? v39T("Loading…","Загрузка…") : "Loading…")
+                : (typeof v39T === "function" ? v39T("Load more","Загрузить ещё") : "Load more");
+    }
+}
+
+
+function v45MarketplaceSkeleton() {
+
+    return `
+        <div class="v44-skeleton-list">
+            <div class="v44-skeleton-card"></div>
+            <div class="v44-skeleton-card"></div>
+            <div class="v44-skeleton-card"></div>
+        </div>
+    `;
+}
+
+
+function v45RenderMarketplaceFailure(
+    error
+) {
+
+    const code =
+        String(
+            error?.code ||
+            error?.message ||
+            "marketplace_load_failed"
+        );
+
+
+    const maintenance =
+        code ===
+        "maintenance_mode";
+
+
+    const title =
+        maintenance
+            ? (typeof v39T === "function" ? v39T("Maintenance in progress","Технические работы") : "Maintenance in progress")
+            : (typeof v39T === "function" ? v39T("Marketplace is temporarily unavailable","Маркетплейс временно недоступен") : "Marketplace is temporarily unavailable");
+
+
+    const message =
+        maintenance
+            ? String(
+                error?.userMessage ||
+                (typeof v39T === "function" ? v39T("Please try again shortly.","Попробуйте снова немного позже.") : "Please try again shortly.")
+              )
+            : (typeof v39T === "function" ? v39T("Check your connection and try again. Your filters were not lost.","Проверьте соединение и попробуйте снова. Ваши фильтры сохранены.") : "Check your connection and try again. Your filters were not lost.");
+
+
+    const html = `
+        <div class="${maintenance ? "v45-maintenance-card" : "v45-error-card"}">
+            <div class="v45-error-icon">${maintenance ? "🛠" : "⚠️"}</div>
+            <div class="v45-error-title">${escapeHtml(title)}</div>
+            <div class="v45-error-text">${escapeHtml(message)}</div>
+            <button class="secondary" onclick="loadMarketplace()">↻ ${typeof v39T === "function" ? v39T("Try Again","Попробовать снова") : "Try Again"}</button>
+        </div>
+    `;
+
+
+    const market =
+        document.getElementById(
+            "marketListings"
+        );
+
+    const home =
+        document.getElementById(
+            "homeListings"
+        );
+
+
+    if (market) {
+        market.innerHTML =
+            html;
+    }
+
+    if (home) {
+        home.innerHTML =
+            html;
+    }
+
+
+    v45RenderMarketFooter();
+}
+
+
+async function v45FetchMarketplacePage(
+    reset = true
+) {
+
+    if (
+        v45MarketState.loading &&
+        !reset
+    ) {
+        return;
+    }
+
+
+    if (
+        !reset &&
+        !v45MarketState.hasMore
+    ) {
+        return;
+    }
+
+
+    if (
+        reset &&
+        v45MarketState.controller
+    ) {
+        try {
+            v45MarketState.controller.abort();
+        } catch {}
+    }
+
+
+    const requestId =
+        ++v45MarketState.requestId;
+
+
+    const controller =
+        new AbortController();
+
+
+    v45MarketState.controller =
+        controller;
+
+
+    const page =
+        reset
+            ? 1
+            : v45MarketState.page +
+              1;
+
+
+    v45MarketState.loading =
+        true;
+
+    v45MarketState.lastError =
+        null;
+
+
+    if (reset) {
+
+        v45MarketState.ready =
+            false;
+
+        v45MarketState.page =
+            0;
+
+        v45MarketState.total =
+            0;
+
+        v45MarketState.hasMore =
+            false;
+
+
+        const skeleton =
+            v45MarketplaceSkeleton();
+
+        const market =
+            document.getElementById(
+                "marketListings"
+            );
+
+        const home =
+            document.getElementById(
+                "homeListings"
+            );
+
+
+        if (market) {
+            market.innerHTML =
+                skeleton;
+        }
+
+        if (home) {
+            home.innerHTML =
+                skeleton;
+        }
+    }
+
+
+    v45RenderMarketFooter();
+
+
+    const timeout =
+        setTimeout(
+            () => {
+                try {
+                    controller.abort();
+                } catch {}
+            },
+            15000
+        );
+
+
+    try {
+
+        const response =
+            await fetch(
+                v45MarketplaceUrl(
+                    page
+                ),
+                {
+                    signal:
+                        controller.signal,
+                    headers:{
+                        Accept:
+                            "application/json"
+                    }
+                }
+            );
+
+
+        let data =
+            null;
+
+
+        try {
+            data =
+                await response.json();
+        } catch {
+            data =
+                null;
+        }
+
+
+        if (
+            requestId !==
+            v45MarketState.requestId
+        ) {
+            return;
+        }
+
+
+        if (
+            !response.ok ||
+            !data?.ok
+        ) {
+
+            const error =
+                new Error(
+                    data?.error ||
+                    "marketplace_load_failed"
+                );
+
+            error.code =
+                data?.error ||
+                "marketplace_load_failed";
+
+            error.userMessage =
+                data?.message ||
+                "";
+
+            throw error;
+        }
+
+
+        if (
+            data.server_time
+        ) {
+            syncServerClock(
+                data.server_time
+            );
+        }
+
+
+        const incoming =
+            data.listings ||
+            [];
+
+
+        if (reset) {
+
+            marketplaceListings =
+                incoming;
+
+        } else {
+
+            const existing =
+                new Set(
+                    marketplaceListings.map(
+                        listing =>
+                            String(
+                                listing.id
+                            )
+                    )
+                );
+
+
+            marketplaceListings = [
+                ...marketplaceListings,
+                ...incoming.filter(
+                    listing =>
+                        !existing.has(
+                            String(
+                                listing.id
+                            )
+                        )
+                )
+            ];
+        }
+
+
+        v45MarketState.page =
+            Number(
+                data.page ||
+                page
+            );
+
+        v45MarketState.total =
+            Math.max(
+                0,
+                Number(
+                    data.total ||
+                    0
+                )
+            );
+
+        v45MarketState.hasMore =
+            Boolean(
+                data.has_more
+            );
+
+        v45MarketState.ready =
+            true;
+
+
+        renderMarketplace();
+        v45RenderMarketFooter();
+
+
+        if (reset) {
+            loadDiscovery();
+        }
+
+
+        if (
+            authenticatedUser &&
+            incoming.length
+        ) {
+            await checkUnlockedContacts(
+                incoming
+            );
+        }
+
+    } catch (error) {
+
+        if (
+            error?.name ===
+            "AbortError"
+        ) {
+
+            if (
+                requestId ===
+                v45MarketState.requestId &&
+                reset
+            ) {
+
+                const timeoutError =
+                    new Error(
+                        "request_timeout"
+                    );
+
+                timeoutError.code =
+                    "request_timeout";
+
+                v45MarketState.lastError =
+                    timeoutError;
+
+                v45RenderMarketplaceFailure(
+                    timeoutError
+                );
+            }
+
+            return;
+        }
+
+
+        if (
+            requestId !==
+            v45MarketState.requestId
+        ) {
+            return;
+        }
+
+
+        console.error(
+            error
+        );
+
+        v45MarketState.lastError =
+            error;
+
+
+        if (reset) {
+            v45RenderMarketplaceFailure(
+                error
+            );
+        } else {
+            v45MarketState.hasMore =
+                true;
+        }
+
+    } finally {
+
+        clearTimeout(
+            timeout
+        );
+
+
+        if (
+            requestId ===
+            v45MarketState.requestId
+        ) {
+            v45MarketState.loading =
+                false;
+            v45RenderMarketFooter();
+        }
+    }
+}
+
+
+async function v45LoadMoreMarketplace() {
+    return v45FetchMarketplacePage(
+        false
+    );
+}
+
+
+/* Replace v44 marketplace loading with v45 server-side paging. */
+loadMarketplace =
+async function loadMarketplaceV45() {
+    return v45FetchMarketplacePage(
+        true
+    );
+};
+
+
+function v45QueueMarketplaceReload(
+    delay = 120
+) {
+
+    clearTimeout(
+        v45MarketState.filterTimer
+    );
+
+
+    v45MarketState.filterTimer =
+        setTimeout(
+            () => {
+                loadMarketplace();
+            },
+            delay
+        );
+}
+
+
+/* Keep the exact v20 filter state/functions, adding a server refresh after UI updates. */
+const v45BaseSetMarketplaceSearch =
+    setMarketplaceSearch;
+
+setMarketplaceSearch =
+function setMarketplaceSearchV45(
+    value
+) {
+    v45BaseSetMarketplaceSearch(
+        value
+    );
+    v45QueueMarketplaceReload(
+        320
+    );
+};
+
+
+const v45BaseSetMarketplaceCategory =
+    setMarketplaceCategory;
+
+setMarketplaceCategory =
+function setMarketplaceCategoryV45(
+    category
+) {
+    v45BaseSetMarketplaceCategory(
+        category
+    );
+    v45QueueMarketplaceReload(
+        80
+    );
+};
+
+
+const v45BaseOpenCategory =
+    openCategory;
+
+openCategory =
+function openCategoryV45(
+    category
+) {
+    v45BaseOpenCategory(
+        category
+    );
+    v45QueueMarketplaceReload(
+        80
+    );
+};
+
+
+const v45BaseSetMarketplacePromotion =
+    setMarketplacePromotion;
+
+setMarketplacePromotion =
+function setMarketplacePromotionV45(
+    promotion
+) {
+    v45BaseSetMarketplacePromotion(
+        promotion
+    );
+    v45QueueMarketplaceReload(
+        80
+    );
+};
+
+
+const v45BaseSetMarketplacePrice =
+    setMarketplacePrice;
+
+setMarketplacePrice =
+function setMarketplacePriceV45() {
+    v45BaseSetMarketplacePrice();
+    v45QueueMarketplaceReload(
+        320
+    );
+};
+
+
+const v45BaseTogglePremiumOnly =
+    togglePremiumOnly;
+
+togglePremiumOnly =
+function togglePremiumOnlyV45() {
+    v45BaseTogglePremiumOnly();
+    v45QueueMarketplaceReload(
+        80
+    );
+};
+
+
+const v45BaseSetMarketplaceSort =
+    setMarketplaceSort;
+
+setMarketplaceSort =
+function setMarketplaceSortV45(
+    value
+) {
+    v45BaseSetMarketplaceSort(
+        value
+    );
+    v45QueueMarketplaceReload(
+        80
+    );
+};
+
+
+const v45BaseResetMarketplaceFilters =
+    resetMarketplaceFilters;
+
+resetMarketplaceFilters =
+function resetMarketplaceFiltersV45() {
+    v45BaseResetMarketplaceFilters();
+    v45QueueMarketplaceReload(
+        40
+    );
+};
+
+
+const v45BaseUpdateMarketplaceFilterUI =
+    updateMarketplaceFilterUI;
+
+updateMarketplaceFilterUI =
+function updateMarketplaceFilterUIV45(
+    resultCount
+) {
+
+    v45BaseUpdateMarketplaceFilterUI(
+        resultCount
+    );
+
+
+    if (
+        !v45MarketState.ready
+    ) {
+        return;
+    }
+
+
+    const count =
+        document.getElementById(
+            "marketResultCount"
+        );
+
+
+    if (count) {
+
+        const total =
+            v45MarketState.total;
+
+        count.textContent =
+            `${total} ${
+                total === 1
+                    ? "listing"
+                    : "listings"
+            }`;
+    }
+};
+
+
+/* Friendlier launch-time errors without changing existing error mappings. */
+const v45BaseFriendlyError =
+    friendlyError;
+
+friendlyError =
+function friendlyErrorV45(
+    code
+) {
+
+    const value =
+        String(
+            code ||
+            ""
+        );
+
+
+    if (
+        value ===
+        "maintenance_mode"
+    ) {
+        return typeof v39T === "function"
+            ? v39T("Handle Market is temporarily under maintenance.","Handle Market временно находится на техническом обслуживании.")
+            : "Handle Market is temporarily under maintenance.";
+    }
+
+
+    if (
+        value ===
+        "request_timeout"
+    ) {
+        return typeof v39T === "function"
+            ? v39T("The request took too long. Please try again.","Запрос занял слишком много времени. Попробуйте ещё раз.")
+            : "The request took too long. Please try again.";
+    }
+
+
+    return v45BaseFriendlyError(
+        code
+    );
+};
+
+
+/* =========================================================
+   V45 OWNER LAUNCH CONTROLS
+   ========================================================= */
+
+let v45MaintenanceEnabled =
+    false;
+
+
+function v45EnsureLaunchControls() {
+
+    if (
+        document.getElementById(
+            "v45LaunchControls"
+        )
+    ) {
+        return;
+    }
+
+
+    const security =
+        document.getElementById(
+            "v41SecurityCenter"
+        );
+
+
+    if (!security) {
+        return;
+    }
+
+
+    const status =
+        document.getElementById(
+            "v41SecurityStatus"
+        );
+
+
+    const html = `
+        <div class="v45-launch-controls" id="v45LaunchControls" style="display:none">
+            <div class="section-title">🚀 ${typeof v39T === "function" ? v39T("Launch Controls · Owner","Управление запуском · Owner") : "Launch Controls · Owner"}</div>
+            <div class="section-subtitle">${typeof v39T === "function" ? v39T("Marketplace performance and Maintenance Mode.","Производительность Marketplace и режим обслуживания.") : "Marketplace performance and Maintenance Mode."}</div>
+
+            <div id="v45LaunchStatus"><div class="empty">Loading...</div></div>
+
+            <textarea class="v45-maintenance-input" id="v45MaintenanceMessage" maxlength="240" placeholder="Maintenance message">Handle Market is temporarily undergoing maintenance. Please try again shortly.</textarea>
+
+            <button class="secondary" id="v45MaintenanceButton" style="width:100%;margin-top:8px" onclick="v45ToggleMaintenance()">🛠 Maintenance Mode</button>
+        </div>
+    `;
+
+
+    if (status) {
+        status.insertAdjacentHTML(
+            "afterend",
+            html
+        );
+    } else {
+        security.insertAdjacentHTML(
+            "beforeend",
+            html
+        );
+    }
+
+
+    v45ApplyLaunchVisibility();
+}
+
+
+function v45ApplyLaunchVisibility() {
+
+    const controls =
+        document.getElementById(
+            "v45LaunchControls"
+        );
+
+
+    if (!controls) {
+        return;
+    }
+
+
+    controls.style.display =
+        typeof v39Role ===
+        "function" &&
+        v39Role() ===
+        "owner"
+            ? ""
+            : "none";
+}
+
+
+function v45FormatMemory(
+    value
+) {
+    const number =
+        Number(
+            value ||
+            0
+        );
+
+    return `${Math.max(0, number)} MB`;
+}
+
+
+async function v45LoadLaunchStatus() {
+
+    v45EnsureLaunchControls();
+    v45ApplyLaunchVisibility();
+
+
+    if (
+        typeof v39Role !==
+        "function" ||
+        v39Role() !==
+        "owner"
+    ) {
+        return;
+    }
+
+
+    const box =
+        document.getElementById(
+            "v45LaunchStatus"
+        );
+
+
+    if (!box) {
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/launch-status",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        v45MaintenanceEnabled =
+            Boolean(
+                data.maintenance
+                    ?.enabled
+            );
+
+
+        const message =
+            document.getElementById(
+                "v45MaintenanceMessage"
+            );
+
+
+        if (
+            message &&
+            data.maintenance?.message
+        ) {
+            message.value =
+                data.maintenance.message;
+        }
+
+
+        box.innerHTML = `
+            <div class="v45-launch-grid">
+                <div class="v45-launch-card">
+                    <div class="v45-launch-value">${data.marketplace?.ok ? "✅" : "⚠️"} Marketplace</div>
+                    <div class="v45-launch-label">${Number(data.marketplace?.active_listings || 0)} active · ${Number(data.marketplace?.latency_ms || 0)} ms</div>
+                </div>
+
+                <div class="v45-launch-card">
+                    <div class="v45-launch-value">${v45MaintenanceEnabled ? "🛠 ON" : "✅ OFF"}</div>
+                    <div class="v45-launch-label">Maintenance Mode</div>
+                </div>
+
+                <div class="v45-launch-card">
+                    <div class="v45-launch-value">📄 ${Number(data.marketplace?.page_size || V45_MARKET_PAGE_SIZE)}</div>
+                    <div class="v45-launch-label">Listings per page</div>
+                </div>
+
+                <div class="v45-launch-card">
+                    <div class="v45-launch-value">🧠 ${escapeHtml(v45FormatMemory(data.process?.rss_mb))}</div>
+                    <div class="v45-launch-label">Server memory · heap ${escapeHtml(v45FormatMemory(data.process?.heap_used_mb))}</div>
+                </div>
+            </div>
+
+            ${v45MaintenanceEnabled ? `<div class="v45-maintenance-on">⚠️ ${typeof v39T === "function" ? v39T("Marketplace Maintenance Mode is currently enabled.","Режим обслуживания Marketplace сейчас включён.") : "Marketplace Maintenance Mode is currently enabled."}</div>` : ""}
+        `;
+
+
+        const button =
+            document.getElementById(
+                "v45MaintenanceButton"
+            );
+
+
+        if (button) {
+            button.textContent =
+                v45MaintenanceEnabled
+                    ? `✅ ${typeof v39T === "function" ? v39T("Disable Maintenance","Выключить обслуживание") : "Disable Maintenance"}`
+                    : `🛠 ${typeof v39T === "function" ? v39T("Enable Maintenance","Включить обслуживание") : "Enable Maintenance"}`;
+        }
+
+    } catch (error) {
+
+        box.innerHTML =
+            `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+    }
+}
+
+
+async function v45ToggleMaintenance() {
+
+    if (
+        typeof v39Role !==
+        "function" ||
+        v39Role() !==
+        "owner"
+    ) {
+        return;
+    }
+
+
+    const next =
+        !v45MaintenanceEnabled;
+
+
+    if (
+        next &&
+        !confirm(
+            typeof v39T === "function"
+                ? v39T("Enable Marketplace Maintenance Mode? Public marketplace loading will be temporarily unavailable.","Включить режим обслуживания Marketplace? Публичная загрузка Marketplace временно станет недоступна.")
+                : "Enable Marketplace Maintenance Mode?"
+        )
+    ) {
+        return;
+    }
+
+
+    const message =
+        document.getElementById(
+            "v45MaintenanceMessage"
+        )?.value ||
+        "";
+
+
+    try {
+
+        await api(
+            "/admin/maintenance-set",
+            {
+                initData:
+                    tg.initData,
+                enabled:
+                    next,
+                message
+            }
+        );
+
+
+        await v45LoadLaunchStatus();
+
+
+        tg?.showAlert(
+            next
+                ? (typeof v39T === "function" ? v39T("Maintenance Mode enabled.","Режим обслуживания включён.") : "Maintenance Mode enabled.")
+                : (typeof v39T === "function" ? v39T("Maintenance Mode disabled.","Режим обслуживания выключен.") : "Maintenance Mode disabled.")
+        );
+
+    } catch (error) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+    }
+}
+
+
+/* Make launch controls appear whenever Security Center/Admin is constructed. */
+if (
+    typeof v41InjectSecurityCenter ===
+    "function"
+) {
+
+    const v45BaseInjectSecurityCenter =
+        v41InjectSecurityCenter;
+
+    v41InjectSecurityCenter =
+    function v41InjectSecurityCenterV45() {
+        v45BaseInjectSecurityCenter();
+        v45EnsureLaunchControls();
+        v45ApplyLaunchVisibility();
+    };
+}
+
+
+if (
+    typeof openAdmin ===
+    "function"
+) {
+
+    const v45BaseOpenAdmin =
+        openAdmin;
+
+    openAdmin =
+    function openAdminV45() {
+        v45BaseOpenAdmin();
+
+        setTimeout(
+            () => {
+                v45EnsureLaunchControls();
+                v45ApplyLaunchVisibility();
+
+                if (
+                    typeof v39Role ===
+                    "function" &&
+                    v39Role() ===
+                    "owner"
+                ) {
+                    v45LoadLaunchStatus();
+                }
+            },
+            0
+        );
+    };
+}
+
+
+/* Let startApp continue with the final v45 paginated loader. */
+v45EnsureMarketFooter();
+v45EnsureLaunchControls();
+
+window.__hmLoadMarketplaceV45 =
+async function hmLoadMarketplaceV45Bootstrap() {
+    return loadMarketplace();
+};
 </script>
 
 </body>
