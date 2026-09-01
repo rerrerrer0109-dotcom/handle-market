@@ -4357,12 +4357,13 @@ Loading conversation...
     id="chatMessages"
     class="card"
     style="
-        min-height:260px;
-        max-height:52vh;
+        min-height:180px;
+        max-height:44vh;
         overflow-y:auto;
         display:flex;
         flex-direction:column;
-        gap:8px;
+        gap:6px;
+        padding:10px;
     "
 >
 <div class="empty">Loading messages...</div>
@@ -4379,8 +4380,14 @@ Loading conversation...
 <textarea
     id="chatMessageInput"
     maxlength="1000"
-    rows="3"
+    rows="2"
     placeholder="Write a message..."
+    style="
+        min-height:54px;
+        height:54px;
+        max-height:110px;
+        resize:vertical;
+    "
     required
 ></textarea>
 
@@ -12877,11 +12884,18 @@ async function loadChatMessages(
                                 <div
                                     style="
                                         align-self:${mine ? "flex-end" : "flex-start"};
-                                        max-width:82%;
-                                        padding:10px 12px;
-                                        border-radius:14px;
+                                        flex:0 0 auto;
+                                        width:fit-content;
+                                        min-width:0;
+                                        min-height:0;
+                                        height:auto;
+                                        max-width:74%;
+                                        padding:7px 10px;
+                                        border-radius:12px;
                                         background:${mine ? "var(--button-color, #2481cc)" : "rgba(127,127,127,.14)"};
                                         color:${mine ? "#fff" : "inherit"};
+                                        font-size:12px;
+                                        line-height:1.35;
                                         white-space:pre-wrap;
                                         overflow-wrap:anywhere;
                                     "
@@ -12894,8 +12908,9 @@ async function loadChatMessages(
 
                                     <div
                                         style="
-                                            margin-top:5px;
-                                            font-size:11px;
+                                            margin-top:3px;
+                                            font-size:9.5px;
+                                            line-height:1.15;
                                             opacity:.72;
                                         "
                                     >
