@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#ffffff">
 
 <title>Handle Market</title>
-<!-- UI version: v44-ui-convenience-green-bump -->
+<!-- UI version: v45-launch-performance-maintenance-fix -->
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -27700,7 +27700,9 @@ const v45MarketState = {
     controller:null,
     filterTimer:null,
     observer:null,
-    lastError:null
+    lastError:null,
+    maintenance:false,
+    maintenanceMessage:""
 };
 
 
@@ -28214,6 +28216,13 @@ async function v45FetchMarketplacePage(
         }
 
 
+        v45MarketState.maintenance =
+            false;
+
+        v45MarketState.maintenanceMessage =
+            "";
+
+
         const incoming =
             data.listings ||
             [];
@@ -28343,6 +28352,36 @@ async function v45FetchMarketplacePage(
 
 
         if (reset) {
+
+            if (
+                String(
+                    error?.code ||
+                    error?.message ||
+                    ""
+                ) ===
+                "maintenance_mode"
+            ) {
+                v45MarketState.maintenance =
+                    true;
+
+                v45MarketState.maintenanceMessage =
+                    String(
+                        error?.userMessage ||
+                        ""
+                    );
+
+                /* Never let authenticate()/other UI refreshes repaint stale listings over the maintenance notice. */
+                marketplaceListings =
+                    [];
+            } else {
+                v45MarketState.maintenance =
+                    false;
+
+                v45MarketState.maintenanceMessage =
+                    "";
+            }
+
+
             v45RenderMarketplaceFailure(
                 error
             );
@@ -28375,6 +28414,40 @@ async function v45LoadMoreMarketplace() {
         false
     );
 }
+
+
+/* Keep the maintenance notice persistent even when authenticate() or another legacy refresh calls renderMarketplace(). */
+const v45BaseRenderMarketplace =
+    renderMarketplace;
+
+renderMarketplace =
+function renderMarketplaceV45Guarded() {
+
+    if (
+        v45MarketState.maintenance
+    ) {
+        const maintenanceError =
+            new Error(
+                "maintenance_mode"
+            );
+
+        maintenanceError.code =
+            "maintenance_mode";
+
+        maintenanceError.userMessage =
+            v45MarketState.maintenanceMessage ||
+            "";
+
+        v45RenderMarketplaceFailure(
+            maintenanceError
+        );
+
+        return;
+    }
+
+
+    return v45BaseRenderMarketplace();
+};
 
 
 /* Replace v44 marketplace loading with v45 server-side paging. */
