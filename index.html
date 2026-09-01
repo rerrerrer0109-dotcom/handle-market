@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#ffffff">
 
 <title>Handle Market</title>
-<!-- UI version: v55-unified-icon-system -->
+<!-- UI version: v56-modern-profile-settings -->
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -4854,6 +4854,354 @@ a.hm-icon-only .hm-ui-icon {
    v55 strips old emoji there instead of showing mixed icon styles. */
 option {
     font-family:inherit;
+}
+
+</style>
+
+
+
+<!-- =====================================================
+     v56 MODERN PROFILE & SETTINGS
+     Compact grouped settings UI using the v55 outline icon language
+     ===================================================== -->
+<style>
+
+/* Profile becomes a clean settings-style surface instead of a grid of large cards. */
+#profileContent.profile-shell {
+    margin:14px;
+}
+
+#profileContent .profile-card {
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+}
+
+#profileContent .profile-top {
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:15px;
+    border:1px solid var(--border);
+    border-radius:19px;
+    background:var(--surface);
+    box-shadow:0 9px 28px rgba(27,36,50,.07);
+}
+
+#profileContent .profile-avatar {
+    width:50px;
+    height:50px;
+    min-width:50px;
+    border:1px solid rgba(22,136,232,.14);
+    border-radius:15px;
+    color:var(--blue);
+    background:var(--blue-soft);
+}
+
+#profileContent .profile-avatar svg {
+    width:23px;
+    height:23px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+#profileContent .profile-name {
+    font-size:17px;
+    line-height:1.15;
+    letter-spacing:-.25px;
+}
+
+#profileContent .profile-username {
+    margin-top:3px;
+    font-size:10px;
+}
+
+#profileContent .profile-auth {
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    margin-top:7px;
+    padding:5px 8px;
+    border:1px solid rgba(20,155,85,.12);
+    border-radius:999px;
+    font-size:8.5px;
+    line-height:1;
+}
+
+#profileContent .profile-auth svg {
+    width:12px;
+    height:12px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+/* Keep one .profile-menu so all older feature injectors continue to work. */
+#profileContent .profile-menu.v56-profile-menu {
+    display:block;
+    margin-top:14px;
+}
+
+.v56-profile-group {
+    margin-top:13px;
+}
+
+.v56-profile-group:first-child {
+    margin-top:0;
+}
+
+.v56-profile-group-label {
+    margin:0 4px 7px;
+    color:var(--muted);
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.8px;
+    text-transform:uppercase;
+}
+
+.v56-profile-group-body {
+    overflow:hidden;
+    border:1px solid var(--border);
+    border-radius:17px;
+    background:var(--surface);
+    box-shadow:0 7px 22px rgba(27,36,50,.045);
+}
+
+#profileContent .profile-tile {
+    position:relative;
+    width:100%;
+    min-height:62px;
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:flex-start;
+    gap:11px;
+    padding:10px 37px 10px 12px;
+    border:0;
+    border-bottom:1px solid var(--border);
+    border-radius:0;
+    color:var(--text);
+    background:transparent;
+    text-align:left;
+    transition:background .14s ease, transform .14s ease;
+}
+
+.v56-profile-group-body .profile-tile:last-child {
+    border-bottom:0;
+}
+
+#profileContent .profile-tile:active {
+    transform:none;
+    background:var(--surface-2);
+}
+
+@media (hover:hover) {
+    #profileContent .profile-tile:hover {
+        background:var(--surface-2);
+    }
+}
+
+#profileContent .profile-tile::after {
+    content:"";
+    position:absolute;
+    right:16px;
+    top:50%;
+    width:6px;
+    height:6px;
+    border-top:1.6px solid var(--muted);
+    border-right:1.6px solid var(--muted);
+    transform:translateY(-50%) rotate(45deg);
+    opacity:.72;
+}
+
+#profileContent .profile-tile-icon {
+    width:35px;
+    height:35px;
+    min-width:35px;
+    margin:0;
+    border:1px solid rgba(22,136,232,.12);
+    border-radius:11px;
+    color:var(--blue);
+    background:var(--blue-soft);
+}
+
+#profileContent .profile-tile-icon .hm-ui-icon,
+#profileContent .profile-tile-icon svg {
+    width:18px;
+    height:18px;
+    margin:0;
+    color:currentColor;
+}
+
+#profileContent .profile-tile > div:last-of-type {
+    min-width:0;
+    flex:1;
+}
+
+#profileContent .profile-tile-title {
+    margin:0;
+    font-size:11.5px;
+    line-height:1.25;
+    font-weight:850;
+}
+
+#profileContent .profile-tile-subtitle {
+    margin-top:3px;
+    overflow:hidden;
+    color:var(--muted);
+    font-size:9px;
+    line-height:1.25;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+/* Admin is still the same icon language but subtly separated. */
+.v56-profile-group[data-group="admin"] .profile-tile-icon {
+    color:#7b5ce7;
+    border-color:rgba(123,92,231,.14);
+    background:rgba(123,92,231,.09);
+}
+
+/* Notification settings: slim rows + a native-CSS modern switch. */
+.notification-list {
+    gap:8px;
+}
+
+.notification-row {
+    min-height:66px;
+    padding:11px 13px;
+    border-radius:15px;
+    background:var(--surface);
+    box-shadow:0 5px 18px rgba(27,36,50,.035);
+}
+
+.notification-title {
+    display:flex;
+    align-items:center;
+    font-size:11.5px;
+    font-weight:850;
+}
+
+.notification-title .hm-ui-icon {
+    width:16px;
+    height:16px;
+    margin-right:7px;
+    color:var(--blue);
+}
+
+.notification-subtitle {
+    margin-top:3px;
+    font-size:9.5px;
+    line-height:1.35;
+}
+
+.notification-check {
+    -webkit-appearance:none;
+    appearance:none;
+    width:40px;
+    min-width:40px;
+    height:24px;
+    margin:0;
+    border:1px solid var(--border);
+    border-radius:999px;
+    outline:0;
+    cursor:pointer;
+    background:
+        radial-gradient(circle at 11px 11px, #fff 0 8px, transparent 8.5px),
+        var(--surface-3);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.05);
+    transition:background .18s ease, border-color .18s ease;
+}
+
+.notification-check:checked {
+    border-color:rgba(22,136,232,.35);
+    background:
+        radial-gradient(circle at 28px 11px, #fff 0 8px, transparent 8.5px),
+        var(--blue);
+}
+
+.notification-check:focus-visible {
+    box-shadow:0 0 0 3px rgba(22,136,232,.12);
+}
+
+/* FAQ / Rules / Privacy cards now match the compact settings language. */
+.v39-help-card {
+    margin-bottom:9px;
+    padding:13px 14px;
+    border:1px solid var(--border);
+    border-radius:15px;
+    background:var(--surface);
+    box-shadow:0 5px 18px rgba(27,36,50,.035);
+}
+
+.v39-help-card h3 {
+    margin:0 0 6px;
+    font-size:11.5px;
+    line-height:1.3;
+}
+
+.v39-help-card p,
+.v39-help-card li {
+    font-size:9.5px;
+    line-height:1.5;
+}
+
+/* Slightly tighter generic settings modal controls. */
+#inputModal .field label {
+    font-size:9px;
+    font-weight:800;
+}
+
+#inputModal select,
+#inputModal input {
+    min-height:44px;
+    border-radius:13px;
+}
+
+@media (max-width:430px) {
+    #profileContent.profile-shell {
+        margin:12px;
+    }
+
+    #profileContent .profile-top {
+        padding:13px;
+        border-radius:17px;
+    }
+
+    #profileContent .profile-avatar {
+        width:46px;
+        height:46px;
+        min-width:46px;
+        border-radius:14px;
+    }
+
+    #profileContent .profile-name {
+        font-size:16px;
+    }
+
+    #profileContent .profile-tile {
+        min-height:58px;
+        padding:9px 34px 9px 10px;
+        gap:10px;
+    }
+
+    #profileContent .profile-tile-icon {
+        width:33px;
+        height:33px;
+        min-width:33px;
+    }
+
+    #profileContent .profile-tile-title {
+        font-size:11px;
+    }
 }
 
 </style>
@@ -32249,6 +32597,233 @@ A quick guide to buying, selling and discovering WhatsApp usernames.
     } else {
         start();
     }
+})();
+</script>
+
+
+
+<!-- =====================================================
+     v56 PROFILE GROUPING / DECORATION
+     Reuses all existing actions; only reorganizes presentation.
+     ===================================================== -->
+<script>
+(function () {
+    "use strict";
+
+    let v56Frame = 0;
+    let v56Decorating = false;
+
+    function t(en, ru) {
+        return typeof v39T === "function" ? v39T(en, ru) : en;
+    }
+
+    function profileUserIcon() {
+        return `
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="8" r="3.5"></circle>
+                <path d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6"></path>
+            </svg>
+        `;
+    }
+
+    function profileCheckIcon() {
+        return `
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="m8 12 2.7 2.7L16.5 9"></path>
+            </svg>
+        `;
+    }
+
+    function classifyTile(tile) {
+        const id = tile.id || "";
+        const onclick = tile.getAttribute("onclick") || "";
+        const text = (tile.textContent || "").toLowerCase();
+
+        if (
+            onclick.includes("openAdmin") ||
+            id.toLowerCase().includes("admin") ||
+            text.includes("admin panel") ||
+            text.includes("панель администратора")
+        ) {
+            return "admin";
+        }
+
+        if (
+            onclick.includes("openMySellerProfile") ||
+            onclick.includes("openOffers") ||
+            onclick.includes("openChats") ||
+            id === "v40AnalyticsTile" ||
+            tile.hasAttribute("data-v44-hub-tile")
+        ) {
+            return "selling";
+        }
+
+        if (
+            onclick.includes("openFollowingSellers") ||
+            onclick.includes("openSavedSearches") ||
+            onclick.includes("openWatchlist") ||
+            onclick.includes("openInviteEarn") ||
+            id === "v46ReferralTile"
+        ) {
+            return "marketplace";
+        }
+
+        if (
+            onclick.includes("openNotificationSettings") ||
+            onclick.includes("openSupport") ||
+            onclick.includes("openFAQ") ||
+            onclick.includes("openRules") ||
+            onclick.includes("openLanguageSettings") ||
+            onclick.includes("v41PrivacyTerms") ||
+            ["v39FaqTile","v39RulesTile","v39LanguageTile","v41PrivacyTile"].includes(id)
+        ) {
+            return "settings";
+        }
+
+        return "more";
+    }
+
+    function groupMeta(key) {
+        const data = {
+            selling: [t("Selling & Activity","Продажи и активность")],
+            marketplace: [t("Marketplace","Маркетплейс")],
+            settings: [t("Settings & Support","Настройки и поддержка")],
+            admin: [t("Administration","Администрирование")],
+            more: [t("More","Ещё")]
+        };
+        return data[key] || data.more;
+    }
+
+    function createGroup(key) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "v56-profile-group";
+        wrapper.dataset.group = key;
+
+        const label = document.createElement("div");
+        label.className = "v56-profile-group-label";
+        label.textContent = groupMeta(key)[0];
+
+        const body = document.createElement("div");
+        body.className = "v56-profile-group-body";
+
+        wrapper.append(label, body);
+        return { wrapper, body };
+    }
+
+    function decorateHeader(root) {
+        const avatar = root.querySelector(".profile-avatar");
+        if (avatar && !avatar.dataset.v56Icon) {
+            avatar.innerHTML = profileUserIcon();
+            avatar.dataset.v56Icon = "1";
+        }
+
+        const auth = root.querySelector(".profile-auth");
+        if (auth && !auth.dataset.v56Icon) {
+            const raw = (auth.textContent || "").replace(/^\s*✓\s*/, "").trim();
+            auth.innerHTML = profileCheckIcon() + `<span>${raw}</span>`;
+            auth.dataset.v56Icon = "1";
+        }
+    }
+
+    function regroupProfileMenu(menu) {
+        const directTiles = Array.from(menu.children).filter(
+            child => child.classList && child.classList.contains("profile-tile")
+        );
+
+        if (menu.dataset.v56Ready === "1" && directTiles.length === 0) {
+            return false;
+        }
+
+        const tiles = Array.from(menu.querySelectorAll(".profile-tile")).filter(
+            tile => tile.closest(".profile-menu") === menu
+        );
+
+        if (!tiles.length) {
+            return false;
+        }
+
+        const stash = document.createDocumentFragment();
+        tiles.forEach(tile => stash.appendChild(tile));
+        menu.replaceChildren();
+        menu.classList.add("v56-profile-menu");
+
+        const order = ["selling", "marketplace", "settings", "admin", "more"];
+        const buckets = new Map(order.map(key => [key, []]));
+
+        tiles.forEach(tile => {
+            const key = classifyTile(tile);
+            (buckets.get(key) || buckets.get("more")).push(tile);
+        });
+
+        order.forEach(key => {
+            const items = buckets.get(key) || [];
+            if (!items.length) return;
+
+            const group = createGroup(key);
+            items.forEach(tile => {
+                tile.classList.add("v56-profile-tile");
+                if (tile.tagName === "BUTTON" && !tile.getAttribute("type")) {
+                    tile.setAttribute("type", "button");
+                }
+                group.body.appendChild(tile);
+            });
+            menu.appendChild(group.wrapper);
+        });
+
+        menu.dataset.v56Ready = "1";
+        return true;
+    }
+
+    function decorateProfile() {
+        const root = document.getElementById("profileContent");
+        if (!root || v56Decorating) return;
+
+        const menu = root.querySelector(".profile-menu");
+        if (!menu) return;
+
+        v56Decorating = true;
+        try {
+            decorateHeader(root);
+            const changed = regroupProfileMenu(menu);
+            if (changed && typeof window.hmRefreshUnifiedIcons === "function") {
+                window.hmRefreshUnifiedIcons();
+            }
+        } finally {
+            v56Decorating = false;
+        }
+    }
+
+    function queueDecorate() {
+        if (v56Frame) return;
+        v56Frame = requestAnimationFrame(() => {
+            v56Frame = 0;
+            decorateProfile();
+        });
+    }
+
+    const v56BaseRenderMainProfile = renderMainProfile;
+    renderMainProfile = function renderMainProfileV56(user) {
+        v56BaseRenderMainProfile(user);
+        queueDecorate();
+    };
+
+    function startProfileObserver() {
+        const root = document.getElementById("profileContent");
+        if (!root) return;
+
+        const observer = new MutationObserver(() => queueDecorate());
+        observer.observe(root, { childList:true, subtree:true });
+        queueDecorate();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", startProfileObserver, { once:true });
+    } else {
+        startProfileObserver();
+    }
+
+    window.v56RefreshProfileDesign = queueDecorate;
 })();
 </script>
 
