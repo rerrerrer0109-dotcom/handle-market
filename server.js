@@ -2908,7 +2908,7 @@ async function buildSellerProfilePayload(
         await supabase
             .from("listings")
             .select(
-                "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
+                "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
             )
             .eq(
                 "seller_telegram_id",
@@ -3074,7 +3074,7 @@ async function processListingExpiryNotifications() {
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "status",
@@ -3149,7 +3149,7 @@ async function processListingExpiryNotifications() {
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "status",
@@ -3476,7 +3476,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v30-internal-chat"
+                    "v33-listing-numbers"
             }
         );
     }
@@ -4148,7 +4148,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "id",
@@ -4558,7 +4558,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,whatsapp_username,asking_price,currency,category,description,status,verification_status,is_premium_name,is_featured,views_count,likes_count,is_paused,is_frozen,frozen_reason,frozen_at,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at,last_renewed_at,renewal_count"
+                    "id,listing_number,whatsapp_username,asking_price,currency,category,description,status,verification_status,is_premium_name,is_featured,views_count,likes_count,is_paused,is_frozen,frozen_reason,frozen_at,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at,last_renewed_at,renewal_count"
                 )
                 .eq(
                     "seller_telegram_id",
@@ -5223,7 +5223,7 @@ app.get(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
                 )
                 .eq(
                     "status",
@@ -5784,7 +5784,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status,is_frozen"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_frozen"
                 )
                 .eq(
                     "id",
@@ -5983,7 +5983,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until"
                 )
                 .eq(
                     "id",
@@ -6579,7 +6579,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "id",
@@ -7191,7 +7191,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,status,is_paused,is_frozen,listing_plan,listing_period_started_at,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,status,is_paused,is_frozen,listing_plan,listing_period_started_at,listing_expires_at"
                 )
                 .in(
                     "id",
@@ -8328,7 +8328,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username"
+                    "id,seller_telegram_id,listing_number,whatsapp_username"
                 )
                 .eq(
                     "id",
@@ -8700,7 +8700,7 @@ app.post(
                     supabase
                         .from("listings")
                         .select(
-                            "id,whatsapp_username"
+                            "id,listing_number,whatsapp_username"
                         )
                         .in(
                             "id",
@@ -8850,6 +8850,10 @@ app.post(
                             listing?.whatsapp_username ||
                             "username",
 
+                        listing_number:
+                            listing?.listing_number ||
+                            null,
+
                         counterpart:
                             counterpart
                                 ? {
@@ -8972,7 +8976,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,whatsapp_username"
+                    "id,listing_number,whatsapp_username"
                 )
                 .eq(
                     "id",
@@ -9074,6 +9078,10 @@ app.post(
                     listing_username:
                         listing?.whatsapp_username ||
                         "username",
+
+                    listing_number:
+                        listing?.listing_number ||
+                        null,
 
                     counterpart:
                         counterpart ||
@@ -9337,7 +9345,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "whatsapp_username"
+                    "listing_number,whatsapp_username"
                 )
                 .eq(
                     "id",
@@ -9455,7 +9463,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "id",
@@ -9755,7 +9763,7 @@ app.post(
                 await supabase
                     .from("listings")
                     .select(
-                        "id,whatsapp_username,asking_price,category,is_frozen,is_paused,status,listing_plan,listing_expires_at"
+                        "id,listing_number,whatsapp_username,asking_price,category,is_frozen,is_paused,status,listing_plan,listing_expires_at"
                     )
                     .in(
                         "id",
@@ -9860,7 +9868,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,whatsapp_username,asking_price,category,is_frozen,is_paused,status,listing_plan,listing_expires_at"
+                    "id,listing_number,whatsapp_username,asking_price,category,is_frozen,is_paused,status,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "seller_telegram_id",
@@ -10166,7 +10174,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,is_frozen,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,is_frozen,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "id",
@@ -10618,7 +10626,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,is_frozen,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,is_frozen,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "id",
@@ -11065,7 +11073,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status"
                 )
                 .eq(
                     "id",
@@ -11247,7 +11255,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,category"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,category"
                 )
                 .eq(
                     "id",
@@ -11317,6 +11325,10 @@ app.post(
                 listing: {
                     id:
                         listing.id,
+
+                    listing_number:
+                        listing.listing_number ||
+                        null,
 
                     seller_telegram_id:
                         listing.seller_telegram_id,
@@ -12610,7 +12622,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until"
                 )
                 .eq(
                     "id",
@@ -13054,7 +13066,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,created_at,listing_plan"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,created_at,listing_plan"
                 )
                 .eq(
                     "status",
@@ -13233,7 +13245,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status,is_premium_name,listing_plan,listing_period_started_at,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_premium_name,listing_plan,listing_period_started_at,listing_expires_at"
                 )
                 .eq(
                     "id",
@@ -13502,7 +13514,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status"
                 )
                 .eq(
                     "id",
@@ -13575,7 +13587,7 @@ app.post(
                     listingId
                 )
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,status,is_premium_name,premium_marked_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_premium_name,premium_marked_at"
                 )
                 .single();
 
@@ -13707,7 +13719,7 @@ app.post(
                 await supabase
                     .from("listings")
                     .select(
-                        "id,seller_telegram_id,whatsapp_username,asking_price,category,status,is_premium_name,is_paused,is_frozen,frozen_reason,listing_plan,listing_expires_at"
+                        "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,category,status,is_premium_name,is_paused,is_frozen,frozen_reason,listing_plan,listing_expires_at"
                     )
                     .in(
                         "id",
@@ -13804,7 +13816,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,is_paused,is_frozen,frozen_reason,frozen_at,frozen_by,created_at,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,is_paused,is_frozen,frozen_reason,frozen_at,frozen_by,created_at,listing_plan,listing_expires_at"
                 )
                 .eq(
                     "is_frozen",
@@ -13866,7 +13878,7 @@ async function freezeListing(
         await supabase
             .from("listings")
             .select(
-                "id,seller_telegram_id,whatsapp_username,status,is_frozen"
+                "id,seller_telegram_id,listing_number,whatsapp_username,status,is_frozen"
             )
             .eq(
                 "id",
@@ -14017,7 +14029,7 @@ async function adminRemoveListingInternal(
         await supabase
             .from("listings")
             .select(
-                "id,seller_telegram_id,whatsapp_username"
+                "id,seller_telegram_id,listing_number,whatsapp_username"
             )
             .eq(
                 "id",
@@ -15638,7 +15650,7 @@ app.post(
                         await supabase
                             .from("listings")
                             .select(
-                                "id,seller_telegram_id,whatsapp_username,status,is_frozen,listing_plan,listing_expires_at,renewal_count"
+                                "id,seller_telegram_id,listing_number,whatsapp_username,status,is_frozen,listing_plan,listing_expires_at,renewal_count"
                             )
                             .eq(
                                 "id",
@@ -16036,7 +16048,7 @@ app.post(
                     await supabase
                         .from("listings")
                         .select(
-                            "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until"
+                            "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until"
                         )
                         .eq(
                             "id",

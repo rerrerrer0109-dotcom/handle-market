@@ -1111,6 +1111,26 @@ header {
     word-break:break-word;
 }
 
+.listing-number {
+
+    display:inline-flex;
+    align-items:center;
+
+    margin-top:6px;
+    padding:4px 7px;
+
+    border:1px solid var(--border);
+    border-radius:8px;
+
+    color:var(--muted);
+    background:var(--surface-2);
+
+    font-size:8.5px;
+    font-weight:900;
+    letter-spacing:.25px;
+    line-height:1;
+}
+
 .price {
     font-size:20px;
     font-weight:900;
@@ -7434,6 +7454,10 @@ function renderListingCard(
 
                     </div>
 
+                    ${listingNumberHtml(
+                        listing
+                    )}
+
 
                     <div class="listing-info-row">
 
@@ -8013,6 +8037,10 @@ async function openListingPage(
                 )}
 
             </div>
+
+            ${listingNumberHtml(
+                listing
+            )}
 
 
             <div class="detail-price">
@@ -10004,6 +10032,10 @@ function renderMyListing(
 
                     </div>
 
+                    ${listingNumberHtml(
+                        listing
+                    )}
+
 
                     <div class="listing-info-row">
 
@@ -11478,6 +11510,10 @@ async function loadSentOffers() {
 
                                 </div>
 
+                                ${listingNumberHtml(
+                                    offer.listing
+                                )}
+
 
                                 <div class="offer-summary">
 
@@ -11662,6 +11698,10 @@ async function loadReceivedOffers() {
                                     )}
 
                                 </div>
+
+                                ${listingNumberHtml(
+                                    offer.listing
+                                )}
 
 
                                 <div class="offer-summary">
@@ -12563,6 +12603,10 @@ async function loadChats() {
                                     )}
                                 </div>
 
+                                ${listingNumberHtml(
+                                    { listing_number: chat.listing_number }
+                                )}
+
                                 <div style="margin-top:6px;font-weight:700">
                                     ${escapeHtml(
                                         counterpartName
@@ -12800,6 +12844,10 @@ async function loadChatMessages(
                         "username"
                     )}
                 </div>
+
+                ${listingNumberHtml(
+                    { listing_number: chat.listing_number }
+                )}
 
                 <div style="margin-top:7px;font-weight:700">
                     ${escapeHtml(
@@ -14979,6 +15027,10 @@ async function loadPendingListings() {
 
                                 </div>
 
+                                ${listingNumberHtml(
+                                    listing
+                                )}
+
 
                                 <div class="price">
 
@@ -15187,6 +15239,10 @@ async function loadAdminPremiumListings() {
                                     )}
 
                                 </div>
+
+                                ${listingNumberHtml(
+                                    listing
+                                )}
 
 
                                 <div class="listing-info-row">
@@ -15836,6 +15892,14 @@ async function loadAdminReports() {
 
                                 </div>
 
+                                ${
+                                    report.listing
+                                        ? listingNumberHtml(
+                                            report.listing
+                                        )
+                                        : ""
+                                }
+
 
                                 <div class="description">
 
@@ -16040,6 +16104,10 @@ async function loadFrozenListings() {
                                     )}
 
                                 </div>
+
+                                ${listingNumberHtml(
+                                    listing
+                                )}
 
 
                                 ${listingLifetimeHtml(
@@ -16414,6 +16482,54 @@ function friendlyError(
         ||
         "Something went wrong."
     );
+}
+
+
+function formatListingNumber(
+    listing
+) {
+
+    const number =
+        Number(
+            listing?.listing_number
+        );
+
+
+    if (
+        !Number.isSafeInteger(
+            number
+        ) ||
+        number <= 0
+    ) {
+
+        return "";
+    }
+
+
+    return String(
+        number
+    ).padStart(
+        6,
+        "0"
+    );
+}
+
+
+function listingNumberHtml(
+    listing
+) {
+
+    const number =
+        formatListingNumber(
+            listing
+        );
+
+
+    return number
+
+        ? `<div class="listing-number">LOT #${number}</div>`
+
+        : "";
 }
 
 
