@@ -2217,7 +2217,7 @@ async function closeListingOpenOffers(
         offers || []
     ) {
 
-        safeSendMessage(
+        safeSendOfferMessage(
             offer.buyer_telegram_id,
             message
         );
@@ -3979,6 +3979,1710 @@ async function processPromotionExpiryNotifications(
 }
 
 
+
+/* =========================================================
+   NOTIFICATION PREFERENCES
+   ========================================================= */
+
+const NOTIFICATION_KEYS = {
+    chats:"chats",
+    offers:"offers",
+    support:"support",
+    watchlist_updates:"watchlist_updates",
+    price_drops:"price_drops",
+    saved_searches:"saved_searches"
+};
+
+
+async function getNotificationPreferences(
+    telegramId
+) {
+
+    const id =
+        Number(
+            telegramId
+        );
+
+
+    if (
+        !Number.isSafeInteger(id) ||
+        id <= 0
+    ) {
+
+        return null;
+    }
+
+
+    const {
+        data,
+        error
+    } =
+        await supabase
+            .from(
+                "notification_preferences"
+            )
+            .select(
+                "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,updated_at"
+            )
+            .eq(
+                "telegram_id",
+                id
+            )
+            .maybeSingle();
+
+
+    if (error) {
+
+        console.error(
+            "Notification preferences lookup:",
+            error
+        );
+
+        return {
+            telegram_id:id,
+            chats:true,
+            offers:true,
+            support:true,
+            watchlist_updates:true,
+            price_drops:true,
+            saved_searches:true
+        };
+    }
+
+
+    if (data) {
+
+        return data;
+    }
+
+
+    const defaults = {
+        telegram_id:id,
+        chats:true,
+        offers:true,
+        support:true,
+        watchlist_updates:true,
+        price_drops:true,
+        saved_searches:true,
+        updated_at:nowIso()
+    };
+
+
+    const {
+        data:
+            inserted,
+        error:
+            insertError
+    } =
+        await supabase
+            .from(
+                "notification_preferences"
+            )
+            .insert(
+                defaults
+            )
+            .select(
+                "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,updated_at"
+            )
+            .single();
+
+
+    if (insertError) {
+
+        console.error(
+            "Notification preferences create:",
+            insertError
+        );
+
+        return defaults;
+    }
+
+
+    return inserted;
+}
+
+
+async function sendUserNotification(
+    telegramId,
+    key,
+    text
+) {
+
+    const column =
+        NOTIFICATION_KEYS[
+            key
+        ];
+
+
+    if (!column) {
+
+        return safeSendMessage(
+            telegramId,
+            text
+        );
+    }
+
+
+    const preferences =
+        await getNotificationPreferences(
+            telegramId
+        );
+
+
+    if (
+        preferences &&
+        preferences[column] === false
+    ) {
+
+        return false;
+    }
+
+
+    return safeSendMessage(
+        telegramId,
+        text
+    );
+}
+
+
+function safeSendChatMessage(
+    telegramId,
+    text
+) {
+
+    return sendUserNotification(
+        telegramId,
+        "chats",
+        text
+    );
+}
+
+
+function safeSendSupportMessage(
+    telegramId,
+    text
+) {
+
+    return sendUserNotification(
+        telegramId,
+        "support",
+        text
+    );
+}
+
+
+function safeSendOfferMessage(
+    telegramId,
+    text
+) {
+
+    return sendUserNotification(
+        telegramId,
+        "offers",
+        text
+    );
+}
+
+
+app.post(
+    "/notification-settings/get",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        const settings =
+            await getNotificationPreferences(
+                auth.user.telegram_id
+            );
+
+
+        res.json(
+            {
+                ok:true,
+                settings
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/notification-settings/update",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        const current =
+            await getNotificationPreferences(
+                auth.user.telegram_id
+            );
+
+
+        const payload = {
+            telegram_id:
+                Number(
+                    auth.user.telegram_id
+                ),
+            chats:
+                req.body.chats === undefined
+                    ? current?.chats !== false
+                    : Boolean(req.body.chats),
+            offers:
+                req.body.offers === undefined
+                    ? current?.offers !== false
+                    : Boolean(req.body.offers),
+            support:
+                req.body.support === undefined
+                    ? current?.support !== false
+                    : Boolean(req.body.support),
+            watchlist_updates:
+                req.body.watchlist_updates === undefined
+                    ? current?.watchlist_updates !== false
+                    : Boolean(req.body.watchlist_updates),
+            price_drops:
+                req.body.price_drops === undefined
+                    ? current?.price_drops !== false
+                    : Boolean(req.body.price_drops),
+            saved_searches:
+                req.body.saved_searches === undefined
+                    ? current?.saved_searches !== false
+                    : Boolean(req.body.saved_searches),
+            updated_at:
+                nowIso()
+        };
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from(
+                    "notification_preferences"
+                )
+                .upsert(
+                    payload,
+                    {
+                        onConflict:
+                            "telegram_id"
+                    }
+                )
+                .select(
+                    "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,updated_at"
+                )
+                .single();
+
+
+        if (error) {
+
+            console.error(
+                "Notification settings update:",
+                error
+            );
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "notification_settings_update_failed"
+                    }
+                );
+        }
+
+
+        res.json(
+            {
+                ok:true,
+                settings:data
+            }
+        );
+    }
+);
+
+
+/* =========================================================
+   SAVED SEARCHES
+   ========================================================= */
+
+const SAVED_SEARCH_CATEGORIES = [
+    "all",
+    "Business",
+    "Brand",
+    "Tech & AI",
+    "Short",
+    "Travel",
+    "Finance",
+    "Gaming",
+    "Crypto",
+    "Media",
+    "Generic",
+    "Other"
+];
+
+const SAVED_SEARCH_PROMOTIONS = [
+    "all",
+    "regular",
+    "bump",
+    "hot",
+    "vip"
+];
+
+
+function normalizeSavedSearchInput(
+    body
+) {
+
+    const searchQuery =
+        String(
+            body.search_query ||
+            ""
+        )
+            .trim()
+            .slice(
+                0,
+                64
+            );
+
+
+    const category =
+        String(
+            body.category ||
+            "all"
+        ).trim();
+
+
+    const promotion =
+        String(
+            body.promotion ||
+            "all"
+        )
+            .trim()
+            .toLowerCase();
+
+
+    const premiumOnly =
+        Boolean(
+            body.premium_only
+        );
+
+
+    const minText =
+        String(
+            body.min_price ??
+            ""
+        ).trim();
+
+
+    const maxText =
+        String(
+            body.max_price ??
+            ""
+        ).trim();
+
+
+    const minPrice =
+        minText === ""
+            ? null
+            : Number(minText);
+
+
+    const maxPrice =
+        maxText === ""
+            ? null
+            : Number(maxText);
+
+
+    if (
+        !SAVED_SEARCH_CATEGORIES.includes(
+            category
+        ) ||
+        !SAVED_SEARCH_PROMOTIONS.includes(
+            promotion
+        ) ||
+        (
+            minPrice !== null &&
+            (
+                !Number.isFinite(minPrice) ||
+                minPrice < 0 ||
+                minPrice > 100000000
+            )
+        ) ||
+        (
+            maxPrice !== null &&
+            (
+                !Number.isFinite(maxPrice) ||
+                maxPrice < 0 ||
+                maxPrice > 100000000
+            )
+        ) ||
+        (
+            minPrice !== null &&
+            maxPrice !== null &&
+            minPrice > maxPrice
+        )
+    ) {
+
+        return {
+            ok:false,
+            error:
+                "invalid_saved_search"
+        };
+    }
+
+
+    let name =
+        String(
+            body.name ||
+            ""
+        )
+            .trim()
+            .slice(
+                0,
+                80
+            );
+
+
+    if (!name) {
+
+        const parts = [];
+
+        if (searchQuery) {
+            parts.push(
+                searchQuery
+            );
+        }
+
+        if (
+            category !==
+            "all"
+        ) {
+            parts.push(
+                category
+            );
+        }
+
+        if (premiumOnly) {
+            parts.push(
+                "Premium"
+            );
+        }
+
+        if (
+            promotion !==
+            "all"
+        ) {
+            parts.push(
+                promotion.toUpperCase()
+            );
+        }
+
+        if (
+            minPrice !== null ||
+            maxPrice !== null
+        ) {
+            parts.push(
+                `$${minPrice ?? 0}–$${maxPrice ?? "∞"}`
+            );
+        }
+
+        name =
+            parts.join(
+                " · "
+            ) ||
+            "All usernames";
+    }
+
+
+    return {
+        ok:true,
+        data:{
+            name,
+            search_query:
+                searchQuery,
+            category,
+            promotion,
+            premium_only:
+                premiumOnly,
+            min_price:
+                minPrice,
+            max_price:
+                maxPrice
+        }
+    };
+}
+
+
+function savedSearchMatchesListing(
+    search,
+    listing
+) {
+
+    if (
+        !listingIsPubliclyAvailable(
+            listing
+        )
+    ) {
+
+        return false;
+    }
+
+
+    const enriched =
+        withPromotion(
+            listing
+        );
+
+
+    const query =
+        String(
+            search.search_query ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
+
+
+    if (query) {
+
+        const username =
+            String(
+                enriched.whatsapp_username ||
+                ""
+            ).toLowerCase();
+
+
+        const normalizedQuery =
+            query.replace(
+                /^@/,
+                ""
+            );
+
+
+        let queryMatches =
+            username.includes(
+                normalizedQuery
+            );
+
+
+        if (!queryMatches) {
+
+            const lotQuery =
+                query
+                    .replace(
+                        /^lot\s*#?\s*/i,
+                        ""
+                    )
+                    .replace(
+                        /\s+/g,
+                        ""
+                    );
+
+
+            if (
+                /^\d+$/.test(
+                    lotQuery
+                ) &&
+                Number.isSafeInteger(
+                    Number(
+                        enriched.listing_number
+                    )
+                )
+            ) {
+
+                const raw =
+                    String(
+                        Number(
+                            enriched.listing_number
+                        )
+                    );
+
+                const padded =
+                    raw.padStart(
+                        6,
+                        "0"
+                    );
+
+                const normalizedLot =
+                    lotQuery.replace(
+                        /^0+(?=\d)/,
+                        ""
+                    );
+
+                queryMatches =
+                    raw === normalizedLot ||
+                    padded === lotQuery;
+            }
+        }
+
+
+        if (!queryMatches) {
+
+            return false;
+        }
+    }
+
+
+    if (
+        search.category &&
+        search.category !==
+        "all" &&
+        String(
+            enriched.category ||
+            "Other"
+        ) !==
+        String(
+            search.category
+        )
+    ) {
+
+        return false;
+    }
+
+
+    if (
+        search.premium_only &&
+        !enriched.is_premium_name
+    ) {
+
+        return false;
+    }
+
+
+    const promotion =
+        String(
+            search.promotion ||
+            "all"
+        );
+
+
+    if (
+        promotion !==
+        "all"
+    ) {
+
+        if (
+            promotion ===
+            "regular"
+        ) {
+
+            if (
+                enriched.promotion_type
+            ) {
+
+                return false;
+            }
+
+        } else if (
+            String(
+                enriched.promotion_type ||
+                ""
+            ) !==
+            promotion
+        ) {
+
+            return false;
+        }
+    }
+
+
+    const price =
+        Number(
+            enriched.asking_price
+        );
+
+
+    if (
+        search.min_price !== null &&
+        search.min_price !== undefined &&
+        price <
+        Number(
+            search.min_price
+        )
+    ) {
+
+        return false;
+    }
+
+
+    if (
+        search.max_price !== null &&
+        search.max_price !== undefined &&
+        price >
+        Number(
+            search.max_price
+        )
+    ) {
+
+        return false;
+    }
+
+
+    return true;
+}
+
+
+app.post(
+    "/saved-searches/list",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(auth.status)
+                .json(
+                    {
+                        ok:false,
+                        error:auth.error
+                    }
+                );
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from(
+                    "saved_searches"
+                )
+                .select(
+                    "id,name,search_query,category,promotion,premium_only,min_price,max_price,alerts_enabled,created_at,updated_at"
+                )
+                .eq(
+                    "telegram_id",
+                    auth.user.telegram_id
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                );
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "saved_searches_load_failed"
+                    }
+                );
+        }
+
+
+        res.json(
+            {
+                ok:true,
+                searches:
+                    data || []
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/saved-searches/create",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(auth.status)
+                .json(
+                    {
+                        ok:false,
+                        error:auth.error
+                    }
+                );
+        }
+
+
+        const validation =
+            normalizeSavedSearchInput(
+                req.body
+            );
+
+
+        if (!validation.ok) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            validation.error
+                    }
+                );
+        }
+
+
+        const {
+            count,
+            error:
+                countError
+        } =
+            await supabase
+                .from(
+                    "saved_searches"
+                )
+                .select(
+                    "id",
+                    {
+                        head:true,
+                        count:"exact"
+                    }
+                )
+                .eq(
+                    "telegram_id",
+                    auth.user.telegram_id
+                );
+
+
+        if (countError) {
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "saved_search_create_failed"
+                    }
+                );
+        }
+
+
+        if (
+            Number(
+                count ||
+                0
+            ) >= 20
+        ) {
+
+            return res
+                .status(409)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "saved_search_limit"
+                    }
+                );
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from(
+                    "saved_searches"
+                )
+                .insert(
+                    {
+                        telegram_id:
+                            auth.user.telegram_id,
+                        ...validation.data,
+                        alerts_enabled:true,
+                        updated_at:nowIso()
+                    }
+                )
+                .select(
+                    "id,name,search_query,category,promotion,premium_only,min_price,max_price,alerts_enabled,created_at,updated_at"
+                )
+                .single();
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "saved_search_create_failed"
+                    }
+                );
+        }
+
+
+        res.json(
+            {
+                ok:true,
+                search:data
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/saved-searches/toggle",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(auth.status)
+                .json(
+                    {
+                        ok:false,
+                        error:auth.error
+                    }
+                );
+        }
+
+
+        const id =
+            String(
+                req.body.search_id ||
+                ""
+            ).trim();
+
+
+        const enabled =
+            Boolean(
+                req.body.alerts_enabled
+            );
+
+
+        if (!id) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "invalid_saved_search"
+                    }
+                );
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from(
+                    "saved_searches"
+                )
+                .update(
+                    {
+                        alerts_enabled:
+                            enabled,
+                        updated_at:
+                            nowIso()
+                    }
+                )
+                .eq(
+                    "id",
+                    id
+                )
+                .eq(
+                    "telegram_id",
+                    auth.user.telegram_id
+                )
+                .select(
+                    "id,alerts_enabled"
+                )
+                .maybeSingle();
+
+
+        if (
+            error ||
+            !data
+        ) {
+
+            return res
+                .status(404)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "saved_search_not_found"
+                    }
+                );
+        }
+
+
+        res.json(
+            {
+                ok:true,
+                search:data
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/saved-searches/delete",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(auth.status)
+                .json(
+                    {
+                        ok:false,
+                        error:auth.error
+                    }
+                );
+        }
+
+
+        const id =
+            String(
+                req.body.search_id ||
+                ""
+            ).trim();
+
+
+        if (!id) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "invalid_saved_search"
+                    }
+                );
+        }
+
+
+        const {
+            error
+        } =
+            await supabase
+                .from(
+                    "saved_searches"
+                )
+                .delete()
+                .eq(
+                    "id",
+                    id
+                )
+                .eq(
+                    "telegram_id",
+                    auth.user.telegram_id
+                );
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "saved_search_delete_failed"
+                    }
+                );
+        }
+
+
+        res.json(
+            {
+                ok:true
+            }
+        );
+    }
+);
+
+
+async function processSavedSearchNotifications() {
+
+    try {
+
+        const {
+            data:
+                searches,
+            error:
+                searchError
+        } =
+            await supabase
+                .from(
+                    "saved_searches"
+                )
+                .select(
+                    "id,telegram_id,name,search_query,category,promotion,premium_only,min_price,max_price,alerts_enabled,created_at"
+                )
+                .eq(
+                    "alerts_enabled",
+                    true
+                )
+                .limit(500);
+
+
+        if (
+            searchError ||
+            !searches?.length
+        ) {
+
+            if (searchError) {
+                console.error(
+                    "Saved search processor searches:",
+                    searchError
+                );
+            }
+
+            return;
+        }
+
+
+        const {
+            data:
+                listings,
+            error:
+                listingError
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,category,is_premium_name,status,is_paused,is_frozen,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
+                )
+                .eq(
+                    "status",
+                    "active"
+                )
+                .eq(
+                    "is_paused",
+                    false
+                )
+                .eq(
+                    "is_frozen",
+                    false
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(500);
+
+
+        if (listingError) {
+
+            console.error(
+                "Saved search processor listings:",
+                listingError
+            );
+
+            return;
+        }
+
+
+        for (
+            const search of
+            searches
+        ) {
+
+            const searchCreated =
+                timeMs(
+                    search.created_at
+                );
+
+
+            for (
+                const listing of
+                listings || []
+            ) {
+
+                if (
+                    Number(
+                        listing.seller_telegram_id
+                    ) ===
+                    Number(
+                        search.telegram_id
+                    )
+                ) {
+
+                    continue;
+                }
+
+
+                const availabilityStarted =
+                    timeMs(
+                        listing.listing_period_started_at ||
+                        listing.created_at
+                    );
+
+
+                if (
+                    searchCreated &&
+                    availabilityStarted &&
+                    availabilityStarted <
+                    searchCreated
+                ) {
+
+                    continue;
+                }
+
+
+                if (
+                    !savedSearchMatchesListing(
+                        search,
+                        listing
+                    )
+                ) {
+
+                    continue;
+                }
+
+
+                const {
+                    error:
+                        matchError
+                } =
+                    await supabase
+                        .from(
+                            "saved_search_matches"
+                        )
+                        .insert(
+                            {
+                                search_id:
+                                    search.id,
+                                listing_id:
+                                    listing.id,
+                                notified_at:
+                                    nowIso()
+                            }
+                        );
+
+
+                if (matchError) {
+
+                    if (
+                        matchError.code ===
+                        "23505"
+                    ) {
+
+                        continue;
+                    }
+
+
+                    console.error(
+                        "Saved search match create:",
+                        matchError
+                    );
+
+                    continue;
+                }
+
+
+                const lot =
+                    Number.isSafeInteger(
+                        Number(
+                            listing.listing_number
+                        )
+                    )
+                        ? `LOT #${String(Number(listing.listing_number)).padStart(6,"0")} · `
+                        : "";
+
+
+                await sendUserNotification(
+                    search.telegram_id,
+                    "saved_searches",
+                    `📌 New match for your saved search “${search.name}”\n\n${lot}@${listing.whatsapp_username}\n$${Number(listing.asking_price).toLocaleString("en-US")}\n\nOpen Handle Market → Profile → Saved Searches.`
+                );
+            }
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Saved search notification processor:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   DISCOVERY RANKINGS
+   Rankings use real views, likes and watchlist saves only.
+   ========================================================= */
+
+app.get(
+    "/discover",
+    async (req, res) => {
+
+        const {
+            data:
+                listings,
+            error
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,status,is_paused,is_frozen,listing_plan,listing_period_started_at,listing_expires_at"
+                )
+                .eq(
+                    "status",
+                    "active"
+                )
+                .eq(
+                    "is_paused",
+                    false
+                )
+                .eq(
+                    "is_frozen",
+                    false
+                )
+                .limit(500);
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "discover_load_failed"
+                    }
+                );
+        }
+
+
+        const visible =
+            (
+                listings ||
+                []
+            )
+                .filter(
+                    listing =>
+                        listingIsPubliclyAvailable(
+                            listing
+                        )
+                )
+                .map(
+                    withPromotion
+                );
+
+
+        if (!visible.length) {
+
+            return res.json(
+                {
+                    ok:true,
+                    trending:[],
+                    most_viewed:[],
+                    most_liked:[],
+                    most_watched:[]
+                }
+            );
+        }
+
+
+        const ids =
+            visible.map(
+                row =>
+                    row.id
+            );
+
+
+        const {
+            data:
+                watches,
+            error:
+                watchesError
+        } =
+            await supabase
+                .from("watchlist")
+                .select(
+                    "listing_id"
+                )
+                .in(
+                    "listing_id",
+                    ids
+                );
+
+
+        if (watchesError) {
+
+            console.error(
+                "Discover watch counts:",
+                watchesError
+            );
+        }
+
+
+        const watchCounts =
+            countByListingId(
+                watches ||
+                []
+            );
+
+
+        const ranked =
+            visible.map(
+                row => {
+
+                    const ageHours =
+                        Math.max(
+                            1,
+                            (
+                                Date.now() -
+                                timeMs(
+                                    row.created_at
+                                )
+                            ) /
+                            3600000
+                        );
+
+
+                    const views =
+                        Number(
+                            row.views_count ||
+                            0
+                        );
+
+
+                    const likes =
+                        Number(
+                            row.likes_count ||
+                            0
+                        );
+
+
+                    const watched =
+                        Number(
+                            watchCounts.get(
+                                String(
+                                    row.id
+                                )
+                            ) ||
+                            0
+                        );
+
+
+                    return {
+                        ...row,
+                        __watch_count:
+                            watched,
+                        __trend_score:
+                            (
+                                views +
+                                likes * 4 +
+                                watched * 6
+                            ) /
+                            Math.pow(
+                                ageHours + 6,
+                                0.35
+                            )
+                    };
+                }
+            );
+
+
+        const topIds =
+            rows =>
+                rows
+                    .slice(
+                        0,
+                        6
+                    )
+                    .map(
+                        row =>
+                            String(
+                                row.id
+                            )
+                    );
+
+
+        const trendingIds =
+            topIds(
+                [...ranked].sort(
+                    (a,b) =>
+                        b.__trend_score -
+                        a.__trend_score
+                )
+            );
+
+
+        const viewedIds =
+            topIds(
+                [...ranked].sort(
+                    (a,b) =>
+                        Number(b.views_count || 0) -
+                        Number(a.views_count || 0)
+                )
+            );
+
+
+        const likedIds =
+            topIds(
+                [...ranked].sort(
+                    (a,b) =>
+                        Number(b.likes_count || 0) -
+                        Number(a.likes_count || 0)
+                )
+            );
+
+
+        const watchedIds =
+            topIds(
+                [...ranked].sort(
+                    (a,b) =>
+                        b.__watch_count -
+                        a.__watch_count
+                )
+            );
+
+
+        const cleanRows =
+            ranked.map(
+                row => {
+
+                    const {
+                        __watch_count,
+                        __trend_score,
+                        ...publicRow
+                    } = row;
+
+                    return publicRow;
+                }
+            );
+
+
+        const withSellers =
+            await attachPublicSellerProfiles(
+                cleanRows
+            );
+
+
+        const rowMap =
+            new Map(
+                withSellers.map(
+                    row => [
+                        String(row.id),
+                        row
+                    ]
+                )
+            );
+
+
+        const rowsFor =
+            idsToUse =>
+                idsToUse
+                    .map(
+                        id =>
+                            rowMap.get(id)
+                    )
+                    .filter(Boolean);
+
+
+        res.json(
+            {
+                ok:true,
+                server_time:
+                    nowIso(),
+                trending:
+                    rowsFor(
+                        trendingIds
+                    ),
+                most_viewed:
+                    rowsFor(
+                        viewedIds
+                    ),
+                most_liked:
+                    rowsFor(
+                        likedIds
+                    ),
+                most_watched:
+                    rowsFor(
+                        watchedIds
+                    )
+            }
+        );
+    }
+);
+
+
 /* =========================================================
    HEALTH
    ========================================================= */
@@ -3995,7 +5699,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v36-seller-profile"
+                    "v37-discovery"
             }
         );
     }
@@ -5828,7 +7532,8 @@ app.get(
 async function notifyListingWatchers(
     listingId,
     text,
-    sellerTelegramId = null
+    sellerTelegramId = null,
+    notificationKey = "watchlist_updates"
 ) {
 
     try {
@@ -5891,8 +7596,9 @@ async function notifyListingWatchers(
             ids
         ) {
 
-            await safeSendMessage(
+            await sendUserNotification(
                 telegramId,
+                notificationKey,
                 text
             );
         }
@@ -6163,7 +7869,8 @@ app.post(
             await notifyListingWatchers(
                 listingId,
                 `📉 Price dropped on LOT ${listing.listing_number ? "#" + String(listing.listing_number).padStart(6,"0") : ""} · @${listing.whatsapp_username}\n\n$${Number(listing.asking_price).toLocaleString("en-US")} → $${price.toLocaleString("en-US")}\n\nOpen Handle Market → Watchlist.`,
-                auth.user.telegram_id
+                auth.user.telegram_id,
+                "price_drops"
             );
         }
 
@@ -10073,7 +11780,7 @@ app.post(
                 .maybeSingle();
 
 
-        await safeSendMessage(
+        await safeSendChatMessage(
             recipientId,
             `💬 New Handle Market chat message about @${listing?.whatsapp_username || "username"}.\n\nOpen Handle Market → Profile → Chats.`
         );
@@ -11329,7 +13036,7 @@ app.post(
 
         if (adminReply) {
 
-            await safeSendMessage(
+            await safeSendSupportMessage(
                 access.ticket.user_telegram_id,
                 `🎧 Handle Market Support replied to Ticket ${supportTicketNumberText(access.ticket.ticket_number)}.\n\nOpen Handle Market → Profile → Help & Support.`
             );
@@ -11930,7 +13637,7 @@ app.post(
         }
 
 
-        await safeSendMessage(
+        await safeSendSupportMessage(
             ticket.user_telegram_id,
             `🎧 Support Ticket ${supportTicketNumberText(ticket.ticket_number)} status: ${status.replace("_", " ").toUpperCase()}.\n\nOpen Handle Market → Profile → Help & Support.`
         );
@@ -12824,7 +14531,7 @@ app.post(
         );
 
 
-        safeSendMessage(
+        safeSendOfferMessage(
 
             listing.seller_telegram_id,
 
@@ -13740,7 +15447,7 @@ app.post(
                 others
             ) {
 
-                safeSendMessage(
+                safeSendOfferMessage(
 
                     other.buyer_telegram_id,
 
@@ -13788,7 +15495,7 @@ app.post(
             "\n\nOpen Handle Market → Profile → Offers.";
 
 
-        safeSendMessage(
+        safeSendOfferMessage(
             offer.buyer_telegram_id,
             text
         );
@@ -14129,7 +15836,7 @@ app.post(
                 others
             ) {
 
-                safeSendMessage(
+                safeSendOfferMessage(
 
                     other.buyer_telegram_id,
 
@@ -14138,7 +15845,7 @@ app.post(
             }
 
 
-            safeSendMessage(
+            safeSendOfferMessage(
 
                 listing.seller_telegram_id,
 
@@ -14228,7 +15935,7 @@ app.post(
         );
 
 
-        safeSendMessage(
+        safeSendOfferMessage(
 
             listing.seller_telegram_id,
 
@@ -19594,6 +21301,15 @@ app.listen(
                             )
                     );
 
+
+                processSavedSearchNotifications()
+                    .catch(
+                        error =>
+                            console.error(
+                                error
+                            )
+                    );
+
             },
             5000
         );
@@ -19603,6 +21319,15 @@ app.listen(
             () => {
 
                 processListingExpiryNotifications()
+                    .catch(
+                        error =>
+                            console.error(
+                                error
+                            )
+                    );
+
+
+                processSavedSearchNotifications()
                     .catch(
                         error =>
                             console.error(

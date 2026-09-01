@@ -3391,6 +3391,31 @@ button {
 }
 
 </style>
+
+<style>
+.discovery-shell{margin-top:16px}
+.discovery-section{margin-top:18px}
+.discovery-row{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+.discovery-card{width:100%;text-align:left;border:1px solid var(--border);background:var(--card);border-radius:16px;padding:13px 14px;color:var(--text);cursor:pointer}
+.discovery-card:active{transform:scale(.995)}
+.discovery-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.discovery-card-user{font-weight:800;font-size:16px;overflow-wrap:anywhere}
+.discovery-card-price{font-weight:800;white-space:nowrap}
+.discovery-card-meta{margin-top:5px;color:var(--muted);font-size:12px;display:flex;gap:8px;flex-wrap:wrap}
+.market-save-search-bar{display:flex;justify-content:flex-end;padding:0 16px 10px}
+.market-save-search-bar button{width:auto}
+.saved-search-card{border:1px solid var(--border);border-radius:16px;padding:14px;background:var(--card);margin-bottom:12px}
+.saved-search-name{font-weight:800;font-size:16px}
+.saved-search-summary{color:var(--muted);font-size:12px;line-height:1.45;margin-top:6px}
+.saved-search-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.notification-list{display:grid;gap:10px}
+.notification-row{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid var(--border);border-radius:16px;background:var(--card);padding:14px}
+.notification-copy{min-width:0}
+.notification-title{font-weight:800}
+.notification-subtitle{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.35}
+.notification-check{width:22px;height:22px;accent-color:#2481cc;flex:none}
+</style>
+
 </head>
 
 <body>
@@ -3559,6 +3584,48 @@ Top promoted and recently listed usernames.
 Loading marketplace...
 </div>
 
+</div>
+
+</div>
+
+
+
+<div class="section discovery-shell">
+
+<div class="section-title">
+📈 Discover
+</div>
+
+<div class="section-subtitle">
+Rankings are based on real marketplace activity.
+</div>
+
+<div class="discovery-section">
+<div class="section-title">📈 Trending</div>
+<div id="discoveryTrending" class="discovery-row">
+<div class="empty">Loading...</div>
+</div>
+</div>
+
+<div class="discovery-section">
+<div class="section-title">👁 Most Viewed</div>
+<div id="discoveryViewed" class="discovery-row">
+<div class="empty">Loading...</div>
+</div>
+</div>
+
+<div class="discovery-section">
+<div class="section-title">❤️ Most Liked</div>
+<div id="discoveryLiked" class="discovery-row">
+<div class="empty">Loading...</div>
+</div>
+</div>
+
+<div class="discovery-section">
+<div class="section-title">⭐ Most Watched</div>
+<div id="discoveryWatched" class="discovery-row">
+<div class="empty">Loading...</div>
+</div>
 </div>
 
 </div>
@@ -3858,6 +3925,15 @@ Show Results
     id="activeFilterBar"
     class="active-filter-bar"
 ></div>
+
+<div class="market-save-search-bar">
+<button
+    class="secondary"
+    onclick="openSaveSearchModal()"
+>
+📌 Save this search
+</button>
+</div>
 
 
 <div class="section">
@@ -4424,6 +4500,39 @@ Loading...
 
 </div>
 
+</div>
+
+</div>
+
+
+
+<div id="savedSearches" class="page">
+
+<div class="page-heading">
+<div class="page-title">📌 Saved Searches</div>
+<div class="page-description">Get notified when a new matching username appears.</div>
+</div>
+
+<div class="section">
+<div id="savedSearchesList">
+<div class="empty">Loading...</div>
+</div>
+</div>
+
+</div>
+
+
+<div id="notificationSettings" class="page">
+
+<div class="page-heading">
+<div class="page-title">🔔 Notification Settings</div>
+<div class="page-description">Choose which Handle Market bot alerts you receive.</div>
+</div>
+
+<div class="section">
+<div id="notificationSettingsList" class="notification-list">
+<div class="empty">Loading...</div>
+</div>
 </div>
 
 </div>
@@ -6870,6 +6979,9 @@ async function loadMarketplace() {
         renderMarketplace();
 
 
+        loadDiscovery();
+
+
         if (
             authenticatedUser
         ) {
@@ -9038,6 +9150,54 @@ function shareListing(
         );
 
 
+    const listing =
+        marketplaceListings.find(
+            item =>
+                String(
+                    item.id
+                ) ===
+                String(
+                    listingId
+                )
+        ) ||
+        null;
+
+
+    const lot =
+        formatListingNumber(
+            listing
+        );
+
+
+    const price =
+        listing
+            ? `$${formatPrice(listing.asking_price)}`
+            : "";
+
+
+    const pricing =
+        listing
+            ? String(
+                listing.price_type ||
+                "negotiable"
+              ) === "fixed"
+                ? "Fixed Price"
+                : "Negotiable"
+            : "";
+
+
+    const lines = [
+        `💎 @${username} on Handle Market`,
+        lot
+            ? `LOT #${lot}`
+            : "",
+        price
+            ? `Price: ${price}${pricing ? ` · ${pricing}` : ""}`
+            : "",
+        "View listing:"
+    ].filter(Boolean);
+
+
     const shareUrl =
         "https://t.me/share/url?url="
         +
@@ -9048,7 +9208,7 @@ function shareListing(
         "&text="
         +
         encodeURIComponent(
-            `Check @${username} on Handle Market`
+            lines.join("\n")
         );
 
 
@@ -16088,6 +16248,54 @@ function renderMainProfile(
 
                 <button
                     class="profile-tile"
+                    onclick="openSavedSearches()"
+                >
+
+                    <div class="profile-tile-icon">
+                        📌
+                    </div>
+
+                    <div>
+
+                        <div class="profile-tile-title">
+                            Saved Searches
+                        </div>
+
+                        <div class="profile-tile-subtitle">
+                            Search alerts
+                        </div>
+
+                    </div>
+
+                </button>
+
+
+                <button
+                    class="profile-tile"
+                    onclick="openNotificationSettings()"
+                >
+
+                    <div class="profile-tile-icon">
+                        🔔
+                    </div>
+
+                    <div>
+
+                        <div class="profile-tile-title">
+                            Notification Settings
+                        </div>
+
+                        <div class="profile-tile-subtitle">
+                            Control bot alerts
+                        </div>
+
+                    </div>
+
+                </button>
+
+
+                <button
+                    class="profile-tile"
                     onclick="openWatchlist()"
                 >
 
@@ -19890,6 +20098,917 @@ function cssEscape(
         "\\$&"
     );
 }
+
+
+
+/* =========================================================
+   DISCOVERY
+   ========================================================= */
+
+async function loadDiscovery() {
+
+    const containers = [
+        "discoveryTrending",
+        "discoveryViewed",
+        "discoveryLiked",
+        "discoveryWatched"
+    ];
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_URL +
+                "/discover"
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                "discover_load_failed"
+            );
+        }
+
+
+        if (
+            data.server_time
+        ) {
+
+            syncServerClock(
+                data.server_time
+            );
+        }
+
+
+        renderDiscoveryRows(
+            "discoveryTrending",
+            data.trending || []
+        );
+
+        renderDiscoveryRows(
+            "discoveryViewed",
+            data.most_viewed || []
+        );
+
+        renderDiscoveryRows(
+            "discoveryLiked",
+            data.most_liked || []
+        );
+
+        renderDiscoveryRows(
+            "discoveryWatched",
+            data.most_watched || []
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Discovery:",
+            error
+        );
+
+
+        for (
+            const id of
+            containers
+        ) {
+
+            const container =
+                document.getElementById(
+                    id
+                );
+
+
+            if (container) {
+
+                container.innerHTML =
+                    '<div class="empty">Discovery unavailable.</div>';
+            }
+        }
+    }
+}
+
+
+function renderDiscoveryRows(
+    containerId,
+    rows
+) {
+
+    const container =
+        document.getElementById(
+            containerId
+        );
+
+
+    if (!container) {
+
+        return;
+    }
+
+
+    if (!rows.length) {
+
+        container.innerHTML =
+            '<div class="empty">Not enough activity yet.</div>';
+
+        return;
+    }
+
+
+    container.innerHTML =
+        rows
+            .slice(
+                0,
+                4
+            )
+            .map(
+                listing => {
+
+                    const lot =
+                        formatListingNumber(
+                            listing
+                        );
+
+
+                    return `
+                        <button
+                            class="discovery-card"
+                            onclick="openListingPage('${escapeJs(listing.id)}')"
+                        >
+                            <div class="discovery-card-top">
+                                <div class="discovery-card-user">
+                                    @${escapeHtml(listing.whatsapp_username)}
+                                </div>
+                                <div class="discovery-card-price">
+                                    $${formatPrice(listing.asking_price)}
+                                </div>
+                            </div>
+
+                            <div class="discovery-card-meta">
+                                ${lot ? `<span>LOT #${lot}</span>` : ""}
+                                <span>👁 ${Number(listing.views_count || 0).toLocaleString("en-US")}</span>
+                                <span>❤️ ${Number(listing.likes_count || 0).toLocaleString("en-US")}</span>
+                                ${listing.is_premium_name ? "<span>⭐ Premium</span>" : ""}
+                                ${listing.promotion_type ? `<span>${listing.promotion_type === "vip" ? "💎 VIP" : listing.promotion_type === "hot" ? "🔥 HOT" : "⬆️ Bump"}</span>` : ""}
+                            </div>
+                        </button>
+                    `;
+                }
+            )
+            .join("");
+}
+
+
+/* =========================================================
+   SAVED SEARCHES
+   marketFilters object stays unchanged.
+   ========================================================= */
+
+let savedSearchesData = [];
+
+
+function currentSavedSearchSummary() {
+
+    const parts = [];
+
+
+    if (
+        marketFilters.search
+    ) {
+        parts.push(
+            `Search: ${marketFilters.search}`
+        );
+    }
+
+
+    if (
+        marketFilters.category !==
+        "all"
+    ) {
+        parts.push(
+            marketFilters.category
+        );
+    }
+
+
+    if (
+        marketFilters.promotion !==
+        "all"
+    ) {
+        parts.push(
+            marketFilters.promotion === "regular"
+                ? "Regular"
+                : marketFilters.promotion.toUpperCase()
+        );
+    }
+
+
+    if (
+        marketFilters.premiumOnly
+    ) {
+        parts.push(
+            "Premium only"
+        );
+    }
+
+
+    if (
+        marketFilters.minPrice !==
+        ""
+    ) {
+        parts.push(
+            `From $${marketFilters.minPrice}`
+        );
+    }
+
+
+    if (
+        marketFilters.maxPrice !==
+        ""
+    ) {
+        parts.push(
+            `Up to $${marketFilters.maxPrice}`
+        );
+    }
+
+
+    return parts.join(
+        " · "
+    ) ||
+    "All usernames";
+}
+
+
+function openSaveSearchModal() {
+
+    if (!authenticatedUser) {
+
+        tg?.showAlert(
+            "Open Handle Market inside Telegram to save searches."
+        );
+
+        return;
+    }
+
+
+    document.getElementById(
+        "inputModalTitle"
+    ).textContent =
+        "📌 Save Search";
+
+
+    document.getElementById(
+        "inputModalSubtitle"
+    ).textContent =
+        currentSavedSearchSummary();
+
+
+    document.getElementById(
+        "inputModalFields"
+    ).innerHTML = `
+        <div class="field">
+            <label>Search name · optional</label>
+            <input
+                id="savedSearchNameInput"
+                maxlength="80"
+                placeholder="e.g. Short AI usernames"
+            >
+        </div>
+
+        <div class="field-hint">
+            Alerts are enabled by default. You can turn them off later in Saved Searches.
+        </div>
+    `;
+
+
+    const action =
+        document.getElementById(
+            "inputModalAction"
+        );
+
+
+    action.textContent =
+        "Save Search";
+
+
+    action.onclick =
+        saveCurrentSearch;
+
+
+    showModal(
+        "inputModal"
+    );
+}
+
+
+async function saveCurrentSearch() {
+
+    const action =
+        document.getElementById(
+            "inputModalAction"
+        );
+
+
+    action.disabled =
+        true;
+
+
+    try {
+
+        await api(
+            "/saved-searches/create",
+            {
+                initData:
+                    tg.initData,
+                name:
+                    document.getElementById(
+                        "savedSearchNameInput"
+                    )?.value || "",
+                search_query:
+                    marketFilters.search,
+                category:
+                    marketFilters.category,
+                promotion:
+                    marketFilters.promotion,
+                premium_only:
+                    marketFilters.premiumOnly,
+                min_price:
+                    marketFilters.minPrice,
+                max_price:
+                    marketFilters.maxPrice
+            }
+        );
+
+
+        closeModal(
+            "inputModal"
+        );
+
+
+        tg?.showAlert(
+            "📌 Search saved. You will be notified about new matches."
+        );
+
+    } catch (error) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+
+    } finally {
+
+        action.disabled =
+            false;
+    }
+}
+
+
+function openSavedSearches() {
+
+    openPage(
+        "savedSearches",
+        null
+    );
+
+
+    loadSavedSearches();
+}
+
+
+async function loadSavedSearches() {
+
+    const container =
+        document.getElementById(
+            "savedSearchesList"
+        );
+
+
+    if (!container) {
+
+        return;
+    }
+
+
+    container.innerHTML =
+        '<div class="empty">Loading...</div>';
+
+
+    try {
+
+        const data =
+            await api(
+                "/saved-searches/list",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const searches =
+            data.searches || [];
+
+
+        savedSearchesData =
+            searches;
+
+
+        container.innerHTML =
+            searches.length
+                ? searches
+                    .map(
+                        renderSavedSearchCard
+                    )
+                    .join("")
+                : '<div class="empty">No saved searches yet.<br><br>Set Marketplace filters and tap “📌 Save this search”.</div>';
+
+    } catch (error) {
+
+        container.innerHTML =
+            '<div class="empty">Failed to load saved searches.</div>';
+    }
+}
+
+
+function savedSearchSummary(
+    search
+) {
+
+    const parts = [];
+
+
+    if (search.search_query) {
+        parts.push(
+            `🔎 ${search.search_query}`
+        );
+    }
+
+    if (
+        search.category &&
+        search.category !==
+        "all"
+    ) {
+        parts.push(
+            search.category
+        );
+    }
+
+    if (
+        search.promotion &&
+        search.promotion !==
+        "all"
+    ) {
+        parts.push(
+            search.promotion === "regular"
+                ? "Regular"
+                : search.promotion.toUpperCase()
+        );
+    }
+
+    if (search.premium_only) {
+        parts.push(
+            "⭐ Premium"
+        );
+    }
+
+    if (
+        search.min_price !== null &&
+        search.min_price !== undefined
+    ) {
+        parts.push(
+            `From $${formatPrice(search.min_price)}`
+        );
+    }
+
+    if (
+        search.max_price !== null &&
+        search.max_price !== undefined
+    ) {
+        parts.push(
+            `Up to $${formatPrice(search.max_price)}`
+        );
+    }
+
+
+    return parts.join(
+        " · "
+    ) ||
+    "All usernames";
+}
+
+
+function renderSavedSearchCard(
+    search
+) {
+
+    return `
+        <div class="saved-search-card">
+            <div class="saved-search-name">
+                ${escapeHtml(search.name || "Saved Search")}
+            </div>
+
+            <div class="saved-search-summary">
+                ${escapeHtml(savedSearchSummary(search))}
+            </div>
+
+            <div class="saved-search-summary">
+                ${search.alerts_enabled ? "🔔 Alerts on" : "🔕 Alerts off"}
+            </div>
+
+            <div class="saved-search-actions">
+                <button
+                    class="primary"
+                    onclick="runSavedSearchById('${escapeJs(search.id)}')"
+                >
+                    🔎 Run Search
+                </button>
+
+                <button
+                    class="secondary"
+                    onclick="toggleSavedSearchAlerts('${escapeJs(search.id)}', ${search.alerts_enabled ? "false" : "true"})"
+                >
+                    ${search.alerts_enabled ? "🔕 Turn Off" : "🔔 Turn On"}
+                </button>
+
+                <button
+                    class="reject-button"
+                    onclick="deleteSavedSearch('${escapeJs(search.id)}')"
+                >
+                    🗑 Delete
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+
+function runSavedSearchById(
+    searchId
+) {
+
+    const search =
+        savedSearchesData.find(
+            item =>
+                String(item.id) ===
+                String(searchId)
+        );
+
+
+    if (!search) {
+
+        tg?.showAlert(
+            "Saved search not found."
+        );
+
+        return;
+    }
+
+
+    runSavedSearch(
+        search
+    );
+}
+
+
+function runSavedSearch(
+    search
+) {
+
+    marketFilters.search =
+        String(
+            search.search_query ||
+            ""
+        );
+
+    marketFilters.category =
+        search.category ||
+        "all";
+
+    marketFilters.promotion =
+        search.promotion ||
+        "all";
+
+    marketFilters.premiumOnly =
+        Boolean(
+            search.premium_only
+        );
+
+    marketFilters.minPrice =
+        search.min_price === null ||
+        search.min_price === undefined
+            ? ""
+            : String(search.min_price);
+
+    marketFilters.maxPrice =
+        search.max_price === null ||
+        search.max_price === undefined
+            ? ""
+            : String(search.max_price);
+
+    marketFilters.sort =
+        "recommended";
+
+
+    const homeInput =
+        document.getElementById(
+            "homeSearchInput"
+        );
+
+    const marketInput =
+        document.getElementById(
+            "marketSearchInput"
+        );
+
+
+    if (homeInput) {
+        homeInput.value =
+            marketFilters.search;
+    }
+
+    if (marketInput) {
+        marketInput.value =
+            marketFilters.search;
+    }
+
+
+    updateMarketplaceFilterUI();
+    renderHomeListings();
+    applyMarketplaceFilters();
+
+
+    openPage(
+        "marketplace",
+        document.querySelector(
+            '.nav-item[data-page="marketplace"]'
+        )
+    );
+}
+
+
+async function toggleSavedSearchAlerts(
+    searchId,
+    enabled
+) {
+
+    try {
+
+        await api(
+            "/saved-searches/toggle",
+            {
+                initData:
+                    tg.initData,
+                search_id:
+                    searchId,
+                alerts_enabled:
+                    Boolean(enabled)
+            }
+        );
+
+
+        await loadSavedSearches();
+
+    } catch (error) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+    }
+}
+
+
+async function deleteSavedSearch(
+    searchId
+) {
+
+    const remove =
+        async () => {
+
+            try {
+
+                await api(
+                    "/saved-searches/delete",
+                    {
+                        initData:
+                            tg.initData,
+                        search_id:
+                            searchId
+                    }
+                );
+
+
+                await loadSavedSearches();
+
+            } catch (error) {
+
+                tg?.showAlert(
+                    friendlyError(
+                        error.message
+                    )
+                );
+            }
+        };
+
+
+    if (tg?.showConfirm) {
+
+        tg.showConfirm(
+            "Delete this saved search?",
+            confirmed => {
+                if (confirmed) {
+                    remove();
+                }
+            }
+        );
+
+        return;
+    }
+
+
+    if (
+        confirm(
+            "Delete this saved search?"
+        )
+    ) {
+
+        await remove();
+    }
+}
+
+
+/* =========================================================
+   NOTIFICATION SETTINGS
+   ========================================================= */
+
+const notificationSettingMeta = [
+    {
+        key:"chats",
+        title:"💬 Chat messages",
+        subtitle:"New buyer and seller chat messages."
+    },
+    {
+        key:"offers",
+        title:"💵 Offers",
+        subtitle:"New offers, counters and negotiation updates."
+    },
+    {
+        key:"support",
+        title:"🛟 Support",
+        subtitle:"Replies from Handle Market Support."
+    },
+    {
+        key:"watchlist_updates",
+        title:"⭐ Watchlist updates",
+        subtitle:"Pause, resume and removal alerts for watched listings."
+    },
+    {
+        key:"price_drops",
+        title:"📉 Price drops",
+        subtitle:"Price decreases on usernames in your Watchlist."
+    },
+    {
+        key:"saved_searches",
+        title:"📌 Saved search alerts",
+        subtitle:"New listings that match your saved searches."
+    }
+];
+
+
+function openNotificationSettings() {
+
+    openPage(
+        "notificationSettings",
+        null
+    );
+
+
+    loadNotificationSettings();
+}
+
+
+async function loadNotificationSettings() {
+
+    const container =
+        document.getElementById(
+            "notificationSettingsList"
+        );
+
+
+    if (!container) {
+
+        return;
+    }
+
+
+    container.innerHTML =
+        '<div class="empty">Loading...</div>';
+
+
+    try {
+
+        const data =
+            await api(
+                "/notification-settings/get",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const settings =
+            data.settings || {};
+
+
+        container.innerHTML =
+            notificationSettingMeta
+                .map(
+                    item => `
+                        <label class="notification-row">
+                            <div class="notification-copy">
+                                <div class="notification-title">
+                                    ${escapeHtml(item.title)}
+                                </div>
+                                <div class="notification-subtitle">
+                                    ${escapeHtml(item.subtitle)}
+                                </div>
+                            </div>
+
+                            <input
+                                class="notification-check"
+                                type="checkbox"
+                                ${settings[item.key] !== false ? "checked" : ""}
+                                onchange="updateNotificationSetting('${item.key}', this.checked)"
+                            >
+                        </label>
+                    `
+                )
+                .join("");
+
+    } catch (error) {
+
+        container.innerHTML =
+            '<div class="empty">Failed to load notification settings.</div>';
+    }
+}
+
+
+async function updateNotificationSetting(
+    key,
+    enabled
+) {
+
+    const allowed =
+        notificationSettingMeta.some(
+            item =>
+                item.key ===
+                key
+        );
+
+
+    if (!allowed) {
+
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/notification-settings/update",
+            {
+                initData:
+                    tg.initData,
+                [key]:
+                    Boolean(enabled)
+            }
+        );
+
+    } catch (error) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+
+        await loadNotificationSettings();
+    }
+}
+
+
 
 
 /* =========================================================
