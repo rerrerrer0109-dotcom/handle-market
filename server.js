@@ -5,12 +5,24 @@ const { createClient } = require("@supabase/supabase-js");
 const app = express();
 app.use(express.json({ limit: "100kb" }));
 
-const ALLOWED_ORIGIN = "https://rerrerrer0109-dotcom.github.io";
+const ALLOWED_ORIGIN =
+  "https://rerrerrer0109-dotcom.github.io";
 
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    ALLOWED_ORIGIN
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type"
+  );
 
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
@@ -24,21 +36,69 @@ app.use((req, res, next) => {
    ENV
    ========================================================= */
 
-const BOT_TOKEN = process.env.BOT_TOKEN;
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
+const BOT_TOKEN =
+  process.env.BOT_TOKEN;
 
-const LISTING_PRICE_STARS =
-  Number(process.env.LISTING_PRICE_STARS || "1");
+const SUPABASE_URL =
+  process.env.SUPABASE_URL;
+
+const SUPABASE_SECRET_KEY =
+  process.env.SUPABASE_SECRET_KEY;
+
+const OLD_LISTING_PRICE_STARS =
+  Math.max(
+    1,
+    Number(
+      process.env.LISTING_PRICE_STARS ||
+      "1"
+    )
+  );
+
+const LISTING_RENEWAL_PRICE_STARS =
+  Math.max(
+    1,
+    Number(
+      process.env.LISTING_RENEWAL_PRICE_STARS ||
+      OLD_LISTING_PRICE_STARS ||
+      "1"
+    )
+  );
+
+const PAID_LISTING_PRICE_STARS =
+  LISTING_RENEWAL_PRICE_STARS;
 
 const CONTACT_UNLOCK_PRICE_STARS =
-  Number(process.env.CONTACT_UNLOCK_PRICE_STARS || "1");
+  Math.max(
+    1,
+    Number(
+      process.env.CONTACT_UNLOCK_PRICE_STARS ||
+      "1"
+    )
+  );
 
 const WANTED_PRICE_STARS =
-  Number(process.env.WANTED_PRICE_STARS || "1");
+  Math.max(
+    1,
+    Number(
+      process.env.WANTED_PRICE_STARS ||
+      "1"
+    )
+  );
+
+const FREE_LISTING_DURATION_HOURS =
+  24;
+
+const PAID_LISTING_DURATION_DAYS =
+  30;
+
+const LISTING_RENEWAL_PRICE_USD =
+  15;
 
 const PUBLIC_BASE_URL =
-  String(process.env.PUBLIC_BASE_URL || "")
+  String(
+    process.env.PUBLIC_BASE_URL ||
+    ""
+  )
     .trim()
     .replace(/\/+$/, "");
 
@@ -51,32 +111,97 @@ const TELEGRAM_WEBHOOK_SECRET =
    ========================================================= */
 
 const PROMOTION_TEST_MODE =
-  String(process.env.PROMOTION_TEST_MODE || "false")
-    .toLowerCase() === "true";
+  String(
+    process.env.PROMOTION_TEST_MODE ||
+    "false"
+  ).toLowerCase() === "true";
 
 const PROMOTION_TEST_PRICE_STARS =
   Math.max(
     1,
-    Number(process.env.PROMOTION_TEST_PRICE_STARS || "1")
+    Number(
+      process.env.PROMOTION_TEST_PRICE_STARS ||
+      "1"
+    )
   );
 
 const PROMOTION_PRICES = {
   bump: {
-    24: Math.max(1, Number(process.env.BUMP_24H_STARS || "1")),
-    72: Math.max(1, Number(process.env.BUMP_72H_STARS || "1")),
-    168: Math.max(1, Number(process.env.BUMP_168H_STARS || "1"))
+    24: Math.max(
+      1,
+      Number(
+        process.env.BUMP_24H_STARS ||
+        "1"
+      )
+    ),
+
+    72: Math.max(
+      1,
+      Number(
+        process.env.BUMP_72H_STARS ||
+        "1"
+      )
+    ),
+
+    168: Math.max(
+      1,
+      Number(
+        process.env.BUMP_168H_STARS ||
+        "1"
+      )
+    )
   },
 
   hot: {
-    24: Math.max(1, Number(process.env.HOT_24H_STARS || "1")),
-    72: Math.max(1, Number(process.env.HOT_72H_STARS || "1")),
-    168: Math.max(1, Number(process.env.HOT_168H_STARS || "1"))
+    24: Math.max(
+      1,
+      Number(
+        process.env.HOT_24H_STARS ||
+        "1"
+      )
+    ),
+
+    72: Math.max(
+      1,
+      Number(
+        process.env.HOT_72H_STARS ||
+        "1"
+      )
+    ),
+
+    168: Math.max(
+      1,
+      Number(
+        process.env.HOT_168H_STARS ||
+        "1"
+      )
+    )
   },
 
   vip: {
-    24: Math.max(1, Number(process.env.VIP_24H_STARS || "1")),
-    72: Math.max(1, Number(process.env.VIP_72H_STARS || "1")),
-    168: Math.max(1, Number(process.env.VIP_168H_STARS || "1"))
+    24: Math.max(
+      1,
+      Number(
+        process.env.VIP_24H_STARS ||
+        "1"
+      )
+    ),
+
+    72: Math.max(
+      1,
+      Number(
+        process.env.VIP_72H_STARS ||
+        "1"
+      )
+    ),
+
+    168: Math.max(
+      1,
+      Number(
+        process.env.VIP_168H_STARS ||
+        "1"
+      )
+    )
   }
 };
 
@@ -106,7 +231,7 @@ if (
 
 
 /* =========================================================
-   HELPERS
+   GENERAL HELPERS
    ========================================================= */
 
 const sleep =
@@ -120,6 +245,129 @@ const nowIso =
   () =>
     new Date().toISOString();
 
+function addHoursIso(
+  value,
+  hours
+) {
+  const base =
+    value instanceof Date
+      ? value.getTime()
+      : new Date(value).getTime();
+
+  return new Date(
+    base +
+    Number(hours) *
+    60 *
+    60 *
+    1000
+  ).toISOString();
+}
+
+function addDaysIso(
+  value,
+  days
+) {
+  return addHoursIso(
+    value,
+    Number(days) * 24
+  );
+}
+
+function timeMs(
+  value
+) {
+  if (!value) {
+    return 0;
+  }
+
+  const result =
+    new Date(value).getTime();
+
+  return Number.isFinite(result)
+    ? result
+    : 0;
+}
+
+function isFuture(
+  value
+) {
+  return (
+    timeMs(value) >
+    Date.now()
+  );
+}
+
+
+/* =========================================================
+   LISTING LIFECYCLE
+   ========================================================= */
+
+function isListingExpired(
+  listing,
+  referenceTime = Date.now()
+) {
+  if (!listing) {
+    return true;
+  }
+
+  const plan =
+    String(
+      listing.listing_plan ||
+      "legacy"
+    );
+
+  if (
+    plan === "legacy" ||
+    !listing.listing_expires_at
+  ) {
+    return false;
+  }
+
+  const expiry =
+    timeMs(
+      listing.listing_expires_at
+    );
+
+  if (!expiry) {
+    return false;
+  }
+
+  return expiry <= referenceTime;
+}
+
+
+function listingIsPubliclyAvailable(
+  listing
+) {
+  return Boolean(
+    listing &&
+    listing.status === "active" &&
+    !listing.is_paused &&
+    !listing.is_frozen &&
+    !isListingExpired(listing)
+  );
+}
+
+
+function withLifecycle(
+  listing
+) {
+  if (!listing) {
+    return listing;
+  }
+
+  return {
+    ...listing,
+
+    listing_plan:
+      listing.listing_plan ||
+      "legacy",
+
+    is_expired:
+      isListingExpired(listing)
+  };
+}
+
 
 /* =========================================================
    TELEGRAM API
@@ -130,7 +378,9 @@ async function telegramApi(
   payload = {}
 ) {
   if (!BOT_TOKEN) {
-    throw new Error("BOT_TOKEN not configured");
+    throw new Error(
+      "BOT_TOKEN not configured"
+    );
   }
 
   const response =
@@ -140,10 +390,12 @@ async function telegramApi(
         method: "POST",
 
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type":
+            "application/json"
         },
 
-        body: JSON.stringify(payload)
+        body:
+          JSON.stringify(payload)
       }
     );
 
@@ -156,7 +408,8 @@ async function telegramApi(
   ) {
     console.error(
       `Telegram API ${method}:`,
-      data.description || data
+      data.description ||
+      data
     );
 
     throw new Error(
@@ -177,7 +430,9 @@ async function safeSendMessage(
     await telegramApi(
       "sendMessage",
       {
-        chat_id: Number(chatId),
+        chat_id:
+          Number(chatId),
+
         text
       }
     );
@@ -207,7 +462,8 @@ function createStarsInvoice(
       prices: [
         {
           label: title,
-          amount: Number(amount)
+          amount:
+            Number(amount)
         }
       ]
     }
@@ -222,8 +478,11 @@ function refundStars(
   return telegramApi(
     "refundStarPayment",
     {
-      user_id: Number(userId),
-      telegram_payment_charge_id: chargeId
+      user_id:
+        Number(userId),
+
+      telegram_payment_charge_id:
+        chargeId
     }
   );
 }
@@ -258,7 +517,8 @@ async function setupTelegramWebhook() {
       await telegramApi(
         "setWebhook",
         {
-          url: webhookUrl,
+          url:
+            webhookUrl,
 
           secret_token:
             TELEGRAM_WEBHOOK_SECRET,
@@ -298,7 +558,7 @@ async function setupTelegramWebhook() {
 
 
 /* =========================================================
-   INIT DATA
+   TELEGRAM INIT DATA
    ========================================================= */
 
 function validateInitData(
@@ -307,22 +567,27 @@ function validateInitData(
   if (!BOT_TOKEN) {
     return {
       valid: false,
-      error: "server_not_configured"
+      error:
+        "server_not_configured"
     };
   }
 
   if (
     !initData ||
-    typeof initData !== "string"
+    typeof initData !==
+      "string"
   ) {
     return {
       valid: false,
-      error: "initData_missing"
+      error:
+        "initData_missing"
     };
   }
 
   const params =
-    new URLSearchParams(initData);
+    new URLSearchParams(
+      initData
+    );
 
   const receivedHash =
     params.get("hash");
@@ -330,7 +595,8 @@ function validateInitData(
   if (!receivedHash) {
     return {
       valid: false,
-      error: "hash_missing"
+      error:
+        "hash_missing"
     };
   }
 
@@ -380,41 +646,55 @@ function validateInitData(
       );
 
     if (
-      a.length !== b.length ||
-      !crypto.timingSafeEqual(a, b)
+      a.length !==
+        b.length ||
+      !crypto.timingSafeEqual(
+        a,
+        b
+      )
     ) {
       return {
         valid: false,
-        error: "invalid_signature"
+        error:
+          "invalid_signature"
       };
     }
 
   } catch {
     return {
       valid: false,
-      error: "invalid_hash"
+      error:
+        "invalid_hash"
     };
   }
 
   const authDate =
     Number(
-      params.get("auth_date")
+      params.get(
+        "auth_date"
+      )
     );
 
   const now =
     Math.floor(
-      Date.now() / 1000
+      Date.now() /
+      1000
     );
 
   if (
-    !Number.isFinite(authDate) ||
+    !Number.isFinite(
+      authDate
+    ) ||
     authDate <= 0 ||
-    now - authDate > 3600 ||
-    authDate > now + 30
+    now - authDate >
+      3600 ||
+    authDate >
+      now + 30
   ) {
     return {
       valid: false,
-      error: "initData_expired"
+      error:
+        "initData_expired"
     };
   }
 
@@ -430,14 +710,16 @@ function validateInitData(
   } catch {
     return {
       valid: false,
-      error: "invalid_user"
+      error:
+        "invalid_user"
     };
   }
 
   if (!user?.id) {
     return {
       valid: false,
-      error: "user_missing"
+      error:
+        "user_missing"
     };
   }
 
@@ -460,11 +742,15 @@ async function ensureSellerProfile(
     error
   } =
     await supabase
-      .from("seller_profiles")
+      .from(
+        "seller_profiles"
+      )
       .upsert(
         {
           telegram_id:
-            Number(telegramId)
+            Number(
+              telegramId
+            )
         },
         {
           onConflict:
@@ -492,13 +778,16 @@ async function getDatabaseUser(
   initData
 ) {
   const result =
-    validateInitData(initData);
+    validateInitData(
+      initData
+    );
 
   if (!result.valid) {
     return {
       ok: false,
       status: 401,
-      error: result.error
+      error:
+        result.error
     };
   }
 
@@ -506,7 +795,8 @@ async function getDatabaseUser(
     return {
       ok: false,
       status: 500,
-      error: "database_not_configured"
+      error:
+        "database_not_configured"
     };
   }
 
@@ -515,22 +805,29 @@ async function getDatabaseUser(
 
   const userRecord = {
     telegram_id:
-      Number(tgUser.id),
+      Number(
+        tgUser.id
+      ),
 
     first_name:
-      tgUser.first_name || "",
+      tgUser.first_name ||
+      "",
 
     last_name:
-      tgUser.last_name || "",
+      tgUser.last_name ||
+      "",
 
     telegram_username:
-      tgUser.username || null,
+      tgUser.username ||
+      null,
 
     language_code:
-      tgUser.language_code || null,
+      tgUser.language_code ||
+      null,
 
     photo_url:
-      tgUser.photo_url || null,
+      tgUser.photo_url ||
+      null,
 
     last_seen_at:
       nowIso()
@@ -561,7 +858,8 @@ async function getDatabaseUser(
     return {
       ok: false,
       status: 500,
-      error: "database_error"
+      error:
+        "database_error"
     };
   }
 
@@ -571,7 +869,8 @@ async function getDatabaseUser(
     return {
       ok: false,
       status: 403,
-      error: "account_blocked"
+      error:
+        "account_blocked"
     };
   }
 
@@ -590,7 +889,8 @@ async function getDatabaseUser(
     return {
       ok: false,
       status: 500,
-      error: "seller_profile_error"
+      error:
+        "seller_profile_error"
     };
   }
 
@@ -605,7 +905,9 @@ async function requireAdmin(
   initData
 ) {
   const auth =
-    await getDatabaseUser(initData);
+    await getDatabaseUser(
+      initData
+    );
 
   if (!auth.ok) {
     return auth;
@@ -617,7 +919,8 @@ async function requireAdmin(
     return {
       ok: false,
       status: 403,
-      error: "admin_required"
+      error:
+        "admin_required"
     };
   }
 
@@ -648,8 +951,10 @@ function normalizeCategory(
   value
 ) {
   const raw =
-    String(value || "")
-      .trim();
+    String(
+      value ||
+      ""
+    ).trim();
 
   if (
     raw === "AI"
@@ -657,16 +962,15 @@ function normalizeCategory(
     return "Tech & AI";
   }
 
-  return USERNAME_CATEGORIES.includes(
-    raw
-  )
-    ? raw
-    : "Other";
+  return USERNAME_CATEGORIES
+    .includes(raw)
+      ? raw
+      : "Other";
 }
 
 
 /* =========================================================
-   LISTING VALIDATION
+   INPUT VALIDATION
    ========================================================= */
 
 function validateListingInput(
@@ -694,7 +998,8 @@ function validateListingInput(
   ) {
     return {
       ok: false,
-      error: "invalid_username"
+      error:
+        "invalid_username"
     };
   }
 
@@ -706,11 +1011,13 @@ function validateListingInput(
   if (
     !Number.isFinite(price) ||
     price <= 0 ||
-    price > 100000000
+    price >
+      100000000
   ) {
     return {
       ok: false,
-      error: "invalid_price"
+      error:
+        "invalid_price"
     };
   }
 
@@ -740,7 +1047,8 @@ function validateListingInput(
   ) {
     return {
       ok: false,
-      error: "invalid_contact_type"
+      error:
+        "invalid_contact_type"
     };
   }
 
@@ -755,7 +1063,8 @@ function validateListingInput(
   if (!contactValue) {
     return {
       ok: false,
-      error: "contact_required"
+      error:
+        "contact_required"
     };
   }
 
@@ -808,6 +1117,213 @@ function normalizeWantedUsername(
 
 
 /* =========================================================
+   FREE LISTING
+   ========================================================= */
+
+async function claimFreeListing(
+  telegramId
+) {
+  const {
+    data,
+    error
+  } =
+    await supabase
+      .from("users")
+      .update(
+        {
+          free_listing_used:
+            true,
+
+          free_listing_used_at:
+            nowIso()
+        }
+      )
+      .eq(
+        "telegram_id",
+        Number(
+          telegramId
+        )
+      )
+      .eq(
+        "free_listing_used",
+        false
+      )
+      .select(
+        "telegram_id"
+      )
+      .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return Boolean(data);
+}
+
+
+async function releaseFreeListingClaim(
+  telegramId
+) {
+  try {
+    await supabase
+      .from("users")
+      .update(
+        {
+          free_listing_used:
+            false,
+
+          free_listing_used_at:
+            null
+        }
+      )
+      .eq(
+        "telegram_id",
+        Number(
+          telegramId
+        )
+      );
+  } catch {}
+}
+
+
+async function createFreeListing(
+  seller,
+  input
+) {
+  const listingId =
+    crypto.randomUUID();
+
+  try {
+    const {
+      error:
+        listingError
+    } =
+      await supabase
+        .from("listings")
+        .insert(
+          {
+            id:
+              listingId,
+
+            seller_telegram_id:
+              seller.telegram_id,
+
+            whatsapp_username:
+              input.username,
+
+            asking_price:
+              input.price,
+
+            currency:
+              "USD",
+
+            category:
+              input.category,
+
+            description:
+              input.description,
+
+            status:
+              "pending",
+
+            verification_status:
+              "unverified",
+
+            is_premium_name:
+              false,
+
+            is_featured:
+              false,
+
+            is_paused:
+              false,
+
+            is_frozen:
+              false,
+
+            listing_plan:
+              "free",
+
+            listing_period_started_at:
+              null,
+
+            listing_expires_at:
+              null,
+
+            renewal_count:
+              0
+          }
+        );
+
+    if (
+      listingError
+    ) {
+      throw listingError;
+    }
+
+    const {
+      error:
+        contactError
+    } =
+      await supabase
+        .from(
+          "listing_contacts"
+        )
+        .insert(
+          {
+            listing_id:
+              listingId,
+
+            contact_type:
+              input.contactType,
+
+            contact_value:
+              input.contactValue
+          }
+        );
+
+    if (
+      contactError
+    ) {
+      throw contactError;
+    }
+
+    await ensureSellerProfile(
+      seller.telegram_id
+    );
+
+    safeSendMessage(
+      seller.telegram_id,
+      `🎁 Your first listing @${input.username} was submitted for moderation.\n\nYour free 24-hour timer will start only after approval.`
+    );
+
+    return listingId;
+
+  } catch (error) {
+    await supabase
+      .from(
+        "listing_contacts"
+      )
+      .delete()
+      .eq(
+        "listing_id",
+        listingId
+      );
+
+    await supabase
+      .from("listings")
+      .delete()
+      .eq(
+        "id",
+        listingId
+      );
+
+    throw error;
+  }
+}
+
+
+/* =========================================================
    CONTACT ACCESS
    ========================================================= */
 
@@ -820,7 +1336,9 @@ async function buyerHasContactAccess(
     error
   } =
     await supabase
-      .from("contact_unlocks")
+      .from(
+        "contact_unlocks"
+      )
       .select("id")
       .eq(
         "buyer_telegram_id",
@@ -917,24 +1435,52 @@ async function attachOwnerListingStats(
   ] =
     await Promise.all([
       supabase
-        .from("listing_views")
-        .select("listing_id")
-        .in("listing_id", ids),
+        .from(
+          "listing_views"
+        )
+        .select(
+          "listing_id"
+        )
+        .in(
+          "listing_id",
+          ids
+        ),
 
       supabase
-        .from("listing_likes")
-        .select("listing_id")
-        .in("listing_id", ids),
+        .from(
+          "listing_likes"
+        )
+        .select(
+          "listing_id"
+        )
+        .in(
+          "listing_id",
+          ids
+        ),
 
       supabase
-        .from("watchlist")
-        .select("listing_id")
-        .in("listing_id", ids),
+        .from(
+          "watchlist"
+        )
+        .select(
+          "listing_id"
+        )
+        .in(
+          "listing_id",
+          ids
+        ),
 
       supabase
-        .from("offers")
-        .select("listing_id")
-        .in("listing_id", ids)
+        .from(
+          "offers"
+        )
+        .select(
+          "listing_id"
+        )
+        .in(
+          "listing_id",
+          ids
+        )
     ]);
 
   if (
@@ -975,22 +1521,26 @@ async function attachOwnerListingStats(
 
   const viewCounts =
     countByListingId(
-      viewsResult.data || []
+      viewsResult.data ||
+      []
     );
 
   const likeCounts =
     countByListingId(
-      likesResult.data || []
+      likesResult.data ||
+      []
     );
 
   const watchCounts =
     countByListingId(
-      watchResult.data || []
+      watchResult.data ||
+      []
     );
 
   const offerCounts =
     countByListingId(
-      offersResult.data || []
+      offersResult.data ||
+      []
     );
 
   return rows.map(
@@ -1032,7 +1582,8 @@ async function closeOtherOpenOffers(
   acceptedOfferId
 ) {
   const {
-    data: openOffers
+    data:
+      openOffers
   } =
     await supabase
       .from("offers")
@@ -1092,7 +1643,8 @@ async function closeOtherOpenOffers(
     );
   }
 
-  return openOffers || [];
+  return openOffers ||
+    [];
 }
 
 
@@ -1101,7 +1653,8 @@ async function closeListingOpenOffers(
   message
 ) {
   const {
-    data: offers
+    data:
+      offers
   } =
     await supabase
       .from("offers")
@@ -1164,13 +1717,17 @@ function promotionPrice(
   durationHours
 ) {
   if (
-    !PROMOTION_PRICES[type] ||
+    !PROMOTION_PRICES[
+      type
+    ] ||
     ![
       24,
       72,
       168
     ].includes(
-      Number(durationHours)
+      Number(
+        durationHours
+      )
     )
   ) {
     return null;
@@ -1181,7 +1738,9 @@ function promotionPrice(
     : PROMOTION_PRICES[
         type
       ][
-        Number(durationHours)
+        Number(
+          durationHours
+        )
       ];
 }
 
@@ -1219,24 +1778,6 @@ function promotionPricesForClient() {
 }
 
 
-function isFuture(
-  value
-) {
-  if (!value) {
-    return false;
-  }
-
-  const t =
-    new Date(value)
-      .getTime();
-
-  return (
-    Number.isFinite(t) &&
-    t > Date.now()
-  );
-}
-
-
 function promotionMeta(
   listing
 ) {
@@ -1246,10 +1787,14 @@ function promotionMeta(
     )
   ) {
     return {
-      promotion_type: "vip",
+      promotion_type:
+        "vip",
+
       promotion_until:
         listing.vip_until,
-      promotion_rank: 3
+
+      promotion_rank:
+        3
     };
   }
 
@@ -1259,10 +1804,14 @@ function promotionMeta(
     )
   ) {
     return {
-      promotion_type: "hot",
+      promotion_type:
+        "hot",
+
       promotion_until:
         listing.hot_until,
-      promotion_rank: 2
+
+      promotion_rank:
+        2
     };
   }
 
@@ -1272,17 +1821,26 @@ function promotionMeta(
     )
   ) {
     return {
-      promotion_type: "bump",
+      promotion_type:
+        "bump",
+
       promotion_until:
         listing.bump_until,
-      promotion_rank: 1
+
+      promotion_rank:
+        1
     };
   }
 
   return {
-    promotion_type: null,
-    promotion_until: null,
-    promotion_rank: 0
+    promotion_type:
+      null,
+
+    promotion_until:
+      null,
+
+    promotion_rank:
+      0
   };
 }
 
@@ -1297,39 +1855,35 @@ function promotionSortTime(
     meta.promotion_type ===
     "vip"
   ) {
-    return new Date(
+    return timeMs(
       listing.vip_promoted_at ||
-      listing.created_at ||
-      0
-    ).getTime();
+      listing.created_at
+    );
   }
 
   if (
     meta.promotion_type ===
     "hot"
   ) {
-    return new Date(
+    return timeMs(
       listing.hot_promoted_at ||
-      listing.created_at ||
-      0
-    ).getTime();
+      listing.created_at
+    );
   }
 
   if (
     meta.promotion_type ===
     "bump"
   ) {
-    return new Date(
+    return timeMs(
       listing.bump_promoted_at ||
-      listing.created_at ||
-      0
-    ).getTime();
+      listing.created_at
+    );
   }
 
-  return new Date(
-    listing.created_at ||
-    0
-  ).getTime();
+  return timeMs(
+    listing.created_at
+  );
 }
 
 
@@ -1367,17 +1921,13 @@ function sortListingsByPromotion(
       }
 
       return (
-        new Date(
-          b.created_at ||
-          0
-        ).getTime()
-
+        timeMs(
+          b.created_at
+        )
         -
-
-        new Date(
-          a.created_at ||
-          0
-        ).getTime()
+        timeMs(
+          a.created_at
+        )
       );
     }
   );
@@ -1388,14 +1938,186 @@ function withPromotion(
   listing
 ) {
   const meta =
-    promotionMeta(listing);
+    promotionMeta(
+      listing
+    );
 
-  return {
+  return withLifecycle({
     ...listing,
+
     promotion_type:
       meta.promotion_type,
+
     promotion_until:
       meta.promotion_until
+  });
+}
+
+
+function allowedPromotionDurations(
+  listing
+) {
+  if (
+    String(
+      listing.listing_plan ||
+      "legacy"
+    ) === "free"
+  ) {
+    return [
+      24
+    ];
+  }
+
+  return [
+    24,
+    72,
+    168
+  ];
+}
+
+
+function calculatePromotionUntil(
+  listing,
+  type,
+  durationHours
+) {
+  const duration =
+    Number(
+      durationHours
+    );
+
+  if (
+    ![
+      "bump",
+      "hot",
+      "vip"
+    ].includes(type)
+  ) {
+    return {
+      ok: false,
+      error:
+        "invalid_promotion"
+    };
+  }
+
+  if (
+    !allowedPromotionDurations(
+      listing
+    ).includes(
+      duration
+    )
+  ) {
+    return {
+      ok: false,
+      error:
+        "promotion_duration_not_allowed"
+    };
+  }
+
+  if (
+    !listingIsPubliclyAvailable(
+      listing
+    )
+  ) {
+    return {
+      ok: false,
+      error:
+        isListingExpired(
+          listing
+        )
+          ? "listing_expired"
+          : "listing_not_promotable"
+    };
+  }
+
+  const untilField =
+    `${type}_until`;
+
+  const currentUntil =
+    timeMs(
+      listing[
+        untilField
+      ]
+    );
+
+  const now =
+    Date.now();
+
+  const base =
+    currentUntil >
+      now
+      ? currentUntil
+      : now;
+
+  const requestedUntil =
+    base +
+    duration *
+    60 *
+    60 *
+    1000;
+
+  const plan =
+    String(
+      listing.listing_plan ||
+      "legacy"
+    );
+
+  const listingExpiry =
+    timeMs(
+      listing.listing_expires_at
+    );
+
+  if (
+    plan === "free" &&
+    listingExpiry
+  ) {
+    const effectiveUntil =
+      Math.min(
+        requestedUntil,
+        listingExpiry
+      );
+
+    if (
+      effectiveUntil <=
+      base
+    ) {
+      return {
+        ok: false,
+        error:
+          "promotion_no_additional_time"
+      };
+    }
+
+    return {
+      ok: true,
+
+      applied_until:
+        new Date(
+          effectiveUntil
+        ).toISOString()
+    };
+  }
+
+  if (
+    plan === "paid" &&
+    listingExpiry &&
+    requestedUntil >
+      listingExpiry
+  ) {
+    return {
+      ok: false,
+      error:
+        "promotion_exceeds_listing_period"
+    };
+  }
+
+  return {
+    ok: true,
+
+    applied_until:
+      new Date(
+        requestedUntil
+      ).toISOString()
   };
 }
 
@@ -1414,9 +2136,9 @@ async function attachPublicSellerProfiles(
     ...new Set(
       rows
         .map(
-          x =>
+          row =>
             Number(
-              x.seller_telegram_id
+              row.seller_telegram_id
             )
         )
         .filter(Boolean)
@@ -1432,7 +2154,9 @@ async function attachPublicSellerProfiles(
       data
     } =
       await supabase
-        .from("seller_profiles")
+        .from(
+          "seller_profiles"
+        )
         .select(
           "id,telegram_id,is_public"
         )
@@ -1449,14 +2173,15 @@ async function attachPublicSellerProfiles(
     new Map(
       profiles
         .filter(
-          p => p.is_public
+          profile =>
+            profile.is_public
         )
         .map(
-          p => [
+          profile => [
             String(
-              p.telegram_id
+              profile.telegram_id
             ),
-            p.id
+            profile.id
           ]
         )
     );
@@ -1464,7 +2189,9 @@ async function attachPublicSellerProfiles(
   return rows.map(
     row => {
       const copy =
-        withPromotion(row);
+        withPromotion(
+          row
+        );
 
       const sellerId =
         copy.seller_telegram_id;
@@ -1474,7 +2201,9 @@ async function attachPublicSellerProfiles(
 
       copy.seller_profile_id =
         profileMap.get(
-          String(sellerId)
+          String(
+            sellerId
+          )
         ) || null;
 
       return copy;
@@ -1532,7 +2261,8 @@ async function buildSellerProfilePayload(
   }
 
   const {
-    data: allSellerListings
+    data:
+      allSellerListings
   } =
     await supabase
       .from("listings")
@@ -1547,7 +2277,7 @@ async function buildSellerProfilePayload(
       allSellerListings ||
       []
     ).map(
-      x => x.id
+      row => row.id
     );
 
   let acceptedAgreements =
@@ -1584,10 +2314,13 @@ async function buildSellerProfilePayload(
   }
 
   const {
-    count: activeWanted
+    count:
+      activeWanted
   } =
     await supabase
-      .from("wanted_requests")
+      .from(
+        "wanted_requests"
+      )
       .select(
         "id",
         {
@@ -1605,12 +2338,13 @@ async function buildSellerProfilePayload(
       );
 
   const {
-    data: activeListings
+    data:
+      activeListings
   } =
     await supabase
       .from("listings")
       .select(
-        "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at"
+        "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
       )
       .eq(
         "seller_telegram_id",
@@ -1628,34 +2362,48 @@ async function buildSellerProfilePayload(
         "is_frozen",
         false
       )
-      .limit(100);
+      .limit(200);
+
+  const visible =
+    (
+      activeListings ||
+      []
+    ).filter(
+      listing =>
+        !isListingExpired(
+          listing
+        )
+    );
 
   const sorted =
     sortListingsByPromotion(
-      activeListings ||
-      []
-    )
-      .map(
-        row => {
-          const copy =
-            withPromotion(row);
+      visible
+    ).map(
+      row => {
+        const copy =
+          withPromotion(
+            row
+          );
 
-          delete copy
-            .seller_telegram_id;
+        delete copy
+          .seller_telegram_id;
 
-          return copy;
-        }
-      );
+        return copy;
+      }
+    );
 
   const payload = {
     id:
       profile.id,
 
     display_name:
-      safeSellerDisplayName(user),
+      safeSellerDisplayName(
+        user
+      ),
 
     bio:
-      profile.bio || "",
+      profile.bio ||
+      "",
 
     seller_since:
       profile.created_at,
@@ -1672,7 +2420,8 @@ async function buildSellerProfilePayload(
 
       active_wanted:
         Number(
-          activeWanted || 0
+          activeWanted ||
+          0
         )
     },
 
@@ -1702,11 +2451,14 @@ async function notifyAdmins(
   text
 ) {
   const {
-    data: admins
+    data:
+      admins
   } =
     await supabase
       .from("users")
-      .select("telegram_id")
+      .select(
+        "telegram_id"
+      )
       .eq(
         "is_admin",
         true
@@ -1725,6 +2477,404 @@ async function notifyAdmins(
 
 
 /* =========================================================
+   EXPIRY NOTIFICATION PROCESSOR
+   ========================================================= */
+
+let expiryProcessorRunning =
+  false;
+
+async function processListingExpiryNotifications() {
+  if (
+    !supabase ||
+    expiryProcessorRunning
+  ) {
+    return;
+  }
+
+  expiryProcessorRunning =
+    true;
+
+  try {
+    const now =
+      new Date();
+
+    const oneHourLater =
+      new Date(
+        now.getTime() +
+        60 *
+        60 *
+        1000
+      );
+
+    const nowValue =
+      now.toISOString();
+
+    const oneHourValue =
+      oneHourLater.toISOString();
+
+
+    /* -----------------------------------------------------
+       LISTING: 1 HOUR LEFT
+       ----------------------------------------------------- */
+
+    const {
+      data:
+        endingListings
+    } =
+      await supabase
+        .from("listings")
+        .select(
+          "id,seller_telegram_id,whatsapp_username,listing_plan,listing_expires_at"
+        )
+        .eq(
+          "status",
+          "active"
+        )
+        .not(
+          "listing_expires_at",
+          "is",
+          null
+        )
+        .is(
+          "listing_expiry_1h_notified_at",
+          null
+        )
+        .gt(
+          "listing_expires_at",
+          nowValue
+        )
+        .lte(
+          "listing_expires_at",
+          oneHourValue
+        )
+        .limit(200);
+
+    for (
+      const listing of
+      endingListings ||
+      []
+    ) {
+      const planText =
+        listing.listing_plan ===
+        "free"
+          ? "free listing"
+          : "listing";
+
+      await safeSendMessage(
+        listing.seller_telegram_id,
+        `⏰ Your ${planText} @${listing.whatsapp_username} expires in less than 1 hour.\n\nAfter expiration it will be hidden from Marketplace.`
+      );
+
+      await supabase
+        .from("listings")
+        .update(
+          {
+            listing_expiry_1h_notified_at:
+              nowIso()
+          }
+        )
+        .eq(
+          "id",
+          listing.id
+        )
+        .is(
+          "listing_expiry_1h_notified_at",
+          null
+        );
+    }
+
+
+    /* -----------------------------------------------------
+       LISTING: EXPIRED
+       ----------------------------------------------------- */
+
+    const {
+      data:
+        expiredListings
+    } =
+      await supabase
+        .from("listings")
+        .select(
+          "id,seller_telegram_id,whatsapp_username,listing_plan,listing_expires_at"
+        )
+        .eq(
+          "status",
+          "active"
+        )
+        .not(
+          "listing_expires_at",
+          "is",
+          null
+        )
+        .is(
+          "listing_expired_notified_at",
+          null
+        )
+        .lte(
+          "listing_expires_at",
+          nowValue
+        )
+        .limit(200);
+
+    for (
+      const listing of
+      expiredListings ||
+      []
+    ) {
+      await safeSendMessage(
+        listing.seller_telegram_id,
+        `⌛ @${listing.whatsapp_username} has expired and is now hidden from Marketplace.\n\nRenew the listing for $${LISTING_RENEWAL_PRICE_USD} to activate it for another ${PAID_LISTING_DURATION_DAYS} days.`
+      );
+
+      await supabase
+        .from("listings")
+        .update(
+          {
+            listing_expired_notified_at:
+              nowIso()
+          }
+        )
+        .eq(
+          "id",
+          listing.id
+        )
+        .is(
+          "listing_expired_notified_at",
+          null
+        );
+    }
+
+
+    await processPromotionExpiryNotifications(
+      "bump",
+      "⬆️",
+      "Bump",
+      nowValue,
+      oneHourValue
+    );
+
+    await processPromotionExpiryNotifications(
+      "hot",
+      "🔥",
+      "HOT",
+      nowValue,
+      oneHourValue
+    );
+
+    await processPromotionExpiryNotifications(
+      "vip",
+      "💎",
+      "VIP",
+      nowValue,
+      oneHourValue
+    );
+
+  } catch (error) {
+    console.error(
+      "Expiry notification processor:",
+      error
+    );
+
+  } finally {
+    expiryProcessorRunning =
+      false;
+  }
+}
+
+
+async function processPromotionExpiryNotifications(
+  type,
+  emoji,
+  label,
+  nowValue,
+  oneHourValue
+) {
+  const untilField =
+    `${type}_until`;
+
+  const hourField =
+    `${type}_expiry_1h_notified_at`;
+
+  const expiredField =
+    `${type}_expired_notified_at`;
+
+  const {
+    data:
+      endingPromotions
+  } =
+    await supabase
+      .from("listings")
+      .select(
+        `id,seller_telegram_id,whatsapp_username,listing_expires_at,${untilField}`
+      )
+      .eq(
+        "status",
+        "active"
+      )
+      .not(
+        untilField,
+        "is",
+        null
+      )
+      .is(
+        hourField,
+        null
+      )
+      .gt(
+        untilField,
+        nowValue
+      )
+      .lte(
+        untilField,
+        oneHourValue
+      )
+      .limit(200);
+
+  for (
+    const listing of
+    endingPromotions ||
+    []
+  ) {
+    const promotionExpiry =
+      timeMs(
+        listing[
+          untilField
+        ]
+      );
+
+    const listingExpiry =
+      timeMs(
+        listing.listing_expires_at
+      );
+
+    const sameAsListingExpiry =
+      listingExpiry &&
+      Math.abs(
+        promotionExpiry -
+        listingExpiry
+      ) <=
+        5 *
+        60 *
+        1000;
+
+    if (
+      !sameAsListingExpiry
+    ) {
+      await safeSendMessage(
+        listing.seller_telegram_id,
+        `${emoji} ${label} for @${listing.whatsapp_username} expires in less than 1 hour.`
+      );
+    }
+
+    await supabase
+      .from("listings")
+      .update(
+        {
+          [hourField]:
+            nowIso()
+        }
+      )
+      .eq(
+        "id",
+        listing.id
+      )
+      .is(
+        hourField,
+        null
+      );
+  }
+
+
+  const {
+    data:
+      expiredPromotions
+  } =
+    await supabase
+      .from("listings")
+      .select(
+        `id,seller_telegram_id,whatsapp_username,listing_expires_at,${untilField}`
+      )
+      .eq(
+        "status",
+        "active"
+      )
+      .not(
+        untilField,
+        "is",
+        null
+      )
+      .is(
+        expiredField,
+        null
+      )
+      .lte(
+        untilField,
+        nowValue
+      )
+      .limit(200);
+
+  for (
+    const listing of
+    expiredPromotions ||
+    []
+  ) {
+    const promotionExpiry =
+      timeMs(
+        listing[
+          untilField
+        ]
+      );
+
+    const listingExpiry =
+      timeMs(
+        listing.listing_expires_at
+      );
+
+    const sameAsListingExpiry =
+      listingExpiry &&
+      Math.abs(
+        promotionExpiry -
+        listingExpiry
+      ) <=
+        5 *
+        60 *
+        1000;
+
+    if (
+      !sameAsListingExpiry
+    ) {
+      const listingStillActive =
+        !isListingExpired(
+          listing
+        );
+
+      await safeSendMessage(
+        listing.seller_telegram_id,
+        `${emoji} ${label} promotion for @${listing.whatsapp_username} has ended.${listingStillActive ? "\n\nYour listing remains active." : ""}`
+      );
+    }
+
+    await supabase
+      .from("listings")
+      .update(
+        {
+          [expiredField]:
+            nowIso()
+        }
+      )
+      .eq(
+        "id",
+        listing.id
+      )
+      .is(
+        expiredField,
+        null
+      );
+  }
+}
+
+
+/* =========================================================
    HEALTH
    ========================================================= */
 
@@ -1734,10 +2884,12 @@ app.get(
     res.json(
       {
         ok: true,
+
         service:
           "Handle Market API",
+
         version:
-          "v22-public-likes"
+          "v23-free-24h-renewal"
       }
     );
   }
@@ -1778,7 +2930,9 @@ app.get(
         .json(
           {
             ok: false,
-            database: "error",
+            database:
+              "error",
+
             message:
               error.message
           }
@@ -1810,11 +2964,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -1853,11 +3010,23 @@ app.post(
               u.is_admin
             ),
 
+          free_listing_used:
+            Boolean(
+              u.free_listing_used
+            ),
+
+          free_listing_available:
+            !Boolean(
+              u.free_listing_used
+            ),
+
           seller_profile_id:
-            p?.id || null,
+            p?.id ||
+            null,
 
           seller_profile_bio:
-            p?.bio || "",
+            p?.bio ||
+            "",
 
           seller_profile_is_public:
             Boolean(
@@ -1866,7 +3035,19 @@ app.post(
         },
 
         listing_price_stars:
-          LISTING_PRICE_STARS,
+          PAID_LISTING_PRICE_STARS,
+
+        listing_renewal_price_stars:
+          LISTING_RENEWAL_PRICE_STARS,
+
+        listing_renewal_price_usd:
+          LISTING_RENEWAL_PRICE_USD,
+
+        free_listing_duration_hours:
+          FREE_LISTING_DURATION_HOURS,
+
+        paid_listing_duration_days:
+          PAID_LISTING_DURATION_DAYS,
 
         contact_unlock_price_stars:
           CONTACT_UNLOCK_PRICE_STARS,
@@ -1886,7 +3067,7 @@ app.post(
 
 
 /* =========================================================
-   LISTING PAYMENT
+   LISTING CREATE / PAYMENT
    ========================================================= */
 
 app.post(
@@ -1899,11 +3080,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -1934,8 +3118,10 @@ app.post(
       validation.data;
 
     const {
-      data: existing,
-      error: existingError
+      data:
+        existing,
+      error:
+        existingError
     } =
       await supabase
         .from("listings")
@@ -1986,6 +3172,93 @@ app.post(
         );
     }
 
+
+    /* -----------------------------------------------------
+       TRY FIRST FREE LISTING
+       ----------------------------------------------------- */
+
+    let freeClaimed =
+      false;
+
+    try {
+      freeClaimed =
+        await claimFreeListing(
+          seller.telegram_id
+        );
+
+    } catch (error) {
+      console.error(
+        "Free listing claim:",
+        error
+      );
+
+      return res
+        .status(500)
+        .json(
+          {
+            ok: false,
+            error:
+              "free_listing_check_failed"
+          }
+        );
+    }
+
+    if (
+      freeClaimed
+    ) {
+      try {
+        const listingId =
+          await createFreeListing(
+            seller,
+            input
+          );
+
+        return res.json(
+          {
+            ok: true,
+            free: true,
+
+            listing_id:
+              listingId,
+
+            status:
+              "pending",
+
+            listing_plan:
+              "free",
+
+            duration_hours:
+              FREE_LISTING_DURATION_HOURS
+          }
+        );
+
+      } catch (error) {
+        console.error(
+          "Free listing create:",
+          error
+        );
+
+        await releaseFreeListingClaim(
+          seller.telegram_id
+        );
+
+        return res
+          .status(500)
+          .json(
+            {
+              ok: false,
+              error:
+                "free_listing_create_failed"
+            }
+          );
+      }
+    }
+
+
+    /* -----------------------------------------------------
+       PAID 30-DAY LISTING
+       ----------------------------------------------------- */
+
     const orderId =
       crypto.randomUUID();
 
@@ -1993,7 +3266,8 @@ app.post(
       `listing:${orderId}`;
 
     const {
-      error: orderError
+      error:
+        orderError
     } =
       await supabase
         .from(
@@ -2001,7 +3275,8 @@ app.post(
         )
         .insert(
           {
-            id: orderId,
+            id:
+              orderId,
 
             seller_telegram_id:
               seller.telegram_id,
@@ -2010,7 +3285,7 @@ app.post(
               payload,
 
             amount_stars:
-              LISTING_PRICE_STARS,
+              PAID_LISTING_PRICE_STARS,
 
             whatsapp_username:
               input.username,
@@ -2030,7 +3305,8 @@ app.post(
             contact_value:
               input.contactValue,
 
-            status: "created"
+            status:
+              "created"
           }
         );
 
@@ -2052,17 +3328,25 @@ app.post(
       const invoiceLink =
         await createStarsInvoice(
           "Handle Market Listing",
-          `Submit @${input.username} for marketplace moderation`,
+          `${PAID_LISTING_DURATION_DAYS}-day listing for @${input.username}`,
           payload,
-          LISTING_PRICE_STARS
+          PAID_LISTING_PRICE_STARS
         );
 
       res.json(
         {
           ok: true,
-          order_id: orderId,
+          free: false,
+
+          order_id:
+            orderId,
+
           amount_stars:
-            LISTING_PRICE_STARS,
+            PAID_LISTING_PRICE_STARS,
+
+          duration_days:
+            PAID_LISTING_DURATION_DAYS,
+
           invoice_link:
             invoiceLink
         }
@@ -2075,7 +3359,8 @@ app.post(
         )
         .update(
           {
-            status: "failed"
+            status:
+              "failed"
           }
         )
         .eq(
@@ -2107,11 +3392,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -2123,7 +3411,8 @@ app.post(
       ).trim();
 
     const {
-      data: order,
+      data:
+        order,
       error
     } =
       await supabase
@@ -2169,6 +3458,382 @@ app.post(
 
 
 /* =========================================================
+   LISTING RENEWAL
+   ========================================================= */
+
+app.post(
+  "/listing-renewal/create",
+  async (req, res) => {
+    const auth =
+      await getDatabaseUser(
+        req.body.initData
+      );
+
+    if (!auth.ok) {
+      return res
+        .status(
+          auth.status
+        )
+        .json(
+          {
+            ok: false,
+            error:
+              auth.error
+          }
+        );
+    }
+
+    const listingId =
+      String(
+        req.body.listing_id ||
+        ""
+      ).trim();
+
+    const {
+      data:
+        listing,
+      error:
+        listingError
+    } =
+      await supabase
+        .from("listings")
+        .select(
+          "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at"
+        )
+        .eq(
+          "id",
+          listingId
+        )
+        .maybeSingle();
+
+    if (
+      listingError ||
+      !listing
+    ) {
+      return res
+        .status(404)
+        .json(
+          {
+            ok: false,
+            error:
+              "listing_not_found"
+          }
+        );
+    }
+
+    if (
+      Number(
+        listing.seller_telegram_id
+      ) !==
+      Number(
+        auth.user.telegram_id
+      )
+    ) {
+      return res
+        .status(403)
+        .json(
+          {
+            ok: false,
+            error:
+              "not_listing_owner"
+          }
+        );
+    }
+
+    if (
+      ![
+        "free",
+        "paid"
+      ].includes(
+        String(
+          listing.listing_plan
+        )
+      )
+    ) {
+      return res
+        .status(409)
+        .json(
+          {
+            ok: false,
+            error:
+              "legacy_listing_does_not_need_renewal"
+          }
+        );
+    }
+
+    if (
+      listing.status !==
+      "active"
+    ) {
+      return res
+        .status(409)
+        .json(
+          {
+            ok: false,
+            error:
+              "listing_not_renewable"
+          }
+        );
+    }
+
+    if (
+      listing.is_frozen
+    ) {
+      return res
+        .status(409)
+        .json(
+          {
+            ok: false,
+            error:
+              "listing_frozen"
+          }
+        );
+    }
+
+    if (
+      !isListingExpired(
+        listing
+      )
+    ) {
+      return res
+        .status(409)
+        .json(
+          {
+            ok: false,
+            error:
+              "listing_not_expired"
+          }
+        );
+    }
+
+    const {
+      data:
+        accepted
+    } =
+      await supabase
+        .from("offers")
+        .select("id")
+        .eq(
+          "listing_id",
+          listingId
+        )
+        .eq(
+          "status",
+          "accepted"
+        )
+        .limit(1);
+
+    if (
+      accepted?.length
+    ) {
+      return res
+        .status(409)
+        .json(
+          {
+            ok: false,
+            error:
+              "listing_has_agreement"
+          }
+        );
+    }
+
+    const orderId =
+      crypto.randomUUID();
+
+    const payload =
+      `renewal:${orderId}`;
+
+    const {
+      error:
+        orderError
+    } =
+      await supabase
+        .from(
+          "listing_renewal_orders"
+        )
+        .insert(
+          {
+            id:
+              orderId,
+
+            seller_telegram_id:
+              auth.user.telegram_id,
+
+            listing_id:
+              listingId,
+
+            amount_usd:
+              LISTING_RENEWAL_PRICE_USD,
+
+            amount_stars:
+              LISTING_RENEWAL_PRICE_STARS,
+
+            duration_days:
+              PAID_LISTING_DURATION_DAYS,
+
+            invoice_payload:
+              payload,
+
+            status:
+              "created"
+          }
+        );
+
+    if (
+      orderError
+    ) {
+      console.error(
+        "Renewal order:",
+        orderError
+      );
+
+      return res
+        .status(500)
+        .json(
+          {
+            ok: false,
+            error:
+              "renewal_order_failed"
+          }
+        );
+    }
+
+    try {
+      const invoiceLink =
+        await createStarsInvoice(
+          "Renew Listing",
+          `Renew @${listing.whatsapp_username} for ${PAID_LISTING_DURATION_DAYS} days`,
+          payload,
+          LISTING_RENEWAL_PRICE_STARS
+        );
+
+      res.json(
+        {
+          ok: true,
+
+          order_id:
+            orderId,
+
+          amount_usd:
+            LISTING_RENEWAL_PRICE_USD,
+
+          amount_stars:
+            LISTING_RENEWAL_PRICE_STARS,
+
+          duration_days:
+            PAID_LISTING_DURATION_DAYS,
+
+          invoice_link:
+            invoiceLink
+        }
+      );
+
+    } catch {
+      await supabase
+        .from(
+          "listing_renewal_orders"
+        )
+        .update(
+          {
+            status:
+              "failed"
+          }
+        )
+        .eq(
+          "id",
+          orderId
+        );
+
+      res
+        .status(500)
+        .json(
+          {
+            ok: false,
+            error:
+              "invoice_create_failed"
+          }
+        );
+    }
+  }
+);
+
+
+app.post(
+  "/listing-renewal/status",
+  async (req, res) => {
+    const auth =
+      await getDatabaseUser(
+        req.body.initData
+      );
+
+    if (!auth.ok) {
+      return res
+        .status(
+          auth.status
+        )
+        .json(
+          {
+            ok: false,
+            error:
+              auth.error
+          }
+        );
+    }
+
+    const orderId =
+      String(
+        req.body.order_id ||
+        ""
+      ).trim();
+
+    const {
+      data:
+        order,
+      error
+    } =
+      await supabase
+        .from(
+          "listing_renewal_orders"
+        )
+        .select(
+          "id,listing_id,amount_usd,amount_stars,duration_days,status,paid_at,completed_at"
+        )
+        .eq(
+          "id",
+          orderId
+        )
+        .eq(
+          "seller_telegram_id",
+          auth.user.telegram_id
+        )
+        .maybeSingle();
+
+    if (
+      error ||
+      !order
+    ) {
+      return res
+        .status(404)
+        .json(
+          {
+            ok: false,
+            error:
+              "renewal_order_not_found"
+          }
+        );
+    }
+
+    res.json(
+      {
+        ok: true,
+        order
+      }
+    );
+  }
+);
+
+
+/* =========================================================
    MY LISTINGS
    ========================================================= */
 
@@ -2182,11 +3847,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -2198,7 +3866,7 @@ app.post(
       await supabase
         .from("listings")
         .select(
-          "id,whatsapp_username,asking_price,currency,category,description,status,verification_status,is_premium_name,is_featured,views_count,likes_count,is_paused,is_frozen,frozen_reason,frozen_at,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at"
+          "id,whatsapp_username,asking_price,currency,category,description,status,verification_status,is_premium_name,is_featured,views_count,likes_count,is_paused,is_frozen,frozen_reason,frozen_at,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at,last_renewed_at,renewal_count"
         )
         .eq(
           "seller_telegram_id",
@@ -2245,6 +3913,15 @@ app.post(
             ?.id ||
           null,
 
+        renewal_price_usd:
+          LISTING_RENEWAL_PRICE_USD,
+
+        renewal_price_stars:
+          LISTING_RENEWAL_PRICE_STARS,
+
+        paid_duration_days:
+          PAID_LISTING_DURATION_DAYS,
+
         listings:
           listingsWithStats
       }
@@ -2267,11 +3944,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -2295,13 +3975,15 @@ app.post(
     }
 
     const {
-      data: listing,
-      error: listingError
+      data:
+        listing,
+      error:
+        listingError
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,status,is_paused,is_frozen"
+          "id,seller_telegram_id,status,is_paused,is_frozen,listing_plan,listing_expires_at"
         )
         .eq(
           "id",
@@ -2311,11 +3993,9 @@ app.post(
 
     if (
       listingError ||
-      !listing ||
-      listing.status !==
-        "active" ||
-      listing.is_paused ||
-      listing.is_frozen
+      !listingIsPubliclyAvailable(
+        listing
+      )
     ) {
       return res
         .status(404)
@@ -2349,10 +4029,13 @@ app.post(
     }
 
     const {
-      error: insertError
+      error:
+        insertError
     } =
       await supabase
-        .from("listing_views")
+        .from(
+          "listing_views"
+        )
         .insert(
           {
             listing_id:
@@ -2389,10 +4072,13 @@ app.post(
 
     const {
       count,
-      error: countError
+      error:
+        countError
     } =
       await supabase
-        .from("listing_views")
+        .from(
+          "listing_views"
+        )
         .select(
           "listing_id",
           {
@@ -2424,11 +4110,12 @@ app.post(
         );
     }
 
-    return res.json(
+    res.json(
       {
         ok: true,
         counted,
         owner: false,
+
         views:
           Number(
             count || 0
@@ -2440,7 +4127,7 @@ app.post(
 
 
 /* =========================================================
-   PUBLIC LIKES
+   LIKES
    ========================================================= */
 
 app.post(
@@ -2453,11 +4140,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -2467,19 +4157,18 @@ app.post(
       error
     } =
       await supabase
-        .from("listing_likes")
-        .select("listing_id")
+        .from(
+          "listing_likes"
+        )
+        .select(
+          "listing_id"
+        )
         .eq(
           "user_telegram_id",
           auth.user.telegram_id
         );
 
     if (error) {
-      console.error(
-        "Listing likes state error:",
-        error
-      );
-
       return res
         .status(500)
         .json(
@@ -2518,11 +4207,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -2533,26 +4225,16 @@ app.post(
         ""
       ).trim();
 
-    if (!listingId) {
-      return res
-        .status(400)
-        .json(
-          {
-            ok: false,
-            error:
-              "listing_id_required"
-          }
-        );
-    }
-
     const {
-      data: listing,
-      error: listingError
+      data:
+        listing,
+      error:
+        listingError
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,status,is_paused,is_frozen"
+          "id,seller_telegram_id,status,is_paused,is_frozen,listing_plan,listing_expires_at"
         )
         .eq(
           "id",
@@ -2562,11 +4244,9 @@ app.post(
 
     if (
       listingError ||
-      !listing ||
-      listing.status !==
-        "active" ||
-      listing.is_paused ||
-      listing.is_frozen
+      !listingIsPubliclyAvailable(
+        listing
+      )
     ) {
       return res
         .status(404)
@@ -2602,12 +4282,18 @@ app.post(
     }
 
     const {
-      data: existing,
-      error: existingError
+      data:
+        existing,
+      error:
+        existingError
     } =
       await supabase
-        .from("listing_likes")
-        .select("listing_id")
+        .from(
+          "listing_likes"
+        )
+        .select(
+          "listing_id"
+        )
         .eq(
           "listing_id",
           listingId
@@ -2621,11 +4307,6 @@ app.post(
     if (
       existingError
     ) {
-      console.error(
-        "Listing like lookup error:",
-        existingError
-      );
-
       return res
         .status(500)
         .json(
@@ -2639,12 +4320,17 @@ app.post(
 
     let liked;
 
-    if (existing) {
+    if (
+      existing
+    ) {
       const {
-        error: deleteError
+        error:
+          deleteError
       } =
         await supabase
-          .from("listing_likes")
+          .from(
+            "listing_likes"
+          )
           .delete()
           .eq(
             "listing_id",
@@ -2658,11 +4344,6 @@ app.post(
       if (
         deleteError
       ) {
-        console.error(
-          "Listing unlike error:",
-          deleteError
-        );
-
         return res
           .status(500)
           .json(
@@ -2678,10 +4359,13 @@ app.post(
 
     } else {
       const {
-        error: insertError
+        error:
+          insertError
       } =
         await supabase
-          .from("listing_likes")
+          .from(
+            "listing_likes"
+          )
           .insert(
             {
               listing_id:
@@ -2695,11 +4379,6 @@ app.post(
       if (
         insertError
       ) {
-        console.error(
-          "Listing like insert error:",
-          insertError
-        );
-
         return res
           .status(500)
           .json(
@@ -2715,11 +4394,12 @@ app.post(
     }
 
     const {
-      count,
-      error: countError
+      count
     } =
       await supabase
-        .from("listing_likes")
+        .from(
+          "listing_likes"
+        )
         .select(
           "listing_id",
           {
@@ -2732,59 +4412,29 @@ app.post(
           listingId
         );
 
-    if (
-      countError
-    ) {
-      console.error(
-        "Listing likes count error:",
-        countError
-      );
-
-      return res
-        .status(500)
-        .json(
-          {
-            ok: false,
-            error:
-              "likes_count_failed"
-          }
-        );
-    }
-
     const likesCount =
       Number(
         count || 0
       );
 
-    const {
-      error: updateError
-    } =
-      await supabase
-        .from("listings")
-        .update(
-          {
-            likes_count:
-              likesCount
-          }
-        )
-        .eq(
-          "id",
-          listingId
-        );
-
-    if (
-      updateError
-    ) {
-      console.error(
-        "Listing likes counter sync error:",
-        updateError
+    await supabase
+      .from("listings")
+      .update(
+        {
+          likes_count:
+            likesCount
+        }
+      )
+      .eq(
+        "id",
+        listingId
       );
-    }
 
     res.json(
       {
         ok: true,
         liked,
+
         likes_count:
           likesCount
       }
@@ -2807,7 +4457,7 @@ app.get(
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at"
+          "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
         )
         .eq(
           "status",
@@ -2821,7 +4471,7 @@ app.get(
           "is_frozen",
           false
         )
-        .limit(200);
+        .limit(500);
 
     if (error) {
       return res
@@ -2835,9 +4485,19 @@ app.get(
         );
     }
 
+    const visible =
+      (
+        data || []
+      ).filter(
+        listing =>
+          !isListingExpired(
+            listing
+          )
+      );
+
     const sorted =
       sortListingsByPromotion(
-        data || []
+        visible
       );
 
     const publicRows =
@@ -2848,6 +4508,9 @@ app.get(
     res.json(
       {
         ok: true,
+
+        server_time:
+          nowIso(),
 
         listings:
           publicRows.slice(
@@ -2874,11 +4537,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -2906,7 +4572,8 @@ app.post(
       !listingId ||
       !Number.isFinite(price) ||
       price <= 0 ||
-      price > 100000000
+      price >
+        100000000
     ) {
       return res
         .status(400)
@@ -2920,7 +4587,8 @@ app.post(
     }
 
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
         .from("listings")
@@ -3046,11 +4714,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -3071,7 +4742,9 @@ app.post(
       ![
         "pause",
         "resume"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
       return res
         .status(400)
@@ -3085,12 +4758,13 @@ app.post(
     }
 
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,status,is_frozen"
+          "id,seller_telegram_id,status,is_frozen,listing_plan,listing_expires_at"
         )
         .eq(
           "id",
@@ -3149,10 +4823,29 @@ app.post(
 
     if (
       action ===
+        "resume" &&
+      isListingExpired(
+        listing
+      )
+    ) {
+      return res
+        .status(409)
+        .json(
+          {
+            ok: false,
+            error:
+              "listing_expired"
+          }
+        );
+    }
+
+    if (
+      action ===
       "resume"
     ) {
       const {
-        data: accepted
+        data:
+          accepted
       } =
         await supabase
           .from("offers")
@@ -3241,11 +4934,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -3257,7 +4953,8 @@ app.post(
       ).trim();
 
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
         .from("listings")
@@ -3377,11 +5074,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -3427,13 +5127,15 @@ app.post(
     }
 
     const {
-      data: listing,
-      error: listingError
+      data:
+        listing,
+      error:
+        listingError
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen"
+          "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until"
         )
         .eq(
           "id",
@@ -3475,11 +5177,15 @@ app.post(
         );
     }
 
+    const eligibility =
+      calculatePromotionUntil(
+        listing,
+        type,
+        durationHours
+      );
+
     if (
-      listing.status !==
-        "active" ||
-      listing.is_paused ||
-      listing.is_frozen
+      !eligibility.ok
     ) {
       return res
         .status(409)
@@ -3487,13 +5193,14 @@ app.post(
           {
             ok: false,
             error:
-              "listing_not_promotable"
+              eligibility.error
           }
         );
     }
 
     const {
-      data: accepted
+      data:
+        accepted
     } =
       await supabase
         .from("offers")
@@ -3529,7 +5236,8 @@ app.post(
       `promotion:${orderId}`;
 
     const {
-      error: orderError
+      error:
+        orderError
     } =
       await supabase
         .from(
@@ -3590,11 +5298,17 @@ app.post(
           ? "3 days"
           : "7 days";
 
+    const freeText =
+      listing.listing_plan ===
+      "free"
+        ? " Promotion cannot continue after the free listing expires."
+        : "";
+
     try {
       const invoiceLink =
         await createStarsInvoice(
           `${labels[type]} Listing`,
-          `${labels[type]} promotion for @${listing.whatsapp_username} · ${durationLabel}`,
+          `${labels[type]} promotion for @${listing.whatsapp_username} · ${durationLabel}.${freeText}`,
           payload,
           amountStars
         );
@@ -3602,15 +5316,24 @@ app.post(
       res.json(
         {
           ok: true,
-          order_id: orderId,
+
+          order_id:
+            orderId,
+
           amount_stars:
             amountStars,
+
           invoice_link:
             invoiceLink,
+
           promotion_type:
             type,
+
           duration_hours:
-            durationHours
+            durationHours,
+
+          expected_until:
+            eligibility.applied_until
         }
       );
 
@@ -3621,7 +5344,8 @@ app.post(
         )
         .update(
           {
-            status: "failed"
+            status:
+              "failed"
           }
         )
         .eq(
@@ -3643,10 +5367,6 @@ app.post(
 );
 
 
-/* =========================================================
-   PROMOTION STATUS
-   ========================================================= */
-
 app.post(
   "/promotion-payment/status",
   async (req, res) => {
@@ -3657,11 +5377,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -3673,7 +5396,8 @@ app.post(
       ).trim();
 
     const {
-      data: order,
+      data:
+        order,
       error
     } =
       await supabase
@@ -3719,7 +5443,7 @@ app.post(
 
 
 /* =========================================================
-   CONTACT ACCESS
+   CONTACT
    ========================================================= */
 
 app.post(
@@ -3732,11 +5456,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -3748,13 +5475,15 @@ app.post(
       ).trim();
 
     const {
-      data: listing,
-      error: listingError
+      data:
+        listing,
+      error:
+        listingError
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,status,is_paused,is_frozen"
+          "id,seller_telegram_id,status,is_paused,is_frozen,listing_plan,listing_expires_at"
         )
         .eq(
           "id",
@@ -3806,11 +5535,8 @@ app.post(
 
     if (
       !unlocked &&
-      (
-        listing.status !==
-          "active" ||
-        listing.is_paused ||
-        listing.is_frozen
+      !listingIsPubliclyAvailable(
+        listing
       )
     ) {
       return res
@@ -3819,16 +5545,23 @@ app.post(
           {
             ok: false,
             error:
-              "listing_not_available"
+              isListingExpired(
+                listing
+              )
+                ? "listing_expired"
+                : "listing_not_available"
           }
         );
     }
 
-    if (!unlocked) {
+    if (
+      !unlocked
+    ) {
       return res.json(
         {
           ok: true,
           unlocked: false,
+
           price_stars:
             CONTACT_UNLOCK_PRICE_STARS
         }
@@ -3836,11 +5569,15 @@ app.post(
     }
 
     const {
-      data: contact,
-      error: contactError
+      data:
+        contact,
+      error:
+        contactError
     } =
       await supabase
-        .from("listing_contacts")
+        .from(
+          "listing_contacts"
+        )
         .select(
           "contact_type,contact_value"
         )
@@ -3898,11 +5635,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -3919,13 +5659,15 @@ app.post(
       ).trim();
 
     const {
-      data: listing,
-      error: listingError
+      data:
+        listing,
+      error:
+        listingError
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen"
+          "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at"
         )
         .eq(
           "id",
@@ -3935,11 +5677,9 @@ app.post(
 
     if (
       listingError ||
-      !listing ||
-      listing.status !==
-        "active" ||
-      listing.is_paused ||
-      listing.is_frozen
+      !listingIsPubliclyAvailable(
+        listing
+      )
     ) {
       return res
         .status(404)
@@ -3961,7 +5701,8 @@ app.post(
       return res.json(
         {
           ok: true,
-          already_unlocked: true
+          already_unlocked:
+            true
         }
       );
     }
@@ -3975,17 +5716,23 @@ app.post(
       return res.json(
         {
           ok: true,
-          already_unlocked: true
+          already_unlocked:
+            true
         }
       );
     }
 
     const {
-      data: contact
+      data:
+        contact
     } =
       await supabase
-        .from("listing_contacts")
-        .select("listing_id")
+        .from(
+          "listing_contacts"
+        )
+        .select(
+          "listing_id"
+        )
         .eq(
           "listing_id",
           listingId
@@ -4005,10 +5752,13 @@ app.post(
     }
 
     const {
-      data: existingUnlock
+      data:
+        existingUnlock
     } =
       await supabase
-        .from("contact_unlocks")
+        .from(
+          "contact_unlocks"
+        )
         .select("*")
         .eq(
           "buyer_telegram_id",
@@ -4036,7 +5786,9 @@ app.post(
         error
       } =
         await supabase
-          .from("contact_unlocks")
+          .from(
+            "contact_unlocks"
+          )
           .update(
             {
               invoice_payload:
@@ -4071,7 +5823,9 @@ app.post(
         error
       } =
         await supabase
-          .from("contact_unlocks")
+          .from(
+            "contact_unlocks"
+          )
           .insert(
             {
               id:
@@ -4127,10 +5881,13 @@ app.post(
       res.json(
         {
           ok: true,
+
           order_id:
             orderId,
+
           amount_stars:
             CONTACT_UNLOCK_PRICE_STARS,
+
           invoice_link:
             invoiceLink
         }
@@ -4138,10 +5895,13 @@ app.post(
 
     } catch {
       await supabase
-        .from("contact_unlocks")
+        .from(
+          "contact_unlocks"
+        )
         .update(
           {
-            status: "failed"
+            status:
+              "failed"
           }
         )
         .eq(
@@ -4163,10 +5923,6 @@ app.post(
 );
 
 
-/* =========================================================
-   CONTACT UNLOCK STATUS
-   ========================================================= */
-
 app.post(
   "/contact-unlock/status",
   async (req, res) => {
@@ -4177,11 +5933,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -4193,11 +5952,14 @@ app.post(
       ).trim();
 
     const {
-      data: order,
+      data:
+        order,
       error
     } =
       await supabase
-        .from("contact_unlocks")
+        .from(
+          "contact_unlocks"
+        )
         .select(
           "id,listing_id,amount_stars,status,paid_at"
         )
@@ -4250,11 +6012,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -4266,35 +6031,14 @@ app.post(
       ).trim();
 
     const {
-      data: listing
-    } =
-      await supabase
-        .from("listings")
-        .select("id")
-        .eq(
-          "id",
-          listingId
-        )
-        .maybeSingle();
-
-    if (!listing) {
-      return res
-        .status(404)
-        .json(
-          {
-            ok: false,
-            error:
-              "listing_not_found"
-          }
-        );
-    }
-
-    const {
-      data: existing
+      data:
+        existing
     } =
       await supabase
         .from("watchlist")
-        .select("listing_id")
+        .select(
+          "listing_id"
+        )
         .eq(
           "telegram_id",
           auth.user.telegram_id
@@ -4305,7 +6049,9 @@ app.post(
         )
         .maybeSingle();
 
-    if (existing) {
+    if (
+      existing
+    ) {
       await supabase
         .from("watchlist")
         .delete()
@@ -4324,6 +6070,37 @@ app.post(
           watched: false
         }
       );
+    }
+
+    const {
+      data:
+        listing
+    } =
+      await supabase
+        .from("listings")
+        .select(
+          "id,status,is_paused,is_frozen,listing_plan,listing_expires_at"
+        )
+        .eq(
+          "id",
+          listingId
+        )
+        .maybeSingle();
+
+    if (
+      !listingIsPubliclyAvailable(
+        listing
+      )
+    ) {
+      return res
+        .status(404)
+        .json(
+          {
+            ok: false,
+            error:
+              "listing_not_available"
+          }
+        );
     }
 
     const {
@@ -4373,22 +6150,28 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
 
     const {
-      data: watched,
+      data:
+        watched,
       error
     } =
       await supabase
         .from("watchlist")
-        .select("listing_id")
+        .select(
+          "listing_id"
+        )
         .eq(
           "telegram_id",
           auth.user.telegram_id
@@ -4410,7 +6193,8 @@ app.post(
       (
         watched || []
       ).map(
-        x => x.listing_id
+        row =>
+          row.listing_id
       );
 
     if (
@@ -4426,42 +6210,43 @@ app.post(
     }
 
     const {
-      data: listings
+      data:
+        listings
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at"
+          "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,status,is_paused,is_frozen,listing_plan,listing_period_started_at,listing_expires_at"
         )
         .in(
           "id",
           listingIds
-        )
-        .eq(
-          "status",
-          "active"
-        )
-        .eq(
-          "is_paused",
-          false
-        )
-        .eq(
-          "is_frozen",
-          false
         );
+
+    const visible =
+      (
+        listings || []
+      ).filter(
+        listing =>
+          listingIsPubliclyAvailable(
+            listing
+          )
+      );
 
     const publicRows =
       await attachPublicSellerProfiles(
         sortListingsByPromotion(
-          listings || []
+          visible
         )
       );
 
     res.json(
       {
         ok: true,
+
         listing_ids:
           listingIds,
+
         listings:
           publicRows
       }
@@ -4478,11 +6263,14 @@ app.get(
   "/wanted",
   async (req, res) => {
     const {
-      data: posts,
+      data:
+        posts,
       error
     } =
       await supabase
-        .from("wanted_requests")
+        .from(
+          "wanted_requests"
+        )
         .select(
           "id,buyer_telegram_id,desired_username,budget,currency,category,description,status,created_at"
         )
@@ -4515,8 +6303,8 @@ app.get(
         (
           posts || []
         ).map(
-          x =>
-            x.buyer_telegram_id
+          row =>
+            row.buyer_telegram_id
         )
       )
     ];
@@ -4546,11 +6334,11 @@ app.get(
     const map =
       new Map(
         buyers.map(
-          x => [
+          row => [
             String(
-              x.telegram_id
+              row.telegram_id
             ),
-            x
+            row
           ]
         )
       );
@@ -4563,13 +6351,13 @@ app.get(
           (
             posts || []
           ).map(
-            x => ({
-              ...x,
+            row => ({
+              ...row,
 
               buyer:
                 map.get(
                   String(
-                    x.buyer_telegram_id
+                    row.buyer_telegram_id
                   )
                 ) || null
             })
@@ -4590,11 +6378,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -4604,7 +6395,9 @@ app.post(
       error
     } =
       await supabase
-        .from("wanted_requests")
+        .from(
+          "wanted_requests"
+        )
         .select(
           "id,desired_username,budget,currency,category,description,status,created_at,updated_at"
         )
@@ -4652,11 +6445,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -4672,10 +6468,14 @@ app.post(
       error
     } =
       await supabase
-        .from("wanted_requests")
+        .from(
+          "wanted_requests"
+        )
         .update(
           {
-            status: "closed",
+            status:
+              "closed",
+
             updated_at:
               nowIso()
           }
@@ -4734,11 +6534,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -4782,9 +6585,12 @@ app.post(
     }
 
     if (
-      !Number.isFinite(budget) ||
+      !Number.isFinite(
+        budget
+      ) ||
       budget <= 0 ||
-      budget > 100000000
+      budget >
+        100000000
     ) {
       return res
         .status(400)
@@ -4811,10 +6617,13 @@ app.post(
         .slice(0, 500);
 
     const {
-      data: duplicate
+      data:
+        duplicate
     } =
       await supabase
-        .from("wanted_requests")
+        .from(
+          "wanted_requests"
+        )
         .select("id")
         .eq(
           "buyer_telegram_id",
@@ -4909,10 +6718,13 @@ app.post(
       res.json(
         {
           ok: true,
+
           order_id:
             orderId,
+
           amount_stars:
             WANTED_PRICE_STARS,
+
           invoice_link:
             invoiceLink
         }
@@ -4958,11 +6770,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -4974,7 +6789,8 @@ app.post(
       ).trim();
 
     const {
-      data: order,
+      data:
+        order,
       error
     } =
       await supabase
@@ -5020,7 +6836,7 @@ app.post(
 
 
 /* =========================================================
-   SELLER PROFILE ROUTES
+   SELLER PROFILES
    ========================================================= */
 
 app.post(
@@ -5033,17 +6849,21 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
 
     const profile =
-      auth.user.seller_profile ||
+      auth.user
+        .seller_profile ||
       await ensureSellerProfile(
         auth.user.telegram_id
       );
@@ -5069,7 +6889,8 @@ app.post(
     res.json(
       {
         ok: true,
-        profile: payload
+        profile:
+          payload
       }
     );
   }
@@ -5086,11 +6907,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -5117,8 +6941,7 @@ app.post(
 
     if (
       typeof
-        req.body.is_public
-      !==
+        req.body.is_public !==
       "boolean"
     ) {
       return res
@@ -5133,15 +6956,19 @@ app.post(
     }
 
     const {
-      data: profile,
+      data:
+        profile,
       error
     } =
       await supabase
-        .from("seller_profiles")
+        .from(
+          "seller_profiles"
+        )
         .update(
           {
             bio:
-              bio || null,
+              bio ||
+              null,
 
             is_public:
               req.body.is_public,
@@ -5180,7 +7007,8 @@ app.post(
     res.json(
       {
         ok: true,
-        profile: payload
+        profile:
+          payload
       }
     );
   }
@@ -5213,11 +7041,14 @@ app.get(
     }
 
     const {
-      data: profile,
+      data:
+        profile,
       error
     } =
       await supabase
-        .from("seller_profiles")
+        .from(
+          "seller_profiles"
+        )
         .select(
           "id,telegram_id,bio,is_public,created_at,updated_at"
         )
@@ -5267,7 +7098,8 @@ app.get(
     res.json(
       {
         ok: true,
-        profile: payload
+        profile:
+          payload
       }
     );
   }
@@ -5288,11 +7120,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -5323,9 +7158,12 @@ app.post(
 
     if (
       !listingId ||
-      !Number.isFinite(amount) ||
+      !Number.isFinite(
+        amount
+      ) ||
       amount <= 0 ||
-      amount > 100000000
+      amount >
+        100000000
     ) {
       return res
         .status(400)
@@ -5339,13 +7177,15 @@ app.post(
     }
 
     const {
-      data: listing,
-      error: listingError
+      data:
+        listing,
+      error:
+        listingError
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen"
+          "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at"
         )
         .eq(
           "id",
@@ -5355,11 +7195,9 @@ app.post(
 
     if (
       listingError ||
-      !listing ||
-      listing.status !==
-        "active" ||
-      listing.is_paused ||
-      listing.is_frozen
+      !listingIsPubliclyAvailable(
+        listing
+      )
     ) {
       return res
         .status(404)
@@ -5407,7 +7245,8 @@ app.post(
     }
 
     const {
-      data: acceptedOffer
+      data:
+        acceptedOffer
     } =
       await supabase
         .from("offers")
@@ -5437,7 +7276,8 @@ app.post(
     }
 
     const {
-      data: existingOffer
+      data:
+        existingOffer
     } =
       await supabase
         .from("offers")
@@ -5476,7 +7316,8 @@ app.post(
     }
 
     const {
-      data: offer,
+      data:
+        offer,
       error
     } =
       await supabase
@@ -5520,7 +7361,6 @@ app.post(
 
     safeSendMessage(
       listing.seller_telegram_id,
-
       `💬 New offer for @${listing.whatsapp_username}\n\nOffer: $${amount.toLocaleString("en-US")}${message ? `\n\nMessage: ${message}` : ""}\n\nOpen Handle Market → Profile → Offers.`
     );
 
@@ -5548,17 +7388,21 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
 
     const {
-      data: offers,
+      data:
+        offers,
       error
     } =
       await supabase
@@ -5594,8 +7438,8 @@ app.post(
         (
           offers || []
         ).map(
-          x =>
-            x.listing_id
+          row =>
+            row.listing_id
         )
       )
     ];
@@ -5611,7 +7455,7 @@ app.post(
         await supabase
           .from("listings")
           .select(
-            "id,whatsapp_username,asking_price,category,is_frozen,is_paused,status"
+            "id,whatsapp_username,asking_price,category,is_frozen,is_paused,status,listing_plan,listing_expires_at"
           )
           .in(
             "id",
@@ -5619,15 +7463,21 @@ app.post(
           );
 
       listings =
-        data || [];
+        (
+          data || []
+        ).map(
+          withLifecycle
+        );
     }
 
     const listingMap =
       new Map(
         listings.map(
-          x => [
-            String(x.id),
-            x
+          row => [
+            String(
+              row.id
+            ),
+            row
           ]
         )
       );
@@ -5640,15 +7490,16 @@ app.post(
           (
             offers || []
           ).map(
-            x => ({
-              ...x,
+            row => ({
+              ...row,
 
               listing:
                 listingMap.get(
                   String(
-                    x.listing_id
+                    row.listing_id
                   )
-                ) || null
+                ) ||
+                null
             })
           )
       }
@@ -5671,11 +7522,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -5686,13 +7540,15 @@ app.post(
       );
 
     const {
-      data: sellerListings,
-      error: listingsError
+      data:
+        sellerListings,
+      error:
+        listingsError
     } =
       await supabase
         .from("listings")
         .select(
-          "id,whatsapp_username,asking_price,category,is_frozen,is_paused,status"
+          "id,whatsapp_username,asking_price,category,is_frozen,is_paused,status,listing_plan,listing_expires_at"
         )
         .eq(
           "seller_telegram_id",
@@ -5715,9 +7571,11 @@ app.post(
 
     const listingIds =
       (
-        sellerListings || []
+        sellerListings ||
+        []
       ).map(
-        x => x.id
+        row =>
+          row.id
       );
 
     if (
@@ -5732,7 +7590,8 @@ app.post(
     }
 
     const {
-      data: offers,
+      data:
+        offers,
       error
     } =
       await supabase
@@ -5768,8 +7627,8 @@ app.post(
         (
           offers || []
         ).map(
-          x =>
-            x.buyer_telegram_id
+          row =>
+            row.buyer_telegram_id
         )
       )
     ];
@@ -5799,11 +7658,16 @@ app.post(
     const listingMap =
       new Map(
         (
-          sellerListings || []
+          sellerListings ||
+          []
         ).map(
-          x => [
-            String(x.id),
-            x
+          row => [
+            String(
+              row.id
+            ),
+            withLifecycle(
+              row
+            )
           ]
         )
       );
@@ -5811,11 +7675,11 @@ app.post(
     const buyerMap =
       new Map(
         buyers.map(
-          x => [
+          row => [
             String(
-              x.telegram_id
+              row.telegram_id
             ),
-            x
+            row
           ]
         )
       );
@@ -5828,22 +7692,24 @@ app.post(
           (
             offers || []
           ).map(
-            x => ({
-              ...x,
+            row => ({
+              ...row,
 
               listing:
                 listingMap.get(
                   String(
-                    x.listing_id
+                    row.listing_id
                   )
-                ) || null,
+                ) ||
+                null,
 
               buyer:
                 buyerMap.get(
                   String(
-                    x.buyer_telegram_id
+                    row.buyer_telegram_id
                   )
-                ) || null
+                ) ||
+                null
             })
           )
       }
@@ -5866,11 +7732,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -5903,7 +7772,9 @@ app.post(
         "accept",
         "decline",
         "counter"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
       return res
         .status(400)
@@ -5917,8 +7788,8 @@ app.post(
     }
 
     const {
-      data: offer,
-      error: offerError
+      data:
+        offer
     } =
       await supabase
         .from("offers")
@@ -5929,10 +7800,7 @@ app.post(
         )
         .maybeSingle();
 
-    if (
-      offerError ||
-      !offer
-    ) {
+    if (!offer) {
       return res
         .status(404)
         .json(
@@ -5945,12 +7813,13 @@ app.post(
     }
 
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,whatsapp_username,is_frozen"
+          "id,seller_telegram_id,whatsapp_username,is_frozen,listing_plan,listing_expires_at"
         )
         .eq(
           "id",
@@ -5996,11 +7865,35 @@ app.post(
     }
 
     if (
+      [
+        "accept",
+        "counter"
+      ].includes(
+        action
+      ) &&
+      isListingExpired(
+        listing
+      )
+    ) {
+      return res
+        .status(409)
+        .json(
+          {
+            ok: false,
+            error:
+              "listing_expired"
+          }
+        );
+    }
+
+    if (
       listing.is_frozen &&
       [
         "accept",
         "counter"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
       return res
         .status(409)
@@ -6041,7 +7934,8 @@ app.post(
       "accept"
     ) {
       const {
-        data: accepted
+        data:
+          accepted
       } =
         await supabase
           .from("offers")
@@ -6109,7 +8003,8 @@ app.post(
     }
 
     const {
-      data: updatedOffer,
+      data:
+        updatedOffer,
       error
     } =
       await supabase
@@ -6148,7 +8043,9 @@ app.post(
         .from("listings")
         .update(
           {
-            is_paused: true,
+            is_paused:
+              true,
+
             updated_at:
               nowIso()
           }
@@ -6235,11 +8132,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -6266,7 +8166,9 @@ app.post(
       ![
         "accept_counter",
         "cancel"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
       return res
         .status(400)
@@ -6280,8 +8182,8 @@ app.post(
     }
 
     const {
-      data: offer,
-      error: offerError
+      data:
+        offer
     } =
       await supabase
         .from("offers")
@@ -6296,10 +8198,7 @@ app.post(
         )
         .maybeSingle();
 
-    if (
-      offerError ||
-      !offer
-    ) {
+    if (!offer) {
       return res
         .status(404)
         .json(
@@ -6312,12 +8211,13 @@ app.post(
     }
 
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,whatsapp_username,is_frozen"
+          "id,seller_telegram_id,whatsapp_username,is_frozen,listing_plan,listing_expires_at"
         )
         .eq(
           "id",
@@ -6341,6 +8241,22 @@ app.post(
       action ===
       "accept_counter"
     ) {
+      if (
+        isListingExpired(
+          listing
+        )
+      ) {
+        return res
+          .status(409)
+          .json(
+            {
+              ok: false,
+              error:
+                "listing_expired"
+            }
+          );
+      }
+
       if (
         listing.is_frozen
       ) {
@@ -6379,7 +8295,8 @@ app.post(
       }
 
       const {
-        data: accepted
+        data:
+          accepted
       } =
         await supabase
           .from("offers")
@@ -6413,7 +8330,8 @@ app.post(
       }
 
       const {
-        data: updatedOffer,
+        data:
+          updatedOffer,
         error
       } =
         await supabase
@@ -6484,7 +8402,6 @@ app.post(
 
       safeSendMessage(
         listing.seller_telegram_id,
-
         `✅ Buyer accepted your counter offer for @${listing.whatsapp_username}: $${Number(offer.seller_counter_amount).toLocaleString("en-US")}.\n\nOpen Handle Market → Profile → Offers.`
       );
 
@@ -6517,7 +8434,8 @@ app.post(
     }
 
     const {
-      data: updatedOffer,
+      data:
+        updatedOffer,
       error
     } =
       await supabase
@@ -6552,7 +8470,6 @@ app.post(
 
     safeSendMessage(
       listing.seller_telegram_id,
-
       `↩️ Buyer cancelled their offer for @${listing.whatsapp_username}.`
     );
 
@@ -6581,11 +8498,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -6596,7 +8516,9 @@ app.post(
     } =
       await supabase
         .from("reports")
-        .select("listing_id")
+        .select(
+          "listing_id"
+        )
         .eq(
           "reporter_telegram_id",
           auth.user.telegram_id
@@ -6622,8 +8544,8 @@ app.post(
           (
             data || []
           ).map(
-            x =>
-              x.listing_id
+            row =>
+              row.listing_id
           )
       }
     );
@@ -6641,11 +8563,14 @@ app.post(
 
     if (!auth.ok) {
       return res
-        .status(auth.status)
+        .status(
+          auth.status
+        )
         .json(
           {
             ok: false,
-            error: auth.error
+            error:
+              auth.error
           }
         );
     }
@@ -6680,12 +8605,13 @@ app.post(
         .slice(0, 1000);
 
     const {
-      data: listing
+      data:
+        listing
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen"
+          "id,seller_telegram_id,whatsapp_username,status"
         )
         .eq(
           "id",
@@ -6725,7 +8651,8 @@ app.post(
     }
 
     const {
-      data: report,
+      data:
+        report,
       error
     } =
       await supabase
@@ -6741,7 +8668,8 @@ app.post(
             reason,
 
             details:
-              details || null,
+              details ||
+              null,
 
             status:
               "open"
@@ -6805,23 +8733,27 @@ app.post(
 
     if (!admin.ok) {
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
 
     const {
-      data: listings,
+      data:
+        listings,
       error
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,created_at"
+          "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,created_at,listing_plan"
         )
         .eq(
           "status",
@@ -6851,8 +8783,8 @@ app.post(
         (
           listings || []
         ).map(
-          x =>
-            x.seller_telegram_id
+          row =>
+            row.seller_telegram_id
         )
       )
     ];
@@ -6882,11 +8814,11 @@ app.post(
     const map =
       new Map(
         users.map(
-          x => [
+          row => [
             String(
-              x.telegram_id
+              row.telegram_id
             ),
-            x
+            row
           ]
         )
       );
@@ -6899,15 +8831,16 @@ app.post(
           (
             listings || []
           ).map(
-            x => ({
-              ...x,
+            row => ({
+              ...row,
 
               seller:
                 map.get(
                   String(
-                    x.seller_telegram_id
+                    row.seller_telegram_id
                   )
-                ) || null
+                ) ||
+                null
             })
           )
       }
@@ -6917,7 +8850,7 @@ app.post(
 
 
 /* =========================================================
-   ADMIN STATUS
+   ADMIN STATUS / START TIMER
    ========================================================= */
 
 app.post(
@@ -6930,11 +8863,14 @@ app.post(
 
     if (!admin.ok) {
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
@@ -6968,19 +8904,100 @@ app.post(
     }
 
     const {
+      data:
+        existing
+    } =
+      await supabase
+        .from("listings")
+        .select(
+          "id,seller_telegram_id,whatsapp_username,status,is_premium_name,listing_plan,listing_period_started_at,listing_expires_at"
+        )
+        .eq(
+          "id",
+          listingId
+        )
+        .eq(
+          "status",
+          "pending"
+        )
+        .maybeSingle();
+
+    if (!existing) {
+      return res
+        .status(404)
+        .json(
+          {
+            ok: false,
+            error:
+              "pending_listing_not_found"
+          }
+        );
+    }
+
+    const update = {
+      status:
+        newStatus,
+
+      updated_at:
+        nowIso()
+    };
+
+    if (
+      newStatus ===
+      "active"
+    ) {
+      const startedAt =
+        nowIso();
+
+      if (
+        existing.listing_plan ===
+        "free"
+      ) {
+        update.listing_period_started_at =
+          startedAt;
+
+        update.listing_expires_at =
+          addHoursIso(
+            startedAt,
+            FREE_LISTING_DURATION_HOURS
+          );
+
+        update.listing_expiry_1h_notified_at =
+          null;
+
+        update.listing_expired_notified_at =
+          null;
+      }
+
+      if (
+        existing.listing_plan ===
+        "paid"
+      ) {
+        update.listing_period_started_at =
+          startedAt;
+
+        update.listing_expires_at =
+          addDaysIso(
+            startedAt,
+            PAID_LISTING_DURATION_DAYS
+          );
+
+        update.listing_expiry_1h_notified_at =
+          null;
+
+        update.listing_expired_notified_at =
+          null;
+      }
+    }
+
+    const {
       data,
       error
     } =
       await supabase
         .from("listings")
         .update(
-          {
-            status:
-              newStatus,
-
-            updated_at:
-              nowIso()
-          }
+          update
         )
         .eq(
           "id",
@@ -6991,7 +9008,7 @@ app.post(
           "pending"
         )
         .select(
-          "id,seller_telegram_id,whatsapp_username,status,is_premium_name"
+          "id,seller_telegram_id,whatsapp_username,status,is_premium_name,listing_plan,listing_period_started_at,listing_expires_at"
         )
         .maybeSingle();
 
@@ -7010,21 +9027,55 @@ app.post(
         );
     }
 
-    safeSendMessage(
-      data.seller_telegram_id,
+    let message;
 
+    if (
       newStatus ===
       "active"
+    ) {
+      if (
+        data.listing_plan ===
+        "free"
+      ) {
+        message =
+          `✅ @${data.whatsapp_username} was approved and is now live.\n\n🎁 Your free ${FREE_LISTING_DURATION_HOURS}-hour timer has started.`;
 
-        ? `✅ @${data.whatsapp_username} was approved and is now live.${data.is_premium_name ? "\n\n⭐ Premium status awarded by Handle Market." : ""}`
+      } else if (
+        data.listing_plan ===
+        "paid"
+      ) {
+        message =
+          `✅ @${data.whatsapp_username} was approved and is now live for ${PAID_LISTING_DURATION_DAYS} days.`;
 
-        : `❌ @${data.whatsapp_username} was rejected by moderation.`
+      } else {
+        message =
+          `✅ @${data.whatsapp_username} was approved and is now live.`;
+      }
+
+      if (
+        data.is_premium_name
+      ) {
+        message +=
+          "\n\n⭐ Premium status awarded by Handle Market.";
+      }
+
+    } else {
+      message =
+        `❌ @${data.whatsapp_username} was rejected by moderation.`;
+    }
+
+    safeSendMessage(
+      data.seller_telegram_id,
+      message
     );
 
     res.json(
       {
         ok: true,
-        listing: data
+        listing:
+          withLifecycle(
+            data
+          )
       }
     );
   }
@@ -7045,11 +9096,14 @@ app.post(
 
     if (!admin.ok) {
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
@@ -7080,13 +9134,13 @@ app.post(
     }
 
     const {
-      data: existing,
-      error: existingError
+      data:
+        existing
     } =
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,whatsapp_username,status,is_premium_name"
+          "id,seller_telegram_id,whatsapp_username,status"
         )
         .eq(
           "id",
@@ -7094,10 +9148,7 @@ app.post(
         )
         .maybeSingle();
 
-    if (
-      existingError ||
-      !existing
-    ) {
+    if (!existing) {
       return res
         .status(404)
         .json(
@@ -7131,7 +9182,6 @@ app.post(
 
     const update =
       isPremium
-
         ? {
             is_premium_name:
               true,
@@ -7168,7 +9218,9 @@ app.post(
     } =
       await supabase
         .from("listings")
-        .update(update)
+        .update(
+          update
+        )
         .eq(
           "id",
           listingId
@@ -7179,11 +9231,6 @@ app.post(
         .single();
 
     if (error) {
-      console.error(
-        "Premium update failed:",
-        error
-      );
-
       return res
         .status(500)
         .json(
@@ -7197,7 +9244,6 @@ app.post(
 
     safeSendMessage(
       data.seller_telegram_id,
-
       isPremium
         ? `⭐ @${data.whatsapp_username} is now Premium on Handle Market.`
         : `☆ Premium status was removed from @${data.whatsapp_username}.`
@@ -7227,17 +9273,21 @@ app.post(
 
     if (!admin.ok) {
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
 
     const {
-      data: reports,
+      data:
+        reports,
       error
     } =
       await supabase
@@ -7273,8 +9323,8 @@ app.post(
         (
           reports || []
         ).map(
-          x =>
-            x.listing_id
+          row =>
+            row.listing_id
         )
       )
     ];
@@ -7290,7 +9340,7 @@ app.post(
         await supabase
           .from("listings")
           .select(
-            "id,seller_telegram_id,whatsapp_username,asking_price,category,status,is_premium_name,is_paused,is_frozen,frozen_reason"
+            "id,seller_telegram_id,whatsapp_username,asking_price,category,status,is_premium_name,is_paused,is_frozen,frozen_reason,listing_plan,listing_expires_at"
           )
           .in(
             "id",
@@ -7298,15 +9348,21 @@ app.post(
           );
 
       listings =
-        data || [];
+        (
+          data || []
+        ).map(
+          withLifecycle
+        );
     }
 
     const map =
       new Map(
         listings.map(
-          x => [
-            String(x.id),
-            x
+          row => [
+            String(
+              row.id
+            ),
+            row
           ]
         )
       );
@@ -7319,15 +9375,16 @@ app.post(
           (
             reports || []
           ).map(
-            x => ({
-              ...x,
+            row => ({
+              ...row,
 
               listing:
                 map.get(
                   String(
-                    x.listing_id
+                    row.listing_id
                   )
-                ) || null
+                ) ||
+                null
             })
           )
       }
@@ -7350,11 +9407,14 @@ app.post(
 
     if (!admin.ok) {
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
@@ -7366,7 +9426,7 @@ app.post(
       await supabase
         .from("listings")
         .select(
-          "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,is_paused,is_frozen,frozen_reason,frozen_at,frozen_by,created_at"
+          "id,seller_telegram_id,whatsapp_username,asking_price,currency,category,description,status,is_premium_name,is_paused,is_frozen,frozen_reason,frozen_at,frozen_by,created_at,listing_plan,listing_expires_at"
         )
         .eq(
           "is_frozen",
@@ -7394,8 +9454,13 @@ app.post(
     res.json(
       {
         ok: true,
+
         listings:
-          data || []
+          (
+            data || []
+          ).map(
+            withLifecycle
+          )
       }
     );
   }
@@ -7403,7 +9468,7 @@ app.post(
 
 
 /* =========================================================
-   FREEZE HELPERS
+   MODERATION HELPERS
    ========================================================= */
 
 async function freezeListing(
@@ -7412,7 +9477,8 @@ async function freezeListing(
   reason
 ) {
   const {
-    data: listing
+    data:
+      listing
   } =
     await supabase
       .from("listings")
@@ -7455,7 +9521,9 @@ async function freezeListing(
             nowIso(),
 
           frozen_by:
-            Number(adminId),
+            Number(
+              adminId
+            ),
 
           updated_at:
             nowIso()
@@ -7474,7 +9542,6 @@ async function freezeListing(
 
   safeSendMessage(
     listing.seller_telegram_id,
-
     `🧊 @${listing.whatsapp_username} was temporarily frozen by moderation.${reason ? `\n\nReason: ${reason}` : ""}`
   );
 
@@ -7533,7 +9600,6 @@ async function unfreezeListing(
 
   safeSendMessage(
     data.seller_telegram_id,
-
     `✅ @${data.whatsapp_username} was unfrozen by moderation.`
   );
 
@@ -7545,7 +9611,8 @@ async function adminRemoveListingInternal(
   listingId
 ) {
   const {
-    data: listing
+    data:
+      listing
   } =
     await supabase
       .from("listings")
@@ -7604,13 +9671,11 @@ async function adminRemoveListingInternal(
 
   await closeListingOpenOffers(
     listingId,
-
     `❌ @${listing.whatsapp_username} was removed by moderation. Your open offer was closed.`
   );
 
   safeSendMessage(
     listing.seller_telegram_id,
-
     `❌ @${listing.whatsapp_username} was removed by Handle Market moderation.`
   );
 
@@ -7632,11 +9697,14 @@ app.post(
 
     if (!admin.ok) {
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
@@ -7658,7 +9726,9 @@ app.post(
         "dismiss",
         "freeze",
         "remove"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
       return res
         .status(400)
@@ -7672,7 +9742,8 @@ app.post(
     }
 
     const {
-      data: report
+      data:
+        report
     } =
       await supabase
         .from("reports")
@@ -7783,11 +9854,14 @@ app.post(
 
     if (!admin.ok) {
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
@@ -7808,7 +9882,9 @@ app.post(
       ![
         "freeze",
         "unfreeze"
-      ].includes(action)
+      ].includes(
+        action
+      )
     ) {
       return res
         .status(400)
@@ -7825,7 +9901,6 @@ app.post(
       const listing =
         action ===
         "freeze"
-
           ? await freezeListing(
               listingId,
               admin.user.telegram_id,
@@ -7874,11 +9949,14 @@ app.post(
 
     if (!admin.ok) {
       return res
-        .status(admin.status)
+        .status(
+          admin.status
+        )
         .json(
           {
             ok: false,
-            error: admin.error
+            error:
+              admin.error
           }
         );
     }
@@ -7946,6 +10024,7 @@ app.post(
     res.sendStatus(200);
 
     try {
+
       /* =====================================================
          PRE CHECKOUT
          ===================================================== */
@@ -7963,7 +10042,9 @@ app.post(
           );
 
 
-        /* LISTING */
+        /* ---------------------------------------------------
+           NEW PAID LISTING
+           --------------------------------------------------- */
 
         if (
           payload.startsWith(
@@ -7971,11 +10052,134 @@ app.post(
           )
         ) {
           const {
-            data: order
+            data:
+              order
           } =
             await supabase
               .from(
                 "listing_payment_orders"
+              )
+              .select("*")
+              .eq(
+                "invoice_payload",
+                payload
+              )
+              .maybeSingle();
+
+          let valid =
+            Boolean(order);
+
+          if (
+            valid &&
+            order.status !==
+            "created"
+          ) {
+            valid = false;
+          }
+
+          if (
+            valid &&
+            Number(
+              query.from.id
+            ) !==
+            Number(
+              order.seller_telegram_id
+            )
+          ) {
+            valid = false;
+          }
+
+          if (
+            valid &&
+            (
+              query.currency !==
+                "XTR" ||
+              Number(
+                query.total_amount
+              ) !==
+              Number(
+                order.amount_stars
+              )
+            )
+          ) {
+            valid = false;
+          }
+
+          if (valid) {
+            const {
+              data:
+                duplicate
+            } =
+              await supabase
+                .from("listings")
+                .select("id")
+                .eq(
+                  "seller_telegram_id",
+                  order.seller_telegram_id
+                )
+                .ilike(
+                  "whatsapp_username",
+                  order.whatsapp_username
+                )
+                .in(
+                  "status",
+                  [
+                    "pending",
+                    "active",
+                    "reserved"
+                  ]
+                )
+                .limit(1);
+
+            if (
+              duplicate?.length
+            ) {
+              valid = false;
+            }
+          }
+
+          await telegramApi(
+            "answerPreCheckoutQuery",
+
+            valid
+              ? {
+                  pre_checkout_query_id:
+                    query.id,
+
+                  ok: true
+                }
+
+              : {
+                  pre_checkout_query_id:
+                    query.id,
+
+                  ok: false,
+
+                  error_message:
+                    "This listing payment is no longer valid."
+                }
+          );
+
+          return;
+        }
+
+
+        /* ---------------------------------------------------
+           RENEWAL
+           --------------------------------------------------- */
+
+        if (
+          payload.startsWith(
+            "renewal:"
+          )
+        ) {
+          const {
+            data:
+              order
+          } =
+            await supabase
+              .from(
+                "listing_renewal_orders"
               )
               .select("*")
               .eq(
@@ -8025,33 +10229,67 @@ app.post(
 
           if (valid) {
             const {
-              data: duplicate
+              data:
+                listing
             } =
               await supabase
                 .from("listings")
-                .select("id")
+                .select(
+                  "id,seller_telegram_id,status,is_frozen,listing_plan,listing_expires_at"
+                )
                 .eq(
-                  "seller_telegram_id",
-                  order.seller_telegram_id
+                  "id",
+                  order.listing_id
                 )
-                .ilike(
-                  "whatsapp_username",
-                  order.whatsapp_username
-                )
-                .in(
-                  "status",
-                  [
-                    "pending",
-                    "active",
-                    "reserved"
-                  ]
-                )
-                .limit(1);
+                .maybeSingle();
 
             if (
-              duplicate?.length
+              !listing ||
+              Number(
+                listing.seller_telegram_id
+              ) !==
+              Number(
+                order.seller_telegram_id
+              ) ||
+              listing.status !==
+                "active" ||
+              listing.is_frozen ||
+              ![
+                "free",
+                "paid"
+              ].includes(
+                listing.listing_plan
+              ) ||
+              !isListingExpired(
+                listing
+              )
             ) {
               valid = false;
+            }
+
+            if (valid) {
+              const {
+                data:
+                  accepted
+              } =
+                await supabase
+                  .from("offers")
+                  .select("id")
+                  .eq(
+                    "listing_id",
+                    order.listing_id
+                  )
+                  .eq(
+                    "status",
+                    "accepted"
+                  )
+                  .limit(1);
+
+              if (
+                accepted?.length
+              ) {
+                valid = false;
+              }
             }
           }
 
@@ -8062,15 +10300,18 @@ app.post(
               ? {
                   pre_checkout_query_id:
                     query.id,
+
                   ok: true
                 }
 
               : {
                   pre_checkout_query_id:
                     query.id,
+
                   ok: false,
+
                   error_message:
-                    "This listing payment is no longer valid."
+                    "This renewal is no longer available."
                 }
           );
 
@@ -8078,7 +10319,9 @@ app.post(
         }
 
 
-        /* CONTACT */
+        /* ---------------------------------------------------
+           CONTACT
+           --------------------------------------------------- */
 
         if (
           payload.startsWith(
@@ -8086,10 +10329,13 @@ app.post(
           )
         ) {
           const {
-            data: order
+            data:
+              order
           } =
             await supabase
-              .from("contact_unlocks")
+              .from(
+                "contact_unlocks"
+              )
               .select("*")
               .eq(
                 "invoice_payload",
@@ -8138,12 +10384,13 @@ app.post(
 
           if (valid) {
             const {
-              data: listing
+              data:
+                listing
             } =
               await supabase
                 .from("listings")
                 .select(
-                  "status,is_paused,is_frozen"
+                  "status,is_paused,is_frozen,listing_plan,listing_expires_at"
                 )
                 .eq(
                   "id",
@@ -8152,11 +10399,9 @@ app.post(
                 .maybeSingle();
 
             if (
-              !listing ||
-              listing.status !==
-                "active" ||
-              listing.is_paused ||
-              listing.is_frozen
+              !listingIsPubliclyAvailable(
+                listing
+              )
             ) {
               valid = false;
             }
@@ -8169,13 +10414,16 @@ app.post(
               ? {
                   pre_checkout_query_id:
                     query.id,
+
                   ok: true
                 }
 
               : {
                   pre_checkout_query_id:
                     query.id,
+
                   ok: false,
+
                   error_message:
                     "This contact unlock is no longer available."
                 }
@@ -8185,7 +10433,9 @@ app.post(
         }
 
 
-        /* WANTED */
+        /* ---------------------------------------------------
+           WANTED
+           --------------------------------------------------- */
 
         if (
           payload.startsWith(
@@ -8193,7 +10443,8 @@ app.post(
           )
         ) {
           const {
-            data: order
+            data:
+              order
           } =
             await supabase
               .from(
@@ -8247,7 +10498,8 @@ app.post(
 
           if (valid) {
             const {
-              data: user
+              data:
+                user
             } =
               await supabase
                 .from("users")
@@ -8268,10 +10520,13 @@ app.post(
             }
 
             const {
-              data: duplicate
+              data:
+                duplicate
             } =
               await supabase
-                .from("wanted_requests")
+                .from(
+                  "wanted_requests"
+                )
                 .select("id")
                 .eq(
                   "buyer_telegram_id",
@@ -8307,7 +10562,9 @@ app.post(
               : {
                   pre_checkout_query_id:
                     query.id,
+
                   ok: false,
+
                   error_message:
                     "This Wanted payment is no longer valid."
                 }
@@ -8317,7 +10574,9 @@ app.post(
         }
 
 
-        /* PROMOTION */
+        /* ---------------------------------------------------
+           PROMOTION
+           --------------------------------------------------- */
 
         if (
           payload.startsWith(
@@ -8325,7 +10584,8 @@ app.post(
           )
         ) {
           const {
-            data: order
+            data:
+              order
           } =
             await supabase
               .from(
@@ -8399,12 +10659,13 @@ app.post(
             }
 
             const {
-              data: listing
+              data:
+                listing
             } =
               await supabase
                 .from("listings")
                 .select(
-                  "seller_telegram_id,status,is_paused,is_frozen"
+                  "id,seller_telegram_id,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until"
                 )
                 .eq(
                   "id",
@@ -8419,18 +10680,31 @@ app.post(
               ) !==
               Number(
                 order.seller_telegram_id
-              ) ||
-              listing.status !==
-                "active" ||
-              listing.is_paused ||
-              listing.is_frozen
+              )
             ) {
               valid = false;
+
+            } else {
+              const eligibility =
+                calculatePromotionUntil(
+                  listing,
+                  order.promotion_type,
+                  Number(
+                    order.duration_hours
+                  )
+                );
+
+              if (
+                !eligibility.ok
+              ) {
+                valid = false;
+              }
             }
 
             if (valid) {
               const {
-                data: accepted
+                data:
+                  accepted
               } =
                 await supabase
                   .from("offers")
@@ -8460,13 +10734,16 @@ app.post(
               ? {
                   pre_checkout_query_id:
                     query.id,
+
                   ok: true
                 }
 
               : {
                   pre_checkout_query_id:
                     query.id,
+
                   ok: false,
+
                   error_message:
                     "This promotion is no longer available."
                 }
@@ -8475,9 +10752,9 @@ app.post(
           return;
         }
 
+
         await telegramApi(
           "answerPreCheckoutQuery",
-
           {
             pre_checkout_query_id:
               query.id,
@@ -8524,9 +10801,9 @@ app.post(
           .telegram_payment_charge_id;
 
 
-      /* =====================================================
-         LISTING SUCCESS
-         ===================================================== */
+      /* -----------------------------------------------------
+         NEW PAID LISTING SUCCESS
+         ----------------------------------------------------- */
 
       if (
         payload.startsWith(
@@ -8534,7 +10811,8 @@ app.post(
         )
       ) {
         const {
-          data: order
+          data:
+            order
         } =
           await supabase
             .from(
@@ -8564,14 +10842,10 @@ app.post(
             Number(
               order.seller_telegram_id
             )
-
           &&
-
           payment.currency ===
             "XTR"
-
           &&
-
           Number(
             payment.total_amount
           ) ===
@@ -8589,7 +10863,8 @@ app.post(
           )
           .update(
             {
-              status: "paid",
+              status:
+                "paid",
 
               telegram_payment_charge_id:
                 chargeId,
@@ -8605,7 +10880,8 @@ app.post(
 
         try {
           const {
-            data: alreadyCreated
+            data:
+              alreadyCreated
           } =
             await supabase
               .from("listings")
@@ -8665,7 +10941,19 @@ app.post(
                       false,
 
                     is_frozen:
-                      false
+                      false,
+
+                    listing_plan:
+                      "paid",
+
+                    listing_period_started_at:
+                      null,
+
+                    listing_expires_at:
+                      null,
+
+                    renewal_count:
+                      0
                   }
                 );
 
@@ -8679,7 +10967,8 @@ app.post(
           );
 
           const {
-            error: contactError
+            error:
+              contactError
           } =
             await supabase
               .from(
@@ -8731,8 +11020,7 @@ app.post(
 
           safeSendMessage(
             order.seller_telegram_id,
-
-            `✅ Payment received. @${order.whatsapp_username} was submitted for moderation.`
+            `✅ Payment received. @${order.whatsapp_username} was submitted for moderation.\n\nYour ${PAID_LISTING_DURATION_DAYS}-day listing timer will start after approval.`
           );
 
         } catch (error) {
@@ -8794,9 +11082,276 @@ app.post(
       }
 
 
-      /* =====================================================
+      /* -----------------------------------------------------
+         RENEWAL SUCCESS
+         ----------------------------------------------------- */
+
+      if (
+        payload.startsWith(
+          "renewal:"
+        )
+      ) {
+        const {
+          data:
+            order
+        } =
+          await supabase
+            .from(
+              "listing_renewal_orders"
+            )
+            .select("*")
+            .eq(
+              "invoice_payload",
+              payload
+            )
+            .maybeSingle();
+
+        if (
+          !order ||
+          [
+            "completed",
+            "refunded"
+          ].includes(
+            order.status
+          )
+        ) {
+          return;
+        }
+
+        const valid =
+          payerId ===
+            Number(
+              order.seller_telegram_id
+            )
+          &&
+          payment.currency ===
+            "XTR"
+          &&
+          Number(
+            payment.total_amount
+          ) ===
+          Number(
+            order.amount_stars
+          );
+
+        if (!valid) {
+          return;
+        }
+
+        await supabase
+          .from(
+            "listing_renewal_orders"
+          )
+          .update(
+            {
+              status:
+                "paid",
+
+              telegram_payment_charge_id:
+                chargeId,
+
+              paid_at:
+                nowIso()
+            }
+          )
+          .eq(
+            "id",
+            order.id
+          );
+
+        try {
+          const {
+            data:
+              listing
+          } =
+            await supabase
+              .from("listings")
+              .select(
+                "id,seller_telegram_id,whatsapp_username,status,is_frozen,listing_plan,listing_expires_at,renewal_count"
+              )
+              .eq(
+                "id",
+                order.listing_id
+              )
+              .maybeSingle();
+
+          if (
+            !listing ||
+            Number(
+              listing.seller_telegram_id
+            ) !==
+            Number(
+              order.seller_telegram_id
+            ) ||
+            listing.status !==
+              "active" ||
+            listing.is_frozen ||
+            ![
+              "free",
+              "paid"
+            ].includes(
+              listing.listing_plan
+            ) ||
+            !isListingExpired(
+              listing
+            )
+          ) {
+            throw new Error(
+              "listing_not_renewable"
+            );
+          }
+
+          const {
+            data:
+              accepted
+          } =
+            await supabase
+              .from("offers")
+              .select("id")
+              .eq(
+                "listing_id",
+                listing.id
+              )
+              .eq(
+                "status",
+                "accepted"
+              )
+              .limit(1);
+
+          if (
+            accepted?.length
+          ) {
+            throw new Error(
+              "listing_has_agreement"
+            );
+          }
+
+          const startedAt =
+            nowIso();
+
+          const expiresAt =
+            addDaysIso(
+              startedAt,
+              PAID_LISTING_DURATION_DAYS
+            );
+
+          const {
+            error:
+              updateError
+          } =
+            await supabase
+              .from("listings")
+              .update(
+                {
+                  listing_plan:
+                    "paid",
+
+                  listing_period_started_at:
+                    startedAt,
+
+                  listing_expires_at:
+                    expiresAt,
+
+                  last_renewed_at:
+                    startedAt,
+
+                  renewal_count:
+                    Number(
+                      listing.renewal_count ||
+                      0
+                    ) + 1,
+
+                  is_paused:
+                    false,
+
+                  listing_expiry_1h_notified_at:
+                    null,
+
+                  listing_expired_notified_at:
+                    null,
+
+                  updated_at:
+                    nowIso()
+                }
+              )
+              .eq(
+                "id",
+                listing.id
+              );
+
+          if (
+            updateError
+          ) {
+            throw updateError;
+          }
+
+          await supabase
+            .from(
+              "listing_renewal_orders"
+            )
+            .update(
+              {
+                status:
+                  "completed",
+
+                completed_at:
+                  nowIso()
+              }
+            )
+            .eq(
+              "id",
+              order.id
+            );
+
+          safeSendMessage(
+            listing.seller_telegram_id,
+            `✅ @${listing.whatsapp_username} was renewed successfully.\n\nYour listing is active for another ${PAID_LISTING_DURATION_DAYS} days.`
+          );
+
+        } catch (error) {
+          console.error(
+            "Renewal fulfillment failed:",
+            error
+          );
+
+          try {
+            await refundStars(
+              payerId,
+              chargeId
+            );
+
+            await supabase
+              .from(
+                "listing_renewal_orders"
+              )
+              .update(
+                {
+                  status:
+                    "refunded"
+                }
+              )
+              .eq(
+                "id",
+                order.id
+              );
+
+          } catch (
+            refundError
+          ) {
+            console.error(
+              "Renewal refund failed:",
+              refundError.message
+            );
+          }
+        }
+
+        return;
+      }
+
+
+      /* -----------------------------------------------------
          CONTACT SUCCESS
-         ===================================================== */
+         ----------------------------------------------------- */
 
       if (
         payload.startsWith(
@@ -8804,7 +11359,8 @@ app.post(
         )
       ) {
         const {
-          data: order
+          data:
+            order
         } =
           await supabase
             .from(
@@ -8834,14 +11390,10 @@ app.post(
             Number(
               order.buyer_telegram_id
             )
-
           &&
-
           payment.currency ===
             "XTR"
-
           &&
-
           Number(
             payment.total_amount
           ) ===
@@ -8854,12 +11406,13 @@ app.post(
         }
 
         const {
-          data: listing
+          data:
+            listing
         } =
           await supabase
             .from("listings")
             .select(
-              "status,is_paused,is_frozen"
+              "status,is_paused,is_frozen,listing_plan,listing_expires_at"
             )
             .eq(
               "id",
@@ -8868,13 +11421,16 @@ app.post(
             .maybeSingle();
 
         const {
-          data: sellerContact
+          data:
+            sellerContact
         } =
           await supabase
             .from(
               "listing_contacts"
             )
-            .select("listing_id")
+            .select(
+              "listing_id"
+            )
             .eq(
               "listing_id",
               order.listing_id
@@ -8882,11 +11438,9 @@ app.post(
             .maybeSingle();
 
         if (
-          !listing ||
-          listing.status !==
-            "active" ||
-          listing.is_paused ||
-          listing.is_frozen ||
+          !listingIsPubliclyAvailable(
+            listing
+          ) ||
           !sellerContact
         ) {
           try {
@@ -8921,7 +11475,8 @@ app.post(
         }
 
         const {
-          error: unlockError
+          error:
+            unlockError
         } =
           await supabase
             .from(
@@ -8929,7 +11484,8 @@ app.post(
             )
             .update(
               {
-                status: "paid",
+                status:
+                  "paid",
 
                 telegram_payment_charge_id:
                   chargeId,
@@ -8960,9 +11516,9 @@ app.post(
       }
 
 
-      /* =====================================================
+      /* -----------------------------------------------------
          WANTED SUCCESS
-         ===================================================== */
+         ----------------------------------------------------- */
 
       if (
         payload.startsWith(
@@ -8970,7 +11526,8 @@ app.post(
         )
       ) {
         const {
-          data: order
+          data:
+            order
         } =
           await supabase
             .from(
@@ -9000,14 +11557,10 @@ app.post(
             Number(
               order.buyer_telegram_id
             )
-
           &&
-
           payment.currency ===
             "XTR"
-
           &&
-
           Number(
             payment.total_amount
           ) ===
@@ -9025,7 +11578,8 @@ app.post(
           )
           .update(
             {
-              status: "paid",
+              status:
+                "paid",
 
               telegram_payment_charge_id:
                 chargeId,
@@ -9041,7 +11595,8 @@ app.post(
 
         try {
           const {
-            data: user
+            data:
+              user
           } =
             await supabase
               .from("users")
@@ -9064,10 +11619,13 @@ app.post(
           }
 
           const {
-            data: duplicate
+            data:
+              duplicate
           } =
             await supabase
-              .from("wanted_requests")
+              .from(
+                "wanted_requests"
+              )
               .select("id")
               .eq(
                 "buyer_telegram_id",
@@ -9096,7 +11654,8 @@ app.post(
             order.id;
 
           const {
-            data: existingPost
+            data:
+              existingPost
           } =
             await supabase
               .from(
@@ -9177,7 +11736,6 @@ app.post(
 
           safeSendMessage(
             order.buyer_telegram_id,
-
             `✅ Wanted request for @${order.desired_username} is now live.`
           );
 
@@ -9222,9 +11780,9 @@ app.post(
       }
 
 
-      /* =====================================================
+      /* -----------------------------------------------------
          PROMOTION SUCCESS
-         ===================================================== */
+         ----------------------------------------------------- */
 
       if (
         payload.startsWith(
@@ -9232,7 +11790,8 @@ app.post(
         )
       ) {
         const {
-          data: order
+          data:
+            order
         } =
           await supabase
             .from(
@@ -9262,14 +11821,10 @@ app.post(
             Number(
               order.seller_telegram_id
             )
-
           &&
-
           payment.currency ===
             "XTR"
-
           &&
-
           Number(
             payment.total_amount
           ) ===
@@ -9287,7 +11842,8 @@ app.post(
           )
           .update(
             {
-              status: "paid",
+              status:
+                "paid",
 
               telegram_payment_charge_id:
                 chargeId,
@@ -9303,12 +11859,13 @@ app.post(
 
         try {
           const {
-            data: listing
+            data:
+              listing
           } =
             await supabase
               .from("listings")
               .select(
-                "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,bump_until,hot_until,vip_until"
+                "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until"
               )
               .eq(
                 "id",
@@ -9332,17 +11889,6 @@ app.post(
             Number(
               order.seller_telegram_id
             ) ||
-            listing.status !==
-              "active" ||
-            listing.is_paused ||
-            listing.is_frozen
-          ) {
-            throw new Error(
-              "listing_not_promotable"
-            );
-          }
-
-          if (
             !expectedPrice ||
             Number(
               expectedPrice
@@ -9352,12 +11898,13 @@ app.post(
             )
           ) {
             throw new Error(
-              "promotion_price_changed"
+              "listing_not_promotable"
             );
           }
 
           const {
-            data: accepted
+            data:
+              accepted
           } =
             await supabase
               .from("offers")
@@ -9380,6 +11927,23 @@ app.post(
             );
           }
 
+          const eligibility =
+            calculatePromotionUntil(
+              listing,
+              order.promotion_type,
+              Number(
+                order.duration_hours
+              )
+            );
+
+          if (
+            !eligibility.ok
+          ) {
+            throw new Error(
+              eligibility.error
+            );
+          }
+
           const type =
             order.promotion_type;
 
@@ -9389,37 +11953,14 @@ app.post(
           const promotedAtField =
             `${type}_promoted_at`;
 
-          const now =
-            Date.now();
+          const hourField =
+            `${type}_expiry_1h_notified_at`;
 
-          const currentUntil =
-            new Date(
-              listing[
-                untilField
-              ] || 0
-            ).getTime();
-
-          const baseMs =
-            Number.isFinite(
-              currentUntil
-            ) &&
-            currentUntil >
-              now
-
-              ? currentUntil
-
-              : now;
+          const expiredField =
+            `${type}_expired_notified_at`;
 
           const appliedUntil =
-            new Date(
-              baseMs +
-              Number(
-                order.duration_hours
-              ) *
-              60 *
-              60 *
-              1000
-            ).toISOString();
+            eligibility.applied_until;
 
           const updateData = {
             [untilField]:
@@ -9428,12 +11969,19 @@ app.post(
             [promotedAtField]:
               nowIso(),
 
+            [hourField]:
+              null,
+
+            [expiredField]:
+              null,
+
             updated_at:
               nowIso()
           };
 
           const {
-            error: updateError
+            error:
+              updateError
           } =
             await supabase
               .from("listings")
@@ -9473,15 +12021,16 @@ app.post(
             );
 
           const label =
-            type === "vip"
+            type ===
+              "vip"
               ? "💎 VIP"
-              : type === "hot"
+              : type ===
+                "hot"
                 ? "🔥 HOT"
                 : "⬆️ Bump";
 
           safeSendMessage(
             order.seller_telegram_id,
-
             `${label} promotion activated for @${listing.whatsapp_username}.\n\nActive until: ${new Date(appliedUntil).toUTCString()}`
           );
 
@@ -9546,7 +12095,9 @@ app.use(
     res,
     next
   ) => {
-    console.error(error);
+    console.error(
+      error
+    );
 
     res
       .status(400)
@@ -9580,7 +12131,35 @@ app.listen(
     setupTelegramWebhook()
       .catch(
         error =>
-          console.error(error)
+          console.error(
+            error
+          )
       );
+
+    setTimeout(
+      () => {
+        processListingExpiryNotifications()
+          .catch(
+            error =>
+              console.error(
+                error
+              )
+          );
+      },
+      5000
+    );
+
+    setInterval(
+      () => {
+        processListingExpiryNotifications()
+          .catch(
+            error =>
+              console.error(
+                error
+              )
+          );
+      },
+      60 * 1000
+    );
   }
 );
