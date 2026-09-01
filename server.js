@@ -6153,7 +6153,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v39-admin-platform"
+                    "v40-analytics-admin-search"
             }
         );
     }
@@ -7244,6 +7244,303 @@ app.post(
                 order
             }
         );
+    }
+);
+
+
+/* =========================================================
+   V40 SELLER ANALYTICS
+   Private analytics for the authenticated seller only.
+   ========================================================= */
+
+app.post(
+    "/seller-analytics",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json({
+                    ok:false,
+                    error:auth.error
+                });
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,status,is_premium_name,views_count,likes_count,is_paused,is_frozen,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
+                )
+                .eq(
+                    "seller_telegram_id",
+                    auth.user.telegram_id
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                );
+
+
+        if (error) {
+
+            console.error(
+                "Seller analytics listings:",
+                error
+            );
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"seller_analytics_load_failed"
+                });
+        }
+
+
+        const promoted =
+            (
+                data || []
+            ).map(
+                withPromotion
+            );
+
+
+        const withStats =
+            await attachOwnerListingStats(
+                promoted
+            );
+
+
+        const rows =
+            withStats.map(
+                row =>
+                    withLifecycle(
+                        row
+                    )
+            );
+
+
+        const summary = {
+            listings_total:
+                rows.length,
+            listings_active:
+                0,
+            listings_pending:
+                0,
+            listings_frozen:
+                0,
+            listings_expired:
+                0,
+            views:
+                0,
+            likes:
+                0,
+            watchlists:
+                0,
+            offers:
+                0
+        };
+
+
+        const analytics =
+            rows.map(
+                row => {
+
+                    const stats =
+                        row.stats || {};
+
+                    const views =
+                        Number(
+                            stats.views ??
+                            row.views_count ??
+                            0
+                        );
+
+                    const likes =
+                        Number(
+                            stats.likes ??
+                            row.likes_count ??
+                            0
+                        );
+
+                    const watchlists =
+                        Number(
+                            stats.watchlists ??
+                            0
+                        );
+
+                    const offers =
+                        Number(
+                            stats.offers ??
+                            0
+                        );
+
+
+                    summary.views +=
+                        views;
+
+                    summary.likes +=
+                        likes;
+
+                    summary.watchlists +=
+                        watchlists;
+
+                    summary.offers +=
+                        offers;
+
+
+                    if (
+                        row.is_expired
+                    ) {
+                        summary.listings_expired += 1;
+
+                    } else if (
+                        row.is_frozen
+                    ) {
+                        summary.listings_frozen += 1;
+
+                    } else if (
+                        row.status ===
+                        "pending"
+                    ) {
+                        summary.listings_pending += 1;
+
+                    } else if (
+                        row.status ===
+                        "active" &&
+                        !row.is_paused
+                    ) {
+                        summary.listings_active += 1;
+                    }
+
+
+                    const engagementRate =
+                        views > 0
+                            ? (
+                                (
+                                    likes +
+                                    watchlists +
+                                    offers
+                                ) /
+                                views
+                            ) * 100
+                            : 0;
+
+
+                    const offerRate =
+                        views > 0
+                            ? (
+                                offers /
+                                views
+                            ) * 100
+                            : 0;
+
+
+                    const performanceScore =
+                        views +
+                        likes * 3 +
+                        watchlists * 5 +
+                        offers * 8;
+
+
+                    return {
+                        id:
+                            row.id,
+                        listing_number:
+                            row.listing_number,
+                        whatsapp_username:
+                            row.whatsapp_username,
+                        asking_price:
+                            row.asking_price,
+                        price_type:
+                            row.price_type,
+                        minimum_offer:
+                            row.minimum_offer,
+                        currency:
+                            row.currency,
+                        category:
+                            row.category,
+                        status:
+                            row.status,
+                        is_paused:
+                            Boolean(
+                                row.is_paused
+                            ),
+                        is_frozen:
+                            Boolean(
+                                row.is_frozen
+                            ),
+                        is_expired:
+                            Boolean(
+                                row.is_expired
+                            ),
+                        is_premium_name:
+                            Boolean(
+                                row.is_premium_name
+                            ),
+                        promotion_type:
+                            row.promotion_type ||
+                            null,
+                        created_at:
+                            row.created_at,
+                        listing_expires_at:
+                            row.listing_expires_at,
+                        stats:{
+                            views,
+                            likes,
+                            watchlists,
+                            offers
+                        },
+                        engagement_rate:
+                            Number(
+                                engagementRate.toFixed(2)
+                            ),
+                        offer_rate:
+                            Number(
+                                offerRate.toFixed(2)
+                            ),
+                        performance_score:
+                            performanceScore
+                    };
+                }
+            );
+
+
+        const top =
+            [...analytics]
+                .sort(
+                    (a,b) =>
+                        b.performance_score -
+                        a.performance_score
+                )
+                .slice(
+                    0,
+                    5
+                );
+
+
+        return res.json({
+            ok:true,
+            summary,
+            top_listings:top,
+            listings:analytics
+        });
     }
 );
 
@@ -14263,6 +14560,11 @@ const ADMIN_ROUTE_ROLES = {
         "support"
     ],
 
+    "/admin/search": [
+        "owner",
+        "moderator"
+    ],
+
     "/admin/support-tickets": [
         "owner",
         "moderator",
@@ -14449,6 +14751,261 @@ app.use(
 
 
         next();
+    }
+);
+
+
+/* =========================================================
+   V40 ADMIN GLOBAL SEARCH
+   Owner / Moderator only via V39 role gate.
+   Searches LOT number, listing UUID, WhatsApp username,
+   or exact seller Telegram ID.
+   ========================================================= */
+
+app.post(
+    "/admin/search",
+    async (req, res) => {
+
+        const raw =
+            String(
+                req.body.q ||
+                ""
+            )
+                .trim()
+                .slice(
+                    0,
+                    100
+                );
+
+
+        if (!raw) {
+
+            return res.json({
+                ok:true,
+                listings:[]
+            });
+        }
+
+
+        let query =
+            supabase
+                .from("listings")
+                .select(
+                    "id,listing_number,seller_telegram_id,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,status,is_paused,is_frozen,frozen_reason,is_premium_name,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at,contact_review_required,contact_last_changed_at"
+                );
+
+
+        const lotMatch =
+            raw.match(
+                /^(?:lot\s*#?\s*)?(\d{1,12})$/i
+            );
+
+        const uuidMatch =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+                .test(raw);
+
+
+        if (uuidMatch) {
+
+            query =
+                query.eq(
+                    "id",
+                    raw
+                );
+
+        } else if (lotMatch) {
+
+            const numeric =
+                Number(
+                    lotMatch[1]
+                );
+
+
+            if (
+                !Number.isSafeInteger(
+                    numeric
+                ) ||
+                numeric <= 0
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+                        ok:false,
+                        error:"invalid_admin_search"
+                    });
+            }
+
+
+            if (
+                numeric <=
+                2147483647
+            ) {
+
+                query =
+                    query.or(
+                        `listing_number.eq.${numeric},seller_telegram_id.eq.${numeric}`
+                    );
+
+            } else {
+
+                query =
+                    query.eq(
+                        "seller_telegram_id",
+                        numeric
+                    );
+            }
+
+        } else {
+
+            const username =
+                raw
+                    .replace(
+                        /^@/,
+                        ""
+                    )
+                    .replace(
+                        /[^a-zA-Z0-9_.]/g,
+                        ""
+                    )
+                    .slice(
+                        0,
+                        64
+                    );
+
+
+            if (!username) {
+
+                return res
+                    .status(400)
+                    .json({
+                        ok:false,
+                        error:"invalid_admin_search"
+                    });
+            }
+
+
+            query =
+                query.ilike(
+                    "whatsapp_username",
+                    `%${username}%`
+                );
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await query
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(30);
+
+
+        if (error) {
+
+            console.error(
+                "Admin global search:",
+                error
+            );
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"admin_search_failed"
+                });
+        }
+
+
+        const rows =
+            (
+                data || []
+            ).map(
+                row =>
+                    withLifecycle(
+                        withPromotion(
+                            row
+                        )
+                    )
+            );
+
+
+        const sellerIds = [
+            ...new Set(
+                rows.map(
+                    row =>
+                        Number(
+                            row.seller_telegram_id
+                        )
+                )
+                .filter(
+                    Number.isFinite
+                )
+            )
+        ];
+
+
+        let sellers = [];
+
+
+        if (
+            sellerIds.length
+        ) {
+
+            const {
+                data:sellerRows
+            } =
+                await supabase
+                    .from("users")
+                    .select(
+                        "telegram_id,first_name,last_name,is_blocked"
+                    )
+                    .in(
+                        "telegram_id",
+                        sellerIds
+                    );
+
+
+            sellers =
+                sellerRows || [];
+        }
+
+
+        const sellerMap =
+            new Map(
+                sellers.map(
+                    seller => [
+                        String(
+                            seller.telegram_id
+                        ),
+                        seller
+                    ]
+                )
+            );
+
+
+        return res.json({
+            ok:true,
+            listings:
+                rows.map(
+                    row => ({
+                        ...row,
+                        seller:
+                            sellerMap.get(
+                                String(
+                                    row.seller_telegram_id
+                                )
+                            ) ||
+                            null
+                    })
+                )
+        });
     }
 );
 

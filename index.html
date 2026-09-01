@@ -23614,5 +23614,694 @@ if (
 }
 </script>
 
+
+
+<style>
+/* =========================================================
+   V40 SELLER ANALYTICS + ADMIN GLOBAL SEARCH
+   ========================================================= */
+.v40-analytics-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    margin:12px 0;
+}
+.v40-stat{
+    border:1px solid var(--border);
+    background:var(--surface);
+    border-radius:16px;
+    padding:13px;
+}
+.v40-stat-value{
+    font-size:20px;
+    font-weight:900;
+    line-height:1.1;
+}
+.v40-stat-label{
+    margin-top:5px;
+    font-size:12px;
+    color:var(--muted);
+    font-weight:700;
+}
+.v40-performance-card{
+    border:1px solid var(--border);
+    background:var(--surface);
+    border-radius:18px;
+    padding:14px;
+    margin-top:10px;
+}
+.v40-performance-top{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:flex-start;
+}
+.v40-performance-metrics{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
+    margin-top:12px;
+}
+.v40-metric{
+    text-align:center;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:8px 4px;
+    background:var(--surface-2);
+}
+.v40-metric strong{
+    display:block;
+    font-size:14px;
+}
+.v40-metric span{
+    display:block;
+    color:var(--muted);
+    font-size:10px;
+    margin-top:3px;
+}
+.v40-rate-row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:9px;
+}
+.v40-rate-chip{
+    padding:6px 9px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    font-size:11px;
+    font-weight:800;
+    background:var(--surface-2);
+}
+.v40-search-row{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:8px;
+    margin-top:10px;
+}
+.v40-search-result{
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:14px;
+    margin-top:10px;
+    background:var(--surface);
+}
+.v40-search-meta{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-top:8px;
+}
+.v40-status-chip{
+    display:inline-flex;
+    align-items:center;
+    padding:5px 8px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    font-size:10px;
+    font-weight:900;
+    text-transform:uppercase;
+    background:var(--surface-2);
+}
+@media (min-width:700px){
+    .v40-analytics-grid{
+        grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+}
+</style>
+
+<script>
+/* =========================================================
+   V40 — SELLER ANALYTICS
+   ========================================================= */
+
+function v40InjectAnalyticsPage() {
+
+    if (
+        document.getElementById(
+            "sellerAnalytics"
+        )
+    ) {
+        return;
+    }
+
+
+    const nav =
+        document.querySelector(
+            ".bottom-nav"
+        );
+
+
+    if (!nav) {
+        return;
+    }
+
+
+    nav.insertAdjacentHTML(
+        "beforebegin",
+        `
+            <div id="sellerAnalytics" class="page">
+                <div class="page-heading">
+                    <div class="page-title">📊 ${v39T("Seller Analytics","Аналитика продавца")}</div>
+                    <div class="page-description">${v39T("Private performance data for your own listings.","Приватная статистика только по вашим лотам.")}</div>
+                </div>
+
+                <div class="section">
+                    <div id="v40SellerAnalyticsContent">
+                        <div class="empty">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        `
+    );
+}
+
+
+function v40ListingStatusLabel(
+    listing
+) {
+
+    if (listing.is_expired) {
+        return v39T(
+            "Expired",
+            "Истёк"
+        );
+    }
+
+
+    if (listing.is_frozen) {
+        return v39T(
+            "Frozen",
+            "Заморожен"
+        );
+    }
+
+
+    if (
+        listing.status ===
+        "pending"
+    ) {
+        return v39T(
+            "Pending",
+            "На модерации"
+        );
+    }
+
+
+    if (listing.is_paused) {
+        return v39T(
+            "Paused",
+            "На паузе"
+        );
+    }
+
+
+    if (
+        listing.status ===
+        "active"
+    ) {
+        return v39T(
+            "Active",
+            "Активен"
+        );
+    }
+
+
+    return String(
+        listing.status ||
+        "—"
+    );
+}
+
+
+async function openSellerAnalytics() {
+
+    v40InjectAnalyticsPage();
+
+    openPage(
+        "sellerAnalytics",
+        null
+    );
+
+    await loadSellerAnalytics();
+}
+
+
+async function loadSellerAnalytics() {
+
+    const container =
+        document.getElementById(
+            "v40SellerAnalyticsContent"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    container.innerHTML =
+        '<div class="empty">Loading...</div>';
+
+
+    try {
+
+        const data =
+            await api(
+                "/seller-analytics",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const s =
+            data.summary ||
+            {};
+
+
+        const cards = [
+            ["📦",s.listings_total,v39T("Total Listings","Всего лотов")],
+            ["🟢",s.listings_active,v39T("Active","Активные")],
+            ["👁",s.views,v39T("Views","Просмотры")],
+            ["❤️",s.likes,v39T("Likes","Лайки")],
+            ["⭐",s.watchlists,v39T("Watchlists","В избранном")],
+            ["💬",s.offers,v39T("Offers","Предложения")],
+            ["⏳",s.listings_pending,v39T("Pending","На модерации")],
+            ["🧊",s.listings_frozen,v39T("Frozen","Замороженные")]
+        ];
+
+
+        const listings =
+            data.listings ||
+            [];
+
+
+        container.innerHTML = `
+            <div class="v40-analytics-grid">
+                ${cards.map(card => `
+                    <div class="v40-stat">
+                        <div class="v40-stat-value">${card[0]} ${Number(card[1] || 0).toLocaleString("en-US")}</div>
+                        <div class="v40-stat-label">${escapeHtml(card[2])}</div>
+                    </div>
+                `).join("")}
+            </div>
+
+            <div class="section-title" style="margin-top:18px">
+                🏆 ${v39T("Listing Performance","Эффективность лотов")}
+            </div>
+
+            <div class="section-subtitle">
+                ${v39T("Views, likes, watchlists and offers are visible only to you here.","Просмотры, лайки, добавления в избранное и предложения здесь видны только вам.")}
+            </div>
+
+            ${
+                listings.length
+                    ? listings.map(listing => {
+
+                        const stats =
+                            listing.stats || {};
+
+                        return `
+                            <div class="v40-performance-card">
+                                <div class="v40-performance-top">
+                                    <div>
+                                        ${listingNumberHtml(listing)}
+                                        <div class="username">@${escapeHtml(listing.whatsapp_username || "username")}</div>
+                                        <div class="price">$${formatPrice(listing.asking_price)}</div>
+                                    </div>
+                                    <span class="v40-status-chip">${escapeHtml(v40ListingStatusLabel(listing))}</span>
+                                </div>
+
+                                <div class="v40-performance-metrics">
+                                    <div class="v40-metric"><strong>${Number(stats.views || 0).toLocaleString("en-US")}</strong><span>👁 ${v39T("Views","Просм.")}</span></div>
+                                    <div class="v40-metric"><strong>${Number(stats.likes || 0).toLocaleString("en-US")}</strong><span>❤️ ${v39T("Likes","Лайки")}</span></div>
+                                    <div class="v40-metric"><strong>${Number(stats.watchlists || 0).toLocaleString("en-US")}</strong><span>⭐ ${v39T("Saved","Сохр.")}</span></div>
+                                    <div class="v40-metric"><strong>${Number(stats.offers || 0).toLocaleString("en-US")}</strong><span>💬 ${v39T("Offers","Офферы")}</span></div>
+                                </div>
+
+                                <div class="v40-rate-row">
+                                    <span class="v40-rate-chip">${v39T("Engagement","Вовлечение")}: ${Number(listing.engagement_rate || 0).toFixed(2)}%</span>
+                                    <span class="v40-rate-chip">${v39T("Offer rate","Конверсия в оффер")}: ${Number(listing.offer_rate || 0).toFixed(2)}%</span>
+                                </div>
+
+                                <div class="buttons" style="margin-top:10px">
+                                    <button class="secondary" onclick="openListingPage('${listing.id}')">${v39T("Open Listing","Открыть лот")}</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join("")
+                    : `<div class="empty">${v39T("No listings yet.","Лотов пока нет.")}</div>`
+            }
+        `;
+
+    } catch (error) {
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+    }
+}
+
+
+v40InjectAnalyticsPage();
+
+
+const v40BaseRenderMainProfile =
+    renderMainProfile;
+
+
+renderMainProfile =
+function renderMainProfileV40(
+    user
+) {
+
+    v40BaseRenderMainProfile(
+        user
+    );
+
+
+    const menu =
+        document.querySelector(
+            "#profileContent .profile-menu"
+        );
+
+
+    if (
+        menu &&
+        !document.getElementById(
+            "v40AnalyticsTile"
+        )
+    ) {
+
+        const faqTile =
+            document.getElementById(
+                "v39FaqTile"
+            );
+
+
+        const html = `
+            <button id="v40AnalyticsTile" class="profile-tile" onclick="openSellerAnalytics()">
+                <div class="profile-tile-icon">📊</div>
+                <div>
+                    <div class="profile-tile-title">${v39T("Seller Analytics","Аналитика продавца")}</div>
+                    <div class="profile-tile-subtitle">${v39T("Views, saves & offers","Просмотры, избранное и офферы")}</div>
+                </div>
+            </button>
+        `;
+
+
+        if (faqTile) {
+            faqTile.insertAdjacentHTML(
+                "beforebegin",
+                html
+            );
+        } else {
+            menu.insertAdjacentHTML(
+                "beforeend",
+                html
+            );
+        }
+    }
+};
+
+
+/* =========================================================
+   V40 — ADMIN GLOBAL SEARCH
+   ========================================================= */
+
+function v40InjectAdminSearch() {
+
+    if (
+        document.getElementById(
+            "v40AdminSearchSection"
+        )
+    ) {
+        return;
+    }
+
+
+    const dashboard =
+        document.getElementById(
+            "v39AdminDashboardSection"
+        );
+
+
+    if (!dashboard) {
+        return;
+    }
+
+
+    dashboard.insertAdjacentHTML(
+        "afterend",
+        `
+            <div class="admin-section" id="v40AdminSearchSection">
+                <div class="admin-section-title">🔎 ${v39T("Global Admin Search","Глобальный поиск администратора")}</div>
+                <div class="section-subtitle">${v39T("Search by LOT #, listing UUID, WhatsApp username or seller Telegram ID.","Поиск по LOT #, UUID лота, WhatsApp username или Telegram ID продавца.")}</div>
+
+                <div class="v40-search-row">
+                    <input id="v40AdminSearchInput" placeholder="LOT #000123 / @username / Telegram ID" onkeydown="if(event.key==='Enter'){v40AdminSearch()}">
+                    <button class="primary" onclick="v40AdminSearch()">${v39T("Search","Найти")}</button>
+                </div>
+
+                <div id="v40AdminSearchResults" style="margin-top:10px"></div>
+            </div>
+        `
+    );
+
+
+    v40ApplyAdminSearchVisibility();
+}
+
+
+function v40ApplyAdminSearchVisibility() {
+
+    const section =
+        document.getElementById(
+            "v40AdminSearchSection"
+        );
+
+
+    if (!section) {
+        return;
+    }
+
+
+    section.style.display =
+        [
+            "owner",
+            "moderator"
+        ].includes(
+            v39Role()
+        )
+            ? ""
+            : "none";
+}
+
+
+function v40AdminResultStatus(
+    listing
+) {
+
+    if (listing.is_expired) {
+        return "EXPIRED";
+    }
+
+    if (listing.is_frozen) {
+        return "FROZEN";
+    }
+
+    if (listing.is_paused) {
+        return "PAUSED";
+    }
+
+    return String(
+        listing.status ||
+        "UNKNOWN"
+    ).toUpperCase();
+}
+
+
+async function v40AdminSearch() {
+
+    const input =
+        document.getElementById(
+            "v40AdminSearchInput"
+        );
+
+    const results =
+        document.getElementById(
+            "v40AdminSearchResults"
+        );
+
+
+    if (
+        !input ||
+        !results
+    ) {
+        return;
+    }
+
+
+    const q =
+        String(
+            input.value ||
+            ""
+        ).trim();
+
+
+    if (!q) {
+        results.innerHTML =
+            `<div class="empty">${v39T("Enter a search value.","Введите запрос.")}</div>`;
+        return;
+    }
+
+
+    results.innerHTML =
+        '<div class="empty">Loading...</div>';
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/search",
+                {
+                    initData:
+                        tg.initData,
+                    q
+                }
+            );
+
+
+        const listings =
+            data.listings ||
+            [];
+
+
+        results.innerHTML =
+            listings.length
+                ? listings.map(listing => {
+
+                    const seller =
+                        listing.seller || {};
+
+                    const sellerName =
+                        [
+                            seller.first_name,
+                            seller.last_name
+                        ]
+                            .filter(Boolean)
+                            .join(" ") ||
+                        v39T("Seller","Продавец");
+
+                    const status =
+                        v40AdminResultStatus(
+                            listing
+                        );
+
+                    return `
+                        <div class="v40-search-result">
+                            <div class="v40-performance-top">
+                                <div>
+                                    ${listingNumberHtml(listing)}
+                                    <div class="username">@${escapeHtml(listing.whatsapp_username || "username")}</div>
+                                    <div class="price">$${formatPrice(listing.asking_price)}</div>
+                                </div>
+                                <span class="v40-status-chip">${escapeHtml(status)}</span>
+                            </div>
+
+                            <div class="v40-search-meta">
+                                <span class="category-badge">${escapeHtml(listing.category || "Other")}</span>
+                                ${premiumNameBadgeHtml(listing)}
+                                ${promotionBadgeHtml(listing)}
+                                ${seller.is_blocked ? '<span class="badge badge-rejected">🚫 BLOCKED SELLER</span>' : ''}
+                                ${listing.contact_review_required ? '<span class="badge badge-paused">⚠️ CONTACT REVIEW</span>' : ''}
+                            </div>
+
+                            <div class="field-hint" style="margin-top:9px">
+                                ${escapeHtml(sellerName)} · Telegram ID: ${escapeHtml(listing.seller_telegram_id)}
+                            </div>
+
+                            <div class="buttons" style="margin-top:10px">
+                                ${
+                                    status === "ACTIVE"
+                                        ? `<button class="secondary" onclick="openListingPage('${listing.id}')">${v39T("Open","Открыть")}</button>`
+                                        : ""
+                                }
+                                <button class="secondary" onclick="adminViewListingContact('${listing.id}','${escapeJs(listing.whatsapp_username || "username")}')">🔎 ${v39T("Contact","Контакт")}</button>
+                                <button class="secondary" onclick="adminOpenListingHistory('${escapeJs(listing.listing_number || listing.id)}')">🕓 ${v39T("History","История")}</button>
+
+                                ${
+                                    listing.is_frozen
+                                        ? `<button class="secondary" onclick="adminUnfreezeListing('${listing.id}')">🧊 ${v39T("Unfreeze","Разморозить")}</button>`
+                                        : status !== "REMOVED"
+                                            ? `<button class="freeze-button" onclick="adminFreezeListing('${listing.id}','${escapeJs(listing.whatsapp_username || "username")}')">🧊 ${v39T("Freeze","Заморозить")}</button>`
+                                            : ""
+                                }
+
+                                ${
+                                    status !== "REMOVED"
+                                        ? `<button class="reject-button" onclick="adminRemoveListingConfirmed('${listing.id}','${escapeJs(listing.whatsapp_username || "username")}')">🗑 ${v39T("Remove","Удалить")}</button>`
+                                        : ""
+                                }
+
+                                ${
+                                    !seller.is_blocked
+                                        ? `<button class="reject-button" onclick="adminBlockSellerByListing('${listing.id}','${escapeJs(listing.whatsapp_username || "username")}')">🚫 ${v39T("Block Seller","Блокировать продавца")}</button>`
+                                        : ""
+                                }
+                            </div>
+                        </div>
+                    `;
+                }).join("")
+                : `<div class="empty">${v39T("Nothing found.","Ничего не найдено.")}</div>`;
+
+    } catch (error) {
+
+        results.innerHTML =
+            `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+    }
+}
+
+
+const v40BaseApplyAdminRoleVisibility =
+    v39ApplyAdminRoleVisibility;
+
+
+v39ApplyAdminRoleVisibility =
+function v39ApplyAdminRoleVisibilityV40() {
+
+    v40BaseApplyAdminRoleVisibility();
+    v40ApplyAdminSearchVisibility();
+};
+
+
+const v40BaseLoadAdminPanel =
+    loadAdminPanel;
+
+
+loadAdminPanel =
+async function loadAdminPanelV40() {
+
+    v40InjectAdminSearch();
+
+    await v40BaseLoadAdminPanel();
+
+    v40ApplyAdminSearchVisibility();
+};
+
+
+v40InjectAdminSearch();
+
+
+/* If auth finished before this patch loaded, refresh the Profile once. */
+if (authenticatedUser) {
+    renderMainProfile(
+        authenticatedUser
+    );
+}
+</script>
+
 </body>
 </html>
