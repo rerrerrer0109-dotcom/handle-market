@@ -4302,6 +4302,114 @@ Loading...
 
 
 <!-- =====================================================
+     CHATS
+     ===================================================== -->
+
+<div id="chats" class="page">
+
+<div class="page-heading">
+
+<div class="page-title">
+💬 Chats
+</div>
+
+<div class="page-description">
+Private conversations about listings.
+</div>
+
+</div>
+
+<div class="section">
+
+<div id="chatList">
+
+<div class="empty">
+Loading chats...
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div id="chat" class="page">
+
+<div class="seller-page">
+
+<button
+    class="back-button"
+    onclick="openChats()"
+>
+← Chats
+</button>
+
+<div
+    id="chatHeader"
+    class="card"
+    style="margin-bottom:12px"
+>
+Loading conversation...
+</div>
+
+<div
+    id="chatMessages"
+    class="card"
+    style="
+        min-height:260px;
+        max-height:52vh;
+        overflow-y:auto;
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+    "
+>
+<div class="empty">Loading messages...</div>
+</div>
+
+<form
+    id="chatComposer"
+    style="margin-top:12px"
+    onsubmit="sendChatMessage(event)"
+>
+
+<div class="field">
+
+<textarea
+    id="chatMessageInput"
+    maxlength="1000"
+    rows="3"
+    placeholder="Write a message..."
+    required
+></textarea>
+
+</div>
+
+<button
+    id="chatSendButton"
+    type="submit"
+    class="primary"
+    style="width:100%"
+>
+💬 Send Message
+</button>
+
+</form>
+
+<div
+    class="field-hint"
+    style="margin-top:10px"
+>
+Never send passwords, recovery codes, seed phrases or other account secrets in chat.
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
      ADMIN
      ===================================================== -->
 
@@ -8601,6 +8709,19 @@ function showSellerContact(
                             }
 
                             <button
+                                class="primary"
+                                onclick="
+                                    openChatByListing(
+                                        '${escapeJs(
+                                            listingId
+                                        )}'
+                                    )
+                                "
+                            >
+                                💬 Chat
+                            </button>
+
+                            <button
                                 class="secondary"
                                 onclick="
                                     copyContact(
@@ -12248,6 +12369,687 @@ async function closeWantedRequest(
 
 
 /* =========================================================
+   INTERNAL CHAT
+   ========================================================= */
+
+let currentChatId =
+    null;
+
+let chatPollTimer =
+    null;
+
+let chatLoadBusy =
+    false;
+
+
+function chatCounterpartName(
+    counterpart
+) {
+
+    const fullName =
+        [
+            counterpart?.first_name,
+            counterpart?.last_name
+        ]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+
+
+    if (fullName) {
+
+        return fullName;
+    }
+
+
+    if (
+        counterpart?.telegram_username
+    ) {
+
+        return "@" +
+            counterpart.telegram_username;
+    }
+
+
+    return "Telegram User";
+}
+
+
+function chatTimeLabel(
+    value
+) {
+
+    if (!value) {
+
+        return "";
+    }
+
+
+    try {
+
+        return new Date(
+            value
+        ).toLocaleString();
+
+    } catch {
+
+        return "";
+    }
+}
+
+
+async function openChats() {
+
+    currentChatId =
+        null;
+
+
+    openPage(
+        "chats",
+        null
+    );
+
+
+    await loadChats();
+}
+
+
+async function loadChats() {
+
+    const container =
+        document.getElementById(
+            "chatList"
+        );
+
+
+    if (!container) {
+
+        return;
+    }
+
+
+    container.innerHTML =
+        '<div class="empty">Loading chats...</div>';
+
+
+    try {
+
+        const data =
+            await api(
+                "/chats/list",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const chats =
+            data.chats ||
+            [];
+
+
+        if (!chats.length) {
+
+            container.innerHTML = `
+                <div class="empty">
+                    No chats yet.<br><br>
+                    Buyers can start a chat after unlocking a seller contact.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        container.innerHTML =
+            chats
+                .map(
+                    chat => {
+
+                        const counterpartName =
+                            chatCounterpartName(
+                                chat.counterpart
+                            );
+
+
+                        const telegramName =
+                            chat.counterpart
+                                ?.telegram_username
+                                ? `@${escapeHtml(
+                                    chat.counterpart.telegram_username
+                                )}`
+                                : "";
+
+
+                        const preview =
+                            chat.last_message
+                                ?.message
+                                ? escapeHtml(
+                                    String(
+                                        chat.last_message.message
+                                    ).slice(
+                                        0,
+                                        120
+                                    )
+                                )
+                                : "No messages yet";
+
+
+                        return `
+                            <button
+                                class="card"
+                                style="
+                                    width:100%;
+                                    text-align:left;
+                                    margin-bottom:10px;
+                                    cursor:pointer;
+                                "
+                                onclick="openChatConversation('${escapeJs(
+                                    chat.id
+                                )}')"
+                            >
+
+                                <div class="username">
+                                    @${escapeHtml(
+                                        chat.listing_username ||
+                                        "username"
+                                    )}
+                                </div>
+
+                                <div style="margin-top:6px;font-weight:700">
+                                    ${escapeHtml(
+                                        counterpartName
+                                    )}
+                                </div>
+
+                                ${
+                                    telegramName
+                                        ? `
+                                            <div class="section-subtitle">
+                                                ${telegramName}
+                                            </div>
+                                        `
+                                        : ""
+                                }
+
+                                <div
+                                    class="section-subtitle"
+                                    style="margin-top:8px"
+                                >
+                                    ${preview}
+                                </div>
+
+                                <div
+                                    class="field-hint"
+                                    style="margin-top:8px"
+                                >
+                                    ${escapeHtml(
+                                        chat.role ===
+                                        "seller"
+                                            ? "You are the seller"
+                                            : "You are the buyer"
+                                    )}
+                                    ${
+                                        chat.last_message
+                                            ? ` · ${escapeHtml(
+                                                chatTimeLabel(
+                                                    chat.last_message.created_at
+                                                )
+                                            )}`
+                                            : ""
+                                    }
+                                </div>
+
+                            </button>
+                        `;
+                    }
+                )
+                .join("");
+
+
+    } catch (
+        error
+    ) {
+
+        container.innerHTML = `
+            <div class="empty">
+                ${escapeHtml(
+                    friendlyError(
+                        error.message
+                    )
+                )}
+            </div>
+        `;
+    }
+}
+
+
+async function openChatByListing(
+    listingId
+) {
+
+    try {
+
+        const data =
+            await api(
+                "/chat/open",
+                {
+                    initData:
+                        tg.initData,
+
+                    listing_id:
+                        listingId
+                }
+            );
+
+
+        await openChatConversation(
+            data.chat.id
+        );
+
+
+    } catch (
+        error
+    ) {
+
+        const messages = {
+            contact_unlock_required:
+                "Unlock the seller contact before starting a chat.",
+
+            owner_chat_requires_buyer:
+                "Open Profile → Chats to view buyer conversations.",
+
+            chat_create_failed:
+                "Could not start the chat. Please try again."
+        };
+
+
+        tg?.showAlert(
+            messages[
+                error.message
+            ] ||
+            friendlyError(
+                error.message
+            )
+        );
+    }
+}
+
+
+async function openChatConversation(
+    chatId
+) {
+
+    currentChatId =
+        String(
+            chatId
+        );
+
+
+    openPage(
+        "chat",
+        null
+    );
+
+
+    await loadChatMessages(
+        true
+    );
+
+
+    if (!chatPollTimer) {
+
+        chatPollTimer =
+            setInterval(
+                async () => {
+
+                    if (
+                        currentChatId &&
+                        document.getElementById(
+                            "chat"
+                        )?.classList.contains(
+                            "active"
+                        )
+                    ) {
+
+                        await loadChatMessages(
+                            false
+                        );
+                    }
+                },
+                5000
+            );
+    }
+}
+
+
+async function loadChatMessages(
+    scrollToBottom = false
+) {
+
+    if (
+        !currentChatId ||
+        chatLoadBusy
+    ) {
+
+        return;
+    }
+
+
+    chatLoadBusy =
+        true;
+
+
+    try {
+
+        const data =
+            await api(
+                "/chat/messages",
+                {
+                    initData:
+                        tg.initData,
+
+                    chat_id:
+                        currentChatId
+                }
+            );
+
+
+        if (
+            String(
+                data.chat.id
+            ) !==
+            String(
+                currentChatId
+            )
+        ) {
+
+            return;
+        }
+
+
+        const chat =
+            data.chat;
+
+
+        const counterpartName =
+            chatCounterpartName(
+                chat.counterpart
+            );
+
+
+        const header =
+            document.getElementById(
+                "chatHeader"
+            );
+
+
+        if (header) {
+
+            header.innerHTML = `
+                <div class="username">
+                    @${escapeHtml(
+                        chat.listing_username ||
+                        "username"
+                    )}
+                </div>
+
+                <div style="margin-top:7px;font-weight:700">
+                    ${escapeHtml(
+                        counterpartName
+                    )}
+                </div>
+
+                ${
+                    chat.counterpart
+                        ?.telegram_username
+                        ? `
+                            <div class="section-subtitle">
+                                @${escapeHtml(
+                                    chat.counterpart.telegram_username
+                                )}
+                            </div>
+                        `
+                        : ""
+                }
+            `;
+        }
+
+
+        const container =
+            document.getElementById(
+                "chatMessages"
+            );
+
+
+        if (!container) {
+
+            return;
+        }
+
+
+        const myId =
+            Number(
+                authenticatedUser
+                    ?.telegram_id ||
+                authenticatedUser
+                    ?.id ||
+                tg?.initDataUnsafe
+                    ?.user
+                    ?.id ||
+                0
+            );
+
+
+        const messages =
+            data.messages ||
+            [];
+
+
+        if (!messages.length) {
+
+            container.innerHTML = `
+                <div class="empty">
+                    No messages yet.<br><br>
+                    Start the conversation about @${escapeHtml(
+                        chat.listing_username ||
+                        "username"
+                    )}.
+                </div>
+            `;
+
+        } else {
+
+            container.innerHTML =
+                messages
+                    .map(
+                        item => {
+
+                            const mine =
+                                Number(
+                                    item.sender_telegram_id
+                                ) ===
+                                myId;
+
+
+                            return `
+                                <div
+                                    style="
+                                        align-self:${mine ? "flex-end" : "flex-start"};
+                                        max-width:82%;
+                                        padding:10px 12px;
+                                        border-radius:14px;
+                                        background:${mine ? "var(--button-color, #2481cc)" : "rgba(127,127,127,.14)"};
+                                        color:${mine ? "#fff" : "inherit"};
+                                        white-space:pre-wrap;
+                                        overflow-wrap:anywhere;
+                                    "
+                                >
+                                    <div>
+                                        ${escapeHtml(
+                                            item.message
+                                        )}
+                                    </div>
+
+                                    <div
+                                        style="
+                                            margin-top:5px;
+                                            font-size:11px;
+                                            opacity:.72;
+                                        "
+                                    >
+                                        ${escapeHtml(
+                                            chatTimeLabel(
+                                                item.created_at
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    )
+                    .join("");
+        }
+
+
+        if (scrollToBottom) {
+
+            requestAnimationFrame(
+                () => {
+
+                    container.scrollTop =
+                        container.scrollHeight;
+                }
+            );
+        }
+
+
+    } catch (
+        error
+    ) {
+
+        if (scrollToBottom) {
+
+            tg?.showAlert(
+                friendlyError(
+                    error.message
+                )
+            );
+        }
+
+    } finally {
+
+        chatLoadBusy =
+            false;
+    }
+}
+
+
+async function sendChatMessage(
+    event
+) {
+
+    event.preventDefault();
+
+
+    if (!currentChatId) {
+
+        return;
+    }
+
+
+    const input =
+        document.getElementById(
+            "chatMessageInput"
+        );
+
+
+    const button =
+        document.getElementById(
+            "chatSendButton"
+        );
+
+
+    const message =
+        String(
+            input?.value ||
+            ""
+        ).trim();
+
+
+    if (!message) {
+
+        return;
+    }
+
+
+    button.disabled =
+        true;
+
+
+    try {
+
+        await api(
+            "/chat/send",
+            {
+                initData:
+                    tg.initData,
+
+                chat_id:
+                    currentChatId,
+
+                message
+            }
+        );
+
+
+        input.value =
+            "";
+
+
+        await loadChatMessages(
+            true
+        );
+
+
+    } catch (
+        error
+    ) {
+
+        const messages = {
+            invalid_chat_message:
+                "Message must contain 1–1000 characters.",
+
+            chat_too_fast:
+                "Please wait a moment before sending another message.",
+
+            chat_access_denied:
+                "You do not have access to this chat.",
+
+            chat_send_failed:
+                "Message could not be sent. Please try again."
+        };
+
+
+        tg?.showAlert(
+            messages[
+                error.message
+            ] ||
+            friendlyError(
+                error.message
+            )
+        );
+
+    } finally {
+
+        button.disabled =
+            false;
+    }
+}
+
+
+/* =========================================================
    PROFILE
    ========================================================= */
 
@@ -12361,6 +13163,30 @@ function renderMainProfile(
 
                         <div class="profile-tile-subtitle">
                             Negotiations
+                        </div>
+
+                    </div>
+
+                </button>
+
+
+                <button
+                    class="profile-tile"
+                    onclick="openChats()"
+                >
+
+                    <div class="profile-tile-icon">
+                        💬
+                    </div>
+
+                    <div>
+
+                        <div class="profile-tile-title">
+                            Chats
+                        </div>
+
+                        <div class="profile-tile-subtitle">
+                            Buyer & seller messages
                         </div>
 
                     </div>

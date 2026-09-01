@@ -3476,7 +3476,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v29-admin-block-seller"
+                    "v30-internal-chat"
             }
         );
     }
@@ -8185,6 +8185,1178 @@ app.get(
                 ok: true,
                 profile:
                     payload
+            }
+        );
+    }
+);
+
+
+/* =========================================================
+   INTERNAL CHAT
+   Buyer can start a chat only after seller contact is unlocked.
+   Seller and buyer can continue the conversation from Profile → Chats.
+   ========================================================= */
+
+async function getChatForParticipant(
+    chatId,
+    telegramId
+) {
+
+    const {
+        data:
+            chat,
+        error
+    } =
+        await supabase
+            .from(
+                "listing_chats"
+            )
+            .select(
+                "id,listing_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at"
+            )
+            .eq(
+                "id",
+                chatId
+            )
+            .maybeSingle();
+
+
+    if (
+        error ||
+        !chat
+    ) {
+
+        return {
+            ok:false,
+            error:
+                "chat_not_found"
+        };
+    }
+
+
+    const userId =
+        Number(
+            telegramId
+        );
+
+
+    if (
+        Number(
+            chat.buyer_telegram_id
+        ) !==
+        userId &&
+        Number(
+            chat.seller_telegram_id
+        ) !==
+        userId
+    ) {
+
+        return {
+            ok:false,
+            error:
+                "chat_access_denied"
+        };
+    }
+
+
+    return {
+        ok:true,
+        chat
+    };
+}
+
+
+app.post(
+    "/chat/open",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        const buyerId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const listingId =
+            String(
+                req.body.listing_id ||
+                ""
+            ).trim();
+
+
+        if (!listingId) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "invalid_listing_id"
+                    }
+                );
+        }
+
+
+        const {
+            data:
+                listing,
+            error:
+                listingError
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,seller_telegram_id,whatsapp_username"
+                )
+                .eq(
+                    "id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (
+            listingError ||
+            !listing
+        ) {
+
+            return res
+                .status(404)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "listing_not_found"
+                    }
+                );
+        }
+
+
+        const sellerId =
+            Number(
+                listing.seller_telegram_id
+            );
+
+
+        if (
+            buyerId ===
+            sellerId
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "owner_chat_requires_buyer"
+                    }
+                );
+        }
+
+
+        const unlocked =
+            await buyerHasContactAccess(
+                buyerId,
+                listingId
+            );
+
+
+        if (!unlocked) {
+
+            return res
+                .status(403)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "contact_unlock_required"
+                    }
+                );
+        }
+
+
+        const {
+            data:
+                existing,
+            error:
+                existingError
+        } =
+            await supabase
+                .from(
+                    "listing_chats"
+                )
+                .select(
+                    "id,listing_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at"
+                )
+                .eq(
+                    "listing_id",
+                    listingId
+                )
+                .eq(
+                    "buyer_telegram_id",
+                    buyerId
+                )
+                .maybeSingle();
+
+
+        if (existingError) {
+
+            console.error(
+                "Chat lookup:",
+                existingError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "chat_lookup_failed"
+                    }
+                );
+        }
+
+
+        if (existing) {
+
+            return res.json(
+                {
+                    ok:true,
+                    chat:
+                        existing,
+                    listing_username:
+                        listing.whatsapp_username
+                }
+            );
+        }
+
+
+        const chatId =
+            crypto.randomUUID();
+
+
+        const {
+            data:
+                created,
+            error:
+                createError
+        } =
+            await supabase
+                .from(
+                    "listing_chats"
+                )
+                .insert(
+                    {
+                        id:
+                            chatId,
+
+                        listing_id:
+                            listingId,
+
+                        buyer_telegram_id:
+                            buyerId,
+
+                        seller_telegram_id:
+                            sellerId,
+
+                        updated_at:
+                            nowIso()
+                    }
+                )
+                .select(
+                    "id,listing_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at"
+                )
+                .single();
+
+
+        if (createError) {
+
+            /* A simultaneous request may have created the same chat. */
+            if (
+                createError.code ===
+                "23505"
+            ) {
+
+                const {
+                    data:
+                        duplicate
+                } =
+                    await supabase
+                        .from(
+                            "listing_chats"
+                        )
+                        .select(
+                            "id,listing_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at"
+                        )
+                        .eq(
+                            "listing_id",
+                            listingId
+                        )
+                        .eq(
+                            "buyer_telegram_id",
+                            buyerId
+                        )
+                        .maybeSingle();
+
+
+                if (duplicate) {
+
+                    return res.json(
+                        {
+                            ok:true,
+                            chat:
+                                duplicate,
+                            listing_username:
+                                listing.whatsapp_username
+                        }
+                    );
+                }
+            }
+
+
+            console.error(
+                "Chat create:",
+                createError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "chat_create_failed"
+                    }
+                );
+        }
+
+
+        return res.json(
+            {
+                ok:true,
+                chat:
+                    created,
+                listing_username:
+                    listing.whatsapp_username
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/chats/list",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        const userId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const {
+            data:
+                chats,
+            error:
+                chatsError
+        } =
+            await supabase
+                .from(
+                    "listing_chats"
+                )
+                .select(
+                    "id,listing_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at"
+                )
+                .or(
+                    `buyer_telegram_id.eq.${userId},seller_telegram_id.eq.${userId}`
+                )
+                .order(
+                    "updated_at",
+                    {
+                        ascending:false
+                    }
+                );
+
+
+        if (chatsError) {
+
+            console.error(
+                "Chats list:",
+                chatsError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "chats_load_failed"
+                    }
+                );
+        }
+
+
+        if (
+            !chats?.length
+        ) {
+
+            return res.json(
+                {
+                    ok:true,
+                    chats:[]
+                }
+            );
+        }
+
+
+        const listingIds =
+            [
+                ...new Set(
+                    chats.map(
+                        chat =>
+                            chat.listing_id
+                    )
+                )
+            ];
+
+
+        const counterpartIds =
+            [
+                ...new Set(
+                    chats.map(
+                        chat =>
+                            Number(
+                                chat.buyer_telegram_id
+                            ) ===
+                            userId
+                                ? Number(
+                                    chat.seller_telegram_id
+                                )
+                                : Number(
+                                    chat.buyer_telegram_id
+                                )
+                    )
+                )
+            ];
+
+
+        const [
+            listingsResult,
+            usersResult,
+            messagesResult
+        ] =
+            await Promise.all(
+                [
+                    supabase
+                        .from("listings")
+                        .select(
+                            "id,whatsapp_username"
+                        )
+                        .in(
+                            "id",
+                            listingIds
+                        ),
+
+                    supabase
+                        .from("users")
+                        .select(
+                            "telegram_id,first_name,last_name,telegram_username"
+                        )
+                        .in(
+                            "telegram_id",
+                            counterpartIds
+                        ),
+
+                    supabase
+                        .from(
+                            "chat_messages"
+                        )
+                        .select(
+                            "id,chat_id,sender_telegram_id,message,created_at"
+                        )
+                        .in(
+                            "chat_id",
+                            chats.map(
+                                chat =>
+                                    chat.id
+                            )
+                        )
+                        .order(
+                            "created_at",
+                            {
+                                ascending:false
+                            }
+                        )
+                ]
+            );
+
+
+        const listingMap =
+            new Map(
+                (
+                    listingsResult.data ||
+                    []
+                ).map(
+                    listing =>
+                        [
+                            listing.id,
+                            listing
+                        ]
+                )
+            );
+
+
+        const userMap =
+            new Map(
+                (
+                    usersResult.data ||
+                    []
+                ).map(
+                    user =>
+                        [
+                            Number(
+                                user.telegram_id
+                            ),
+                            user
+                        ]
+                )
+            );
+
+
+        const lastMessageMap =
+            new Map();
+
+
+        for (
+            const message of
+            messagesResult.data ||
+            []
+        ) {
+
+            if (
+                !lastMessageMap.has(
+                    message.chat_id
+                )
+            ) {
+
+                lastMessageMap.set(
+                    message.chat_id,
+                    message
+                );
+            }
+        }
+
+
+        const payload =
+            chats.map(
+                chat => {
+
+                    const counterpartId =
+                        Number(
+                            chat.buyer_telegram_id
+                        ) ===
+                        userId
+                            ? Number(
+                                chat.seller_telegram_id
+                            )
+                            : Number(
+                                chat.buyer_telegram_id
+                            );
+
+
+                    const counterpart =
+                        userMap.get(
+                            counterpartId
+                        ) ||
+                        null;
+
+
+                    const listing =
+                        listingMap.get(
+                            chat.listing_id
+                        ) ||
+                        null;
+
+
+                    const lastMessage =
+                        lastMessageMap.get(
+                            chat.id
+                        ) ||
+                        null;
+
+
+                    return {
+                        ...chat,
+
+                        role:
+                            Number(
+                                chat.buyer_telegram_id
+                            ) ===
+                            userId
+                                ? "buyer"
+                                : "seller",
+
+                        listing_username:
+                            listing?.whatsapp_username ||
+                            "username",
+
+                        counterpart:
+                            counterpart
+                                ? {
+                                    telegram_id:
+                                        Number(
+                                            counterpart.telegram_id
+                                        ),
+
+                                    first_name:
+                                        counterpart.first_name ||
+                                        "",
+
+                                    last_name:
+                                        counterpart.last_name ||
+                                        "",
+
+                                    telegram_username:
+                                        counterpart.telegram_username ||
+                                        null
+                                }
+                                : {
+                                    telegram_id:
+                                        counterpartId,
+                                    first_name:"",
+                                    last_name:"",
+                                    telegram_username:null
+                                },
+
+                        last_message:
+                            lastMessage
+                    };
+                }
+            );
+
+
+        return res.json(
+            {
+                ok:true,
+                chats:
+                    payload
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/chat/messages",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        const userId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const chatId =
+            String(
+                req.body.chat_id ||
+                ""
+            ).trim();
+
+
+        const access =
+            await getChatForParticipant(
+                chatId,
+                userId
+            );
+
+
+        if (!access.ok) {
+
+            return res
+                .status(
+                    access.error ===
+                    "chat_access_denied"
+                        ? 403
+                        : 404
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            access.error
+                    }
+                );
+        }
+
+
+        const chat =
+            access.chat;
+
+
+        const {
+            data:
+                listing
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,whatsapp_username"
+                )
+                .eq(
+                    "id",
+                    chat.listing_id
+                )
+                .maybeSingle();
+
+
+        const counterpartId =
+            Number(
+                chat.buyer_telegram_id
+            ) ===
+            userId
+                ? Number(
+                    chat.seller_telegram_id
+                )
+                : Number(
+                    chat.buyer_telegram_id
+                );
+
+
+        const {
+            data:
+                counterpart
+        } =
+            await supabase
+                .from("users")
+                .select(
+                    "telegram_id,first_name,last_name,telegram_username"
+                )
+                .eq(
+                    "telegram_id",
+                    counterpartId
+                )
+                .maybeSingle();
+
+
+        const {
+            data:
+                messages,
+            error:
+                messagesError
+        } =
+            await supabase
+                .from(
+                    "chat_messages"
+                )
+                .select(
+                    "id,chat_id,sender_telegram_id,message,created_at"
+                )
+                .eq(
+                    "chat_id",
+                    chatId
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(100);
+
+
+        if (messagesError) {
+
+            console.error(
+                "Chat messages:",
+                messagesError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "chat_messages_load_failed"
+                    }
+                );
+        }
+
+
+        return res.json(
+            {
+                ok:true,
+
+                chat:{
+                    ...chat,
+
+                    role:
+                        Number(
+                            chat.buyer_telegram_id
+                        ) ===
+                        userId
+                            ? "buyer"
+                            : "seller",
+
+                    listing_username:
+                        listing?.whatsapp_username ||
+                        "username",
+
+                    counterpart:
+                        counterpart ||
+                        {
+                            telegram_id:
+                                counterpartId,
+                            first_name:"",
+                            last_name:"",
+                            telegram_username:null
+                        }
+                },
+
+                messages:
+                    (
+                        messages ||
+                        []
+                    ).reverse()
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/chat/send",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        const userId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const chatId =
+            String(
+                req.body.chat_id ||
+                ""
+            ).trim();
+
+
+        const message =
+            String(
+                req.body.message ||
+                ""
+            )
+                .replace(
+                    /\u0000/g,
+                    ""
+                )
+                .trim();
+
+
+        if (
+            !message ||
+            message.length >
+            1000
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "invalid_chat_message"
+                    }
+                );
+        }
+
+
+        const access =
+            await getChatForParticipant(
+                chatId,
+                userId
+            );
+
+
+        if (!access.ok) {
+
+            return res
+                .status(
+                    access.error ===
+                    "chat_access_denied"
+                        ? 403
+                        : 404
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            access.error
+                    }
+                );
+        }
+
+
+        /* Basic anti-spam: at least one second between messages. */
+        const {
+            data:
+                latestOwn
+        } =
+            await supabase
+                .from(
+                    "chat_messages"
+                )
+                .select(
+                    "created_at"
+                )
+                .eq(
+                    "chat_id",
+                    chatId
+                )
+                .eq(
+                    "sender_telegram_id",
+                    userId
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(1)
+                .maybeSingle();
+
+
+        if (
+            latestOwn?.created_at &&
+            Date.now() -
+            new Date(
+                latestOwn.created_at
+            ).getTime() <
+            1000
+        ) {
+
+            return res
+                .status(429)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "chat_too_fast"
+                    }
+                );
+        }
+
+
+        const messageId =
+            crypto.randomUUID();
+
+
+        const {
+            data:
+                created,
+            error:
+                createError
+        } =
+            await supabase
+                .from(
+                    "chat_messages"
+                )
+                .insert(
+                    {
+                        id:
+                            messageId,
+
+                        chat_id:
+                            chatId,
+
+                        sender_telegram_id:
+                            userId,
+
+                        message
+                    }
+                )
+                .select(
+                    "id,chat_id,sender_telegram_id,message,created_at"
+                )
+                .single();
+
+
+        if (createError) {
+
+            console.error(
+                "Chat message create:",
+                createError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "chat_send_failed"
+                    }
+                );
+        }
+
+
+        await supabase
+            .from(
+                "listing_chats"
+            )
+            .update(
+                {
+                    updated_at:
+                        nowIso()
+                }
+            )
+            .eq(
+                "id",
+                chatId
+            );
+
+
+        const chat =
+            access.chat;
+
+
+        const recipientId =
+            Number(
+                chat.buyer_telegram_id
+            ) ===
+            userId
+                ? Number(
+                    chat.seller_telegram_id
+                )
+                : Number(
+                    chat.buyer_telegram_id
+                );
+
+
+        const {
+            data:
+                listing
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "whatsapp_username"
+                )
+                .eq(
+                    "id",
+                    chat.listing_id
+                )
+                .maybeSingle();
+
+
+        await safeSendMessage(
+            recipientId,
+            `💬 New Handle Market chat message about @${listing?.whatsapp_username || "username"}.\n\nOpen Handle Market → Profile → Chats.`
+        );
+
+
+        return res.json(
+            {
+                ok:true,
+                message:
+                    created
             }
         );
     }
