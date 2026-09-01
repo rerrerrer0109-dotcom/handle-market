@@ -4481,6 +4481,181 @@ button {
 }
 
 </style>
+
+
+<!-- =====================================================
+     v53 COMPACT MODERN ACTIONS
+     Compact heart · star · flag controls
+     ===================================================== -->
+<style>
+
+/* Keep the action row compact and balanced. */
+.listing-actions,
+.detail-actions {
+    grid-template-columns:minmax(0,1fr) 40px 40px 40px;
+    gap:6px;
+    align-items:center;
+}
+
+.listing-actions {
+    margin-top:13px;
+}
+
+.detail-actions {
+    margin-top:15px;
+}
+
+.offer-button {
+    min-height:44px;
+    height:44px;
+    padding:0 16px;
+    border-radius:12px;
+    font-size:13px;
+    font-weight:900;
+}
+
+.action-icon-button {
+    width:40px !important;
+    min-width:40px !important;
+    height:40px !important;
+    min-height:40px !important;
+    padding:0 !important;
+    border-radius:12px !important;
+    border:1px solid rgba(110,120,138,.14) !important;
+    background:rgba(255,255,255,.72) !important;
+    box-shadow:0 2px 8px rgba(22,31,48,.045) !important;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+.action-icon-button .hm-icon {
+    width:17px !important;
+    height:17px !important;
+    fill:none !important;
+    stroke:currentColor !important;
+    stroke-width:1.85 !important;
+    stroke-linecap:round !important;
+    stroke-linejoin:round !important;
+}
+
+.action-icon-button:active {
+    transform:scale(.94);
+}
+
+/* Like */
+.like-button {
+    color:#d84a69 !important;
+}
+
+.like-button.liked {
+    color:#fff !important;
+    border-color:#e52d59 !important;
+    background:#e52d59 !important;
+    box-shadow:0 4px 12px rgba(229,45,89,.20) !important;
+}
+
+.like-button.liked .hm-icon {
+    fill:currentColor !important;
+}
+
+/* Watchlist */
+.watch-button {
+    color:#a87a0b !important;
+}
+
+.watch-button.watching {
+    color:#171004 !important;
+    border-color:#efc44c !important;
+    background:#f5cf58 !important;
+    box-shadow:0 4px 12px rgba(210,164,34,.16) !important;
+}
+
+.watch-button.watching .hm-icon {
+    fill:currentColor !important;
+}
+
+/* Report */
+.report-button {
+    color:#8a6670 !important;
+}
+
+.report-button:disabled {
+    color:#638572 !important;
+    border-color:rgba(99,133,114,.16) !important;
+    background:rgba(103,154,125,.08) !important;
+    opacity:1 !important;
+}
+
+/* VIP card: quiet glass controls, visible but not bulky. */
+.promotion-vip .action-icon-button {
+    border-color:rgba(255,255,255,.13) !important;
+    background:rgba(255,255,255,.055) !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.025) !important;
+}
+
+.promotion-vip .like-button {
+    color:#ff6d8d !important;
+}
+
+.promotion-vip .like-button.liked {
+    color:#fff !important;
+    border-color:#e52d59 !important;
+    background:#d91f4c !important;
+    box-shadow:0 4px 12px rgba(217,31,76,.22) !important;
+}
+
+.promotion-vip .watch-button {
+    color:#f0cd66 !important;
+}
+
+.promotion-vip .watch-button.watching {
+    color:#171004 !important;
+    border-color:#efc44c !important;
+    background:#f5cf58 !important;
+    box-shadow:0 4px 12px rgba(210,164,34,.16) !important;
+}
+
+.promotion-vip .report-button {
+    color:#d8aab5 !important;
+}
+
+.promotion-vip .report-button:disabled {
+    color:#9fc8ae !important;
+    border-color:rgba(159,200,174,.15) !important;
+    background:rgba(86,132,103,.14) !important;
+}
+
+@media (max-width:390px) {
+    .listing-actions,
+    .detail-actions {
+        grid-template-columns:minmax(0,1fr) 38px 38px 38px;
+        gap:5px;
+    }
+
+    .action-icon-button {
+        width:38px !important;
+        min-width:38px !important;
+        height:38px !important;
+        min-height:38px !important;
+        border-radius:11px !important;
+    }
+
+    .action-icon-button .hm-icon {
+        width:16px !important;
+        height:16px !important;
+    }
+
+    .offer-button {
+        min-height:42px;
+        height:42px;
+        padding:0 13px;
+    }
+}
+
+</style>
+
 </head>
 
 <body>
@@ -8022,22 +8197,15 @@ function hmActionIconSvg(kind, active = false) {
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"></path>
             </svg>
         `,
-        bookmark: `
+        star: `
             <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6.5 4.75A1.75 1.75 0 0 1 8.25 3h7.5a1.75 1.75 0 0 1 1.75 1.75V21L12 17.7 6.5 21V4.75Z"></path>
+                <path d="m12 3.8 2.45 4.96 5.48.8-3.97 3.87.94 5.46L12 16.31l-4.9 2.58.94-5.46-3.97-3.87 5.48-.8L12 3.8Z"></path>
             </svg>
         `,
-        shieldAlert: `
+        flag: `
             <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3 19 6v5.2c0 4.65-2.85 7.85-7 9.8-4.15-1.95-7-5.15-7-9.8V6l7-3Z"></path>
-                <path d="M12 8v5"></path>
-                <circle cx="12" cy="16.4" r=".8" class="hm-solid-dot"></circle>
-            </svg>
-        `,
-        shieldCheck: `
-            <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 3 19 6v5.2c0 4.65-2.85 7.85-7 9.8-4.15-1.95-7-5.15-7-9.8V6l7-3Z"></path>
-                <path d="m9.1 12.2 2 2 4-4"></path>
+                <path d="M6.5 21V4.2"></path>
+                <path d="M7 5h9.15c1.1 0 1.75.78 1.18 1.62l-1.13 1.66c-.3.44-.3.99 0 1.43l1.13 1.67c.57.84-.08 1.62-1.18 1.62H7"></path>
             </svg>
         `,
         user: `
@@ -9770,7 +9938,7 @@ function renderListingCard(
                 aria-label="${watched ? "Remove from watchlist" : "Add to watchlist"}"
                 title="${watched ? "Watching" : "Watch"}"
                 >
-                    ${hmActionIconSvg("bookmark", watched)}
+                    ${hmActionIconSvg("star", watched)}
                 </button>
 
 
@@ -9793,7 +9961,7 @@ function renderListingCard(
                 aria-label="${reported ? "Reported" : "Report listing"}"
                 title="${reported ? "Reported" : "Report"}"
                 >
-                    ${hmActionIconSvg(reported ? "shieldCheck" : "shieldAlert", reported)}
+                    ${hmActionIconSvg("flag", reported)}
                 </button>
 
             </div>
@@ -10366,7 +10534,7 @@ async function openListingPage(
                 aria-label="${watched ? "Remove from watchlist" : "Add to watchlist"}"
                 title="${watched ? "Watching" : "Watch"}"
                 >
-                    ${hmActionIconSvg("bookmark", watched)}
+                    ${hmActionIconSvg("star", watched)}
                 </button>
 
 
@@ -10389,7 +10557,7 @@ async function openListingPage(
                 aria-label="${reported ? "Reported" : "Report listing"}"
                 title="${reported ? "Reported" : "Report"}"
                 >
-                    ${hmActionIconSvg(reported ? "shieldCheck" : "shieldAlert", reported)}
+                    ${hmActionIconSvg("flag", reported)}
                 </button>
 
             </div>
