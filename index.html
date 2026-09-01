@@ -4054,6 +4054,306 @@ button {
 
 </style>
 
+
+
+<!-- =====================================================
+     v51 MODERN LISTING CARDS
+     Cleaner cards · vector action icons · compact seller row
+     ===================================================== -->
+<style>
+
+/* Listing cards now use the same calm geometry as the rest of the UI. */
+.listing-card {
+    border-radius:22px;
+    padding:16px;
+    border-width:1px;
+    box-shadow:0 8px 24px rgba(29,42,62,.075);
+}
+
+.listing-header {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:start;
+    gap:10px;
+}
+
+.listing-main {
+    min-width:0;
+}
+
+.listing-price-box {
+    min-width:0;
+    max-width:44vw;
+    padding-top:1px;
+}
+
+.listing-price {
+    white-space:nowrap;
+    font-size:18px;
+    line-height:1.05;
+    letter-spacing:-.4px;
+}
+
+.listing-price-label {
+    margin-top:4px;
+    font-size:8px;
+    letter-spacing:.02em;
+}
+
+.listing-info-row {
+    gap:6px;
+    margin-top:9px;
+}
+
+.category-badge,
+.listing-view-link,
+.seller-link,
+.badge {
+    min-height:27px;
+    border-radius:9px;
+}
+
+.listing-view-link,
+.seller-link {
+    gap:5px;
+    border:1px solid transparent;
+}
+
+.listing-view-link .hm-icon,
+.seller-link .hm-icon {
+    width:14px;
+    height:14px;
+    stroke-width:1.9;
+}
+
+/* Small vector icons inside chips/stats. */
+.hm-chip-icon {
+    width:13px;
+    height:13px;
+    display:block;
+    flex:0 0 auto;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+/* Seller profile is useful, but should not visually dominate the listing. */
+.seller-mini {
+    min-height:48px;
+    margin-top:11px;
+    padding:8px 10px;
+    gap:9px;
+    border-radius:14px;
+    box-shadow:none;
+}
+
+.seller-mini-avatar {
+    width:28px;
+    height:28px;
+    border-radius:9px;
+}
+
+.seller-mini-name {
+    font-size:9.5px;
+}
+
+.seller-mini-status {
+    font-size:7.8px;
+}
+
+.seller-mini-arrow {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:24px;
+    height:24px;
+    border-radius:8px;
+    font-size:0;
+    color:var(--muted);
+    background:var(--surface-3);
+}
+
+.seller-mini-arrow::before {
+    content:"";
+    width:6px;
+    height:6px;
+    border-top:1.8px solid currentColor;
+    border-right:1.8px solid currentColor;
+    transform:rotate(45deg) translate(-1px,1px);
+}
+
+/* Public stats: quieter and more product-like. */
+.public-stats {
+    gap:7px;
+    margin-top:12px;
+}
+
+.public-stat {
+    min-height:29px;
+    gap:6px;
+    padding:6px 9px;
+    border-radius:10px;
+    font-size:9px;
+    background:transparent;
+}
+
+.public-stat .hm-icon {
+    width:14px;
+    height:14px;
+    stroke-width:1.85;
+}
+
+/* Action row: CTA + three equally sized utility buttons. */
+.listing-actions,
+.detail-actions {
+    gap:8px;
+}
+
+.listing-actions {
+    margin-top:14px;
+}
+
+.offer-button {
+    min-height:48px;
+    border-radius:14px;
+}
+
+.action-icon-button {
+    width:48px;
+    min-width:48px;
+    height:48px;
+    min-height:48px;
+    padding:0;
+    border:1px solid var(--border);
+    border-radius:14px;
+    box-shadow:none;
+}
+
+.action-icon-button .hm-icon {
+    width:18px;
+    height:18px;
+    stroke-width:1.9;
+}
+
+.like-button {
+    color:#d83d5d;
+    border-color:rgba(216,61,93,.12);
+    background:rgba(216,61,93,.07);
+}
+
+.like-button.liked {
+    color:#e7244f;
+    border-color:rgba(231,36,79,.16);
+    background:rgba(231,36,79,.11);
+}
+
+.like-button.liked .hm-icon {
+    fill:currentColor;
+}
+
+.watch-button {
+    color:#8a6910;
+    border-color:rgba(196,154,31,.13);
+    background:rgba(229,187,56,.07);
+}
+
+.watch-button.watching {
+    color:#b27d00;
+    border-color:rgba(211,158,20,.20);
+    background:rgba(244,192,52,.13);
+}
+
+.watch-button.watching .hm-icon {
+    fill:currentColor;
+}
+
+.report-button {
+    color:var(--muted);
+    border-color:var(--border);
+    background:var(--surface-2);
+}
+
+.report-button:disabled {
+    opacity:.62;
+}
+
+/* VIP keeps a premium dark shell, but its controls must stay visible. */
+.promotion-vip .seller-mini {
+    color:#17181b;
+    border-color:rgba(255,255,255,.10);
+    background:rgba(255,255,255,.96);
+}
+
+.promotion-vip .seller-mini-arrow {
+    color:#69717f;
+    background:#f1f3f6;
+}
+
+.promotion-vip .listing-view-link {
+    color:#b9ddff;
+    border-color:rgba(123,190,248,.12);
+    background:rgba(39,96,141,.20);
+}
+
+.promotion-vip .public-stat {
+    color:rgba(255,255,255,.76);
+    border-color:rgba(255,255,255,.10);
+    background:rgba(255,255,255,.045);
+}
+
+.promotion-vip .like-button,
+.promotion-vip .watch-button,
+.promotion-vip .report-button {
+    border-color:rgba(255,255,255,.08);
+}
+
+/* Premium must remain the same gold as Make Offer in every theme. */
+.premium-name-badge,
+.promotion-vip .premium-name-badge {
+    color:#171004;
+    border-color:rgba(255,224,126,.68);
+    background:linear-gradient(105deg,#916008,#c99420,#f0cb55,#ffe48a,#d7a632);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 4px 12px rgba(201,148,32,.18);
+}
+
+/* VIP badge remains opaque and readable. */
+.promotion-badge-vip,
+.promotion-vip .promotion-badge-vip {
+    color:#fff;
+    border-color:rgba(228,216,255,.52);
+    background:linear-gradient(135deg,#6236d7 0%,#7b46e8 52%,#9656ef 100%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.20),0 4px 13px rgba(91,50,195,.26);
+}
+
+@media (max-width:390px) {
+    .listing-card {
+        padding:15px;
+    }
+
+    .listing-price {
+        font-size:17px;
+    }
+
+    .listing-actions {
+        grid-template-columns:minmax(0,1fr) 44px 44px 44px;
+        gap:7px;
+    }
+
+    .action-icon-button {
+        width:44px;
+        min-width:44px;
+        height:46px;
+        min-height:46px;
+    }
+
+    .offer-button {
+        min-height:46px;
+    }
+}
+
+</style>
 </head>
 
 <body>
@@ -7587,6 +7887,42 @@ function listingLifetimeHtml(
    PUBLIC STATS
    ========================================================= */
 
+function hmActionIconSvg(kind, active = false) {
+
+    const icons = {
+        heart: `
+            <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.8 4.8a5.4 5.4 0 0 0-7.6 0L12 6l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.6a5.4 5.4 0 0 0 0-7.6Z"></path>
+            </svg>
+        `,
+        star: `
+            <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"></path>
+            </svg>
+        `,
+        flag: `
+            <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 21V4"></path>
+                <path d="M6 5h10.5l-1.8 3 1.8 3H6"></path>
+            </svg>
+        `,
+        check: `
+            <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m5 12.5 4.2 4.2L19 7"></path>
+            </svg>
+        `,
+        user: `
+            <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.3"></circle>
+                <path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6"></path>
+            </svg>
+        `
+    };
+
+    return icons[kind] || "";
+}
+
+
 function publicStatsHtml(
     listing
 ) {
@@ -7616,7 +7952,10 @@ function publicStatsHtml(
 
             <span class="public-stat">
 
-                👁
+                <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M2.8 12s3.4-5.2 9.2-5.2S21.2 12 21.2 12 17.8 17.2 12 17.2 2.8 12 2.8 12Z"></path>
+                    <circle cx="12" cy="12" r="2.3"></circle>
+                </svg>
 
                 <strong
                     data-public-view-count="${escapeHtml(
@@ -7633,7 +7972,9 @@ function publicStatsHtml(
 
             <span class="public-stat">
 
-                ❤️
+                <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20.8 4.8a5.4 5.4 0 0 0-7.6 0L12 6l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.6a5.4 5.4 0 0 0 0-7.6Z"></path>
+                </svg>
 
                 <strong
                     data-public-like-count="${escapeHtml(
@@ -8916,7 +9257,15 @@ function newListingBadgeHtml(
     return isNewListing(
         listing
     )
-        ? '<span class="badge badge-active">🆕 NEW</span>'
+        ? `
+            <span class="badge badge-active">
+                <svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3v4M12 17v4M3 12h4M17 12h4"></path>
+                    <path d="m5.6 5.6 2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"></path>
+                </svg>
+                <span>NEW</span>
+            </span>
+        `
         : "";
 }
 
@@ -8931,9 +9280,25 @@ function pricingBadgeHtml(
     ) ===
     "fixed"
 
-        ? '<span class="badge badge-paused">🔒 Fixed Price</span>'
+        ? `
+            <span class="badge badge-paused">
+                <svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="5" y="10" width="14" height="10" rx="2"></rect>
+                    <path d="M8 10V7.5a4 4 0 0 1 8 0V10"></path>
+                </svg>
+                <span>Fixed Price</span>
+            </span>
+        `
 
-        : '<span class="badge badge-active">💬 Negotiable</span>';
+        : `
+            <span class="badge badge-active">
+                <svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 6.5h14v9H9l-4 3v-12Z"></path>
+                    <path d="M9 10h6"></path>
+                </svg>
+                <span>Negotiable</span>
+            </span>
+        `;
 }
 
 
@@ -9148,7 +9513,11 @@ function renderListingCard(
                                 )
                             "
                         >
-                            👁 View
+                            <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M2.8 12s3.4-5.2 9.2-5.2S21.2 12 21.2 12 17.8 17.2 12 17.2 2.8 12 2.8 12Z"></path>
+                                <circle cx="12" cy="12" r="2.3"></circle>
+                            </svg>
+                            <span>View</span>
                         </button>
 
                     </div>
@@ -9250,8 +9619,10 @@ function renderListingCard(
                             )}'
                         )
                     "
+                aria-label="${liked ? "Unlike listing" : "Like listing"}"
+                title="${liked ? "Unlike" : "Like"}"
                 >
-                    ${liked ? "❤️" : "♡"}
+                    ${hmActionIconSvg("heart", liked)}
                 </button>
 
 
@@ -9267,8 +9638,10 @@ function renderListingCard(
                             )}'
                         )
                     "
+                aria-label="${watched ? "Remove from watchlist" : "Add to watchlist"}"
+                title="${watched ? "Watching" : "Watch"}"
                 >
-                    ${watched ? "⭐" : "☆"}
+                    ${hmActionIconSvg("star", watched)}
                 </button>
 
 
@@ -9288,8 +9661,10 @@ function renderListingCard(
                         )
                     "
                     ${reported ? "disabled" : ""}
+                aria-label="${reported ? "Reported" : "Report listing"}"
+                title="${reported ? "Reported" : "Report"}"
                 >
-                    ${reported ? "✓" : "⚑"}
+                    ${hmActionIconSvg(reported ? "check" : "flag", reported)}
                 </button>
 
             </div>
@@ -9480,10 +9855,23 @@ function updateAllLikeButtons() {
                 );
 
 
-            button.textContent =
+            button.innerHTML =
+                hmActionIconSvg(
+                    "heart",
+                    liked
+                );
+
+            button.setAttribute(
+                "aria-label",
                 liked
-                    ? "❤️"
-                    : "♡";
+                    ? "Unlike listing"
+                    : "Like listing"
+            );
+
+            button.title =
+                liked
+                    ? "Unlike"
+                    : "Like";
 
 
             button.classList.toggle(
@@ -9749,7 +10137,11 @@ async function openListingPage(
                                     )
                                 "
                             >
-                                👤 Seller Profile
+                                <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="12" cy="8" r="3.3"></circle>
+                                    <path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6"></path>
+                                </svg>
+                                <span>Seller Profile</span>
                             </button>
 
                         `
@@ -9823,8 +10215,10 @@ async function openListingPage(
                             )}'
                         )
                     "
+                aria-label="${liked ? "Unlike listing" : "Like listing"}"
+                title="${liked ? "Unlike" : "Like"}"
                 >
-                    ${liked ? "❤️" : "♡"}
+                    ${hmActionIconSvg("heart", liked)}
                 </button>
 
 
@@ -9840,8 +10234,10 @@ async function openListingPage(
                             )}'
                         )
                     "
+                aria-label="${watched ? "Remove from watchlist" : "Add to watchlist"}"
+                title="${watched ? "Watching" : "Watch"}"
                 >
-                    ${watched ? "⭐" : "☆"}
+                    ${hmActionIconSvg("star", watched)}
                 </button>
 
 
@@ -9861,8 +10257,10 @@ async function openListingPage(
                         )
                     "
                     ${reported ? "disabled" : ""}
+                aria-label="${reported ? "Reported" : "Report listing"}"
+                title="${reported ? "Reported" : "Report"}"
                 >
-                    ${reported ? "✓" : "⚑"}
+                    ${hmActionIconSvg(reported ? "check" : "flag", reported)}
                 </button>
 
             </div>
@@ -10575,8 +10973,19 @@ function markOwnListing(
                 report.disabled =
                     true;
 
-                report.textContent =
-                    "👤";
+                report.innerHTML =
+                    hmActionIconSvg(
+                        "user",
+                        true
+                    );
+
+                report.setAttribute(
+                    "aria-label",
+                    "Your listing"
+                );
+
+                report.title =
+                    "Your listing";
             }
         }
     );
@@ -10757,10 +11166,23 @@ function updateAllWatchButtons() {
                 );
 
 
-            button.textContent =
+            button.innerHTML =
+                hmActionIconSvg(
+                    "star",
+                    watched
+                );
+
+            button.setAttribute(
+                "aria-label",
                 watched
-                    ? "⭐"
-                    : "☆";
+                    ? "Remove from watchlist"
+                    : "Add to watchlist"
+            );
+
+            button.title =
+                watched
+                    ? "Watching"
+                    : "Watch";
 
 
             button.classList.toggle(
@@ -10923,10 +11345,25 @@ function updateAllReportButtons() {
                 !button.disabled
             ) {
 
-                button.textContent =
+                button.innerHTML =
+                    hmActionIconSvg(
+                        reported
+                            ? "check"
+                            : "flag",
+                        reported
+                    );
+
+                button.setAttribute(
+                    "aria-label",
                     reported
-                        ? "✓"
-                        : "⚑";
+                        ? "Reported"
+                        : "Report listing"
+                );
+
+                button.title =
+                    reported
+                        ? "Reported"
+                        : "Report";
 
 
                 button.disabled =
