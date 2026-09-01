@@ -3904,7 +3904,10 @@ Description
 Contact method
 </label>
 
-<select id="contactType">
+<select
+    id="contactType"
+    onchange="updateContactFieldUi()"
+>
 
 <option value="telegram">
 Telegram
@@ -3925,19 +3928,25 @@ Other
 
 <div class="field">
 
-<label>
-Seller contact
+<label id="contactFieldLabel">
+Telegram username
 </label>
 
 <input
     id="contactValue"
+    type="text"
+    inputmode="text"
+    autocomplete="off"
     placeholder="@telegramusername"
     maxlength="200"
     required
 >
 
-<div class="field-hint">
-Your contact stays private until a buyer unlocks it.
+<div
+    id="contactFieldHint"
+    class="field-hint"
+>
+Enter your Telegram username. Your contact stays private until a buyer unlocks it.
 </div>
 
 </div>
@@ -8968,6 +8977,121 @@ function openReportModal(
 
 
 /* =========================================================
+   CONTACT METHOD FIELD
+   ========================================================= */
+
+function updateContactFieldUi() {
+
+    const type =
+        document.getElementById(
+            "contactType"
+        )?.value ||
+        "telegram";
+
+
+    const label =
+        document.getElementById(
+            "contactFieldLabel"
+        );
+
+
+    const input =
+        document.getElementById(
+            "contactValue"
+        );
+
+
+    const hint =
+        document.getElementById(
+            "contactFieldHint"
+        );
+
+
+    if (
+        !label ||
+        !input ||
+        !hint
+    ) {
+
+        return;
+    }
+
+
+    if (
+        type ===
+        "email"
+    ) {
+
+        label.textContent =
+            "Email address";
+
+        input.type =
+            "email";
+
+        input.inputMode =
+            "email";
+
+        input.autocomplete =
+            "email";
+
+        input.placeholder =
+            "seller@example.com";
+
+        hint.textContent =
+            "Enter a valid email address. Your contact stays private until a buyer unlocks it.";
+
+        return;
+    }
+
+
+    if (
+        type ===
+        "other"
+    ) {
+
+        label.textContent =
+            "Contact details";
+
+        input.type =
+            "text";
+
+        input.inputMode =
+            "text";
+
+        input.autocomplete =
+            "off";
+
+        input.placeholder =
+            "Discord, website or other contact";
+
+        hint.textContent =
+            "Enter another contact method. Your contact stays private until a buyer unlocks it.";
+
+        return;
+    }
+
+
+    label.textContent =
+        "Telegram username";
+
+    input.type =
+        "text";
+
+    input.inputMode =
+        "text";
+
+    input.autocomplete =
+        "off";
+
+    input.placeholder =
+        "@telegramusername";
+
+    hint.textContent =
+        "Enter your Telegram username. Your contact stays private until a buyer unlocks it.";
+}
+
+
+/* =========================================================
    LISTING CREATE
    ========================================================= */
 
@@ -13642,6 +13766,8 @@ function cssEscape(
    ========================================================= */
 
 async function startApp() {
+
+    updateContactFieldUi();
 
     await loadMarketplace();
 
