@@ -3476,7 +3476,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v33-listing-numbers"
+                    "v34-support-center"
             }
         );
     }
@@ -9369,6 +9369,1813 @@ app.post(
         );
     }
 );
+
+
+
+/* =========================================================
+   SUPPORT CENTER / SUPPORT TICKETS
+   Users can contact Handle Market support inside the Mini App.
+   Admins can answer and manage ticket status from Admin Panel.
+   ========================================================= */
+
+const SUPPORT_CATEGORIES = [
+    "General Question",
+    "Listing Problem",
+    "Payment / Stars",
+    "Contact Problem",
+    "Report a Problem",
+    "Account Problem",
+    "Other"
+];
+
+
+function supportTicketNumberText(
+    value
+) {
+
+    const number =
+        Number(
+            value
+        );
+
+
+    if (
+        !Number.isFinite(
+            number
+        ) ||
+        number <= 0
+    ) {
+
+        return "#------";
+    }
+
+
+    return "#" +
+        String(
+            Math.trunc(
+                number
+            )
+        ).padStart(
+            6,
+            "0"
+        );
+}
+
+
+async function getSupportTicketAccess(
+    ticketId,
+    authUser
+) {
+
+    const {
+        data:
+            ticket,
+        error
+    } =
+        await supabase
+            .from(
+                "support_tickets"
+            )
+            .select(
+                "id,ticket_number,user_telegram_id,category,related_listing_id,status,created_at,updated_at"
+            )
+            .eq(
+                "id",
+                ticketId
+            )
+            .maybeSingle();
+
+
+    if (
+        error ||
+        !ticket
+    ) {
+
+        return {
+            ok:false,
+            error:
+                "support_ticket_not_found"
+        };
+    }
+
+
+    const userId =
+        Number(
+            authUser.telegram_id
+        );
+
+
+    const isOwner =
+        Number(
+            ticket.user_telegram_id
+        ) ===
+        userId;
+
+
+    const isAdmin =
+        Boolean(
+            authUser.is_admin
+        );
+
+
+    if (
+        !isOwner &&
+        !isAdmin
+    ) {
+
+        return {
+            ok:false,
+            error:
+                "support_ticket_access_denied"
+        };
+    }
+
+
+    return {
+        ok:true,
+        ticket,
+        isOwner,
+        isAdmin
+    };
+}
+
+
+async function buildSupportTicketPayload(
+    ticket,
+    viewerTelegramId,
+    viewerIsAdmin = false
+) {
+
+    const userId =
+        Number(
+            ticket.user_telegram_id
+        );
+
+
+    const [
+        userResult,
+        listingResult
+    ] =
+        await Promise.all(
+            [
+                supabase
+                    .from("users")
+                    .select(
+                        "telegram_id,first_name,last_name,telegram_username"
+                    )
+                    .eq(
+                        "telegram_id",
+                        userId
+                    )
+                    .maybeSingle(),
+
+                ticket.related_listing_id
+                    ? supabase
+                        .from("listings")
+                        .select(
+                            "id,listing_number,whatsapp_username"
+                        )
+                        .eq(
+                            "id",
+                            ticket.related_listing_id
+                        )
+                        .maybeSingle()
+                    : Promise.resolve(
+                        {
+                            data:null,
+                            error:null
+                        }
+                    )
+            ]
+        );
+
+
+    const owner =
+        userResult.data ||
+        {
+            telegram_id:
+                userId,
+            first_name:"",
+            last_name:"",
+            telegram_username:null
+        };
+
+
+    const listing =
+        listingResult.data ||
+        null;
+
+
+    return {
+        ...ticket,
+
+        viewer_role:
+            viewerIsAdmin &&
+            Number(
+                viewerTelegramId
+            ) !==
+            userId
+                ? "admin"
+                : "user",
+
+        user:{
+            telegram_id:
+                Number(
+                    owner.telegram_id
+                ),
+            first_name:
+                owner.first_name ||
+                "",
+            last_name:
+                owner.last_name ||
+                "",
+            telegram_username:
+                owner.telegram_username ||
+                null
+        },
+
+        related_listing:
+            listing
+                ? {
+                    id:
+                        listing.id,
+                    listing_number:
+                        listing.listing_number ||
+                        null,
+                    whatsapp_username:
+                        listing.whatsapp_username ||
+                        null
+                }
+                : null
+    };
+}
+
+
+app.post(
+    "/support/create",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        const userId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const category =
+            String(
+                req.body.category ||
+                "General Question"
+            )
+                .trim();
+
+
+        if (
+            !SUPPORT_CATEGORIES.includes(
+                category
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "invalid_support_category"
+                    }
+                );
+        }
+
+
+        const message =
+            String(
+                req.body.message ||
+                ""
+            )
+                .replace(
+                    /\u0000/g,
+                    ""
+                )
+                .trim();
+
+
+        if (
+            !message ||
+            message.length >
+            2000
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "invalid_support_message"
+                    }
+                );
+        }
+
+
+        let relatedListing =
+            null;
+
+
+        const rawListingNumber =
+            String(
+                req.body.related_listing_number ||
+                ""
+            )
+                .replace(
+                    /[^0-9]/g,
+                    ""
+                )
+                .trim();
+
+
+        if (rawListingNumber) {
+
+            const listingNumber =
+                Number(
+                    rawListingNumber
+                );
+
+
+            if (
+                !Number.isSafeInteger(
+                    listingNumber
+                ) ||
+                listingNumber <= 0
+            ) {
+
+                return res
+                    .status(400)
+                    .json(
+                        {
+                            ok:false,
+                            error:
+                                "invalid_related_listing_number"
+                        }
+                    );
+            }
+
+
+            const {
+                data:
+                    listing,
+                error:
+                    listingError
+            } =
+                await supabase
+                    .from("listings")
+                    .select(
+                        "id,listing_number,whatsapp_username"
+                    )
+                    .eq(
+                        "listing_number",
+                        listingNumber
+                    )
+                    .maybeSingle();
+
+
+            if (
+                listingError ||
+                !listing
+            ) {
+
+                return res
+                    .status(404)
+                    .json(
+                        {
+                            ok:false,
+                            error:
+                                "related_listing_not_found"
+                        }
+                    );
+            }
+
+
+            relatedListing =
+                listing;
+        }
+
+
+        const ticketId =
+            crypto.randomUUID();
+
+
+        const {
+            data:
+                ticket,
+            error:
+                ticketError
+        } =
+            await supabase
+                .from(
+                    "support_tickets"
+                )
+                .insert(
+                    {
+                        id:
+                            ticketId,
+                        user_telegram_id:
+                            userId,
+                        category,
+                        related_listing_id:
+                            relatedListing?.id ||
+                            null,
+                        status:
+                            "open",
+                        updated_at:
+                            nowIso()
+                    }
+                )
+                .select(
+                    "id,ticket_number,user_telegram_id,category,related_listing_id,status,created_at,updated_at"
+                )
+                .single();
+
+
+        if (ticketError) {
+
+            console.error(
+                "Support ticket create:",
+                ticketError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_ticket_create_failed"
+                    }
+                );
+        }
+
+
+        const {
+            error:
+                messageError
+        } =
+            await supabase
+                .from(
+                    "support_messages"
+                )
+                .insert(
+                    {
+                        id:
+                            crypto.randomUUID(),
+                        ticket_id:
+                            ticketId,
+                        sender_telegram_id:
+                            userId,
+                        sender_role:
+                            "user",
+                        message
+                    }
+                );
+
+
+        if (messageError) {
+
+            console.error(
+                "Support first message create:",
+                messageError
+            );
+
+
+            await supabase
+                .from(
+                    "support_tickets"
+                )
+                .delete()
+                .eq(
+                    "id",
+                    ticketId
+                );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_ticket_create_failed"
+                    }
+                );
+        }
+
+
+        const userName =
+            [
+                auth.user.first_name,
+                auth.user.last_name
+            ]
+                .filter(Boolean)
+                .join(" ") ||
+            (
+                auth.user.telegram_username
+                    ? "@" +
+                        auth.user.telegram_username
+                    : "Telegram User"
+            );
+
+
+        await notifyAdmins(
+            `🎧 New Support Ticket ${supportTicketNumberText(ticket.ticket_number)}\n\n` +
+            `User: ${userName}\n` +
+            `Telegram ID: ${userId}\n` +
+            `Category: ${category}` +
+            (
+                relatedListing
+                    ? `\nRelated: LOT ${supportTicketNumberText(relatedListing.listing_number)} · @${relatedListing.whatsapp_username}`
+                    : ""
+            ) +
+            `\n\nOpen Handle Market → Profile → Admin Panel → Support Tickets.`
+        );
+
+
+        const payload =
+            await buildSupportTicketPayload(
+                ticket,
+                userId,
+                Boolean(
+                    auth.user.is_admin
+                )
+            );
+
+
+        return res.json(
+            {
+                ok:true,
+                ticket:
+                    payload
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/support/list",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        const userId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const {
+            data:
+                tickets,
+            error:
+                ticketsError
+        } =
+            await supabase
+                .from(
+                    "support_tickets"
+                )
+                .select(
+                    "id,ticket_number,user_telegram_id,category,related_listing_id,status,created_at,updated_at"
+                )
+                .eq(
+                    "user_telegram_id",
+                    userId
+                )
+                .order(
+                    "updated_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(50);
+
+
+        if (ticketsError) {
+
+            console.error(
+                "Support ticket list:",
+                ticketsError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_tickets_load_failed"
+                    }
+                );
+        }
+
+
+        if (!tickets?.length) {
+
+            return res.json(
+                {
+                    ok:true,
+                    tickets:[]
+                }
+            );
+        }
+
+
+        const listingIds =
+            [
+                ...new Set(
+                    tickets
+                        .map(
+                            ticket =>
+                                ticket.related_listing_id
+                        )
+                        .filter(Boolean)
+                )
+            ];
+
+
+        const [
+            listingResult,
+            messageResult
+        ] =
+            await Promise.all(
+                [
+                    listingIds.length
+                        ? supabase
+                            .from("listings")
+                            .select(
+                                "id,listing_number,whatsapp_username"
+                            )
+                            .in(
+                                "id",
+                                listingIds
+                            )
+                        : Promise.resolve(
+                            {
+                                data:[],
+                                error:null
+                            }
+                        ),
+
+                    supabase
+                        .from(
+                            "support_messages"
+                        )
+                        .select(
+                            "id,ticket_id,sender_telegram_id,sender_role,message,created_at"
+                        )
+                        .in(
+                            "ticket_id",
+                            tickets.map(
+                                ticket =>
+                                    ticket.id
+                            )
+                        )
+                        .order(
+                            "created_at",
+                            {
+                                ascending:false
+                            }
+                        )
+                ]
+            );
+
+
+        const listingMap =
+            new Map(
+                (
+                    listingResult.data ||
+                    []
+                ).map(
+                    listing =>
+                        [
+                            listing.id,
+                            listing
+                        ]
+                )
+            );
+
+
+        const lastMessageMap =
+            new Map();
+
+
+        for (
+            const message of
+            messageResult.data ||
+            []
+        ) {
+
+            if (
+                !lastMessageMap.has(
+                    message.ticket_id
+                )
+            ) {
+
+                lastMessageMap.set(
+                    message.ticket_id,
+                    message
+                );
+            }
+        }
+
+
+        return res.json(
+            {
+                ok:true,
+                tickets:
+                    tickets.map(
+                        ticket => {
+
+                            const listing =
+                                listingMap.get(
+                                    ticket.related_listing_id
+                                ) ||
+                                null;
+
+
+                            return {
+                                ...ticket,
+                                related_listing:
+                                    listing,
+                                last_message:
+                                    lastMessageMap.get(
+                                        ticket.id
+                                    ) ||
+                                    null
+                            };
+                        }
+                    )
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/support/messages",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        const ticketId =
+            String(
+                req.body.ticket_id ||
+                ""
+            ).trim();
+
+
+        const access =
+            await getSupportTicketAccess(
+                ticketId,
+                auth.user
+            );
+
+
+        if (!access.ok) {
+
+            return res
+                .status(
+                    access.error ===
+                    "support_ticket_access_denied"
+                        ? 403
+                        : 404
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            access.error
+                    }
+                );
+        }
+
+
+        const {
+            data:
+                messages,
+            error:
+                messagesError
+        } =
+            await supabase
+                .from(
+                    "support_messages"
+                )
+                .select(
+                    "id,ticket_id,sender_telegram_id,sender_role,message,created_at"
+                )
+                .eq(
+                    "ticket_id",
+                    ticketId
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(200);
+
+
+        if (messagesError) {
+
+            console.error(
+                "Support messages:",
+                messagesError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_messages_load_failed"
+                    }
+                );
+        }
+
+
+        const ticket =
+            await buildSupportTicketPayload(
+                access.ticket,
+                auth.user.telegram_id,
+                Boolean(
+                    auth.user.is_admin
+                )
+            );
+
+
+        return res.json(
+            {
+                ok:true,
+                ticket,
+                messages:
+                    (
+                        messages ||
+                        []
+                    ).reverse()
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/support/send",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        const userId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const ticketId =
+            String(
+                req.body.ticket_id ||
+                ""
+            ).trim();
+
+
+        const message =
+            String(
+                req.body.message ||
+                ""
+            )
+                .replace(
+                    /\u0000/g,
+                    ""
+                )
+                .trim();
+
+
+        if (
+            !message ||
+            message.length >
+            2000
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "invalid_support_message"
+                    }
+                );
+        }
+
+
+        const access =
+            await getSupportTicketAccess(
+                ticketId,
+                auth.user
+            );
+
+
+        if (!access.ok) {
+
+            return res
+                .status(
+                    access.error ===
+                    "support_ticket_access_denied"
+                        ? 403
+                        : 404
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            access.error
+                    }
+                );
+        }
+
+
+        if (
+            access.ticket.status ===
+            "closed"
+        ) {
+
+            return res
+                .status(409)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_ticket_closed"
+                    }
+                );
+        }
+
+
+        const {
+            data:
+                latestOwn
+        } =
+            await supabase
+                .from(
+                    "support_messages"
+                )
+                .select(
+                    "created_at"
+                )
+                .eq(
+                    "ticket_id",
+                    ticketId
+                )
+                .eq(
+                    "sender_telegram_id",
+                    userId
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(1)
+                .maybeSingle();
+
+
+        if (
+            latestOwn?.created_at &&
+            Date.now() -
+            new Date(
+                latestOwn.created_at
+            ).getTime() <
+            1000
+        ) {
+
+            return res
+                .status(429)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_message_too_fast"
+                    }
+                );
+        }
+
+
+        const adminReply =
+            Boolean(
+                auth.user.is_admin
+            ) &&
+            Number(
+                access.ticket.user_telegram_id
+            ) !==
+            userId;
+
+
+        const {
+            data:
+                created,
+            error:
+                createError
+        } =
+            await supabase
+                .from(
+                    "support_messages"
+                )
+                .insert(
+                    {
+                        id:
+                            crypto.randomUUID(),
+                        ticket_id:
+                            ticketId,
+                        sender_telegram_id:
+                            userId,
+                        sender_role:
+                            adminReply
+                                ? "admin"
+                                : "user",
+                        message
+                    }
+                )
+                .select(
+                    "id,ticket_id,sender_telegram_id,sender_role,message,created_at"
+                )
+                .single();
+
+
+        if (createError) {
+
+            console.error(
+                "Support message create:",
+                createError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_message_send_failed"
+                    }
+                );
+        }
+
+
+        let nextStatus =
+            access.ticket.status;
+
+
+        if (adminReply) {
+
+            if (
+                nextStatus ===
+                "open"
+            ) {
+
+                nextStatus =
+                    "in_progress";
+            }
+
+        } else if (
+            nextStatus ===
+            "resolved"
+        ) {
+
+            nextStatus =
+                "open";
+        }
+
+
+        await supabase
+            .from(
+                "support_tickets"
+            )
+            .update(
+                {
+                    status:
+                        nextStatus,
+                    updated_at:
+                        nowIso()
+                }
+            )
+            .eq(
+                "id",
+                ticketId
+            );
+
+
+        if (adminReply) {
+
+            await safeSendMessage(
+                access.ticket.user_telegram_id,
+                `🎧 Handle Market Support replied to Ticket ${supportTicketNumberText(access.ticket.ticket_number)}.\n\nOpen Handle Market → Profile → Help & Support.`
+            );
+
+        } else {
+
+            await notifyAdmins(
+                `💬 New reply in Support Ticket ${supportTicketNumberText(access.ticket.ticket_number)}.\n\nOpen Handle Market → Profile → Admin Panel → Support Tickets.`
+            );
+        }
+
+
+        return res.json(
+            {
+                ok:true,
+                message:
+                    created,
+                status:
+                    nextStatus
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/support/ticket-status",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        const ticketId =
+            String(
+                req.body.ticket_id ||
+                ""
+            ).trim();
+
+
+        const action =
+            String(
+                req.body.action ||
+                ""
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            ![
+                "close",
+                "reopen"
+            ].includes(
+                action
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "invalid_support_status_action"
+                    }
+                );
+        }
+
+
+        const access =
+            await getSupportTicketAccess(
+                ticketId,
+                auth.user
+            );
+
+
+        if (!access.ok) {
+
+            return res
+                .status(
+                    access.error ===
+                    "support_ticket_access_denied"
+                        ? 403
+                        : 404
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            access.error
+                    }
+                );
+        }
+
+
+        if (
+            !access.isOwner &&
+            !access.isAdmin
+        ) {
+
+            return res
+                .status(403)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_ticket_access_denied"
+                    }
+                );
+        }
+
+
+        const nextStatus =
+            action ===
+            "close"
+                ? "closed"
+                : "open";
+
+
+        const {
+            error
+        } =
+            await supabase
+                .from(
+                    "support_tickets"
+                )
+                .update(
+                    {
+                        status:
+                            nextStatus,
+                        updated_at:
+                            nowIso()
+                    }
+                )
+                .eq(
+                    "id",
+                    ticketId
+                );
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_status_update_failed"
+                    }
+                );
+        }
+
+
+        if (
+            access.isOwner
+        ) {
+
+            await notifyAdmins(
+                `🎧 Support Ticket ${supportTicketNumberText(access.ticket.ticket_number)} was ${nextStatus === "closed" ? "closed" : "reopened"} by the user.`
+            );
+        }
+
+
+        return res.json(
+            {
+                ok:true,
+                status:
+                    nextStatus
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/admin/support-tickets",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            admin.error
+                    }
+                );
+        }
+
+
+        const {
+            data:
+                tickets,
+            error:
+                ticketsError
+        } =
+            await supabase
+                .from(
+                    "support_tickets"
+                )
+                .select(
+                    "id,ticket_number,user_telegram_id,category,related_listing_id,status,created_at,updated_at"
+                )
+                .order(
+                    "updated_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(100);
+
+
+        if (ticketsError) {
+
+            console.error(
+                "Admin support tickets:",
+                ticketsError
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_tickets_load_failed"
+                    }
+                );
+        }
+
+
+        if (!tickets?.length) {
+
+            return res.json(
+                {
+                    ok:true,
+                    tickets:[]
+                }
+            );
+        }
+
+
+        const userIds =
+            [
+                ...new Set(
+                    tickets.map(
+                        ticket =>
+                            Number(
+                                ticket.user_telegram_id
+                            )
+                    )
+                )
+            ];
+
+
+        const listingIds =
+            [
+                ...new Set(
+                    tickets
+                        .map(
+                            ticket =>
+                                ticket.related_listing_id
+                        )
+                        .filter(Boolean)
+                )
+            ];
+
+
+        const [
+            usersResult,
+            listingsResult,
+            messagesResult
+        ] =
+            await Promise.all(
+                [
+                    supabase
+                        .from("users")
+                        .select(
+                            "telegram_id,first_name,last_name,telegram_username"
+                        )
+                        .in(
+                            "telegram_id",
+                            userIds
+                        ),
+
+                    listingIds.length
+                        ? supabase
+                            .from("listings")
+                            .select(
+                                "id,listing_number,whatsapp_username"
+                            )
+                            .in(
+                                "id",
+                                listingIds
+                            )
+                        : Promise.resolve(
+                            {
+                                data:[],
+                                error:null
+                            }
+                        ),
+
+                    supabase
+                        .from(
+                            "support_messages"
+                        )
+                        .select(
+                            "id,ticket_id,sender_telegram_id,sender_role,message,created_at"
+                        )
+                        .in(
+                            "ticket_id",
+                            tickets.map(
+                                ticket =>
+                                    ticket.id
+                            )
+                        )
+                        .order(
+                            "created_at",
+                            {
+                                ascending:false
+                            }
+                        )
+                ]
+            );
+
+
+        const userMap =
+            new Map(
+                (
+                    usersResult.data ||
+                    []
+                ).map(
+                    user =>
+                        [
+                            Number(
+                                user.telegram_id
+                            ),
+                            user
+                        ]
+                )
+            );
+
+
+        const listingMap =
+            new Map(
+                (
+                    listingsResult.data ||
+                    []
+                ).map(
+                    listing =>
+                        [
+                            listing.id,
+                            listing
+                        ]
+                )
+            );
+
+
+        const lastMessageMap =
+            new Map();
+
+
+        for (
+            const message of
+            messagesResult.data ||
+            []
+        ) {
+
+            if (
+                !lastMessageMap.has(
+                    message.ticket_id
+                )
+            ) {
+
+                lastMessageMap.set(
+                    message.ticket_id,
+                    message
+                );
+            }
+        }
+
+
+        const payload =
+            tickets.map(
+                ticket => {
+
+                    const user =
+                        userMap.get(
+                            Number(
+                                ticket.user_telegram_id
+                            )
+                        ) ||
+                        {
+                            telegram_id:
+                                Number(
+                                    ticket.user_telegram_id
+                                ),
+                            first_name:"",
+                            last_name:"",
+                            telegram_username:null
+                        };
+
+
+                    return {
+                        ...ticket,
+                        user,
+                        related_listing:
+                            listingMap.get(
+                                ticket.related_listing_id
+                            ) ||
+                            null,
+                        last_message:
+                            lastMessageMap.get(
+                                ticket.id
+                            ) ||
+                            null
+                    };
+                }
+            );
+
+
+        return res.json(
+            {
+                ok:true,
+                tickets:
+                    payload
+            }
+        );
+    }
+);
+
+
+app.post(
+    "/admin/support-status",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            admin.error
+                    }
+                );
+        }
+
+
+        const ticketId =
+            String(
+                req.body.ticket_id ||
+                ""
+            ).trim();
+
+
+        const status =
+            String(
+                req.body.status ||
+                ""
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            ![
+                "open",
+                "in_progress",
+                "resolved",
+                "closed"
+            ].includes(
+                status
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "invalid_support_status"
+                    }
+                );
+        }
+
+
+        const {
+            data:
+                ticket,
+            error:
+                ticketError
+        } =
+            await supabase
+                .from(
+                    "support_tickets"
+                )
+                .select(
+                    "id,ticket_number,user_telegram_id,status"
+                )
+                .eq(
+                    "id",
+                    ticketId
+                )
+                .maybeSingle();
+
+
+        if (
+            ticketError ||
+            !ticket
+        ) {
+
+            return res
+                .status(404)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_ticket_not_found"
+                    }
+                );
+        }
+
+
+        const {
+            error:
+                updateError
+        } =
+            await supabase
+                .from(
+                    "support_tickets"
+                )
+                .update(
+                    {
+                        status,
+                        updated_at:
+                            nowIso()
+                    }
+                )
+                .eq(
+                    "id",
+                    ticketId
+                );
+
+
+        if (updateError) {
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "support_status_update_failed"
+                    }
+                );
+        }
+
+
+        await safeSendMessage(
+            ticket.user_telegram_id,
+            `🎧 Support Ticket ${supportTicketNumberText(ticket.ticket_number)} status: ${status.replace("_", " ").toUpperCase()}.\n\nOpen Handle Market → Profile → Help & Support.`
+        );
+
+
+        return res.json(
+            {
+                ok:true,
+                status
+            }
+        );
+    }
+);
+
 
 
 /* =========================================================

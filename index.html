@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#ffffff">
 
 <title>Handle Market</title>
-<!-- UI version: v32-compact-chat-bubbles -->
+<!-- UI version: v34-support-center -->
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -4435,6 +4435,257 @@ Never send passwords, recovery codes, seed phrases or other account secrets in c
 </div>
 
 
+
+<!-- =====================================================
+     HELP & SUPPORT
+     ===================================================== -->
+
+<div id="support" class="page">
+
+<div class="page-heading">
+
+<div class="page-title">
+🛟 Help & Support
+</div>
+
+<div class="page-description">
+Contact Handle Market support or review common questions.
+</div>
+
+</div>
+
+
+<div class="section">
+
+<div class="section-title">
+💬 Contact Support
+</div>
+
+<div class="section-subtitle">
+Create a private support ticket. Your conversation is visible only to you and Handle Market administrators.
+</div>
+
+<form
+    id="supportCreateForm"
+    class="card"
+    style="margin-top:12px"
+    onsubmit="createSupportTicket(event)"
+>
+
+<div class="field">
+
+<label>
+Category
+</label>
+
+<select id="supportCategory" required>
+<option value="General Question">General Question</option>
+<option value="Listing Problem">Listing Problem</option>
+<option value="Payment / Stars">Payment / Stars</option>
+<option value="Contact Problem">Contact Problem</option>
+<option value="Report a Problem">Report a Problem</option>
+<option value="Account Problem">Account Problem</option>
+<option value="Other">Other</option>
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Related LOT number (optional)
+</label>
+
+<input
+    id="supportRelatedListingNumber"
+    type="text"
+    inputmode="numeric"
+    placeholder="Example: 000128"
+    maxlength="12"
+>
+
+<div class="field-hint">
+If your question is about a listing, enter its LOT number.
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Message
+</label>
+
+<textarea
+    id="supportCreateMessage"
+    maxlength="2000"
+    rows="4"
+    placeholder="Describe what happened and how we can help..."
+    required
+></textarea>
+
+</div>
+
+
+<button
+    id="supportCreateButton"
+    type="submit"
+    class="primary"
+    style="width:100%"
+>
+🎧 Create Support Ticket
+</button>
+
+</form>
+
+</div>
+
+
+<div class="section">
+
+<div class="section-title">
+🎫 My Support Tickets
+</div>
+
+<div id="mySupportTickets">
+<div class="empty">Loading tickets...</div>
+</div>
+
+</div>
+
+
+<div class="section">
+
+<div class="section-title">
+❓ Frequently Asked Questions
+</div>
+
+<div class="card" style="display:grid;gap:10px">
+
+<details>
+<summary style="font-weight:800;cursor:pointer">Does Handle Market transfer WhatsApp usernames?</summary>
+<div class="section-subtitle" style="margin-top:8px">
+No. Handle Market is a discovery, contact and negotiation marketplace. It does not control or guarantee a WhatsApp username transfer.
+</div>
+</details>
+
+<details>
+<summary style="font-weight:800;cursor:pointer">What is ⭐ Premium?</summary>
+<div class="section-subtitle" style="margin-top:8px">
+Premium is awarded by Handle Market to selected usernames and cannot be purchased by sellers.
+</div>
+</details>
+
+<details>
+<summary style="font-weight:800;cursor:pointer">What are 💎 VIP, 🔥 HOT and ⬆️ Bump?</summary>
+<div class="section-subtitle" style="margin-top:8px">
+They are promotion options that increase listing visibility. They are advertising, not verification.
+</div>
+</details>
+
+<details>
+<summary style="font-weight:800;cursor:pointer">I unlocked a contact but there is a problem. What should I do?</summary>
+<div class="section-subtitle" style="margin-top:8px">
+Create a support ticket, choose Contact Problem, and include the LOT number so the support team can review the listing.
+</div>
+</details>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div id="supportTicket" class="page">
+
+<div class="seller-page">
+
+<button
+    id="supportTicketBackButton"
+    class="back-button"
+    onclick="closeSupportTicketPage()"
+>
+← Support
+</button>
+
+<div
+    id="supportTicketHeader"
+    class="card"
+    style="margin-bottom:12px"
+>
+Loading support ticket...
+</div>
+
+<div
+    id="supportTicketMessages"
+    class="card"
+    style="
+        min-height:120px;
+        max-height:46vh;
+        overflow-y:auto;
+        display:block;
+        padding:10px;
+    "
+>
+<div class="empty">Loading messages...</div>
+</div>
+
+<form
+    id="supportTicketComposer"
+    style="margin-top:12px"
+    onsubmit="sendSupportMessage(event)"
+>
+
+<div class="field">
+
+<textarea
+    id="supportTicketMessageInput"
+    maxlength="2000"
+    rows="2"
+    placeholder="Write a message to support..."
+    style="
+        min-height:54px;
+        height:54px;
+        max-height:110px;
+        resize:vertical;
+    "
+    required
+></textarea>
+
+</div>
+
+<button
+    id="supportTicketSendButton"
+    type="submit"
+    class="primary"
+    style="width:100%"
+>
+💬 Send Message
+</button>
+
+</form>
+
+<div
+    id="supportTicketActions"
+    style="margin-top:10px"
+></div>
+
+<div
+    class="field-hint"
+    style="margin-top:10px"
+>
+Never send passwords, recovery codes, seed phrases or other account secrets to support.
+</div>
+
+</div>
+
+</div>
+
+
+
 <!-- =====================================================
      ADMIN
      ===================================================== -->
@@ -4730,6 +4981,27 @@ Blocked sellers cannot use Handle Market. Their current listings are frozen auto
 
 <div class="empty">
 Loading...
+</div>
+
+</div>
+
+</div>
+
+
+<div class="admin-section">
+
+<div class="admin-section-title">
+🎧 Support Tickets
+</div>
+
+<div class="section-subtitle">
+Read and reply to user support requests. Update ticket status as each case is handled.
+</div>
+
+<div id="adminSupportTickets">
+
+<div class="empty">
+Loading support tickets...
 </div>
 
 </div>
@@ -13150,6 +13422,1449 @@ async function sendChatMessage(
 }
 
 
+
+/* =========================================================
+   SUPPORT CENTER
+   ========================================================= */
+
+let currentSupportTicketId =
+    null;
+
+let currentSupportViewerRole =
+    "user";
+
+let supportPollTimer =
+    null;
+
+let supportLoadBusy =
+    false;
+
+
+function supportTicketNumberLabel(
+    value
+) {
+
+    const number =
+        Number(
+            value
+        );
+
+
+    if (
+        !Number.isFinite(
+            number
+        ) ||
+        number <= 0
+    ) {
+
+        return "#------";
+    }
+
+
+    return "#" +
+        String(
+            Math.trunc(
+                number
+            )
+        ).padStart(
+            6,
+            "0"
+        );
+}
+
+
+function supportListingNumberLabel(
+    value
+) {
+
+    const number =
+        Number(
+            value
+        );
+
+
+    if (
+        !Number.isFinite(
+            number
+        ) ||
+        number <= 0
+    ) {
+
+        return "#------";
+    }
+
+
+    return "#" +
+        String(
+            Math.trunc(
+                number
+            )
+        ).padStart(
+            6,
+            "0"
+        );
+}
+
+
+function supportStatusLabel(
+    status
+) {
+
+    const map = {
+        open:
+            "🟢 Open",
+        in_progress:
+            "🟡 In Progress",
+        resolved:
+            "✅ Resolved",
+        closed:
+            "🔒 Closed"
+    };
+
+
+    return map[
+        String(
+            status ||
+            "open"
+        )
+    ] ||
+    "🟢 Open";
+}
+
+
+function supportStatusBadgeHtml(
+    status
+) {
+
+    return `
+        <span class="category-badge">
+            ${escapeHtml(
+                supportStatusLabel(
+                    status
+                )
+            )}
+        </span>
+    `;
+}
+
+
+function supportUserName(
+    user
+) {
+
+    const fullName =
+        [
+            user?.first_name,
+            user?.last_name
+        ]
+            .filter(Boolean)
+            .join(" ")
+            .trim();
+
+
+    if (fullName) {
+
+        return fullName;
+    }
+
+
+    if (
+        user?.telegram_username
+    ) {
+
+        return "@" +
+            user.telegram_username;
+    }
+
+
+    return "Telegram User";
+}
+
+
+async function openSupport() {
+
+    currentSupportTicketId =
+        null;
+
+
+    openPage(
+        "support",
+        null
+    );
+
+
+    await loadMySupportTickets();
+}
+
+
+async function createSupportTicket(
+    event
+) {
+
+    event.preventDefault();
+
+
+    const button =
+        document.getElementById(
+            "supportCreateButton"
+        );
+
+
+    if (!button) {
+
+        return;
+    }
+
+
+    button.disabled =
+        true;
+
+
+    const originalText =
+        button.textContent;
+
+
+    button.textContent =
+        "Creating...";
+
+
+    try {
+
+        const data =
+            await api(
+                "/support/create",
+                {
+                    initData:
+                        tg.initData,
+                    category:
+                        document.getElementById(
+                            "supportCategory"
+                        ).value,
+                    related_listing_number:
+                        document.getElementById(
+                            "supportRelatedListingNumber"
+                        ).value,
+                    message:
+                        document.getElementById(
+                            "supportCreateMessage"
+                        ).value
+                }
+            );
+
+
+        document.getElementById(
+            "supportCreateForm"
+        )?.reset();
+
+
+        await loadMySupportTickets();
+
+
+        await openSupportTicket(
+            data.ticket.id
+        );
+
+
+        tg?.showAlert(
+            `🎧 Support Ticket ${supportTicketNumberLabel(data.ticket.ticket_number)} created.`
+        );
+
+
+    } catch (
+        error
+    ) {
+
+        const messages = {
+            invalid_support_category:
+                "Choose a valid support category.",
+            invalid_support_message:
+                "Message must contain 1–2000 characters.",
+            invalid_related_listing_number:
+                "Enter a valid LOT number.",
+            related_listing_not_found:
+                "That LOT number was not found.",
+            support_ticket_create_failed:
+                "Could not create the support ticket. Please try again."
+        };
+
+
+        tg?.showAlert(
+            messages[
+                error.message
+            ] ||
+            friendlyError(
+                error.message
+            )
+        );
+
+
+    } finally {
+
+        button.disabled =
+            false;
+
+        button.textContent =
+            originalText;
+    }
+}
+
+
+async function loadMySupportTickets() {
+
+    const container =
+        document.getElementById(
+            "mySupportTickets"
+        );
+
+
+    if (!container) {
+
+        return;
+    }
+
+
+    container.innerHTML =
+        '<div class="empty">Loading tickets...</div>';
+
+
+    try {
+
+        const data =
+            await api(
+                "/support/list",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const tickets =
+            data.tickets ||
+            [];
+
+
+        if (!tickets.length) {
+
+            container.innerHTML = `
+                <div class="empty">
+                    No support tickets yet.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        container.innerHTML =
+            tickets
+                .map(
+                    ticket => {
+
+                        const preview =
+                            ticket.last_message
+                                ?.message
+                                ? escapeHtml(
+                                    String(
+                                        ticket.last_message.message
+                                    ).slice(
+                                        0,
+                                        120
+                                    )
+                                )
+                                : "No messages";
+
+
+                        const listing =
+                            ticket.related_listing;
+
+
+                        return `
+                            <button
+                                class="card"
+                                style="
+                                    width:100%;
+                                    text-align:left;
+                                    margin-bottom:10px;
+                                    cursor:pointer;
+                                "
+                                onclick="openSupportTicket('${ticket.id}')"
+                            >
+
+                                <div
+                                    style="
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:space-between;
+                                        gap:8px;
+                                        flex-wrap:wrap;
+                                    "
+                                >
+
+                                    <div style="font-weight:900">
+                                        🎧 Ticket ${supportTicketNumberLabel(ticket.ticket_number)}
+                                    </div>
+
+                                    ${supportStatusBadgeHtml(
+                                        ticket.status
+                                    )}
+
+                                </div>
+
+                                <div class="section-subtitle" style="margin-top:7px">
+                                    ${escapeHtml(
+                                        ticket.category ||
+                                        "General Question"
+                                    )}
+                                </div>
+
+                                ${
+                                    listing
+                                        ? `
+                                            <div class="section-subtitle" style="margin-top:5px">
+                                                LOT ${supportListingNumberLabel(
+                                                    listing.listing_number
+                                                )} · @${escapeHtml(
+                                                    listing.whatsapp_username ||
+                                                    "username"
+                                                )}
+                                            </div>
+                                        `
+                                        : ""
+                                }
+
+                                <div style="margin-top:8px;font-size:12px">
+                                    ${preview}
+                                </div>
+
+                                <div class="field-hint" style="margin-top:7px">
+                                    ${escapeHtml(
+                                        chatTimeLabel(
+                                            ticket.updated_at
+                                        )
+                                    )}
+                                </div>
+
+                            </button>
+                        `;
+                    }
+                )
+                .join("");
+
+
+    } catch (
+        error
+    ) {
+
+        container.innerHTML =
+            '<div class="empty">Failed to load support tickets.</div>';
+    }
+}
+
+
+async function openSupportTicket(
+    ticketId
+) {
+
+    currentSupportTicketId =
+        String(
+            ticketId
+        );
+
+
+    openPage(
+        "supportTicket",
+        null
+    );
+
+
+    await loadSupportTicketMessages(
+        true
+    );
+
+
+    if (!supportPollTimer) {
+
+        supportPollTimer =
+            setInterval(
+                () => {
+
+                    if (
+                        document.getElementById(
+                            "supportTicket"
+                        )?.classList.contains(
+                            "active"
+                        ) &&
+                        currentSupportTicketId
+                    ) {
+
+                        loadSupportTicketMessages(
+                            false
+                        );
+                    }
+                },
+                5000
+            );
+    }
+}
+
+
+function closeSupportTicketPage() {
+
+    const wasAdmin =
+        currentSupportViewerRole ===
+        "admin";
+
+
+    currentSupportTicketId =
+        null;
+
+
+    if (wasAdmin) {
+
+        openAdmin();
+
+    } else {
+
+        openSupport();
+    }
+}
+
+
+async function loadSupportTicketMessages(
+    scrollToBottom = false
+) {
+
+    if (
+        !currentSupportTicketId ||
+        supportLoadBusy
+    ) {
+
+        return;
+    }
+
+
+    supportLoadBusy =
+        true;
+
+
+    try {
+
+        const data =
+            await api(
+                "/support/messages",
+                {
+                    initData:
+                        tg.initData,
+                    ticket_id:
+                        currentSupportTicketId
+                }
+            );
+
+
+        if (
+            String(
+                data.ticket.id
+            ) !==
+            String(
+                currentSupportTicketId
+            )
+        ) {
+
+            return;
+        }
+
+
+        const ticket =
+            data.ticket;
+
+
+        currentSupportViewerRole =
+            ticket.viewer_role ||
+            "user";
+
+
+        const backButton =
+            document.getElementById(
+                "supportTicketBackButton"
+            );
+
+
+        if (backButton) {
+
+            backButton.textContent =
+                currentSupportViewerRole ===
+                "admin"
+                    ? "← Admin Panel"
+                    : "← Support";
+        }
+
+
+        const header =
+            document.getElementById(
+                "supportTicketHeader"
+            );
+
+
+        if (header) {
+
+            const ownerName =
+                supportUserName(
+                    ticket.user
+                );
+
+
+            header.innerHTML = `
+                <div
+                    style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        gap:8px;
+                        flex-wrap:wrap;
+                    "
+                >
+
+                    <div class="username">
+                        🎧 Ticket ${supportTicketNumberLabel(ticket.ticket_number)}
+                    </div>
+
+                    ${supportStatusBadgeHtml(
+                        ticket.status
+                    )}
+
+                </div>
+
+                <div class="section-subtitle" style="margin-top:7px">
+                    ${escapeHtml(
+                        ticket.category ||
+                        "General Question"
+                    )}
+                </div>
+
+                ${
+                    currentSupportViewerRole ===
+                    "admin"
+                        ? `
+                            <div style="margin-top:9px;font-weight:800">
+                                ${escapeHtml(
+                                    ownerName
+                                )}
+                            </div>
+
+                            <div class="section-subtitle">
+                                ${
+                                    ticket.user
+                                        ?.telegram_username
+                                        ? "@" +
+                                            escapeHtml(
+                                                ticket.user.telegram_username
+                                            ) +
+                                            " · "
+                                        : ""
+                                }
+                                Telegram ID: ${escapeHtml(
+                                    String(
+                                        ticket.user?.telegram_id ||
+                                        ""
+                                    )
+                                )}
+                            </div>
+                        `
+                        : ""
+                }
+
+                ${
+                    ticket.related_listing
+                        ? `
+                            <div style="margin-top:9px">
+                                <span class="category-badge">
+                                    LOT ${supportListingNumberLabel(
+                                        ticket.related_listing.listing_number
+                                    )}
+                                </span>
+                                <span style="margin-left:6px;font-weight:800">
+                                    @${escapeHtml(
+                                        ticket.related_listing.whatsapp_username ||
+                                        "username"
+                                    )}
+                                </span>
+                            </div>
+                        `
+                        : ""
+                }
+            `;
+        }
+
+
+        const container =
+            document.getElementById(
+                "supportTicketMessages"
+            );
+
+
+        const myId =
+            Number(
+                authenticatedUser
+                    ?.telegram_id ||
+                authenticatedUser
+                    ?.id ||
+                tg?.initDataUnsafe
+                    ?.user
+                    ?.id ||
+                0
+            );
+
+
+        const messages =
+            data.messages ||
+            [];
+
+
+        if (!messages.length) {
+
+            container.innerHTML =
+                '<div class="empty">No messages yet.</div>';
+
+        } else {
+
+            container.innerHTML =
+                messages
+                    .map(
+                        item => {
+
+                            const mine =
+                                Number(
+                                    item.sender_telegram_id
+                                ) ===
+                                myId;
+
+
+                            const cleanMessage =
+                                String(
+                                    item.message ||
+                                    ""
+                                )
+                                    .trim()
+                                    .replace(
+                                        /\n{3,}/g,
+                                        "\n\n"
+                                    );
+
+
+                            const senderLabel =
+                                item.sender_role ===
+                                "admin"
+                                    ? "Handle Market Support"
+                                    : (
+                                        currentSupportViewerRole ===
+                                        "admin"
+                                            ? supportUserName(
+                                                ticket.user
+                                            )
+                                            : "You"
+                                    );
+
+
+                            return `
+                                <div
+                                    style="
+                                        width:100%;
+                                        display:flex;
+                                        justify-content:${mine ? "flex-end" : "flex-start"};
+                                        margin:0 0 6px 0;
+                                        padding:0;
+                                    "
+                                >
+                                    <div
+                                        style="
+                                            display:inline-block;
+                                            width:auto;
+                                            min-width:0;
+                                            max-width:76%;
+                                            margin:0;
+                                            padding:7px 10px 6px;
+                                            border-radius:14px;
+                                            background:${mine ? "var(--button-color, #2481cc)" : "rgba(127,127,127,.14)"};
+                                            color:${mine ? "#fff" : "inherit"};
+                                            font-size:12px;
+                                            line-height:1.32;
+                                            overflow-wrap:anywhere;
+                                            word-break:break-word;
+                                            box-sizing:border-box;
+                                        "
+                                    >
+                                        <div
+                                            style="
+                                                font-size:9px;
+                                                font-weight:800;
+                                                opacity:.72;
+                                                margin-bottom:3px;
+                                            "
+                                        >
+                                            ${escapeHtml(
+                                                senderLabel
+                                            )}
+                                        </div>
+
+                                        <div style="white-space:pre-wrap">
+                                            ${escapeHtml(
+                                                cleanMessage
+                                            )}
+                                        </div>
+
+                                        <div
+                                            style="
+                                                margin-top:3px;
+                                                font-size:9px;
+                                                line-height:1.1;
+                                                opacity:.68;
+                                                text-align:right;
+                                                white-space:nowrap;
+                                            "
+                                        >
+                                            ${escapeHtml(
+                                                chatTimeLabel(
+                                                    item.created_at
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    )
+                    .join("");
+        }
+
+
+        const composer =
+            document.getElementById(
+                "supportTicketComposer"
+            );
+
+
+        const input =
+            document.getElementById(
+                "supportTicketMessageInput"
+            );
+
+
+        const actions =
+            document.getElementById(
+                "supportTicketActions"
+            );
+
+
+        const closed =
+            ticket.status ===
+            "closed";
+
+
+        if (composer) {
+
+            composer.style.display =
+                closed
+                    ? "none"
+                    : "block";
+        }
+
+
+        if (input) {
+
+            input.placeholder =
+                currentSupportViewerRole ===
+                "admin"
+                    ? "Write a support reply..."
+                    : "Write a message to support...";
+        }
+
+
+        if (actions) {
+
+            if (
+                currentSupportViewerRole ===
+                "admin"
+            ) {
+
+                actions.innerHTML = `
+                    <div
+                        style="
+                            display:flex;
+                            gap:7px;
+                            flex-wrap:wrap;
+                        "
+                    >
+                        ${
+                            ticket.status !==
+                            "open"
+                                ? `
+                                    <button
+                                        class="secondary"
+                                        onclick="adminSetSupportStatus('${ticket.id}','open')"
+                                    >
+                                        🟢 Open
+                                    </button>
+                                `
+                                : ""
+                        }
+
+                        ${
+                            ticket.status !==
+                            "in_progress"
+                                ? `
+                                    <button
+                                        class="secondary"
+                                        onclick="adminSetSupportStatus('${ticket.id}','in_progress')"
+                                    >
+                                        🟡 In Progress
+                                    </button>
+                                `
+                                : ""
+                        }
+
+                        ${
+                            ticket.status !==
+                            "resolved"
+                                ? `
+                                    <button
+                                        class="secondary"
+                                        onclick="adminSetSupportStatus('${ticket.id}','resolved')"
+                                    >
+                                        ✅ Resolve
+                                    </button>
+                                `
+                                : ""
+                        }
+
+                        ${
+                            ticket.status !==
+                            "closed"
+                                ? `
+                                    <button
+                                        class="secondary"
+                                        onclick="adminSetSupportStatus('${ticket.id}','closed')"
+                                    >
+                                        🔒 Close
+                                    </button>
+                                `
+                                : `
+                                    <button
+                                        class="secondary"
+                                        onclick="adminSetSupportStatus('${ticket.id}','open')"
+                                    >
+                                        🔓 Reopen
+                                    </button>
+                                `
+                        }
+                    </div>
+                `;
+
+            } else {
+
+                actions.innerHTML =
+                    closed
+                        ? `
+                            <button
+                                class="secondary"
+                                style="width:100%"
+                                onclick="changeMySupportTicketStatus('reopen')"
+                            >
+                                🔓 Reopen Ticket
+                            </button>
+                        `
+                        : `
+                            <button
+                                class="secondary"
+                                style="width:100%"
+                                onclick="changeMySupportTicketStatus('close')"
+                            >
+                                🔒 Close Ticket
+                            </button>
+                        `;
+            }
+        }
+
+
+        if (scrollToBottom) {
+
+            requestAnimationFrame(
+                () => {
+
+                    container.scrollTop =
+                        container.scrollHeight;
+                }
+            );
+        }
+
+
+    } catch (
+        error
+    ) {
+
+        if (scrollToBottom) {
+
+            tg?.showAlert(
+                friendlyError(
+                    error.message
+                )
+            );
+        }
+
+
+    } finally {
+
+        supportLoadBusy =
+            false;
+    }
+}
+
+
+async function sendSupportMessage(
+    event
+) {
+
+    event.preventDefault();
+
+
+    if (!currentSupportTicketId) {
+
+        return;
+    }
+
+
+    const input =
+        document.getElementById(
+            "supportTicketMessageInput"
+        );
+
+
+    const button =
+        document.getElementById(
+            "supportTicketSendButton"
+        );
+
+
+    const message =
+        String(
+            input?.value ||
+            ""
+        ).trim();
+
+
+    if (!message) {
+
+        return;
+    }
+
+
+    button.disabled =
+        true;
+
+
+    try {
+
+        await api(
+            "/support/send",
+            {
+                initData:
+                    tg.initData,
+                ticket_id:
+                    currentSupportTicketId,
+                message
+            }
+        );
+
+
+        input.value =
+            "";
+
+
+        await loadSupportTicketMessages(
+            true
+        );
+
+
+        if (
+            currentSupportViewerRole ===
+            "admin"
+        ) {
+
+            loadAdminSupportTickets();
+
+        } else {
+
+            loadMySupportTickets();
+        }
+
+
+    } catch (
+        error
+    ) {
+
+        const messages = {
+            invalid_support_message:
+                "Message must contain 1–2000 characters.",
+            support_message_too_fast:
+                "Please wait a moment before sending another message.",
+            support_ticket_closed:
+                "This ticket is closed. Reopen it before sending a message.",
+            support_ticket_access_denied:
+                "You do not have access to this support ticket.",
+            support_message_send_failed:
+                "Message could not be sent. Please try again."
+        };
+
+
+        tg?.showAlert(
+            messages[
+                error.message
+            ] ||
+            friendlyError(
+                error.message
+            )
+        );
+
+
+    } finally {
+
+        button.disabled =
+            false;
+    }
+}
+
+
+async function changeMySupportTicketStatus(
+    action
+) {
+
+    if (!currentSupportTicketId) {
+
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/support/ticket-status",
+            {
+                initData:
+                    tg.initData,
+                ticket_id:
+                    currentSupportTicketId,
+                action
+            }
+        );
+
+
+        await Promise.all(
+            [
+                loadSupportTicketMessages(
+                    false
+                ),
+                loadMySupportTickets()
+            ]
+        );
+
+
+    } catch (
+        error
+    ) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+    }
+}
+
+
+async function loadAdminSupportTickets() {
+
+    const container =
+        document.getElementById(
+            "adminSupportTickets"
+        );
+
+
+    if (!container) {
+
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/support-tickets",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const tickets =
+            data.tickets ||
+            [];
+
+
+        if (!tickets.length) {
+
+            container.innerHTML =
+                '<div class="empty">No support tickets.</div>';
+
+            return;
+        }
+
+
+        container.innerHTML =
+            tickets
+                .map(
+                    ticket => {
+
+                        const userName =
+                            supportUserName(
+                                ticket.user
+                            );
+
+
+                        const preview =
+                            ticket.last_message
+                                ?.message
+                                ? escapeHtml(
+                                    String(
+                                        ticket.last_message.message
+                                    ).slice(
+                                        0,
+                                        150
+                                    )
+                                )
+                                : "No messages";
+
+
+                        return `
+                            <div class="card" style="margin-bottom:10px">
+
+                                <div
+                                    style="
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:space-between;
+                                        gap:8px;
+                                        flex-wrap:wrap;
+                                    "
+                                >
+
+                                    <div class="username">
+                                        🎧 Ticket ${supportTicketNumberLabel(ticket.ticket_number)}
+                                    </div>
+
+                                    ${supportStatusBadgeHtml(
+                                        ticket.status
+                                    )}
+
+                                </div>
+
+                                <div style="margin-top:8px;font-weight:800">
+                                    ${escapeHtml(
+                                        userName
+                                    )}
+                                </div>
+
+                                <div class="section-subtitle">
+                                    ${
+                                        ticket.user
+                                            ?.telegram_username
+                                            ? "@" +
+                                                escapeHtml(
+                                                    ticket.user.telegram_username
+                                                ) +
+                                                " · "
+                                            : ""
+                                    }
+                                    Telegram ID: ${escapeHtml(
+                                        String(
+                                            ticket.user?.telegram_id ||
+                                            ""
+                                        )
+                                    )}
+                                </div>
+
+                                <div class="section-subtitle" style="margin-top:6px">
+                                    ${escapeHtml(
+                                        ticket.category ||
+                                        "General Question"
+                                    )}
+                                </div>
+
+                                ${
+                                    ticket.related_listing
+                                        ? `
+                                            <div class="section-subtitle" style="margin-top:5px">
+                                                LOT ${supportListingNumberLabel(
+                                                    ticket.related_listing.listing_number
+                                                )} · @${escapeHtml(
+                                                    ticket.related_listing.whatsapp_username ||
+                                                    "username"
+                                                )}
+                                            </div>
+                                        `
+                                        : ""
+                                }
+
+                                <div style="margin-top:9px;font-size:12px">
+                                    ${preview}
+                                </div>
+
+                                <div class="field-hint" style="margin-top:7px">
+                                    Updated ${escapeHtml(
+                                        chatTimeLabel(
+                                            ticket.updated_at
+                                        )
+                                    )}
+                                </div>
+
+                                <div
+                                    style="
+                                        margin-top:10px;
+                                        display:flex;
+                                        gap:7px;
+                                        flex-wrap:wrap;
+                                    "
+                                >
+
+                                    <button
+                                        class="primary"
+                                        onclick="openSupportTicket('${ticket.id}')"
+                                    >
+                                        💬 Open Chat
+                                    </button>
+
+                                    ${
+                                        ticket.status !==
+                                        "in_progress"
+                                            ? `
+                                                <button
+                                                    class="secondary"
+                                                    onclick="adminSetSupportStatus('${ticket.id}','in_progress')"
+                                                >
+                                                    🟡 In Progress
+                                                </button>
+                                            `
+                                            : ""
+                                    }
+
+                                    ${
+                                        ticket.status !==
+                                        "resolved"
+                                            ? `
+                                                <button
+                                                    class="secondary"
+                                                    onclick="adminSetSupportStatus('${ticket.id}','resolved')"
+                                                >
+                                                    ✅ Resolve
+                                                </button>
+                                            `
+                                            : ""
+                                    }
+
+                                    ${
+                                        ticket.status !==
+                                        "closed"
+                                            ? `
+                                                <button
+                                                    class="secondary"
+                                                    onclick="adminSetSupportStatus('${ticket.id}','closed')"
+                                                >
+                                                    🔒 Close
+                                                </button>
+                                            `
+                                            : `
+                                                <button
+                                                    class="secondary"
+                                                    onclick="adminSetSupportStatus('${ticket.id}','open')"
+                                                >
+                                                    🔓 Reopen
+                                                </button>
+                                            `
+                                    }
+
+                                </div>
+
+                            </div>
+                        `;
+                    }
+                )
+                .join("");
+
+
+    } catch (
+        error
+    ) {
+
+        container.innerHTML =
+            '<div class="empty">Failed to load support tickets.</div>';
+    }
+}
+
+
+async function adminSetSupportStatus(
+    ticketId,
+    status
+) {
+
+    try {
+
+        await api(
+            "/admin/support-status",
+            {
+                initData:
+                    tg.initData,
+                ticket_id:
+                    ticketId,
+                status
+            }
+        );
+
+
+        await loadAdminSupportTickets();
+
+
+        if (
+            String(
+                currentSupportTicketId ||
+                ""
+            ) ===
+            String(
+                ticketId
+            )
+        ) {
+
+            await loadSupportTicketMessages(
+                false
+            );
+        }
+
+
+    } catch (
+        error
+    ) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+    }
+}
+
+
+
+
 /* =========================================================
    PROFILE
    ========================================================= */
@@ -13288,6 +15003,30 @@ function renderMainProfile(
 
                         <div class="profile-tile-subtitle">
                             Buyer & seller messages
+                        </div>
+
+                    </div>
+
+                </button>
+
+
+                <button
+                    class="profile-tile"
+                    onclick="openSupport()"
+                >
+
+                    <div class="profile-tile-icon">
+                        🛟
+                    </div>
+
+                    <div>
+
+                        <div class="profile-tile-title">
+                            Help & Support
+                        </div>
+
+                        <div class="profile-tile-subtitle">
+                            Contact Handle Market
                         </div>
 
                     </div>
@@ -13833,7 +15572,8 @@ async function loadAdminPanel() {
             loadAdminPremiumListings(),
             loadAdminReports(),
             loadFrozenListings(),
-            loadBlockedSellers()
+            loadBlockedSellers(),
+            loadAdminSupportTickets()
         ]
     );
 }
