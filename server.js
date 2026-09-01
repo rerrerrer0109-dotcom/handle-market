@@ -128,6 +128,28 @@ const TELEGRAM_WEBHOOK_SECRET =
     process.env.TELEGRAM_WEBHOOK_SECRET;
 
 
+const TELEGRAM_BOT_USERNAME =
+    String(
+        process.env.TELEGRAM_BOT_USERNAME ||
+        ""
+    )
+        .trim()
+        .replace(/^@/, "");
+
+
+const TELEGRAM_MINI_APP_SHORT_NAME =
+    String(
+        process.env.TELEGRAM_MINI_APP_SHORT_NAME ||
+        ""
+    )
+        .trim()
+        .replace(/^\/+|\/+$/g, "");
+
+
+const REFERRAL_LISTING_DURATION_HOURS =
+    7 * 24;
+
+
 /* =========================================================
    PROMOTIONS
    ========================================================= */
@@ -1936,6 +1958,15 @@ async function notifyAdminsNewListing(
     }
 
 
+    if (
+        plan === "referral"
+    ) {
+
+        planText =
+            `🎁 REFERRAL REWARD · ${REFERRAL_LISTING_DURATION_HOURS / 24} DAYS`;
+    }
+
+
     const price =
         Number(
             listing.asking_price ||
@@ -2247,6 +2278,136 @@ async function createFreeListing(
 
         throw error;
     }
+}
+
+
+async function createReferralRewardListingAtomic(
+    seller,
+    input
+) {
+
+    const listingId =
+        crypto.randomUUID();
+
+
+    const {
+        data,
+        error
+    } =
+        await supabase.rpc(
+            "hm_create_referral_listing_v46",
+            {
+                p_telegram_id:
+                    seller.telegram_id,
+                p_listing_id:
+                    listingId,
+                p_username:
+                    input.username,
+                p_price:
+                    input.price,
+                p_price_type:
+                    input.priceType,
+                p_minimum_offer:
+                    input.minimumOffer,
+                p_category:
+                    input.category,
+                p_description:
+                    input.description,
+                p_contact_type:
+                    input.contactType,
+                p_contact_value:
+                    input.contactValue
+            }
+        );
+
+
+    if (
+        error
+    ) {
+
+        throw error;
+    }
+
+
+    if (
+        !data?.ok
+    ) {
+
+        const claimError =
+            new Error(
+                data?.error ||
+                "referral_listing_create_failed"
+            );
+
+
+        claimError.code =
+            data?.error ||
+            "referral_listing_create_failed";
+
+
+        throw claimError;
+    }
+
+
+    await ensureSellerProfile(
+        seller.telegram_id
+    );
+
+
+    await safeSendMessage(
+        seller.telegram_id,
+        `🎁 Your referral reward listing @${input.username} was submitted for moderation.\n\nIts free ${REFERRAL_LISTING_DURATION_HOURS / 24}-day timer starts only after approval.`
+    );
+
+
+    await notifyAdminsNewListing(
+        {
+            whatsapp_username:
+                input.username,
+            asking_price:
+                input.price,
+            category:
+                input.category,
+            listing_plan:
+                "referral"
+        }
+    );
+
+
+    const {
+        data:
+            createdListing
+    } =
+        await supabase
+            .from("listings")
+            .select(
+                "id,seller_telegram_id,listing_number,whatsapp_username,status"
+            )
+            .eq(
+                "id",
+                listingId
+            )
+            .maybeSingle();
+
+
+    if (
+        createdListing
+    ) {
+
+        await detectDuplicateUsernameRisk(
+            createdListing
+        );
+    }
+
+
+    return {
+        listing_id:
+            listingId,
+        reward_id:
+            data.reward_id,
+        tier:
+            data.tier
+    };
 }
 
 
@@ -3170,7 +3331,12 @@ function calculatePromotionUntil(
 
 
     if (
-        plan === "paid" &&
+        [
+            "paid",
+            "referral"
+        ].includes(
+            plan
+        ) &&
         listingExpiry &&
         requestedUntil >
         listingExpiry
@@ -7518,7 +7684,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v45-launch-performance"
+                    "v46-referral-system"
             }
         );
     }
@@ -7612,6 +7778,52 @@ app.post(
                             auth.error
                     }
                 );
+        }
+
+
+        let referral =
+            null;
+
+
+        try {
+
+            const referralCode =
+                v46NormalizeReferralCode(
+                    req.body.referral_code
+                );
+
+
+            await v46EnsureReferralProfile(
+                auth.user.telegram_id
+            );
+
+
+            if (
+                referralCode
+            ) {
+
+                await v46RegisterReferral(
+                    auth.user.telegram_id,
+                    referralCode
+                );
+            }
+
+
+            referral =
+                await v46ReferralStatus(
+                    auth.user.telegram_id
+                );
+
+        } catch (error) {
+
+            await logSystemError(
+                "v46_auth_referral",
+                error,
+                {
+                    telegram_id:
+                        auth.user.telegram_id
+                }
+            );
         }
 
 
@@ -7745,7 +7957,9 @@ app.post(
                     PROMOTION_TEST_MODE,
 
                 promotion_prices:
-                    promotionPricesForClient()
+                    promotionPricesForClient(),
+
+                referral
             }
         );
     }
@@ -7976,6 +8190,76 @@ app.post(
                                 "free_listing_create_failed"
                         }
                     );
+            }
+        }
+
+
+        /*
+         * REFERRAL REWARD: FREE 7-DAY LISTING
+         * The first ordinary free listing always remains first. After it is used,
+         * the client may explicitly request one available referral listing credit.
+         */
+
+        if (
+            Boolean(
+                req.body.use_referral_credit
+            )
+        ) {
+            try {
+
+                const created =
+                    await createReferralRewardListingAtomic(
+                        seller,
+                        input
+                    );
+
+
+                return res.json({
+                    ok:true,
+                    free:true,
+                    referral_free:true,
+                    listing_id:
+                        created.listing_id,
+                    status:
+                        "pending",
+                    listing_plan:
+                        "referral",
+                    duration_hours:
+                        REFERRAL_LISTING_DURATION_HOURS
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "Referral listing create:",
+                    error
+                );
+
+
+                if (
+                    error?.code ===
+                    "referral_listing_reward_unavailable" ||
+                    error?.message ===
+                    "referral_listing_reward_unavailable"
+                ) {
+
+                    return res
+                        .status(409)
+                        .json({
+                            ok:false,
+                            error:
+                                "referral_listing_reward_unavailable"
+                        });
+                }
+
+
+                return res
+                    .status(500)
+                    .json({
+                        ok:false,
+                        error:
+                            "referral_listing_create_failed"
+                    });
             }
         }
 
@@ -8305,7 +8589,8 @@ app.post(
         if (
             ![
                 "free",
-                "paid"
+                "paid",
+                "referral"
             ].includes(
                 String(
                     listing.listing_plan
@@ -17095,7 +17380,7 @@ app.post(
         return res.json({
             ok:true,
             version:
-                "v45-launch-performance",
+                "v46-referral-system",
             uptime_seconds:
                 Math.floor(
                     process.uptime()
@@ -24232,6 +24517,32 @@ app.post(
                 update.listing_expired_notified_at =
                     null;
             }
+
+
+            if (
+                !restartingExistingPeriod &&
+                existing.listing_plan ===
+                "referral"
+            ) {
+
+                update.listing_period_started_at =
+                    startedAt;
+
+
+                update.listing_expires_at =
+                    addHoursIso(
+                        startedAt,
+                        REFERRAL_LISTING_DURATION_HOURS
+                    );
+
+
+                update.listing_expiry_1h_notified_at =
+                    null;
+
+
+                update.listing_expired_notified_at =
+                    null;
+            }
         }
 
 
@@ -24325,6 +24636,14 @@ app.post(
 
                 message =
                     `✅ @${data.whatsapp_username} was approved and is now live for ${PAID_LISTING_DURATION_DAYS} days.`;
+
+            } else if (
+                data.listing_plan ===
+                "referral"
+            ) {
+
+                message =
+                    `✅ @${data.whatsapp_username} was approved. Your referral reward listing is now live for ${REFERRAL_LISTING_DURATION_HOURS / 24} days.`;
 
             } else {
 
@@ -28465,7 +28784,7 @@ app.get(
             return res.json({
                 ok:true,
                 version:
-                    "v45-launch-performance",
+                    "v46-referral-system",
                 server_time:
                     nowIso(),
                 page:
@@ -28528,7 +28847,7 @@ app.get(
         return res.json({
             ok:true,
             version:
-                "v45-launch-performance",
+                "v46-referral-system",
             service:
                 "Handle Market API",
             maintenance:
@@ -28619,7 +28938,7 @@ app.post(
         return res.json({
             ok:true,
             version:
-                "v45-launch-performance",
+                "v46-referral-system",
             maintenance,
             marketplace:{
                 ok:
@@ -28749,6 +29068,784 @@ app.post(
                     true
                 )
         });
+    }
+);
+
+
+/* =========================================================
+   V46 — REFERRAL SYSTEM
+   - Cumulative one-time rewards at 3 / 10 / 25 qualified invites.
+   - Telegram-authenticated attribution for new Handle Market accounts only.
+   - Atomic promotion claims and reserved 7-day listing credits.
+   ========================================================= */
+
+const V46_REFERRAL_REWARDS = [
+    {
+        tier:3,
+        reward_type:"bump_24h",
+        kind:"promotion",
+        title:"⬆️ BUMP · 24 hours"
+    },
+    {
+        tier:10,
+        reward_type:"hot_7d",
+        kind:"promotion",
+        title:"🔥 HOT · 7 days"
+    },
+    {
+        tier:10,
+        reward_type:"listing_7d",
+        kind:"listing",
+        title:"📦 Free listing · 7 days"
+    },
+    {
+        tier:25,
+        reward_type:"vip_7d",
+        kind:"promotion",
+        title:"💎 VIP · 7 days"
+    },
+    {
+        tier:25,
+        reward_type:"listing_7d",
+        kind:"listing",
+        title:"📦 Free listing · 7 days"
+    }
+];
+
+
+let v46BotUsernameCache =
+    TELEGRAM_BOT_USERNAME ||
+    null;
+
+
+function v46NormalizeReferralCode(
+    value
+) {
+
+    const code =
+        String(
+            value ||
+            ""
+        )
+            .trim()
+            .replace(
+                /^ref[_-]?/i,
+                ""
+            )
+            .toUpperCase();
+
+
+    return /^[A-Z0-9]{8,20}$/.test(
+        code
+    )
+        ? code
+        : "";
+}
+
+
+function v46ReferralCodeFor(
+    telegramId
+) {
+
+    const secret =
+        BOT_TOKEN ||
+        SUPABASE_SECRET_KEY ||
+        "handle-market-v46";
+
+
+    return crypto
+        .createHmac(
+            "sha256",
+            secret
+        )
+        .update(
+            `referral:${Number(telegramId)}`
+        )
+        .digest("hex")
+        .slice(0,12)
+        .toUpperCase();
+}
+
+
+async function v46EnsureReferralProfile(
+    telegramId
+) {
+
+    const {
+        data:
+            existing,
+        error:
+            existingError
+    } =
+        await supabase
+            .from(
+                "referral_profiles"
+            )
+            .select(
+                "telegram_id,referral_code,created_at"
+            )
+            .eq(
+                "telegram_id",
+                Number(
+                    telegramId
+                )
+            )
+            .maybeSingle();
+
+
+    if (
+        existingError
+    ) {
+
+        throw existingError;
+    }
+
+
+    if (
+        existing
+    ) {
+
+        return existing;
+    }
+
+    const code =
+        v46ReferralCodeFor(
+            telegramId
+        );
+
+
+    const {
+        data,
+        error
+    } =
+        await supabase
+            .from(
+                "referral_profiles"
+            )
+            .insert(
+                {
+                    telegram_id:
+                        Number(
+                            telegramId
+                        ),
+                    referral_code:
+                        code,
+                    updated_at:
+                        nowIso()
+                }
+            )
+            .select(
+                "telegram_id,referral_code,created_at"
+            )
+            .single();
+
+
+    if (
+        error
+    ) {
+
+        const {
+            data:
+                concurrent,
+            error:
+                concurrentError
+        } =
+            await supabase
+                .from(
+                    "referral_profiles"
+                )
+                .select(
+                    "telegram_id,referral_code,created_at"
+                )
+                .eq(
+                    "telegram_id",
+                    Number(
+                        telegramId
+                    )
+                )
+                .maybeSingle();
+
+
+        if (
+            concurrentError ||
+            !concurrent
+        ) {
+
+            throw error;
+        }
+
+
+        return concurrent;
+    }
+
+
+    return data;
+}
+
+
+async function v46GetBotUsername() {
+
+    if (
+        v46BotUsernameCache
+    ) {
+
+        return v46BotUsernameCache;
+    }
+
+
+    try {
+
+        const me =
+            await telegramApi(
+                "getMe"
+            );
+
+
+        v46BotUsernameCache =
+            String(
+                me?.username ||
+                ""
+            )
+                .trim()
+                .replace(/^@/, "") ||
+            null;
+
+    } catch (error) {
+
+        console.error(
+            "Referral bot username:",
+            error.message
+        );
+    }
+
+
+    return v46BotUsernameCache;
+}
+
+
+async function v46ReferralLink(
+    code
+) {
+
+    const botUsername =
+        await v46GetBotUsername();
+
+
+    if (
+        !botUsername
+    ) {
+
+        return "";
+    }
+
+
+    const appPath =
+        TELEGRAM_MINI_APP_SHORT_NAME
+            ? `/${encodeURIComponent(TELEGRAM_MINI_APP_SHORT_NAME)}`
+            : "";
+
+
+    return `https://t.me/${encodeURIComponent(botUsername)}${appPath}?startapp=ref_${encodeURIComponent(code)}`;
+}
+
+
+async function v46RegisterReferral(
+    referredTelegramId,
+    code
+) {
+
+    const {
+        data,
+        error
+    } =
+        await supabase.rpc(
+            "hm_register_referral_v46",
+            {
+                p_referred_telegram_id:
+                    Number(
+                        referredTelegramId
+                    ),
+                p_referral_code:
+                    code
+            }
+        );
+
+
+    if (
+        error
+    ) {
+
+        throw error;
+    }
+
+
+    if (
+        data?.ok &&
+        data?.new_referral &&
+        data?.referrer_id
+    ) {
+
+        const count =
+            Number(
+                data.qualified_count ||
+                0
+            );
+
+
+        let unlocked =
+            "";
+
+
+        if (
+            count === 3
+        ) {
+
+            unlocked =
+                "\n\n🎁 Unlocked: BUMP for 24 hours.";
+        }
+
+
+        if (
+            count === 10
+        ) {
+
+            unlocked =
+                "\n\n🎁 Unlocked: HOT for 7 days + one free 7-day listing.";
+        }
+
+
+        if (
+            count === 25
+        ) {
+
+            unlocked =
+                "\n\n🎁 Unlocked: VIP for 7 days + one free 7-day listing.";
+        }
+
+
+        await safeSendMessage(
+            Number(
+                data.referrer_id
+            ),
+            `🎉 New qualified referral!\n\nProgress: ${count} invited.${unlocked}`
+        );
+    }
+
+
+    return data;
+}
+
+
+async function v46ReferralStatus(
+    telegramId
+) {
+
+    const profile =
+        await v46EnsureReferralProfile(
+            telegramId
+        );
+
+
+    await supabase
+        .from(
+            "referral_rewards"
+        )
+        .update({
+            status:"available",
+            reserved_until:null
+        })
+        .eq(
+            "telegram_id",
+            Number(
+                telegramId
+            )
+        )
+        .eq(
+            "status",
+            "reserved"
+        )
+        .lt(
+            "reserved_until",
+            nowIso()
+        );
+
+
+    const [
+        referralsResult,
+        rewardsResult
+    ] =
+        await Promise.all([
+            supabase
+                .from("referrals")
+                .select(
+                    "id",
+                    {
+                        head:true,
+                        count:"exact"
+                    }
+                )
+                .eq(
+                    "referrer_telegram_id",
+                    Number(
+                        telegramId
+                    )
+                )
+                .eq(
+                    "status",
+                    "qualified"
+                ),
+            supabase
+                .from(
+                    "referral_rewards"
+                )
+                .select(
+                    "id,tier,reward_type,status,listing_id,claimed_at,reserved_until"
+                )
+                .eq(
+                    "telegram_id",
+                    Number(
+                        telegramId
+                    )
+                )
+                .order(
+                    "tier",
+                    {
+                        ascending:true
+                    }
+                )
+        ]);
+
+
+    if (
+        referralsResult.error
+    ) {
+
+        throw referralsResult.error;
+    }
+
+
+    if (
+        rewardsResult.error
+    ) {
+
+        throw rewardsResult.error;
+    }
+
+
+    const qualifiedCount =
+        Number(
+            referralsResult.count ||
+            0
+        );
+
+
+    const rewardRows =
+        rewardsResult.data ||
+        [];
+
+
+    const rewardMap =
+        new Map(
+            rewardRows.map(
+                reward => [
+                    `${reward.tier}:${reward.reward_type}`,
+                    reward
+                ]
+            )
+        );
+
+
+    const rewards =
+        V46_REFERRAL_REWARDS.map(
+            definition => {
+
+                const row =
+                    rewardMap.get(
+                        `${definition.tier}:${definition.reward_type}`
+                    );
+
+
+                return {
+                    ...definition,
+                    id:
+                        row?.id ||
+                        null,
+                    status:
+                        row?.status ||
+                        (
+                            qualifiedCount >=
+                            definition.tier
+                                ? "available"
+                                : "locked"
+                        ),
+                    listing_id:
+                        row?.listing_id ||
+                        null,
+                    claimed_at:
+                        row?.claimed_at ||
+                        null
+                };
+            }
+        );
+
+
+    const nextThreshold =
+        [
+            3,
+            10,
+            25
+        ].find(
+            threshold =>
+                qualifiedCount <
+                threshold
+        ) ||
+        null;
+
+
+    return {
+        code:
+            profile.referral_code,
+        link:
+            await v46ReferralLink(
+                profile.referral_code
+            ),
+        qualified_count:
+            qualifiedCount,
+        next_threshold:
+            nextThreshold,
+        rewards,
+        available_listing_credits:
+            rewards.filter(
+                reward =>
+                    reward.kind ===
+                    "listing" &&
+                    reward.status ===
+                    "available"
+            ).length,
+        rules:{
+            new_accounts_only:true,
+            unique_telegram_account:true,
+            self_referrals:false,
+            cumulative:true,
+            each_reward_once:true
+        }
+    };
+}
+
+
+app.post(
+    "/referrals/status",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (
+            !auth.ok
+        ) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json({
+                    ok:false,
+                    error:
+                        auth.error
+                });
+        }
+
+
+        try {
+
+            return res.json({
+                ok:true,
+                referral:
+                    await v46ReferralStatus(
+                        auth.user.telegram_id
+                    )
+            });
+
+        } catch (error) {
+
+            await logSystemError(
+                "v46_referral_status",
+                error,
+                {
+                    telegram_id:
+                        auth.user.telegram_id
+                }
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "referral_status_failed"
+                });
+        }
+    }
+);
+
+
+app.post(
+    "/referrals/claim-promotion",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (
+            !auth.ok
+        ) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json({
+                    ok:false,
+                    error:
+                        auth.error
+                });
+        }
+
+
+        const rewardId =
+            String(
+                req.body.reward_id ||
+                ""
+            ).trim();
+
+
+        const listingId =
+            String(
+                req.body.listing_id ||
+                ""
+            ).trim();
+
+
+        if (
+            !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+                rewardId
+            ) ||
+            !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+                listingId
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:
+                        "invalid_referral_claim"
+                });
+        }
+
+
+        try {
+
+            const {
+                data,
+                error
+            } =
+                await supabase.rpc(
+                    "hm_claim_referral_promotion_v46",
+                    {
+                        p_telegram_id:
+                            auth.user.telegram_id,
+                        p_reward_id:
+                            rewardId,
+                        p_listing_id:
+                            listingId
+                    }
+                );
+
+
+            if (
+                error
+            ) {
+
+                throw error;
+            }
+
+
+            if (
+                !data?.ok
+            ) {
+
+                return res
+                    .status(409)
+                    .json({
+                        ok:false,
+                        error:
+                            data?.error ||
+                            "referral_reward_unavailable"
+                    });
+            }
+
+
+            v45MarketplaceCache.clear();
+
+
+            const label =
+                data.promotion_type ===
+                "vip"
+                    ? "💎 VIP"
+                    : data.promotion_type ===
+                        "hot"
+                        ? "🔥 HOT"
+                        : "⬆️ BUMP";
+
+
+            await safeSendMessage(
+                auth.user.telegram_id,
+                `${label} referral reward activated.\n\nActive until: ${new Date(data.applied_until).toUTCString()}`
+            );
+
+
+            return res.json({
+                ok:true,
+                claim:data,
+                referral:
+                    await v46ReferralStatus(
+                        auth.user.telegram_id
+                    )
+            });
+
+        } catch (error) {
+
+            await logSystemError(
+                "v46_referral_claim",
+                error,
+                {
+                    telegram_id:
+                        auth.user.telegram_id,
+                    reward_id:
+                        rewardId,
+                    listing_id:
+                        listingId
+                }
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "referral_claim_failed"
+                });
+        }
     }
 );
 

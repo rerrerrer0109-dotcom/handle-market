@@ -6378,7 +6378,10 @@ async function authenticate() {
                 "/auth",
                 {
                     initData:
-                        tg.initData
+                        tg.initData,
+
+                    referral_code:
+                        v46ReferralStartCode()
                 }
             );
 
@@ -6427,6 +6430,16 @@ async function authenticate() {
                 data.user
                     ?.free_listing_available
             );
+
+
+        if (
+            data.referral
+        ) {
+
+            v46ApplyReferralStatus(
+                data.referral
+            );
+        }
 
 
         contactUnlockPriceStars =
@@ -6595,6 +6608,43 @@ function updateListingPlanUi() {
 
         button.textContent =
             "Submit Free Listing";
+
+
+        return;
+    }
+
+
+    if (
+        v46ReferralListingCredits >
+        0
+    ) {
+
+        box.className =
+            "listing-plan-box free";
+
+
+        title.textContent =
+            `🎁 Invite Reward — FREE 7 Days`;
+
+
+        text.textContent =
+            `You have ${v46ReferralListingCredits} free 7-day listing ${v46ReferralListingCredits === 1 ? "credit" : "credits"}. The timer starts only after moderation approval.`;
+
+
+        feeLabel.textContent =
+            "REFERRAL REWARD";
+
+
+        fee.textContent =
+            "FREE";
+
+
+        feeSubtitle.textContent =
+            `7 days of Marketplace visibility after approval.`;
+
+
+        button.textContent =
+            "Use Free 7-Day Listing";
 
 
         return;
@@ -6863,8 +6913,12 @@ function listingLifetimeHtml(
 
                 <div
                     class="listing-lifetime ${
-                        plan ===
-                        "free"
+                        [
+                            "free",
+                            "referral"
+                        ].includes(
+                            plan
+                        )
                             ? "listing-lifetime-free"
                             : "listing-lifetime-paid"
                     }"
@@ -6876,7 +6930,10 @@ function listingLifetimeHtml(
                             plan ===
                             "free"
                                 ? "🎁 FREE"
-                                : "🟢 PAID"
+                                : plan ===
+                                    "referral"
+                                    ? "🎁 INVITE REWARD · 7 DAYS"
+                                    : "🟢 PAID"
                         }
 
                     </span>
@@ -6930,11 +6987,17 @@ function listingLifetimeHtml(
         "free";
 
 
+    const referral =
+        plan ===
+        "referral";
+
+
     return `
 
         <div
             class="listing-lifetime ${
-                free
+                free ||
+                referral
                     ? "listing-lifetime-free"
                     : "listing-lifetime-paid"
             }"
@@ -6945,7 +7008,9 @@ function listingLifetimeHtml(
                 ${
                     free
                         ? "🎁 FREE LISTING"
-                        : "🟢 LISTING ACTIVE"
+                        : referral
+                            ? "🎁 INVITE REWARD LISTING"
+                            : "🟢 LISTING ACTIVE"
                 }
 
             </span>
@@ -10729,6 +10794,11 @@ async function startListingPayment(
                     initData:
                         tg.initData,
 
+                    use_referral_credit:
+                        !freeListingAvailable &&
+                        v46ReferralListingCredits >
+                        0,
+
                     whatsapp_username:
                         document.getElementById(
                             "listingUsername"
@@ -10785,21 +10855,35 @@ async function startListingPayment(
             updateListingPricingUi();
 
 
-            freeListingAvailable =
-                false;
-
-
             if (
-                authenticatedUser
+                data.referral_free
             ) {
 
-                authenticatedUser
-                    .free_listing_available =
-                        false;
+                v46ReferralListingCredits =
+                    Math.max(
+                        0,
+                        v46ReferralListingCredits -
+                        1
+                    );
 
-                authenticatedUser
-                    .free_listing_used =
-                        true;
+            } else {
+
+                freeListingAvailable =
+                    false;
+
+
+                if (
+                    authenticatedUser
+                ) {
+
+                    authenticatedUser
+                        .free_listing_available =
+                            false;
+
+                    authenticatedUser
+                        .free_listing_used =
+                            true;
+                }
             }
 
 
@@ -10810,8 +10894,20 @@ async function startListingPayment(
 
 
             tg?.showAlert(
-                `🎁 Free listing submitted. Your ${freeListingDurationHours}-hour timer will start after moderation approval.`
+                data.referral_free
+                    ? `🎁 Referral reward listing submitted. Your free ${Number(data.duration_hours || 168) / 24}-day timer will start after moderation approval.`
+                    : `🎁 Free listing submitted. Your ${freeListingDurationHours}-hour timer will start after moderation approval.`
             );
+
+
+            if (
+                data.referral_free
+            ) {
+
+                v46LoadReferralStatus(
+                    false
+                );
+            }
 
 
             return;
@@ -11230,6 +11326,17 @@ function renderMyListing(
                     </span>
 
                 `
+
+                : plan ===
+                    "referral"
+
+                    ? `
+
+                        <span class="badge badge-active">
+                            🎁 INVITE · 7 DAYS
+                        </span>
+
+                    `
 
                 : "";
 
@@ -19377,6 +19484,17 @@ async function loadPendingListings() {
                                                     </span>
 
                                                 `
+
+                                                : listing.listing_plan ===
+                                                    "referral"
+
+                                                    ? `
+
+                                                        <span class="badge badge-active">
+                                                            🎁 INVITE · 7 DAYS
+                                                        </span>
+
+                                                    `
 
                                                 : ""
                                     }
@@ -29017,6 +29135,1081 @@ window.__hmLoadMarketplaceV45 =
 async function hmLoadMarketplaceV45Bootstrap() {
     return loadMarketplace();
 };
+</script>
+
+<style>
+/* =========================================================
+   V46 REFERRAL SYSTEM
+   ========================================================= */
+
+.v46-referral-shell {
+    max-width:760px;
+    margin:0 auto;
+    padding:16px 14px 100px;
+}
+
+.v46-referral-hero {
+    padding:20px;
+    border-radius:22px;
+    color:#fff;
+    background:
+        radial-gradient(circle at 92% 8%,rgba(255,255,255,.24),transparent 34%),
+        linear-gradient(135deg,#08a866,#0b7f8f 58%,#1864d8);
+    box-shadow:0 16px 38px rgba(7,132,111,.22);
+}
+
+.v46-referral-kicker {
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    opacity:.82;
+}
+
+.v46-referral-title {
+    margin-top:7px;
+    font-size:28px;
+    line-height:1.05;
+    font-weight:950;
+}
+
+.v46-referral-copy {
+    margin-top:9px;
+    font-size:13px;
+    line-height:1.45;
+    opacity:.9;
+}
+
+.v46-referral-count {
+    display:flex;
+    align-items:end;
+    gap:8px;
+    margin-top:18px;
+}
+
+.v46-referral-count strong {
+    font-size:34px;
+    line-height:1;
+}
+
+.v46-referral-count span {
+    padding-bottom:3px;
+    font-size:12px;
+    font-weight:800;
+    opacity:.85;
+}
+
+.v46-progress {
+    height:9px;
+    margin-top:12px;
+    overflow:hidden;
+    border-radius:999px;
+    background:rgba(255,255,255,.22);
+}
+
+.v46-progress > span {
+    display:block;
+    height:100%;
+    border-radius:inherit;
+    background:#fff;
+    box-shadow:0 0 12px rgba(255,255,255,.65);
+}
+
+.v46-link-card,
+.v46-tier,
+.v46-rules {
+    margin-top:13px;
+    padding:15px;
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:18px;
+    background:var(--card,#fff);
+}
+
+.v46-link-label,
+.v46-tier-label {
+    font-size:11px;
+    font-weight:900;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    opacity:.64;
+}
+
+.v46-link-row {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:8px;
+    margin-top:9px;
+}
+
+.v46-link-row input {
+    width:100%;
+    min-width:0;
+    font-size:12px;
+}
+
+.v46-actions {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:9px;
+}
+
+.v46-tier.unlocked {
+    border-color:rgba(8,168,102,.42);
+    box-shadow:0 8px 24px rgba(8,168,102,.08);
+}
+
+.v46-tier.locked {
+    opacity:.72;
+}
+
+.v46-tier-head {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+}
+
+.v46-tier-title {
+    margin-top:3px;
+    font-size:17px;
+    font-weight:950;
+}
+
+.v46-tier-state {
+    flex:0 0 auto;
+    padding:5px 8px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:900;
+    background:var(--soft,#f1f4f8);
+}
+
+.v46-tier.unlocked .v46-tier-state {
+    color:#087b4c;
+    background:rgba(8,168,102,.12);
+}
+
+.v46-reward {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding-top:11px;
+    margin-top:10px;
+    border-top:1px solid var(--border,#e4e8ef);
+}
+
+.v46-reward-name {
+    font-size:13px;
+    font-weight:850;
+}
+
+.v46-reward-status {
+    margin-top:3px;
+    font-size:10px;
+    opacity:.66;
+}
+
+.v46-reward button {
+    width:auto;
+    min-width:98px;
+    padding:9px 11px;
+    font-size:11px;
+}
+
+.v46-rules {
+    font-size:11px;
+    line-height:1.55;
+    opacity:.78;
+}
+
+@media (min-width:700px) {
+    .v46-tier-grid {
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:12px;
+    }
+
+    .v46-tier {
+        height:100%;
+    }
+}
+</style>
+
+<script>
+/* =========================================================
+   V46 — INVITE & EARN UI
+   ========================================================= */
+
+var v46ReferralStatusData =
+    null;
+
+var v46ReferralListingCredits =
+    0;
+
+
+function v46ReferralStartCode() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    const candidates = [
+        tg?.initDataUnsafe?.start_param,
+        params.get(
+            "tgWebAppStartParam"
+        ),
+        params.get(
+            "startapp"
+        ),
+        params.get(
+            "start_param"
+        )
+    ];
+
+
+    for (
+        const candidate of
+        candidates
+    ) {
+
+        const code =
+            String(
+                candidate ||
+                ""
+            )
+                .trim()
+                .replace(
+                    /^ref[_-]?/i,
+                    ""
+                )
+                .toUpperCase();
+
+
+        if (
+            /^[A-Z0-9]{8,20}$/.test(
+                code
+            )
+        ) {
+
+            return code;
+        }
+    }
+
+
+    return "";
+}
+
+
+function v46ApplyReferralStatus(
+    status
+) {
+
+    v46ReferralStatusData =
+        status ||
+        null;
+
+
+    v46ReferralListingCredits =
+        Math.max(
+            0,
+            Number(
+                status?.available_listing_credits ||
+                0
+            )
+        );
+
+
+    if (
+        document.getElementById(
+            "listingPlanBox"
+        )
+    ) {
+
+        updateListingPlanUi();
+    }
+
+
+    v46RefreshProfileTile();
+}
+
+
+function v46EnsureReferralPage() {
+
+    if (
+        document.getElementById(
+            "v46Referrals"
+        )
+    ) {
+
+        return;
+    }
+
+
+    const page =
+        document.createElement(
+            "div"
+        );
+
+
+    page.id =
+        "v46Referrals";
+
+    page.className =
+        "page";
+
+    page.innerHTML = `
+        <div class="v46-referral-shell">
+            <button class="detail-back-button" onclick="openPage('profile',null)">← ${v39T("Profile","Профиль")}</button>
+            <div id="v46ReferralContent"><div class="empty">${v39T("Loading referral progress...","Загружаем прогресс приглашений...")}</div></div>
+        </div>
+    `;
+
+
+    const nav =
+        document.querySelector(
+            ".bottom-nav"
+        );
+
+
+    if (
+        nav
+    ) {
+
+        nav.parentNode.insertBefore(
+            page,
+            nav
+        );
+
+    } else {
+
+        document.body.appendChild(
+            page
+        );
+    }
+}
+
+
+function v46RefreshProfileTile() {
+
+    const subtitle =
+        document.getElementById(
+            "v46ReferralTileSubtitle"
+        );
+
+
+    if (
+        subtitle
+    ) {
+
+        subtitle.textContent =
+            v46ReferralStatusData
+                ? `${Number(v46ReferralStatusData.qualified_count || 0)} ${v39T("qualified invites","засчитанных приглашений")}`
+                : v39T("Invite friends and unlock rewards","Приглашайте друзей и получайте награды");
+    }
+}
+
+
+async function v46LoadReferralStatus(
+    showLoading = true
+) {
+
+    v46EnsureReferralPage();
+
+
+    const content =
+        document.getElementById(
+            "v46ReferralContent"
+        );
+
+
+    if (
+        showLoading &&
+        content
+    ) {
+
+        content.innerHTML =
+            `<div class="empty">${v39T("Loading referral progress...","Загружаем прогресс приглашений...")}</div>`;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/referrals/status",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        v46ApplyReferralStatus(
+            data.referral
+        );
+
+
+        v46RenderReferralPage();
+
+    } catch (error) {
+
+        if (
+            content
+        ) {
+
+            content.innerHTML =
+                `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+        }
+    }
+}
+
+
+function v46RewardRows(
+    tier,
+    unlocked
+) {
+
+    const rewards =
+        (
+            v46ReferralStatusData?.rewards ||
+            []
+        ).filter(
+            reward =>
+                Number(
+                    reward.tier
+                ) ===
+                Number(
+                    tier
+                )
+        );
+
+
+    return rewards
+        .map(
+            reward => {
+
+                const status =
+                    String(
+                        reward.status ||
+                        "locked"
+                    );
+
+
+                let statusText =
+                    v39T(
+                        "Locked",
+                        "Заблокировано"
+                    );
+
+
+                let action =
+                    "";
+
+
+                if (
+                    status ===
+                    "claimed"
+                ) {
+
+                    statusText =
+                        v39T(
+                            "Claimed ✓",
+                            "Использовано ✓"
+                        );
+
+                } else if (
+                    status ===
+                    "reserved"
+                ) {
+
+                    statusText =
+                        v39T(
+                            "Being applied...",
+                            "Применяется..."
+                        );
+
+                } else if (
+                    status ===
+                    "available" &&
+                    reward.kind ===
+                    "promotion"
+                ) {
+
+                    statusText =
+                        v39T(
+                            "Ready to use",
+                            "Готово к использованию"
+                        );
+
+                    action = `
+                        <button onclick="v46ChoosePromotion('${escapeJs(reward.id)}')">
+                            ${v39T("Use reward","Использовать")}
+                        </button>
+                    `;
+
+                } else if (
+                    status ===
+                    "available" &&
+                    reward.kind ===
+                    "listing"
+                ) {
+
+                    statusText =
+                        v39T(
+                            "Ready · used on your next listing",
+                            "Готово · применится к следующему лоту"
+                        );
+
+                    action = `
+                        <button class="secondary" onclick="openPage('list',null)">
+                            ${v39T("List username","Создать лот")}
+                        </button>
+                    `;
+                }
+
+
+                return `
+                    <div class="v46-reward">
+                        <div>
+                            <div class="v46-reward-name">${escapeHtml(reward.title)}</div>
+                            <div class="v46-reward-status">${escapeHtml(statusText)}</div>
+                        </div>
+                        ${action}
+                    </div>
+                `;
+            }
+        )
+        .join("");
+}
+
+
+function v46RenderReferralPage() {
+
+    v46EnsureReferralPage();
+
+
+    const content =
+        document.getElementById(
+            "v46ReferralContent"
+        );
+
+
+    if (
+        !content ||
+        !v46ReferralStatusData
+    ) {
+
+        return;
+    }
+
+
+    const status =
+        v46ReferralStatusData;
+
+    const count =
+        Math.max(
+            0,
+            Number(
+                status.qualified_count ||
+                0
+            )
+        );
+
+    const progress =
+        Math.min(
+            100,
+            Math.round(
+                count /
+                25 *
+                100
+            )
+        );
+
+    const next =
+        status.next_threshold;
+
+    const shareValue =
+        status.link ||
+        `ref_${status.code}`;
+
+
+    const tiers = [
+        {
+            value:3,
+            title:v39T("Starter reward","Первая награда")
+        },
+        {
+            value:10,
+            title:v39T("Growth reward","Награда за рост")
+        },
+        {
+            value:25,
+            title:v39T("Ultimate reward","Главная награда")
+        }
+    ];
+
+
+    content.innerHTML = `
+        <div class="v46-referral-hero">
+            <div class="v46-referral-kicker">Handle Market · v46</div>
+            <div class="v46-referral-title">🎁 ${v39T("Invite & Earn","Приглашай и получай")}</div>
+            <div class="v46-referral-copy">${v39T("Invite new Handle Market users. Rewards are cumulative and each reward can be used once.","Приглашайте новых пользователей Handle Market. Награды суммируются, каждую можно использовать один раз.")}</div>
+            <div class="v46-referral-count"><strong>${count}</strong><span>${v39T("qualified invites","засчитанных приглашений")}</span></div>
+            <div class="v46-progress"><span style="width:${progress}%"></span></div>
+            <div class="v46-referral-copy">${next ? v39T(`${Math.max(0,Number(next) - count)} more until the next reward`, `Ещё ${Math.max(0,Number(next) - count)} до следующей награды`) : v39T("All reward levels unlocked 🎉","Все уровни наград открыты 🎉")}</div>
+        </div>
+
+        <div class="v46-link-card">
+            <div class="v46-link-label">${v39T("Your personal referral link","Ваша персональная ссылка")}</div>
+            <div class="v46-link-row">
+                <input id="v46ReferralLink" readonly value="${escapeHtml(shareValue)}">
+                <button onclick="v46CopyReferral()">${v39T("Copy","Копировать")}</button>
+            </div>
+            <div class="v46-actions">
+                <button class="secondary" onclick="v46ShareReferral()">↗️ ${v39T("Share","Поделиться")}</button>
+                <button class="secondary" onclick="v46LoadReferralStatus(false)">↻ ${v39T("Refresh","Обновить")}</button>
+            </div>
+        </div>
+
+        <div class="v46-tier-grid">
+            ${tiers.map(tier => {
+                const unlocked = count >= tier.value;
+                return `
+                    <div class="v46-tier ${unlocked ? "unlocked" : "locked"}">
+                        <div class="v46-tier-head">
+                            <div>
+                                <div class="v46-tier-label">${tier.value} ${v39T("invites","приглашений")}</div>
+                                <div class="v46-tier-title">${escapeHtml(tier.title)}</div>
+                            </div>
+                            <div class="v46-tier-state">${unlocked ? v39T("Unlocked","Открыто") : `${count}/${tier.value}`}</div>
+                        </div>
+                        ${v46RewardRows(tier.value,unlocked)}
+                    </div>
+                `;
+            }).join("")}
+        </div>
+
+        <div class="v46-rules">
+            🛡 ${v39T("Anti-abuse: only a new Handle Market account opened through your link counts. One Telegram account can be attributed once; self-referrals and blocked accounts do not count.","Защита от накрутки: учитывается только новый аккаунт Handle Market, открытый по вашей ссылке. Один Telegram-аккаунт засчитывается один раз; саморефералы и заблокированные аккаунты не учитываются.")}
+        </div>
+    `;
+}
+
+
+async function v46CopyReferral() {
+
+    const value =
+        document.getElementById(
+            "v46ReferralLink"
+        )?.value ||
+        "";
+
+
+    if (
+        !value
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        await navigator.clipboard.writeText(
+            value
+        );
+
+
+        tg?.showAlert(
+            v39T(
+                "Referral link copied ✓",
+                "Реферальная ссылка скопирована ✓"
+            )
+        );
+
+    } catch {
+
+        const input =
+            document.getElementById(
+                "v46ReferralLink"
+            );
+
+
+        input?.select();
+        document.execCommand(
+            "copy"
+        );
+    }
+}
+
+
+function v46ShareReferral() {
+
+    const link =
+        v46ReferralStatusData?.link ||
+        "";
+
+
+    if (
+        !link
+    ) {
+
+        tg?.showAlert(
+            v39T(
+                "Referral link is temporarily unavailable.",
+                "Реферальная ссылка временно недоступна."
+            )
+        );
+
+        return;
+    }
+
+
+    const shareUrl =
+        `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(v39T("Join me on Handle Market and unlock WhatsApp username opportunities.","Присоединяйся ко мне в Handle Market — маркетплейсе WhatsApp-юзернеймов."))}`;
+
+
+    if (
+        tg?.openTelegramLink
+    ) {
+
+        tg.openTelegramLink(
+            shareUrl
+        );
+
+    } else {
+
+        window.open(
+            shareUrl,
+            "_blank"
+        );
+    }
+}
+
+
+async function v46ChoosePromotion(
+    rewardId
+) {
+
+    const reward =
+        (
+            v46ReferralStatusData?.rewards ||
+            []
+        ).find(
+            item =>
+                String(
+                    item.id
+                ) ===
+                String(
+                    rewardId
+                )
+        );
+
+
+    if (
+        !reward
+    ) {
+
+        return;
+    }
+
+
+    if (
+        !myListingsData.length
+    ) {
+
+        await loadMyListings();
+    }
+
+
+    const type =
+        reward.reward_type ===
+        "vip_7d"
+            ? "vip"
+            : reward.reward_type ===
+                "hot_7d"
+                ? "hot"
+                : "bump";
+
+    const hours =
+        reward.reward_type ===
+        "bump_24h"
+            ? 24
+            : 168;
+
+    const eligible =
+        myListingsData.filter(
+            listing =>
+                listing.status ===
+                "active" &&
+                !listing.is_paused &&
+                !listing.is_frozen &&
+                !isClientExpired(
+                    listing
+                ) &&
+                promotionDurationAvailable(
+                    listing,
+                    type,
+                    hours
+                )
+        );
+
+
+    if (
+        !eligible.length
+    ) {
+
+        tg?.showAlert(
+            v39T(
+                "You do not have an eligible active listing with enough time remaining.",
+                "Нет подходящего активного лота с достаточным оставшимся сроком."
+            )
+        );
+
+        return;
+    }
+
+
+    document.getElementById(
+        "inputModalTitle"
+    ).textContent =
+        reward.title;
+
+    document.getElementById(
+        "inputModalSubtitle"
+    ).textContent =
+        v39T(
+            "Choose the listing that will receive this one-time reward.",
+            "Выберите лот, к которому применить одноразовую награду."
+        );
+
+    document.getElementById(
+        "inputModalFields"
+    ).innerHTML = `
+        <div class="field">
+            <label>${v39T("Eligible listing","Подходящий лот")}</label>
+            <select id="v46RewardListing">
+                ${eligible.map(listing => `<option value="${escapeHtml(listing.id)}">@${escapeHtml(listing.whatsapp_username)}${formatListingNumber(listing) ? ` · LOT #${formatListingNumber(listing)}` : ""}</option>`).join("")}
+            </select>
+        </div>
+    `;
+
+
+    const action =
+        document.getElementById(
+            "inputModalAction"
+        );
+
+
+    action.textContent =
+        v39T(
+            "Apply Free Reward",
+            "Применить награду"
+        );
+
+    action.onclick =
+        () =>
+            v46ClaimPromotion(
+                reward.id,
+                document.getElementById(
+                    "v46RewardListing"
+                ).value
+            );
+
+
+    showModal(
+        "inputModal"
+    );
+}
+
+
+async function v46ClaimPromotion(
+    rewardId,
+    listingId
+) {
+
+    const action =
+        document.getElementById(
+            "inputModalAction"
+        );
+
+
+    action.disabled =
+        true;
+
+
+    try {
+
+        const data =
+            await api(
+                "/referrals/claim-promotion",
+                {
+                    initData:
+                        tg.initData,
+                    reward_id:
+                        rewardId,
+                    listing_id:
+                        listingId
+                }
+            );
+
+
+        v46ApplyReferralStatus(
+            data.referral
+        );
+
+        closeModal(
+            "inputModal"
+        );
+
+
+        await Promise.all([
+            loadMyListings(),
+            loadMarketplace()
+        ]);
+
+
+        v46RenderReferralPage();
+
+
+        tg?.showAlert(
+            v39T(
+                "Referral reward activated ✓",
+                "Реферальная награда активирована ✓"
+            )
+        );
+
+    } catch (error) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+
+    } finally {
+
+        action.disabled =
+            false;
+    }
+}
+
+
+async function openInviteEarn() {
+
+    v46EnsureReferralPage();
+    openPage(
+        "v46Referrals",
+        null
+    );
+
+    await v46LoadReferralStatus(
+        !v46ReferralStatusData
+    );
+}
+
+
+const v46BaseFriendlyError =
+    friendlyError;
+
+
+friendlyError =
+function friendlyErrorV46(
+    code
+) {
+
+    const messages = {
+        referral_status_failed:
+            v39T("Could not load referral progress.","Не удалось загрузить прогресс приглашений."),
+        referral_reward_unavailable:
+            v39T("This reward is no longer available.","Эта награда больше недоступна."),
+        referral_listing_reward_unavailable:
+            v39T("No free 7-day listing credit is available.","Нет доступного бесплатного 7-дневного лота."),
+        referral_listing_create_failed:
+            v39T("Could not create the referral reward listing.","Не удалось создать лот по реферальной награде."),
+        promotion_exceeds_listing_period:
+            v39T("This listing does not have enough time remaining for the reward.","У лота недостаточно оставшегося времени для этой награды."),
+        listing_not_promotable:
+            v39T("Choose an active eligible listing.","Выберите подходящий активный лот.")
+    };
+
+
+    return messages[
+        String(
+            code ||
+            ""
+        )
+    ] ||
+    v46BaseFriendlyError(
+        code
+    );
+};
+
+
+const v46BaseRenderMainProfile =
+    renderMainProfile;
+
+
+renderMainProfile =
+function renderMainProfileV46(
+    user
+) {
+
+    v46BaseRenderMainProfile(
+        user
+    );
+
+
+    const menu =
+        document.querySelector(
+            "#profileContent .profile-menu"
+        );
+
+
+    if (
+        !menu ||
+        document.getElementById(
+            "v46ReferralTile"
+        )
+    ) {
+
+        return;
+    }
+
+
+    menu.insertAdjacentHTML(
+        "beforeend",
+        `
+            <button id="v46ReferralTile" class="profile-tile" onclick="openInviteEarn()">
+                <div class="profile-tile-icon">🎁</div>
+                <div>
+                    <div class="profile-tile-title">${v39T("Invite & Earn","Приглашай и получай")}</div>
+                    <div class="profile-tile-subtitle" id="v46ReferralTileSubtitle">${v39T("Invite friends and unlock rewards","Приглашайте друзей и получайте награды")}</div>
+                </div>
+            </button>
+        `
+    );
+
+
+    v46RefreshProfileTile();
+};
+
+
+v46EnsureReferralPage();
+
+
+if (
+    authenticatedUser
+) {
+
+    renderMainProfile(
+        authenticatedUser
+    );
+}
 </script>
 
 </body>
