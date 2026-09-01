@@ -3682,6 +3682,52 @@ button {
     }
 }
 
+
+
+/* =========================================================
+   V61 TOP BADGE ROW
+   LOT -> Premium (when present) -> NEW, always on one row.
+   This row now uses the full card width instead of being
+   constrained by the price column.
+   ========================================================= */
+
+.listing-card > .listing-top-badges {
+    width:100%;
+    flex-wrap:nowrap;
+    gap:6px;
+    margin-top:9px;
+    overflow:visible;
+}
+
+.listing-card > .listing-top-badges .listing-number,
+.listing-card > .listing-top-badges .premium-name-badge,
+.listing-card > .listing-top-badges .badge-new {
+    flex:0 0 auto;
+    white-space:nowrap;
+}
+
+.listing-card > .listing-info-row {
+    width:100%;
+}
+
+.listing-card > .seller-mini {
+    width:100%;
+    margin-top:10px;
+}
+
+@media (max-width:360px) {
+    .listing-card > .listing-top-badges {
+        gap:4px;
+    }
+
+    .listing-card > .listing-top-badges .listing-number,
+    .listing-card > .listing-top-badges .premium-name-badge,
+    .listing-card > .listing-top-badges .badge-new {
+        padding-left:7px;
+        padding-right:7px;
+    }
+}
+
 </style>
 
 <style>
@@ -11235,73 +11281,6 @@ function renderListingCard(
 
                     </div>
 
-                    <div class="listing-top-badges">
-
-                        ${listingNumberHtml(
-                            listing
-                        )}
-
-                        ${premiumNameBadgeHtml(
-                            listing
-                        )}
-
-                        ${newListingBadgeHtml(
-                            listing
-                        )}
-
-                    </div>
-
-
-                    <div class="listing-info-row">
-
-                        ${promotionBadgeHtml(
-                            listing
-                        )}
-
-                        ${pricingBadgeHtml(
-                            listing
-                        )}
-
-                        <span class="category-badge">
-
-                            ${escapeHtml(
-                                listing.category ||
-                                "Other"
-                            )}
-
-                        </span>
-
-                    </div>
-
-
-                    ${sellerButton}
-
-
-                    <div class="listing-engagement-row">
-
-                        <button
-                            class="listing-view-link"
-                            onclick="
-                                openListingPage(
-                                    '${escapeJs(
-                                        listing.id
-                                    )}'
-                                )
-                            "
-                        >
-                            <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M2.8 12s3.4-5.2 9.2-5.2S21.2 12 21.2 12 17.8 17.2 12 17.2 2.8 12 2.8 12Z"></path>
-                                <circle cx="12" cy="12" r="2.3"></circle>
-                            </svg>
-                            <span>View</span>
-                        </button>
-
-                        ${publicStatsHtml(
-                            listing
-                        )}
-
-                    </div>
-
                 </div>
 
 
@@ -11320,6 +11299,74 @@ function renderListingCard(
                     </div>
 
                 </div>
+
+            </div>
+
+
+            <div class="listing-top-badges">
+
+                ${listingNumberHtml(
+                    listing
+                )}
+
+                ${premiumNameBadgeHtml(
+                    listing
+                )}
+
+                ${newListingBadgeHtml(
+                    listing
+                )}
+
+            </div>
+
+
+            <div class="listing-info-row">
+
+                ${promotionBadgeHtml(
+                    listing
+                )}
+
+                ${pricingBadgeHtml(
+                    listing
+                )}
+
+                <span class="category-badge">
+
+                    ${escapeHtml(
+                        listing.category ||
+                        "Other"
+                    )}
+
+                </span>
+
+            </div>
+
+
+            ${sellerButton}
+
+
+            <div class="listing-engagement-row">
+
+                <button
+                    class="listing-view-link"
+                    onclick="
+                        openListingPage(
+                            '${escapeJs(
+                                listing.id
+                            )}'
+                        )
+                    "
+                >
+                    <svg class="hm-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M2.8 12s3.4-5.2 9.2-5.2S21.2 12 21.2 12 17.8 17.2 12 17.2 2.8 12 2.8 12Z"></path>
+                        <circle cx="12" cy="12" r="2.3"></circle>
+                    </svg>
+                    <span>View</span>
+                </button>
+
+                ${publicStatsHtml(
+                    listing
+                )}
 
             </div>
 
