@@ -1336,74 +1336,22 @@ function validateListingInput(
             );
 
 
-    const contactTypes = [
-        "telegram",
-        "email",
-        "other"
-    ];
+    const contactValidation =
+        validateContactInput(
+            body
+        );
 
 
-    if (
-        !contactTypes.includes(
-            body.contact_type
-        )
-    ) {
-
-        return {
-            ok: false,
-            error:
-                "invalid_contact_type"
-        };
+    if (!contactValidation.ok) {
+        return contactValidation;
     }
 
 
-    const contactValue =
-        String(
-            body.contact_value ||
-            ""
-        )
-            .trim()
-            .slice(
-                0,
-                200
-            );
-
-
-    if (!contactValue) {
-
-        return {
-            ok: false,
-            error:
-                "contact_required"
-        };
-    }
-
-
-    /*
-       Extra validation for Email.
-    */
-
-    if (
-        body.contact_type ===
-        "email"
-    ) {
-
-        const emailOk =
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-                .test(
-                    contactValue
-                );
-
-
-        if (!emailOk) {
-
-            return {
-                ok: false,
-                error:
-                    "invalid_email"
-            };
-        }
-    }
+    const {
+        contactType,
+        contactValue,
+        contacts
+    } = contactValidation.data;
 
 
     return {
@@ -1419,10 +1367,11 @@ function validateListingInput(
             category,
             description,
 
-            contactType:
-                body.contact_type,
+            contactType,
 
-            contactValue
+            contactValue,
+
+            contacts
         }
     };
 }
@@ -1432,50 +1381,202 @@ function validateListingInput(
    V38 TRUST / MODERATION HELPERS
    ========================================================= */
 
+function normalizeContactText(
+    value,
+    max = 200
+) {
+    return String(
+        value ||
+        ""
+    )
+    .replace(/\u0000/g,"")
+    .trim()
+    .slice(0,max);
+}
+
+
+function encodeContactBundle(
+    contacts
+) {
+    return "hmv2:" +
+        JSON.stringify({
+            telegram:contacts.telegram || "",
+            whatsapp:contacts.whatsapp || "",
+            email:contacts.email || "",
+            other:contacts.other || ""
+        });
+}
+
+
+function decodeContactBundle(
+    contactType,
+    contactValue
+) {
+
+    const result = {
+        telegram:"",
+        whatsapp:"",
+        email:"",
+        other:""
+    };
+
+    const raw =
+        normalizeContactText(
+            contactValue,
+            1200
+        );
+
+
+    if (
+        raw.startsWith(
+            "hmv2:"
+        )
+    ) {
+        try {
+            const parsed =
+                JSON.parse(
+                    raw.slice(5)
+                );
+
+            for (
+                const key of [
+                    "telegram",
+                    "whatsapp",
+                    "email",
+                    "other"
+                ]
+            ) {
+                result[key] =
+                    normalizeContactText(
+                        parsed?.[key],
+                        200
+                    );
+            }
+
+            return result;
+        } catch {}
+    }
+
+
+    const type =
+        String(
+            contactType ||
+            "other"
+        )
+        .trim()
+        .toLowerCase();
+
+
+    if (raw) {
+        if (
+            Object.prototype.hasOwnProperty.call(
+                result,
+                type
+            )
+        ) {
+            result[type] = raw;
+        } else {
+            result.other = raw;
+        }
+    }
+
+
+    return result;
+}
+
+
+function firstContactFromBundle(
+    contacts
+) {
+    for (
+        const type of [
+            "telegram",
+            "whatsapp",
+            "email",
+            "other"
+        ]
+    ) {
+        if (contacts?.[type]) {
+            return {
+                type,
+                value:contacts[type]
+            };
+        }
+    }
+
+    return {
+        type:"other",
+        value:""
+    };
+}
+
+
 function validateContactInput(
     body
 ) {
 
-    const contactType =
-        String(
-            body.contact_type ||
-            ""
-        )
+    const providedBundle =
+        body?.contacts &&
+        typeof body.contacts ===
+        "object" &&
+        !Array.isArray(
+            body.contacts
+        );
+
+    let contacts;
+
+
+    if (providedBundle) {
+        contacts = {
+            telegram:normalizeContactText(body.contacts.telegram),
+            whatsapp:normalizeContactText(body.contacts.whatsapp),
+            email:normalizeContactText(body.contacts.email),
+            other:normalizeContactText(body.contacts.other)
+        };
+    } else {
+        const contactType =
+            String(
+                body.contact_type ||
+                ""
+            )
             .trim()
             .toLowerCase();
 
+        if (
+            ![
+                "telegram",
+                "whatsapp",
+                "email",
+                "other"
+            ].includes(
+                contactType
+            )
+        ) {
+            return {
+                ok:false,
+                error:"invalid_contact_type"
+            };
+        }
 
-    if (
-        ![
-            "telegram",
-            "email",
-            "other"
-        ].includes(
-            contactType
-        )
-    ) {
-
-        return {
-            ok:false,
-            error:"invalid_contact_type"
+        contacts = {
+            telegram:"",
+            whatsapp:"",
+            email:"",
+            other:""
         };
+
+        contacts[contactType] =
+            normalizeContactText(
+                body.contact_value
+            );
     }
 
 
-    const contactValue =
-        String(
-            body.contact_value ||
-            ""
-        )
-            .trim()
-            .slice(
-                0,
-                200
-            );
-
-
-    if (!contactValue) {
-
+    if (
+        !Object.values(
+            contacts
+        ).some(Boolean)
+    ) {
         return {
             ok:false,
             error:"contact_required"
@@ -1484,14 +1585,12 @@ function validateContactInput(
 
 
     if (
-        contactType ===
-        "email" &&
+        contacts.email &&
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
             .test(
-                contactValue
+                contacts.email
             )
     ) {
-
         return {
             ok:false,
             error:"invalid_email"
@@ -1499,11 +1598,29 @@ function validateContactInput(
     }
 
 
+    const contactType =
+        providedBundle
+            ? "other"
+            : firstContactFromBundle(
+                contacts
+            ).type;
+
+    const contactValue =
+        providedBundle
+            ? encodeContactBundle(
+                contacts
+            )
+            : firstContactFromBundle(
+                contacts
+            ).value;
+
+
     return {
         ok:true,
         data:{
             contactType,
-            contactValue
+            contactValue,
+            contacts
         }
     };
 }
@@ -10297,7 +10414,8 @@ app.post(
 
         const {
             contactType,
-            contactValue
+            contactValue,
+            contacts
         } =
             contactValidation.data;
 
@@ -10424,17 +10542,30 @@ app.post(
         }
 
 
+        const oldContacts =
+            decodeContactBundle(
+                oldContact.contact_type,
+                oldContact.contact_value
+            );
+
+
         const contactChanged =
-            String(
-                oldContact.contact_type ||
-                ""
-            ) !==
-            contactType ||
-            String(
-                oldContact.contact_value ||
-                ""
-            ).trim() !==
-            contactValue;
+            [
+                "telegram",
+                "whatsapp",
+                "email",
+                "other"
+            ].some(
+                key =>
+                    String(
+                        oldContacts[key] ||
+                        ""
+                    ).trim() !==
+                    String(
+                        contacts[key] ||
+                        ""
+                    ).trim()
+            );
 
 
 
@@ -11862,20 +11993,25 @@ app.post(
         }
 
 
+        const contacts =
+            decodeContactBundle(
+                contact.contact_type,
+                contact.contact_value
+            );
+
+        const primaryContact =
+            firstContactFromBundle(
+                contacts
+            );
+
+
         res.json(
             {
                 ok: true,
                 unlocked: true,
                 owner,
-
-                contact: {
-
-                    type:
-                        contact.contact_type,
-
-                    value:
-                        contact.contact_value
-                }
+                contacts,
+                contact:primaryContact
             }
         );
     }
@@ -12707,6 +12843,40 @@ app.get(
             );
 
 
+        const wantedIds =
+            (posts || []).map(
+                row => row.id
+            );
+
+        let wantedContacts = [];
+
+        if (wantedIds.length) {
+            const { data } =
+                await supabase
+                    .from("wanted_contacts")
+                    .select("wanted_id,telegram,whatsapp,email,other")
+                    .in("wanted_id",wantedIds);
+
+            wantedContacts =
+                data || [];
+        }
+
+        const wantedContactMap =
+            new Map(
+                wantedContacts.map(
+                    row => [
+                        String(row.wanted_id),
+                        {
+                            telegram:row.telegram || "",
+                            whatsapp:row.whatsapp || "",
+                            email:row.email || "",
+                            other:row.other || ""
+                        }
+                    ]
+                )
+            );
+
+
         res.json(
             {
                 ok: true,
@@ -12726,7 +12896,13 @@ app.get(
                                         row.buyer_telegram_id
                                     )
                                 ) ||
-                                null
+                                null,
+
+                            contacts:
+                                wantedContactMap.get(
+                                    String(row.id)
+                                ) ||
+                                { telegram:"",whatsapp:"",email:"",other:"" }
                         })
                     )
             }
@@ -12798,12 +12974,54 @@ app.post(
         }
 
 
+        const rows =
+            data ||
+            [];
+
+        let contactRows = [];
+
+        if (rows.length) {
+            const result =
+                await supabase
+                    .from("wanted_contacts")
+                    .select("wanted_id,telegram,whatsapp,email,other")
+                    .in(
+                        "wanted_id",
+                        rows.map(row => row.id)
+                    );
+
+            contactRows =
+                result.data || [];
+        }
+
+        const contactMap =
+            new Map(
+                contactRows.map(
+                    row => [
+                        String(row.wanted_id),
+                        {
+                            telegram:row.telegram || "",
+                            whatsapp:row.whatsapp || "",
+                            email:row.email || "",
+                            other:row.other || ""
+                        }
+                    ]
+                )
+            );
+
+
         res.json(
             {
                 ok: true,
                 posts:
-                    data ||
-                    []
+                    rows.map(
+                        row => ({
+                            ...row,
+                            contacts:
+                                contactMap.get(String(row.id)) ||
+                                { telegram:"",whatsapp:"",email:"",other:"" }
+                        })
+                    )
             }
         );
     }
@@ -12934,22 +13152,6 @@ app.post(
         }
 
 
-        if (
-            !auth.user
-                .telegram_username
-        ) {
-
-            return res
-                .status(400)
-                .json(
-                    {
-                        ok: false,
-                        error:
-                            "public_telegram_username_required"
-                    }
-                );
-        }
-
 
         const username =
             normalizeWantedUsername(
@@ -13015,6 +13217,26 @@ app.post(
                     0,
                     500
                 );
+
+
+        const contactValidation =
+            validateContactInput(
+                req.body
+            );
+
+
+        if (!contactValidation.ok) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:contactValidation.error
+                });
+        }
+
+
+        const wantedContacts =
+            contactValidation.data.contacts;
 
 
         const {
@@ -13115,6 +13337,38 @@ app.post(
         }
 
 
+        const { error:wantedContactError } =
+            await supabase
+                .from("wanted_contacts")
+                .upsert(
+                    {
+                        wanted_id:orderId,
+                        buyer_telegram_id:auth.user.telegram_id,
+                        telegram:wantedContacts.telegram || null,
+                        whatsapp:wantedContacts.whatsapp || null,
+                        email:wantedContacts.email || null,
+                        other:wantedContacts.other || null,
+                        updated_at:nowIso()
+                    },
+                    { onConflict:"wanted_id" }
+                );
+
+
+        if (wantedContactError) {
+            await supabase
+                .from("wanted_payment_orders")
+                .delete()
+                .eq("id",orderId);
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"wanted_contact_save_failed"
+                });
+        }
+
+
         try {
 
             const invoiceLink =
@@ -13161,6 +13415,11 @@ app.post(
                     "id",
                     orderId
                 );
+
+            await supabase
+                .from("wanted_contacts")
+                .delete()
+                .eq("wanted_id",orderId);
 
 
             res
@@ -13256,6 +13515,435 @@ app.post(
                 order
             }
         );
+    }
+);
+
+
+
+/* =========================================================
+   V64 WANTED INTERNAL CHAT
+   ========================================================= */
+
+async function getWantedChatForParticipant(
+    chatId,
+    telegramId
+) {
+    const { data:chat,error } =
+        await supabase
+            .from("wanted_chats")
+            .select("id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at")
+            .eq("id",chatId)
+            .maybeSingle();
+
+    if (error || !chat) {
+        return { ok:false,error:"chat_not_found" };
+    }
+
+    const userId = Number(telegramId);
+
+    if (
+        Number(chat.buyer_telegram_id) !== userId &&
+        Number(chat.seller_telegram_id) !== userId
+    ) {
+        return { ok:false,error:"chat_access_denied" };
+    }
+
+    return { ok:true,chat };
+}
+
+
+app.post(
+    "/wanted-chat/open",
+    async (req,res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+        if (!auth.ok) {
+            return res.status(auth.status).json({ ok:false,error:auth.error });
+        }
+
+        const sellerId =
+            Number(auth.user.telegram_id);
+
+        const wantedId =
+            String(req.body.wanted_id || "").trim();
+
+        if (!wantedId) {
+            return res.status(400).json({ ok:false,error:"wanted_not_found" });
+        }
+
+        const { data:wanted,error:wantedError } =
+            await supabase
+                .from("wanted_requests")
+                .select("id,buyer_telegram_id,desired_username,status")
+                .eq("id",wantedId)
+                .maybeSingle();
+
+        if (
+            wantedError ||
+            !wanted ||
+            wanted.status !== "active"
+        ) {
+            return res.status(404).json({ ok:false,error:"wanted_not_found" });
+        }
+
+        const buyerId =
+            Number(wanted.buyer_telegram_id);
+
+        if (buyerId === sellerId) {
+            return res.status(400).json({ ok:false,error:"wanted_owner_chat" });
+        }
+
+        const { data:existing,error:existingError } =
+            await supabase
+                .from("wanted_chats")
+                .select("id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at")
+                .eq("wanted_id",wantedId)
+                .eq("seller_telegram_id",sellerId)
+                .maybeSingle();
+
+        if (existingError) {
+            return res.status(500).json({ ok:false,error:"wanted_chat_lookup_failed" });
+        }
+
+        if (existing) {
+            return res.json({ ok:true,chat:existing,wanted_username:wanted.desired_username });
+        }
+
+        const chatId =
+            crypto.randomUUID();
+
+        const { data:created,error:createError } =
+            await supabase
+                .from("wanted_chats")
+                .insert({
+                    id:chatId,
+                    wanted_id:wantedId,
+                    buyer_telegram_id:buyerId,
+                    seller_telegram_id:sellerId,
+                    updated_at:nowIso()
+                })
+                .select("id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at")
+                .single();
+
+        if (createError) {
+            if (createError.code === "23505") {
+                const { data:duplicate } =
+                    await supabase
+                        .from("wanted_chats")
+                        .select("id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at")
+                        .eq("wanted_id",wantedId)
+                        .eq("seller_telegram_id",sellerId)
+                        .maybeSingle();
+
+                if (duplicate) {
+                    return res.json({ ok:true,chat:duplicate,wanted_username:wanted.desired_username });
+                }
+            }
+
+            console.error("Wanted chat create:",createError);
+            return res.status(500).json({ ok:false,error:"wanted_chat_create_failed" });
+        }
+
+        return res.json({ ok:true,chat:created,wanted_username:wanted.desired_username });
+    }
+);
+
+
+app.post(
+    "/wanted-chats/list",
+    async (req,res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+        if (!auth.ok) {
+            return res.status(auth.status).json({ ok:false,error:auth.error });
+        }
+
+        const userId =
+            Number(auth.user.telegram_id);
+
+        const { data:chats,error:chatsError } =
+            await supabase
+                .from("wanted_chats")
+                .select("id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at")
+                .or(`buyer_telegram_id.eq.${userId},seller_telegram_id.eq.${userId}`)
+                .order("updated_at",{ ascending:false });
+
+        if (chatsError) {
+            console.error("Wanted chats list:",chatsError);
+            return res.status(500).json({ ok:false,error:"chats_load_failed" });
+        }
+
+        if (!chats?.length) {
+            return res.json({ ok:true,chats:[] });
+        }
+
+        const wantedIds = [...new Set(chats.map(chat => chat.wanted_id))];
+        const counterpartIds = [...new Set(chats.map(chat =>
+            Number(chat.buyer_telegram_id) === userId
+                ? Number(chat.seller_telegram_id)
+                : Number(chat.buyer_telegram_id)
+        ))];
+
+        const [wantedResult,usersResult,messagesResult] =
+            await Promise.all([
+                supabase
+                    .from("wanted_requests")
+                    .select("id,desired_username")
+                    .in("id",wantedIds),
+                supabase
+                    .from("users")
+                    .select("telegram_id,first_name,last_name,telegram_username")
+                    .in("telegram_id",counterpartIds),
+                supabase
+                    .from("wanted_chat_messages")
+                    .select("id,chat_id,sender_telegram_id,message,read_at,created_at")
+                    .in("chat_id",chats.map(chat => chat.id))
+                    .order("created_at",{ ascending:false })
+            ]);
+
+        const wantedMap =
+            new Map((wantedResult.data || []).map(row => [String(row.id),row]));
+        const userMap =
+            new Map((usersResult.data || []).map(row => [Number(row.telegram_id),row]));
+        const lastMessageMap = new Map();
+
+        for (const message of messagesResult.data || []) {
+            if (!lastMessageMap.has(String(message.chat_id))) {
+                lastMessageMap.set(String(message.chat_id),message);
+            }
+        }
+
+        const payload =
+            chats.map(chat => {
+                const counterpartId =
+                    Number(chat.buyer_telegram_id) === userId
+                        ? Number(chat.seller_telegram_id)
+                        : Number(chat.buyer_telegram_id);
+                const counterpart = userMap.get(counterpartId) || null;
+                const wanted = wantedMap.get(String(chat.wanted_id)) || null;
+
+                return {
+                    ...chat,
+                    chat_type:"wanted",
+                    role:Number(chat.buyer_telegram_id) === userId ? "buyer" : "seller",
+                    listing_username:wanted?.desired_username || "username",
+                    listing_number:null,
+                    counterpart:counterpart
+                        ? {
+                            telegram_id:Number(counterpart.telegram_id),
+                            first_name:counterpart.first_name || "",
+                            last_name:counterpart.last_name || "",
+                            telegram_username:counterpart.telegram_username || null
+                        }
+                        : {
+                            telegram_id:counterpartId,
+                            first_name:"",
+                            last_name:"",
+                            telegram_username:null
+                        },
+                    last_message:lastMessageMap.get(String(chat.id)) || null
+                };
+            });
+
+        return res.json({ ok:true,chats:payload });
+    }
+);
+
+
+app.post(
+    "/wanted-chat/messages",
+    async (req,res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+        if (!auth.ok) {
+            return res.status(auth.status).json({ ok:false,error:auth.error });
+        }
+
+        const userId = Number(auth.user.telegram_id);
+        const chatId = String(req.body.chat_id || "").trim();
+        const access = await getWantedChatForParticipant(chatId,userId);
+
+        if (!access.ok) {
+            return res.status(access.error === "chat_access_denied" ? 403 : 404)
+                .json({ ok:false,error:access.error });
+        }
+
+        const chat = access.chat;
+
+        const { data:wanted } =
+            await supabase
+                .from("wanted_requests")
+                .select("id,desired_username")
+                .eq("id",chat.wanted_id)
+                .maybeSingle();
+
+        const counterpartId =
+            Number(chat.buyer_telegram_id) === userId
+                ? Number(chat.seller_telegram_id)
+                : Number(chat.buyer_telegram_id);
+
+        const { data:counterpart } =
+            await supabase
+                .from("users")
+                .select("telegram_id,first_name,last_name,telegram_username")
+                .eq("telegram_id",counterpartId)
+                .maybeSingle();
+
+        const { data:messages,error:messagesError } =
+            await supabase
+                .from("wanted_chat_messages")
+                .select("id,chat_id,sender_telegram_id,message,read_at,created_at")
+                .eq("chat_id",chatId)
+                .order("created_at",{ ascending:false })
+                .limit(100);
+
+        if (messagesError) {
+            return res.status(500).json({ ok:false,error:"chat_messages_load_failed" });
+        }
+
+        await supabase
+            .from("wanted_chat_messages")
+            .update({ read_at:nowIso() })
+            .eq("chat_id",chatId)
+            .neq("sender_telegram_id",userId)
+            .is("read_at",null);
+
+        return res.json({
+            ok:true,
+            chat:{
+                ...chat,
+                chat_type:"wanted",
+                role:Number(chat.buyer_telegram_id) === userId ? "buyer" : "seller",
+                listing_username:wanted?.desired_username || "username",
+                listing_number:null,
+                counterpart:counterpart || {
+                    telegram_id:counterpartId,
+                    first_name:"",
+                    last_name:"",
+                    telegram_username:null
+                }
+            },
+            messages:(messages || []).reverse()
+        });
+    }
+);
+
+
+app.post(
+    "/wanted-chat/send",
+    async (req,res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+        if (!auth.ok) {
+            return res.status(auth.status).json({ ok:false,error:auth.error });
+        }
+
+        const userId = Number(auth.user.telegram_id);
+        const chatId = String(req.body.chat_id || "").trim();
+        const message = String(req.body.message || "")
+            .replace(/\u0000/g,"")
+            .trim();
+
+        if (!message || message.length > 1000) {
+            return res.status(400).json({ ok:false,error:"invalid_chat_message" });
+        }
+
+        const rate =
+            await securityRateLimit(
+                auth.user,
+                "chat_send",
+                `wanted:${chatId}`
+            );
+
+        if (!rate.ok) {
+            return sendRateLimitResponse(res,rate);
+        }
+
+        const access =
+            await getWantedChatForParticipant(
+                chatId,
+                userId
+            );
+
+        if (!access.ok) {
+            return res.status(access.error === "chat_access_denied" ? 403 : 404)
+                .json({ ok:false,error:access.error });
+        }
+
+        const { data:latestOwn } =
+            await supabase
+                .from("wanted_chat_messages")
+                .select("created_at")
+                .eq("chat_id",chatId)
+                .eq("sender_telegram_id",userId)
+                .order("created_at",{ ascending:false })
+                .limit(1)
+                .maybeSingle();
+
+        if (
+            latestOwn?.created_at &&
+            Date.now() - new Date(latestOwn.created_at).getTime() < 1000
+        ) {
+            return res.status(429).json({ ok:false,error:"chat_too_fast" });
+        }
+
+        const messageId = crypto.randomUUID();
+        const { data:created,error:createError } =
+            await supabase
+                .from("wanted_chat_messages")
+                .insert({
+                    id:messageId,
+                    chat_id:chatId,
+                    sender_telegram_id:userId,
+                    message
+                })
+                .select("id,chat_id,sender_telegram_id,message,read_at,created_at")
+                .single();
+
+        if (createError) {
+            return res.status(500).json({ ok:false,error:"chat_send_failed" });
+        }
+
+        await supabase
+            .from("wanted_chats")
+            .update({ updated_at:nowIso() })
+            .eq("id",chatId);
+
+        const chat = access.chat;
+        const counterpartId =
+            Number(chat.buyer_telegram_id) === userId
+                ? Number(chat.seller_telegram_id)
+                : Number(chat.buyer_telegram_id);
+
+        const { data:wanted } =
+            await supabase
+                .from("wanted_requests")
+                .select("desired_username")
+                .eq("id",chat.wanted_id)
+                .maybeSingle();
+
+        await safeSendMessage(
+            counterpartId,
+            `💬 New Handle Market message about Wanted @${wanted?.desired_username || "username"}.\n\nOpen Handle Market → Profile → Chats.`
+        );
+
+        return res.json({ ok:true,message:created });
     }
 );
 

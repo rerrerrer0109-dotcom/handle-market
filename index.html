@@ -4379,6 +4379,152 @@ button {
     }
 }
 
+
+
+/* =========================================================
+   V64 MULTI-CONTACTS + WANTED CONTACTS
+   ========================================================= */
+.hm-contact-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+    margin-top:8px;
+}
+.hm-contact-grid .field { margin:0; }
+.hm-contact-grid input { width:100%; }
+.hm-contact-note {
+    margin-top:9px;
+    padding:9px 10px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--surface-2);
+    color:var(--muted);
+    font-size:9px;
+    line-height:1.45;
+}
+.hm-contact-note strong { color:var(--text); }
+.hm-contact-list {
+    display:grid;
+    gap:7px;
+    margin-top:10px;
+}
+.hm-contact-row {
+    display:flex;
+    align-items:center;
+    gap:9px;
+    min-height:48px;
+    padding:8px 9px;
+    border:1px solid var(--border);
+    border-radius:13px;
+    background:var(--surface-2);
+}
+.hm-contact-row.is-empty { opacity:.64; }
+.hm-contact-row-icon {
+    width:31px;
+    height:31px;
+    flex:0 0 31px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    color:var(--blue);
+    background:var(--blue-soft);
+}
+.hm-contact-row-icon .hm-ui-icon { width:16px; height:16px; }
+.hm-contact-row-copy { min-width:0; flex:1; }
+.hm-contact-row-label {
+    color:var(--muted);
+    font-size:8px;
+    font-weight:850;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+}
+.hm-contact-row-value {
+    margin-top:2px;
+    color:var(--text);
+    font-size:10.5px;
+    font-weight:800;
+    overflow-wrap:anywhere;
+}
+.hm-contact-row.is-empty .hm-contact-row-value { font-weight:650; color:var(--muted); }
+.hm-contact-row-actions {
+    display:flex;
+    align-items:center;
+    gap:5px;
+    flex:0 0 auto;
+}
+.hm-contact-mini-button {
+    min-height:31px;
+    padding:0 9px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    border:1px solid var(--border);
+    border-radius:9px;
+    background:var(--surface);
+    color:var(--blue);
+    font-size:8.5px;
+    font-weight:850;
+}
+.hm-contact-mini-button .hm-ui-icon { width:14px; height:14px; }
+.hm-wanted-contact-box {
+    margin-top:11px;
+    padding:10px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--surface-2);
+}
+.hm-wanted-contact-title {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:var(--text-2);
+    font-size:8.5px;
+    font-weight:900;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+}
+.hm-wanted-contact-title .hm-ui-icon { width:14px; height:14px; color:var(--blue); }
+.hm-wanted-actions {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:7px;
+    margin-top:10px;
+}
+.hm-wanted-chat-button {
+    min-height:40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    border:0;
+    border-radius:12px;
+    background:var(--blue);
+    color:#fff;
+    font-size:10px;
+    font-weight:900;
+}
+.hm-wanted-chat-button .hm-ui-icon { width:16px; height:16px; }
+.hm-wanted-owner-badge {
+    min-height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--border);
+    border-radius:11px;
+    color:var(--muted);
+    background:var(--surface-2);
+    font-size:9px;
+    font-weight:850;
+}
+@media (max-width:430px) {
+    .hm-contact-grid { grid-template-columns:1fr; gap:7px; }
+    .hm-contact-row { align-items:flex-start; }
+    .hm-contact-row-actions { flex-direction:column; align-items:stretch; }
+    .hm-contact-mini-button { min-width:70px; }
+}
+
 </style>
 
 <style>
@@ -7497,52 +7643,39 @@ Description
 <div class="field">
 
 <label>
-Contact method
+External contacts
 </label>
 
-<select
-    id="contactType"
-    onchange="updateContactFieldUi()"
->
+<div class="field-hint" style="margin-bottom:8px">
+Fill at least one contact. You can add several or all of them. Buyers see the values only after Unlock Contact.
+</div>
 
-<option value="telegram">
-Telegram
-</option>
+<div class="hm-contact-grid">
 
-<option value="email">
-Email
-</option>
+    <div class="field">
+        <label>Telegram</label>
+        <input id="contactTelegram" maxlength="200" placeholder="@telegramusername" autocomplete="off">
+    </div>
 
-<option value="other">
-Other
-</option>
+    <div class="field">
+        <label>WhatsApp</label>
+        <input id="contactWhatsApp" maxlength="200" placeholder="+996... or wa.me link" autocomplete="off">
+    </div>
 
-</select>
+    <div class="field">
+        <label>Email</label>
+        <input id="contactEmail" type="email" maxlength="200" placeholder="seller@example.com" autocomplete="email">
+    </div>
+
+    <div class="field">
+        <label>Other</label>
+        <input id="contactOther" maxlength="200" placeholder="Discord, website or other" autocomplete="off">
+    </div>
 
 </div>
 
-
-<div class="field">
-
-<label id="contactFieldLabel">
-Telegram username
-</label>
-
-<input
-    id="contactValue"
-    type="text"
-    inputmode="text"
-    autocomplete="off"
-    placeholder="@telegramusername"
-    maxlength="200"
-    required
->
-
-<div
-    id="contactFieldHint"
-    class="field-hint"
->
-Enter your Telegram username. Your contact stays private until a buyer unlocks it.
+<div class="hm-contact-note">
+<strong>Required:</strong> at least one external contact must be filled. Handle Market Chat is additional and does not replace an external contact.
 </div>
 
 </div>
@@ -7697,6 +7830,47 @@ Description
     id="wantedDescription"
     maxlength="500"
 ></textarea>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Your contact methods
+</label>
+
+<div class="field-hint" style="margin-bottom:8px">
+Fill at least one external contact. Sellers will also be able to message you through Handle Market Chat.
+</div>
+
+<div class="hm-contact-grid">
+
+    <div class="field">
+        <label>Telegram</label>
+        <input id="wantedContactTelegram" maxlength="200" placeholder="@telegramusername" autocomplete="off">
+    </div>
+
+    <div class="field">
+        <label>WhatsApp</label>
+        <input id="wantedContactWhatsApp" maxlength="200" placeholder="+996... or wa.me link" autocomplete="off">
+    </div>
+
+    <div class="field">
+        <label>Email</label>
+        <input id="wantedContactEmail" type="email" maxlength="200" placeholder="buyer@example.com" autocomplete="email">
+    </div>
+
+    <div class="field">
+        <label>Other</label>
+        <input id="wantedContactOther" maxlength="200" placeholder="Discord, website or other" autocomplete="off">
+    </div>
+
+</div>
+
+<div class="hm-contact-note">
+<strong>Required:</strong> at least one of Telegram, WhatsApp, Email or Other.
+</div>
 
 </div>
 
@@ -10344,6 +10518,12 @@ function hmContactIconSvg(kind) {
             </svg>
         `,
 
+        phone: `
+            <svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7.2 3.8 9.5 8l-2 1.7c1.1 2.5 2.9 4.3 5.4 5.4l1.7-2 4.2 2.3c.5.3.8.8.7 1.4-.2 1.5-1.4 3.1-3.4 3.4C9.6 21.1 2.9 14.4 3.8 7.9c.3-2 1.9-3.2 3.4-3.4.6-.1 1.1.2 1.4.7"></path>
+            </svg>
+        `,
+
         mail: `
             <svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <rect x="3" y="5" width="18" height="14" rx="2.5"></rect>
@@ -10434,6 +10614,412 @@ function sellerContactPresentation(
         copyLabel:"Copy contact",
         externalLabel:""
     };
+}
+
+
+
+/* =========================================================
+   V64 EXTERNAL CONTACT BUNDLE
+   ========================================================= */
+
+const HM_CONTACT_KEYS = [
+    "telegram",
+    "whatsapp",
+    "email",
+    "other"
+];
+
+
+function emptyContactBundle() {
+    return {
+        telegram:"",
+        whatsapp:"",
+        email:"",
+        other:""
+    };
+}
+
+
+function normalizeContactBundle(
+    source,
+    legacyType = "",
+    legacyValue = ""
+) {
+
+    const result =
+        emptyContactBundle();
+
+
+    if (
+        source &&
+        typeof source === "object" &&
+        !Array.isArray(source)
+    ) {
+
+        const nested =
+            source.contacts &&
+            typeof source.contacts === "object"
+                ? source.contacts
+                : source;
+
+
+        for (
+            const key of HM_CONTACT_KEYS
+        ) {
+            result[key] =
+                String(
+                    nested?.[key] ||
+                    ""
+                )
+                .trim();
+        }
+
+
+        if (
+            HM_CONTACT_KEYS.some(
+                key => result[key]
+            )
+        ) {
+            return result;
+        }
+
+
+        legacyType =
+            source.type ||
+            source.contact_type ||
+            legacyType;
+
+        legacyValue =
+            source.value ||
+            source.contact_value ||
+            legacyValue;
+    }
+
+
+    const raw =
+        String(
+            legacyValue ||
+            ""
+        ).trim();
+
+
+    if (
+        raw.startsWith(
+            "hmv2:"
+        )
+    ) {
+        try {
+            const parsed =
+                JSON.parse(
+                    raw.slice(5)
+                );
+
+            for (
+                const key of HM_CONTACT_KEYS
+            ) {
+                result[key] =
+                    String(
+                        parsed?.[key] ||
+                        ""
+                    ).trim();
+            }
+
+            return result;
+        } catch {}
+    }
+
+
+    const type =
+        String(
+            legacyType ||
+            "other"
+        )
+        .trim()
+        .toLowerCase();
+
+
+    if (
+        raw &&
+        HM_CONTACT_KEYS.includes(type)
+    ) {
+        result[type] = raw;
+    } else if (raw) {
+        result.other = raw;
+    }
+
+
+    return result;
+}
+
+
+function contactBundleFromListing(
+    listing
+) {
+    return normalizeContactBundle(
+        null,
+        listing?.contact_type,
+        listing?.contact_value
+    );
+}
+
+
+function collectContactBundle(
+    ids
+) {
+
+    const result =
+        emptyContactBundle();
+
+
+    for (
+        const key of HM_CONTACT_KEYS
+    ) {
+        result[key] =
+            String(
+                document.getElementById(
+                    ids[key]
+                )?.value ||
+                ""
+            )
+            .trim();
+    }
+
+
+    return result;
+}
+
+
+function validateClientContactBundle(
+    contacts
+) {
+
+    const hasAny =
+        HM_CONTACT_KEYS.some(
+            key =>
+                String(
+                    contacts?.[key] ||
+                    ""
+                ).trim()
+        );
+
+
+    if (!hasAny) {
+        return "contact_required";
+    }
+
+
+    const email =
+        String(
+            contacts?.email ||
+            ""
+        ).trim();
+
+
+    if (
+        email &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            .test(email)
+    ) {
+        return "invalid_email";
+    }
+
+
+    return "";
+}
+
+
+function requireClientContactBundle(
+    ids
+) {
+
+    const contacts =
+        collectContactBundle(
+            ids
+        );
+
+    const error =
+        validateClientContactBundle(
+            contacts
+        );
+
+
+    if (error) {
+        throw new Error(error);
+    }
+
+
+    return contacts;
+}
+
+
+function contactMetaV64(
+    key
+) {
+
+    const map = {
+        telegram:{
+            label:"Telegram",
+            icon:"telegram",
+            action:"Open",
+            copy:"Copy username"
+        },
+        whatsapp:{
+            label:"WhatsApp",
+            icon:"phone",
+            action:"Open",
+            copy:"Copy contact"
+        },
+        email:{
+            label:"Email",
+            icon:"mail",
+            action:"Email",
+            copy:"Copy email"
+        },
+        other:{
+            label:"Other",
+            icon:"contact",
+            action:"",
+            copy:"Copy"
+        }
+    };
+
+    return map[key] || map.other;
+}
+
+
+function contactExternalActionHtml(
+    key,
+    value
+) {
+
+    if (!value) {
+        return "";
+    }
+
+
+    if (key === "telegram") {
+        return `
+            <button class="hm-contact-mini-button" onclick="openTelegramContact('${escapeJs(value)}')">
+                ${hmContactIconSvg("telegram")}
+                Open
+            </button>
+        `;
+    }
+
+
+    if (key === "whatsapp") {
+        return `
+            <button class="hm-contact-mini-button" onclick="openWhatsAppContact('${escapeJs(value)}')">
+                ${hmContactIconSvg("phone")}
+                Open
+            </button>
+        `;
+    }
+
+
+    if (key === "email") {
+        return `
+            <button class="hm-contact-mini-button" onclick="openEmailContact('${escapeJs(value)}')">
+                ${hmContactIconSvg("mail")}
+                Email
+            </button>
+        `;
+    }
+
+
+    return "";
+}
+
+
+function contactRowsHtml(
+    contactSource,
+    options = {}
+) {
+
+    const contacts =
+        normalizeContactBundle(
+            contactSource,
+            options.legacyType,
+            options.legacyValue
+        );
+
+    const showActions =
+        Boolean(
+            options.showActions
+        );
+
+
+    return `
+        <div class="hm-contact-list">
+            ${HM_CONTACT_KEYS.map(
+                key => {
+                    const meta =
+                        contactMetaV64(key);
+
+                    const value =
+                        String(
+                            contacts[key] ||
+                            ""
+                        ).trim();
+
+                    return `
+                        <div class="hm-contact-row ${value ? "" : "is-empty"}">
+                            <div class="hm-contact-row-icon">
+                                ${hmContactIconSvg(meta.icon)}
+                            </div>
+
+                            <div class="hm-contact-row-copy">
+                                <div class="hm-contact-row-label">${escapeHtml(meta.label)}</div>
+                                <div class="hm-contact-row-value">${value ? escapeHtml(value) : "Not provided"}</div>
+                            </div>
+
+                            ${
+                                showActions && value
+                                    ? `
+                                        <div class="hm-contact-row-actions">
+                                            ${contactExternalActionHtml(key,value)}
+                                            <button class="hm-contact-mini-button" onclick="copyContact('${escapeJs(value)}')">
+                                                ${hmContactIconSvg("copy")}
+                                                Copy
+                                            </button>
+                                        </div>
+                                    `
+                                    : ""
+                            }
+                        </div>
+                    `;
+                }
+            ).join("")}
+        </div>
+    `;
+}
+
+
+function wantedContactBoxHtml(
+    post,
+    owner
+) {
+
+    const contacts =
+        normalizeContactBundle(
+            post?.contacts ||
+            {}
+        );
+
+
+    return `
+        <div class="hm-wanted-contact-box">
+            <div class="hm-wanted-contact-title">
+                ${hmContactIconSvg("contact")}
+                Buyer contacts
+            </div>
+
+            ${contactRowsHtml(
+                contacts,
+                { showActions: !owner }
+            )}
+        </div>
+    `;
 }
 
 
@@ -13239,7 +13825,7 @@ async function checkUnlockedContacts(
 
                         showSellerContact(
                             listing.id,
-                            data.contact,
+                            data.contacts || data.contact,
                             Boolean(
                                 data.owner
                             )
@@ -13326,7 +13912,7 @@ async function unlockSellerContact(
 
             showSellerContact(
                 listingId,
-                current.contact,
+                current.contacts || current.contact,
                 Boolean(
                     current.owner
                 )
@@ -13435,16 +14021,9 @@ function showSellerContact(
     owner
 ) {
 
-    const presentation =
-        sellerContactPresentation(
+    const contacts =
+        normalizeContactBundle(
             contact
-        );
-
-
-    const contactValue =
-        String(
-            contact?.value ||
-            ""
         );
 
 
@@ -13461,220 +14040,77 @@ function showSellerContact(
                     listingId
                 )
             ) {
-
                 return;
             }
 
 
-            if (
-                owner
-            ) {
+            if (owner) {
 
                 area.innerHTML = `
-
                     <div class="owner-contact-box">
-
                         <div class="owner-contact-header">
-
                             <div class="owner-contact-icon">
                                 ${hmContactIconSvg("user")}
                             </div>
 
                             <div>
-                                <div class="owner-title">
-                                    Your listing contact
-                                </div>
-
+                                <div class="owner-title">Your listing contacts</div>
                                 <div class="owner-contact-subtitle">
-                                    This is what buyers receive after unlocking.
+                                    Buyers receive every filled contact after unlocking. Empty fields are shown as Not provided.
                                 </div>
                             </div>
-
                         </div>
 
-
-                        <div class="contact-detail-card">
-
-                            <div class="contact-method-icon">
-                                ${hmContactIconSvg(
-                                    presentation.icon
-                                )}
-                            </div>
-
-                            <div class="contact-detail-copy">
-
-                                <div class="contact-type-label">
-                                    ${escapeHtml(
-                                        presentation.label
-                                    )}
-                                </div>
-
-                                <div class="contact-value">
-                                    ${escapeHtml(
-                                        contactValue
-                                    )}
-                                </div>
-
-                            </div>
-
-                        </div>
-
+                        ${contactRowsHtml(
+                            contacts,
+                            { showActions:false }
+                        )}
                     </div>
-
                 `;
 
             } else {
 
-                const externalAction =
-                    presentation.type ===
-                    "telegram"
-
-                        ? `
-                            <button
-                                class="primary contact-action-button"
-                                onclick="
-                                    openTelegramContact(
-                                        '${escapeJs(
-                                            contactValue
-                                        )}'
-                                    )
-                                "
-                            >
-                                ${hmContactIconSvg("telegram")}
-                                Open Telegram
-                            </button>
-                        `
-
-                        : presentation.type ===
-                            "email"
-
-                            ? `
-                                <button
-                                    class="primary contact-action-button"
-                                    onclick="
-                                        openEmailContact(
-                                            '${escapeJs(
-                                                contactValue
-                                            )}'
-                                        )
-                                    "
-                                >
-                                    ${hmContactIconSvg("mail")}
-                                    Send email
-                                </button>
-                            `
-
-                            : "";
-
-
                 area.innerHTML = `
-
                     <div class="contact-box">
-
                         <div class="contact-unlocked-header">
-
                             <div class="contact-unlocked-icon">
                                 ${hmContactIconSvg("unlock")}
                             </div>
 
                             <div>
-                                <div class="contact-title">
-                                    Seller contact unlocked
-                                </div>
-
+                                <div class="contact-title">Seller contacts unlocked</div>
                                 <div class="contact-subtitle">
-                                    You can now contact the seller directly.
+                                    All seller contact fields are shown below.
                                 </div>
                             </div>
-
                         </div>
 
-
-                        <div class="contact-detail-card">
-
-                            <div class="contact-method-icon">
-                                ${hmContactIconSvg(
-                                    presentation.icon
-                                )}
-                            </div>
-
-                            <div class="contact-detail-copy">
-
-                                <div class="contact-type-label">
-                                    ${escapeHtml(
-                                        presentation.label
-                                    )}
-                                </div>
-
-                                <div class="contact-value">
-                                    ${escapeHtml(
-                                        contactValue
-                                    )}
-                                </div>
-
-                                <div class="contact-seller-note">
-                                    Seller-provided contact
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="contact-actions">
-
-                            ${externalAction}
-
-                            <button
-                                class="secondary contact-action-button"
-                                onclick="
-                                    copyContact(
-                                        '${escapeJs(
-                                            contactValue
-                                        )}'
-                                    )
-                                "
-                            >
-                                ${hmContactIconSvg("copy")}
-                                ${escapeHtml(
-                                    presentation.copyLabel
-                                )}
-                            </button>
-
-                        </div>
-
+                        ${contactRowsHtml(
+                            contacts,
+                            { showActions:true }
+                        )}
 
                         <button
                             class="contact-market-chat"
-                            onclick="
-                                openChatByListing(
-                                    '${escapeJs(
-                                        listingId
-                                    )}'
-                                )
-                            "
+                            onclick="openChatByListing('${escapeJs(listingId)}')"
                         >
                             ${hmContactIconSvg("message")}
                             Chat in Handle Market
                         </button>
-
                     </div>
-
                 `;
             }
         }
     );
 
 
-    if (
-        owner
-    ) {
-
+    if (owner) {
         markOwnListing(
             listingId
         );
     }
 }
+
 
 function markOwnListing(
     listingId
@@ -13793,6 +14229,57 @@ function openTelegramContact(
     }
 }
 
+
+
+function openWhatsAppContact(
+    value
+) {
+
+    const raw =
+        String(
+            value ||
+            ""
+        ).trim();
+
+
+    if (!raw) {
+        return;
+    }
+
+
+    if (/^https?:\/\//i.test(raw)) {
+        try {
+            tg?.openLink
+                ? tg.openLink(raw)
+                : window.open(raw,"_blank","noopener,noreferrer");
+        } catch {
+            window.open(raw,"_blank","noopener,noreferrer");
+        }
+        return;
+    }
+
+
+    const digits =
+        raw.replace(/\D/g,"");
+
+
+    if (!digits) {
+        return;
+    }
+
+
+    const url =
+        "https://wa.me/" +
+        digits;
+
+    try {
+        tg?.openLink
+            ? tg.openLink(url)
+            : window.open(url,"_blank","noopener,noreferrer");
+    } catch {
+        window.open(url,"_blank","noopener,noreferrer");
+    }
+}
 
 
 function openEmailContact(
@@ -14196,6 +14683,7 @@ function openReportModal(
     }
 
 
+
     document.getElementById(
         "inputModalTitle"
     ).textContent =
@@ -14574,6 +15062,17 @@ async function startListingPayment(
 
     try {
 
+        const contacts =
+            requireClientContactBundle(
+                {
+                    telegram:"contactTelegram",
+                    whatsapp:"contactWhatsApp",
+                    email:"contactEmail",
+                    other:"contactOther"
+                }
+            );
+
+
         const data =
             await api(
                 "/listing-payment/create",
@@ -14616,15 +15115,7 @@ async function startListingPayment(
                             "listingDescription"
                         ).value,
 
-                    contact_type:
-                        document.getElementById(
-                            "contactType"
-                        ).value,
-
-                    contact_value:
-                        document.getElementById(
-                            "contactValue"
-                        ).value
+                    contacts
                 }
             );
 
@@ -15861,6 +16352,12 @@ function openEditListing(
     }
 
 
+    const editContacts =
+        contactBundleFromListing(
+            listing
+        );
+
+
     document.getElementById(
         "inputModalTitle"
     ).textContent =
@@ -15970,66 +16467,40 @@ function openEditListing(
         >
 
             <div class="section-title">
-                🔒 Seller Contact
+                🔒 Seller Contacts
             </div>
 
             <div
                 class="field-hint"
                 style="margin:4px 0 12px"
             >
-                Buyers still need to unlock this contact. Changing it requires moderation again.
+                Fill at least one external contact. Changing any contact sends the listing back to moderation.
             </div>
 
+            <div class="hm-contact-grid">
+                <div class="field">
+                    <label>Telegram</label>
+                    <input id="editContactTelegramInput" maxlength="200" value="${escapeHtml(editContacts.telegram)}" placeholder="@telegramusername">
+                </div>
 
-            <div class="field">
+                <div class="field">
+                    <label>WhatsApp</label>
+                    <input id="editContactWhatsAppInput" maxlength="200" value="${escapeHtml(editContacts.whatsapp)}" placeholder="+996... or wa.me link">
+                </div>
 
-                <label>
-                    Contact method
-                </label>
+                <div class="field">
+                    <label>Email</label>
+                    <input id="editContactEmailInput" type="email" maxlength="200" value="${escapeHtml(editContacts.email)}" placeholder="seller@example.com">
+                </div>
 
-                <select
-                    id="editContactTypeInput"
-                    onchange="updateEditContactFieldUi()"
-                >
-                    <option
-                        value="telegram"
-                        ${String(listing.contact_type || "telegram") === "telegram" ? "selected" : ""}
-                    >Telegram</option>
-
-                    <option
-                        value="email"
-                        ${String(listing.contact_type || "telegram") === "email" ? "selected" : ""}
-                    >Email</option>
-
-                    <option
-                        value="other"
-                        ${String(listing.contact_type || "telegram") === "other" ? "selected" : ""}
-                    >Other</option>
-                </select>
-
+                <div class="field">
+                    <label>Other</label>
+                    <input id="editContactOtherInput" maxlength="200" value="${escapeHtml(editContacts.other)}" placeholder="Discord, website or other">
+                </div>
             </div>
 
-
-            <div class="field">
-
-                <label id="editContactFieldLabel">
-                    Seller contact
-                </label>
-
-                <input
-                    id="editContactValueInput"
-                    maxlength="200"
-                    value="${escapeHtml(
-                        listing.contact_value ||
-                        ""
-                    )}"
-                >
-
-                <div
-                    id="editContactFieldHint"
-                    class="field-hint"
-                ></div>
-
+            <div class="hm-contact-note">
+                <strong>Required:</strong> at least one external contact.
             </div>
 
         </div>
@@ -16038,7 +16509,6 @@ function openEditListing(
 
 
     updateEditListingPricingUi();
-    updateEditContactFieldUi();
 
 
     const action =
@@ -16086,15 +16556,15 @@ function openEditListing(
                                     "editDescriptionInput"
                                 ).value,
 
-                            contact_type:
-                                document.getElementById(
-                                    "editContactTypeInput"
-                                ).value,
-
-                            contact_value:
-                                document.getElementById(
-                                    "editContactValueInput"
-                                ).value
+                            contacts:
+                                requireClientContactBundle(
+                                    {
+                                        telegram:"editContactTelegramInput",
+                                        whatsapp:"editContactWhatsAppInput",
+                                        email:"editContactEmailInput",
+                                        other:"editContactOtherInput"
+                                    }
+                                )
                         }
                     );
 
@@ -17688,10 +18158,8 @@ async function loadWanted() {
                 "/wanted"
             );
 
-
         const data =
             await response.json();
-
 
         const posts =
             data.posts ||
@@ -17701,115 +18169,72 @@ async function loadWanted() {
         document.getElementById(
             "wantedPosts"
         ).innerHTML =
-
             posts.length
+                ? posts.map(
+                    post => {
 
-                ? posts
-                    .map(
-                        post => `
+                        const owner =
+                            authenticatedUser &&
+                            Number(
+                                post.buyer_telegram_id
+                            ) ===
+                            Number(
+                                authenticatedUser.telegram_id ||
+                                authenticatedUser.id
+                            );
 
+
+                        return `
                             <div class="card wanted-card">
 
                                 <div class="username">
-
-                                    @${escapeHtml(
-                                        post.desired_username
-                                    )}
-
+                                    @${escapeHtml(post.desired_username)}
                                 </div>
-
 
                                 <div class="price">
-
-                                    $${formatPrice(
-                                        post.budget
-                                    )}
-
+                                    $${formatPrice(post.budget)}
                                 </div>
-
 
                                 <div class="listing-info-row">
-
                                     <span class="category-badge">
-
-                                        ${escapeHtml(
-                                            post.category ||
-                                            "Other"
-                                        )}
-
+                                        ${escapeHtml(post.category || "Other")}
                                     </span>
 
+                                    ${newListingBadgeHtml(post)}
                                 </div>
-
 
                                 ${
                                     post.description
-
-                                        ? `
-
-                                            <div class="description">
-
-                                                ${escapeHtml(
-                                                    post.description
-                                                )}
-
-                                            </div>
-
-                                        `
-
+                                        ? `<div class="description">${escapeHtml(post.description)}</div>`
                                         : ""
                                 }
 
+                                ${wantedContactBoxHtml(post,owner)}
 
                                 ${
-                                    authenticatedUser &&
-                                    Number(
-                                        post.buyer_telegram_id
-                                    )
-                                    ===
-                                    Number(
-                                        authenticatedUser.id
-                                    )
-
+                                    owner
                                         ? `
-
-                                            <button
-                                                class="your-request-button"
-                                                disabled
-                                            >
-                                                Your Request
-                                            </button>
-
+                                            <div class="hm-wanted-owner-badge">
+                                                Your Request · incoming chats appear in Profile → Chats
+                                            </div>
                                         `
-
-                                        : post.buyer?.telegram_username
-
-                                            ? `
-
+                                        : `
+                                            <div class="hm-wanted-actions">
                                                 <button
-                                                    class="contact-buyer-button"
-                                                    onclick="
-                                                        openTelegramContact(
-                                                            '${escapeJs(
-                                                                post.buyer.telegram_username
-                                                            )}'
-                                                        )
-                                                    "
+                                                    class="hm-wanted-chat-button"
+                                                    onclick="openWantedChat('${escapeJs(post.id)}')"
                                                 >
-                                                    Contact Buyer
+                                                    ${hmContactIconSvg("message")}
+                                                    Chat with buyer
                                                 </button>
-
-                                            `
-
-                                            : ""
+                                            </div>
+                                        `
                                 }
 
                             </div>
-
-                        `
-                    )
-                    .join("")
-
+                        `;
+                    }
+                ).join("")
                 : '<div class="empty">No active Wanted requests.</div>';
 
     } catch {}
@@ -17824,6 +18249,17 @@ async function startWantedPayment(
 
 
     try {
+
+        const contacts =
+            requireClientContactBundle(
+                {
+                    telegram:"wantedContactTelegram",
+                    whatsapp:"wantedContactWhatsApp",
+                    email:"wantedContactEmail",
+                    other:"wantedContactOther"
+                }
+            );
+
 
         const data =
             await api(
@@ -17850,7 +18286,9 @@ async function startWantedPayment(
                     description:
                         document.getElementById(
                             "wantedDescription"
-                        ).value
+                        ).value,
+
+                    contacts
                 }
             );
 
@@ -17999,6 +18437,12 @@ async function loadMyWanted() {
                                 </div>
 
 
+                                ${wantedContactBoxHtml(
+                                    post,
+                                    true
+                                )}
+
+
                                 ${
                                     post.status ===
                                     "active"
@@ -18076,6 +18520,9 @@ async function closeWantedRequest(
 let currentChatId =
     null;
 
+let currentChatType =
+    "listing";
+
 let chatPollTimer =
     null;
 
@@ -18144,6 +18591,9 @@ async function openChats() {
     currentChatId =
         null;
 
+    currentChatType =
+        "listing";
+
 
     openPage(
         "chats",
@@ -18162,12 +18612,9 @@ async function loadChats() {
             "chatList"
         );
 
-
     if (!container) {
-
         return;
     }
-
 
     container.innerHTML =
         '<div class="empty">Loading chats...</div>';
@@ -18175,156 +18622,135 @@ async function loadChats() {
 
     try {
 
-        const data =
-            await api(
-                "/chats/list",
-                {
-                    initData:
-                        tg.initData
-                }
+        const results =
+            await Promise.allSettled(
+                [
+                    api(
+                        "/chats/list",
+                        { initData:tg.initData }
+                    ),
+                    api(
+                        "/wanted-chats/list",
+                        { initData:tg.initData }
+                    )
+                ]
             );
 
+        const chats = [];
 
-        const chats =
-            data.chats ||
-            [];
+        if (
+            results[0].status ===
+            "fulfilled"
+        ) {
+            chats.push(
+                ...(results[0].value.chats || []).map(
+                    chat => ({
+                        ...chat,
+                        chat_type:"listing"
+                    })
+                )
+            );
+        }
+
+        if (
+            results[1].status ===
+            "fulfilled"
+        ) {
+            chats.push(
+                ...(results[1].value.chats || []).map(
+                    chat => ({
+                        ...chat,
+                        chat_type:"wanted"
+                    })
+                )
+            );
+        }
+
+        chats.sort(
+            (a,b) =>
+                new Date(b.updated_at || 0) -
+                new Date(a.updated_at || 0)
+        );
 
 
         if (!chats.length) {
-
             container.innerHTML = `
                 <div class="empty">
                     No chats yet.<br><br>
-                    Buyers can start a chat after unlocking a seller contact.
+                    Listing chats start after contact unlock. Wanted chats can start directly from an active Wanted request.
                 </div>
             `;
-
             return;
         }
 
 
         container.innerHTML =
-            chats
-                .map(
-                    chat => {
+            chats.map(
+                chat => {
 
-                        const counterpartName =
-                            chatCounterpartName(
-                                chat.counterpart
-                            );
-
-
-                        const telegramName =
+                    const counterpartName =
+                        chatCounterpartName(
                             chat.counterpart
-                                ?.telegram_username
-                                ? `@${escapeHtml(
-                                    chat.counterpart.telegram_username
-                                )}`
-                                : "";
+                        );
 
+                    const telegramName =
+                        chat.counterpart?.telegram_username
+                            ? `@${escapeHtml(chat.counterpart.telegram_username)}`
+                            : "";
 
-                        const preview =
-                            chat.last_message
-                                ?.message
-                                ? escapeHtml(
-                                    String(
-                                        chat.last_message.message
-                                    ).slice(
-                                        0,
-                                        120
-                                    )
-                                )
-                                : "No messages yet";
+                    const preview =
+                        chat.last_message?.message
+                            ? escapeHtml(
+                                String(chat.last_message.message).slice(0,120)
+                            )
+                            : "No messages yet";
 
+                    const wanted =
+                        chat.chat_type ===
+                        "wanted";
 
-                        return `
-                            <button
-                                class="card"
-                                style="
-                                    width:100%;
-                                    text-align:left;
-                                    margin-bottom:10px;
-                                    cursor:pointer;
-                                "
-                                onclick="openChatConversation('${escapeJs(
-                                    chat.id
-                                )}')"
-                            >
+                    return `
+                        <button
+                            class="card"
+                            style="width:100%;text-align:left;margin-bottom:10px;cursor:pointer"
+                            onclick="openChatConversation('${escapeJs(chat.id)}','${wanted ? "wanted" : "listing"}')"
+                        >
+                            <div class="username">
+                                ${wanted ? "WANTED · " : ""}@${escapeHtml(chat.listing_username || "username")}
+                            </div>
 
-                                <div class="username">
-                                    @${escapeHtml(
-                                        chat.listing_username ||
-                                        "username"
-                                    )}
-                                </div>
+                            ${
+                                wanted
+                                    ? ""
+                                    : listingNumberHtml({ listing_number:chat.listing_number })
+                            }
 
-                                ${listingNumberHtml(
-                                    { listing_number: chat.listing_number }
+                            <div style="margin-top:6px;font-weight:700">
+                                ${escapeHtml(counterpartName)}
+                            </div>
+
+                            ${telegramName ? `<div class="section-subtitle">${telegramName}</div>` : ""}
+
+                            <div class="section-subtitle" style="margin-top:8px">
+                                ${preview}
+                            </div>
+
+                            <div class="field-hint" style="margin-top:8px">
+                                ${escapeHtml(
+                                    wanted
+                                        ? (chat.role === "buyer" ? "Your Wanted request" : "You are responding to Wanted")
+                                        : (chat.role === "seller" ? "You are the seller" : "You are the buyer")
                                 )}
+                                ${chat.last_message ? ` · ${escapeHtml(chatTimeLabel(chat.last_message.created_at))}` : ""}
+                            </div>
+                        </button>
+                    `;
+                }
+            ).join("");
 
-                                <div style="margin-top:6px;font-weight:700">
-                                    ${escapeHtml(
-                                        counterpartName
-                                    )}
-                                </div>
-
-                                ${
-                                    telegramName
-                                        ? `
-                                            <div class="section-subtitle">
-                                                ${telegramName}
-                                            </div>
-                                        `
-                                        : ""
-                                }
-
-                                <div
-                                    class="section-subtitle"
-                                    style="margin-top:8px"
-                                >
-                                    ${preview}
-                                </div>
-
-                                <div
-                                    class="field-hint"
-                                    style="margin-top:8px"
-                                >
-                                    ${escapeHtml(
-                                        chat.role ===
-                                        "seller"
-                                            ? "You are the seller"
-                                            : "You are the buyer"
-                                    )}
-                                    ${
-                                        chat.last_message
-                                            ? ` · ${escapeHtml(
-                                                chatTimeLabel(
-                                                    chat.last_message.created_at
-                                                )
-                                            )}`
-                                            : ""
-                                    }
-                                </div>
-
-                            </button>
-                        `;
-                    }
-                )
-                .join("");
-
-
-    } catch (
-        error
-    ) {
-
+    } catch (error) {
         container.innerHTML = `
-            <div class="empty">
-                ${escapeHtml(
-                    friendlyError(
-                        error.message
-                    )
-                )}
-            </div>
+            <div class="empty">${escapeHtml(friendlyError(error.message))}</div>
         `;
     }
 }
@@ -18382,14 +18808,54 @@ async function openChatByListing(
 }
 
 
+async function openWantedChat(
+    wantedId
+) {
+
+    try {
+        const data =
+            await api(
+                "/wanted-chat/open",
+                {
+                    initData:tg.initData,
+                    wanted_id:wantedId
+                }
+            );
+
+        await openChatConversation(
+            data.chat.id,
+            "wanted"
+        );
+
+    } catch (error) {
+        const messages = {
+            wanted_not_found:"This Wanted request is no longer available.",
+            wanted_owner_chat:"This is your own Wanted request.",
+            wanted_chat_create_failed:"Could not start the Wanted chat."
+        };
+
+        tg?.showAlert(
+            messages[error.message] ||
+            friendlyError(error.message)
+        );
+    }
+}
+
+
 async function openChatConversation(
-    chatId
+    chatId,
+    chatType = "listing"
 ) {
 
     currentChatId =
         String(
             chatId
         );
+
+    currentChatType =
+        chatType === "wanted"
+            ? "wanted"
+            : "listing";
 
 
     openPage(
@@ -18450,7 +18916,9 @@ async function loadChatMessages(
 
         const data =
             await api(
-                "/chat/messages",
+                currentChatType === "wanted"
+                    ? "/wanted-chat/messages"
+                    : "/chat/messages",
                 {
                     initData:
                         tg.initData,
@@ -18494,7 +18962,7 @@ async function loadChatMessages(
 
             header.innerHTML = `
                 <div class="username">
-                    @${escapeHtml(
+                    ${currentChatType === "wanted" ? "WANTED · " : ""}@${escapeHtml(
                         chat.listing_username ||
                         "username"
                     )}
@@ -18561,7 +19029,7 @@ async function loadChatMessages(
             container.innerHTML = `
                 <div class="empty">
                     No messages yet.<br><br>
-                    Start the conversation about @${escapeHtml(
+                    Start the conversation about ${currentChatType === "wanted" ? "Wanted " : ""}@${escapeHtml(
                         chat.listing_username ||
                         "username"
                     )}.
@@ -18750,7 +19218,9 @@ async function sendChatMessage(
     try {
 
         await api(
-            "/chat/send",
+            currentChatType === "wanted"
+                ? "/wanted-chat/send"
+                : "/chat/send",
             {
                 initData:
                     tg.initData,
@@ -24700,7 +25170,13 @@ function friendlyError(
             "Your offer is below the seller's minimum offer.",
 
         offer_expired:
-            "This offer has expired."
+            "This offer has expired.",
+
+        contact_required:
+            "Fill at least one external contact: Telegram, WhatsApp, Email or Other.",
+
+        invalid_email:
+            "Enter a valid email address."
     };
 
 
