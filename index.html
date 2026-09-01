@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#ffffff">
 
 <title>Handle Market</title>
-<!-- UI version: v48-onboarding -->
+<!-- UI version: v54-modern-categories -->
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -572,11 +572,13 @@ header {
 .categories {
 
     display:flex;
-    gap:8px;
+    gap:7px;
 
     overflow-x:auto;
-    padding-bottom:3px;
+    padding:1px 1px 5px;
+    margin-top:11px;
 
+    scroll-snap-type:x proximity;
     scrollbar-width:none;
 }
 
@@ -587,14 +589,18 @@ header {
 .category {
 
     flex:0 0 auto;
+    scroll-snap-align:start;
 
-    padding:9px 13px;
+    min-height:38px;
+    padding:0 12px;
 
-    border:
-        1px solid
-        var(--border);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
 
-    border-radius:999px;
+    border:1px solid var(--border);
+    border-radius:12px;
 
     color:
         var(
@@ -603,13 +609,58 @@ header {
         );
 
     background:
-        var(
-            --tg-theme-secondary-bg-color,
-            var(--surface)
+        color-mix(
+            in srgb,
+            var(--surface) 92%,
+            var(--blue) 8%
         );
 
+    box-shadow:
+        0 2px 8px rgba(24,38,58,.045),
+        inset 0 1px 0 rgba(255,255,255,.55);
+
     font-size:10.5px;
-    font-weight:750;
+    line-height:1;
+    font-weight:800;
+    white-space:nowrap;
+
+    transition:
+        transform .14s ease,
+        border-color .14s ease,
+        background .14s ease,
+        color .14s ease;
+}
+
+.category svg {
+    width:16px;
+    height:16px;
+    flex:0 0 16px;
+
+    fill:none;
+    stroke:var(--blue);
+    stroke-width:1.85;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.category:active {
+    transform:scale(.96);
+    border-color:rgba(22,136,232,.30);
+    background:var(--blue-soft);
+}
+
+@media (hover:hover) {
+    .category:hover {
+        border-color:rgba(22,136,232,.24);
+        background:var(--blue-soft);
+    }
+}
+
+@media (prefers-color-scheme:dark) {
+    .category {
+        background:rgba(255,255,255,.035);
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+    }
 }
 
 .market-premium-note {
@@ -4768,48 +4819,88 @@ New sellers can publish their first listing free. The 24-hour timer begins only 
 Categories
 </div>
 
-<br>
+<div class="categories" aria-label="Username categories">
 
-<div class="categories">
-
-<button class="category" onclick="openCategory('Brand')">
-🏷 Brand
+<button class="category" onclick="openCategory('Brand')" type="button" aria-label="Brand category">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M4 5.5h7.2L20 14.3 14.3 20 5.5 11.2 4 5.5Z"></path>
+<circle cx="8.3" cy="8.3" r="1.25"></circle>
+</svg>
+<span>Brand</span>
 </button>
 
-<button class="category" onclick="openCategory('Business')">
-💼 Business
+<button class="category" onclick="openCategory('Business')" type="button" aria-label="Business category">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<rect x="3.5" y="7.5" width="17" height="11.5" rx="2.2"></rect>
+<path d="M8.5 7.5V5.8c0-1 .8-1.8 1.8-1.8h3.4c1 0 1.8.8 1.8 1.8v1.7"></path>
+<path d="M3.5 12.2c4.8 2.2 12.2 2.2 17 0"></path>
+</svg>
+<span>Business</span>
 </button>
 
-<button class="category" onclick="openCategory('Tech & AI')">
-🤖 Tech & AI
+<button class="category" onclick="openCategory('Tech & AI')" type="button" aria-label="Tech and AI category">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<rect x="6" y="6" width="12" height="12" rx="2.5"></rect>
+<path d="M9.5 10h5M9.5 14h5"></path>
+<path d="M9 3.5v2M15 3.5v2M9 18.5v2M15 18.5v2M3.5 9h2M3.5 15h2M18.5 9h2M18.5 15h2"></path>
+</svg>
+<span>Tech &amp; AI</span>
 </button>
 
-<button class="category" onclick="openCategory('Short')">
-⚡ Short
+<button class="category" onclick="openCategory('Short')" type="button" aria-label="Short category">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="m13.2 2.8-7 10.1h5.5l-.9 8.3 7-10.2h-5.5l.9-8.2Z"></path>
+</svg>
+<span>Short</span>
 </button>
 
-<button class="category" onclick="openCategory('Generic')">
-🌐 Generic
+<button class="category" onclick="openCategory('Generic')" type="button" aria-label="Generic category">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<circle cx="12" cy="12" r="8.5"></circle>
+<path d="M3.9 12h16.2M12 3.5c2.2 2.4 3.4 5.2 3.4 8.5S14.2 18.1 12 20.5M12 3.5C9.8 5.9 8.6 8.7 8.6 12s1.2 6.1 3.4 8.5"></path>
+</svg>
+<span>Generic</span>
 </button>
 
-<button class="category" onclick="openCategory('Travel')">
-✈️ Travel
+<button class="category" onclick="openCategory('Travel')" type="button" aria-label="Travel category">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="m21 16-8.2-4.1V6.2c0-1.2-.8-2.7-1.8-3.4-1 .7-1.8 2.2-1.8 3.4v5.7L3 16v2l6.2-1.8V20l1.8 1 1.8-1v-3.8L21 18v-2Z"></path>
+</svg>
+<span>Travel</span>
 </button>
 
-<button class="category" onclick="openCategory('Finance')">
-💰 Finance
+<button class="category" onclick="openCategory('Finance')" type="button" aria-label="Finance category">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<rect x="3.5" y="6" width="17" height="12" rx="2.4"></rect>
+<path d="M3.5 9.5h17"></path>
+<path d="M7.5 14h3"></path>
+</svg>
+<span>Finance</span>
 </button>
 
-<button class="category" onclick="openCategory('Gaming')">
-🎮 Gaming
+<button class="category" onclick="openCategory('Gaming')" type="button" aria-label="Gaming category">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M8.2 8h7.6c2.2 0 3.7 1.3 4.1 3.4l.8 4.1c.4 2-1.8 3.4-3.3 2.1l-2.1-1.8H8.7l-2.1 1.8c-1.5 1.3-3.7-.1-3.3-2.1l.8-4.1C4.5 9.3 6 8 8.2 8Z"></path>
+<path d="M8 11v4M6 13h4M16.5 11.8h.01M18 14h.01"></path>
+</svg>
+<span>Gaming</span>
 </button>
 
-<button class="category" onclick="openCategory('Media')">
-📰 Media
+<button class="category" onclick="openCategory('Media')" type="button" aria-label="Media category">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<rect x="4" y="4" width="16" height="16" rx="2.5"></rect>
+<path d="M8 8h8M8 12h4M8 16h4M15 12h1M15 16h1"></path>
+</svg>
+<span>Media</span>
 </button>
 
-<button class="category" onclick="openCategory('Crypto')">
-₿ Crypto
+<button class="category" onclick="openCategory('Crypto')" type="button" aria-label="Crypto category">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<circle cx="12" cy="12" r="8.5"></circle>
+<path d="M9.4 7.4h4a2.3 2.3 0 0 1 0 4.6h-4V7.4Zm0 4.6h4.7a2.3 2.3 0 0 1 0 4.6H9.4V12Z"></path>
+<path d="M11 5.5v1.9M14 5.5v1.9M11 16.6v1.9M14 16.6v1.9"></path>
+</svg>
+<span>Crypto</span>
 </button>
 
 </div>
