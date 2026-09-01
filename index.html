@@ -3728,6 +3728,356 @@ button {
     }
 }
 
+
+
+/* =========================================================
+   V62 MODERN MARKETPLACE SEARCH & FILTERS
+   Unified rounded-outline controls matching Categories/Profile.
+   ========================================================= */
+
+#marketplace .page-heading {
+    padding-bottom:10px;
+}
+
+#marketplace .market-premium-note {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:2px 16px 12px;
+    padding:10px 11px;
+    border-radius:14px;
+}
+
+.market-premium-note-icon {
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:11px;
+    color:#8a650d;
+    background:rgba(224,177,58,.18);
+}
+
+.market-premium-note-icon svg {
+    width:17px;
+    height:17px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.market-premium-note-copy {
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+
+.market-premium-note-copy strong {
+    font-size:10px;
+    font-weight:900;
+}
+
+.market-premium-note-copy span {
+    font-size:8.5px;
+    line-height:1.4;
+    opacity:.82;
+}
+
+#marketplace .search {
+    padding:0 16px 10px;
+}
+
+#marketplace .search-wrap {
+    position:relative;
+}
+
+#marketplace .search input {
+    min-height:48px;
+    padding:0 44px 0 43px;
+    border-radius:15px;
+    box-shadow:0 3px 14px rgba(28,45,73,.055);
+    font-size:12.5px;
+}
+
+.market-search-clear {
+    position:absolute;
+    top:50%;
+    right:9px;
+    width:30px;
+    height:30px;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    transform:translateY(-50%);
+    border:0;
+    border-radius:9px;
+    color:var(--muted);
+    background:var(--surface-3);
+}
+
+.market-search-clear.show {
+    display:flex;
+}
+
+.market-search-clear svg {
+    position:static !important;
+    width:14px !important;
+    height:14px !important;
+    transform:none !important;
+    stroke:currentColor !important;
+    stroke-width:1.9 !important;
+}
+
+#marketplace .market-tools {
+    margin:0 16px 12px;
+    padding:10px;
+    border-radius:16px;
+    box-shadow:0 3px 14px rgba(28,45,73,.05);
+}
+
+#marketplace .market-tools-top {
+    gap:7px;
+}
+
+#marketplace .market-result-count {
+    font-size:9px;
+    font-weight:850;
+}
+
+.market-sort-wrap {
+    position:relative;
+    min-width:132px;
+    max-width:162px;
+    display:flex;
+    align-items:center;
+    flex:0 1 162px;
+}
+
+.market-sort-wrap .market-tool-icon {
+    position:absolute;
+    left:9px;
+    z-index:1;
+    pointer-events:none;
+}
+
+.market-tool-icon {
+    width:15px;
+    height:15px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.85;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+#marketplace .market-sort-select {
+    width:100%;
+    min-width:0;
+    max-width:none;
+    min-height:36px;
+    padding:0 26px 0 30px;
+    border-radius:11px;
+    font-size:9px;
+}
+
+#marketplace .market-filter-button {
+    min-width:auto;
+    min-height:36px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    padding:0 10px;
+    border-radius:11px;
+    font-size:9px;
+}
+
+.market-filter-count {
+    min-width:17px;
+    height:17px;
+    padding:0 5px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:999px;
+    color:#fff;
+    background:var(--blue);
+    font-size:7.5px;
+    line-height:1;
+    font-weight:900;
+}
+
+.market-filter-button.has-filters .market-filter-count {
+    color:var(--blue);
+    background:#fff;
+}
+
+#marketplace .filter-panel {
+    margin-top:10px;
+    padding-top:11px;
+}
+
+#marketplace .filter-section {
+    margin-bottom:12px;
+}
+
+#marketplace .filter-label {
+    margin-bottom:6px;
+    font-size:8px;
+    letter-spacing:.5px;
+}
+
+#marketplace .filter-select {
+    min-height:40px;
+    padding:0 11px;
+    border-radius:11px;
+    font-size:10px;
+}
+
+#marketplace .filter-promotion-row {
+    gap:6px;
+}
+
+#marketplace .filter-chip {
+    min-height:34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    padding:0 10px;
+    border-radius:11px;
+    font-size:8.8px;
+}
+
+#marketplace .filter-chip .hm-chip-icon {
+    width:14px;
+    height:14px;
+}
+
+#marketplace .filter-chip.active {
+    box-shadow:0 4px 12px rgba(22,136,232,.14);
+}
+
+.filter-price-field {
+    min-width:0;
+    min-height:40px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    padding:0 10px;
+    border:1px solid var(--border);
+    border-radius:11px;
+    color:var(--muted);
+    background:var(--surface-2);
+    font-size:10px;
+    font-weight:850;
+}
+
+.filter-price-field:focus-within {
+    border-color:rgba(22,136,232,.35);
+    box-shadow:0 0 0 3px rgba(22,136,232,.06);
+}
+
+#marketplace .filter-price-input {
+    min-width:0;
+    width:100%;
+    padding:0;
+    border:0;
+    outline:0;
+    background:transparent;
+    font-size:10px;
+}
+
+#marketplace .premium-toggle {
+    min-height:48px;
+    padding:9px 10px;
+    border-radius:12px;
+}
+
+#marketplace .premium-toggle-title {
+    display:flex;
+    align-items:center;
+    gap:5px;
+    color:#85600a;
+    font-size:10px;
+}
+
+#marketplace .premium-toggle-title .hm-chip-icon {
+    width:14px;
+    height:14px;
+}
+
+#marketplace .premium-toggle-subtitle {
+    font-size:7.7px;
+}
+
+#marketplace .filter-footer {
+    gap:7px;
+}
+
+#marketplace .filter-reset,
+#marketplace .filter-done {
+    min-height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    border-radius:11px;
+    font-size:9px;
+    font-weight:850;
+}
+
+#marketplace .active-filter-bar {
+    margin:-1px 16px 10px;
+    gap:5px;
+}
+
+#marketplace .active-filter-pill {
+    min-height:26px;
+    display:inline-flex;
+    align-items:center;
+    padding:0 8px;
+    border:1px solid rgba(22,136,232,.10);
+    border-radius:9px;
+    font-size:8px;
+}
+
+#marketplace .market-save-search-bar {
+    padding:0 16px 9px;
+}
+
+#marketplace .market-save-search-bar button {
+    min-height:34px;
+    padding:0 10px;
+    border-radius:10px;
+    font-size:8.8px;
+}
+
+@media (max-width:390px) {
+    #marketplace .market-tools-top {
+        flex-wrap:wrap;
+    }
+
+    #marketplace .market-result-count {
+        flex:1 0 100%;
+        padding-bottom:1px;
+    }
+
+    .market-sort-wrap {
+        flex:1 1 auto;
+        max-width:none;
+    }
+
+    #marketplace .market-filter-button {
+        flex:0 0 auto;
+    }
+}
+
 </style>
 
 <style>
@@ -6328,11 +6678,16 @@ Find the right username using search, filters and sorting.
 
 <div class="market-premium-note">
 
-<strong>
-⭐ Premium
-</strong>
+<div class="market-premium-note-icon">
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="m12 3.8 2.45 4.96 5.48.8-3.97 3.87.94 5.46L12 16.31l-4.9 2.58.94-5.46-3.97-3.87 5.48-.8L12 3.8Z"></path>
+</svg>
+</div>
 
-is awarded by Handle Market to selected unique and high-quality usernames. Sellers cannot select or purchase this status.
+<div class="market-premium-note-copy">
+<strong>Premium usernames</strong>
+<span>Selected by Handle Market for quality and uniqueness. Premium cannot be purchased.</span>
+</div>
 
 </div>
 
@@ -6348,9 +6703,21 @@ is awarded by Handle Market to selected unique and high-quality usernames. Selle
 
 <input
     id="marketSearchInput"
-    placeholder="Search @username or LOT #"
+    placeholder="Search username or LOT #"
     oninput="setMarketplaceSearch(this.value)"
 >
+
+<button
+    id="marketSearchClear"
+    class="market-search-clear"
+    type="button"
+    onclick="clearMarketplaceSearch()"
+    aria-label="Clear search"
+>
+<svg viewBox="0 0 24 24" aria-hidden="true">
+<path d="M7 7l10 10M17 7 7 17"></path>
+</svg>
+</button>
 
 </div>
 
@@ -6368,44 +6735,36 @@ is awarded by Handle Market to selected unique and high-quality usernames. Selle
 0 listings
 </div>
 
+<div class="market-sort-wrap">
+<svg class="market-tool-icon" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M8 6h11M5 6h.01M8 12h8M5 12h.01M8 18h5M5 18h.01"></path>
+</svg>
 <select
     id="marketSort"
     class="market-sort-select"
     onchange="setMarketplaceSort(this.value)"
 >
 
-<option value="recommended">
-Recommended
-</option>
-
-<option value="newest">
-Newest
-</option>
-
-<option value="price_low">
-Price: Low → High
-</option>
-
-<option value="price_high">
-Price: High → Low
-</option>
-
-<option value="az">
-A → Z
-</option>
-
-<option value="za">
-Z → A
-</option>
+<option value="recommended">Recommended</option>
+<option value="newest">Newest</option>
+<option value="price_low">Price: Low → High</option>
+<option value="price_high">Price: High → Low</option>
+<option value="az">A → Z</option>
+<option value="za">Z → A</option>
 
 </select>
+</div>
 
 <button
     id="marketFilterButton"
     class="market-filter-button"
     onclick="toggleMarketFilters()"
 >
-⚙ Filters
+<svg class="market-tool-icon" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M4 7h16M7 12h10M10 17h4"></path>
+</svg>
+<span id="marketFilterLabel">Filters</span>
+<span id="marketFilterCount" class="market-filter-count" hidden>0</span>
 </button>
 
 </div>
@@ -6459,7 +6818,8 @@ Promotion
     data-promotion-filter="all"
     onclick="setMarketplacePromotion('all')"
 >
-All
+<svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"></circle><path d="M8.5 12h7"></path></svg>
+<span>All</span>
 </button>
 
 <button
@@ -6467,7 +6827,8 @@ All
     data-promotion-filter="vip"
     onclick="setMarketplacePromotion('vip')"
 >
-💎 VIP
+<svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10l4 5-9 11L3 9l4-5Z"></path><path d="m3 9 9 3 9-3M7 4l5 8 5-8"></path></svg>
+<span>VIP</span>
 </button>
 
 <button
@@ -6475,7 +6836,8 @@ All
     data-promotion-filter="hot"
     onclick="setMarketplacePromotion('hot')"
 >
-🔥 HOT
+<svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 3.5c.4 3-1.5 4.3-3 6.2-1.5 1.9-1.8 4.4-.3 6.2 1.3 1.6 4 1.8 5.5.3 1.7-1.7 1.2-4.2.1-5.8.2 2.5-1 3.7-2 4.4-1.7-1.8-.7-3.3.7-5.2 1.8-2.3 1.9-4.2 1.5-5.7Z"></path></svg>
+<span>HOT</span>
 </button>
 
 <button
@@ -6483,7 +6845,8 @@ All
     data-promotion-filter="bump"
     onclick="setMarketplacePromotion('bump')"
 >
-⬆️ Bump
+<svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M7 10l5-5 5 5"></path></svg>
+<span>Bump</span>
 </button>
 
 <button
@@ -6491,7 +6854,8 @@ All
     data-promotion-filter="regular"
     onclick="setMarketplacePromotion('regular')"
 >
-Regular
+<svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3"></rect></svg>
+<span>Regular</span>
 </button>
 
 </div>
@@ -6507,23 +6871,29 @@ Price USD
 
 <div class="filter-price-grid">
 
+<label class="filter-price-field">
+<span>$</span>
 <input
     id="marketMinPrice"
     class="filter-price-input"
     type="number"
     min="0"
-    placeholder="Min price"
+    placeholder="Minimum"
     oninput="setMarketplacePrice()"
 >
+</label>
 
+<label class="filter-price-field">
+<span>$</span>
 <input
     id="marketMaxPrice"
     class="filter-price-input"
     type="number"
     min="0"
-    placeholder="Max price"
+    placeholder="Maximum"
     oninput="setMarketplacePrice()"
 >
+</label>
 
 </div>
 
@@ -6541,7 +6911,10 @@ Price USD
 <div>
 
 <div class="premium-toggle-title">
-⭐ Premium only
+<svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true">
+<path d="m12 3.8 2.45 4.96 5.48.8-3.97 3.87.94 5.46L12 16.31l-4.9 2.58.94-5.46-3.97-3.87 5.48-.8L12 3.8Z"></path>
+</svg>
+<span>Premium only</span>
 </div>
 
 <div class="premium-toggle-subtitle">
@@ -6563,14 +6936,16 @@ Show only usernames selected by Handle Market.
     class="filter-reset"
     onclick="resetMarketplaceFilters()"
 >
-Reset
+<svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9 7V5h6v2M8 10v7M12 10v7M16 10v7M7 7l1 13h8l1-13"></path></svg>
+<span>Reset</span>
 </button>
 
 <button
     class="filter-done"
     onclick="closeMarketFilters()"
 >
-Show Results
+<span>Show results</span>
+<svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"></path></svg>
 </button>
 
 </div>
@@ -10613,8 +10988,38 @@ function setMarketplaceSearch(
     }
 
 
+    const clearButton =
+        document.getElementById(
+            "marketSearchClear"
+        );
+
+    if (clearButton) {
+        clearButton.classList.toggle(
+            "show",
+            Boolean(String(value || "").trim())
+        );
+    }
+
+
     renderHomeListings();
     applyMarketplaceFilters();
+}
+
+
+function clearMarketplaceSearch() {
+
+    setMarketplaceSearch(
+        ""
+    );
+
+    const input =
+        document.getElementById(
+            "marketSearchInput"
+        );
+
+    if (input) {
+        input.focus();
+    }
 }
 
 
@@ -10781,6 +11186,13 @@ function resetMarketplaceFilters() {
 
 
     document.getElementById(
+        "marketSearchClear"
+    )?.classList.remove(
+        "show"
+    );
+
+
+    document.getElementById(
         "marketCategoryFilter"
     ).value =
         "all";
@@ -10910,13 +11322,17 @@ function updateMarketplaceFilterUI(
         );
 
 
-    filterButton.textContent =
-        activeCount
+    const filterCount =
+        document.getElementById(
+            "marketFilterCount"
+        );
 
-            ? `⚙ Filters · ${activeCount}`
-
-            : "⚙ Filters";
-
+    if (filterCount) {
+        filterCount.textContent =
+            String(activeCount);
+        filterCount.hidden =
+            activeCount === 0;
+    }
 
     filterButton.classList.toggle(
         "has-filters",
@@ -10944,7 +11360,7 @@ function renderActiveFilterBar() {
     ) {
 
         pills.push(
-            `<span class="active-filter-pill">🔎 ${escapeHtml(marketFilters.search)}</span>`
+            `<span class="active-filter-pill">${escapeHtml(marketFilters.search)}</span>`
         );
     }
 
@@ -10973,21 +11389,21 @@ function renderActiveFilterBar() {
             marketFilters.promotion ===
             "vip"
         ) name =
-            "💎 VIP";
+            "VIP";
 
 
         if (
             marketFilters.promotion ===
             "hot"
         ) name =
-            "🔥 HOT";
+            "HOT";
 
 
         if (
             marketFilters.promotion ===
             "bump"
         ) name =
-            "⬆️ Bump";
+            "Bump";
 
 
         pills.push(
@@ -11001,7 +11417,7 @@ function renderActiveFilterBar() {
     ) {
 
         pills.push(
-            `<span class="active-filter-pill gold">⭐ Premium</span>`
+            `<span class="active-filter-pill gold">Premium</span>`
         );
     }
 
