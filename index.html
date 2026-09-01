@@ -4585,6 +4585,27 @@ Loading...
 <div class="admin-section">
 
 <div class="admin-section-title">
+🚫 Blocked Sellers
+</div>
+
+<div class="section-subtitle">
+Blocked sellers cannot use Handle Market. Their current listings are frozen automatically.
+</div>
+
+<div id="blockedSellers">
+
+<div class="empty">
+Loading...
+</div>
+
+</div>
+
+</div>
+
+
+<div class="admin-section">
+
+<div class="admin-section-title">
 🚩 Open Reports
 </div>
 
@@ -12884,7 +12905,8 @@ async function loadAdminPanel() {
             loadPendingListings(),
             loadAdminPremiumListings(),
             loadAdminReports(),
-            loadFrozenListings()
+            loadFrozenListings(),
+            loadBlockedSellers()
         ]
     );
 }
@@ -13540,6 +13562,26 @@ async function adminViewListingContact(
                     `
                     : ""
             }
+
+
+            <button
+                class="reject-button"
+                type="button"
+                style="width:100%;margin-top:12px"
+                onclick="
+                    closeModal('inputModal');
+                    adminBlockSellerByListing(
+                        '${listingId}',
+                        '${escapeJs(
+                            listing.whatsapp_username ||
+                            username ||
+                            "username"
+                        )}'
+                    );
+                "
+            >
+                🚫 Block Seller
+            </button>
         `;
 
 
@@ -13599,6 +13641,423 @@ async function adminViewListingContact(
                 error.message
             )
         );
+    }
+}
+
+
+function adminBlockSellerByListing(
+    listingId,
+    username
+) {
+
+    const title =
+        document.getElementById(
+            "inputModalTitle"
+        );
+
+
+    const subtitle =
+        document.getElementById(
+            "inputModalSubtitle"
+        );
+
+
+    const fields =
+        document.getElementById(
+            "inputModalFields"
+        );
+
+
+    const action =
+        document.getElementById(
+            "inputModalAction"
+        );
+
+
+    if (
+        !title ||
+        !subtitle ||
+        !fields ||
+        !action
+    ) {
+
+        return;
+    }
+
+
+    title.textContent =
+        `🚫 Block Seller · @${username || "username"}`;
+
+
+    subtitle.textContent =
+        "The seller will be blocked from Handle Market and all current listings will be frozen.";
+
+
+    fields.innerHTML = `
+
+        <div class="field">
+
+            <label>
+                Reason
+            </label>
+
+            <textarea
+                id="adminSellerBlockReason"
+                maxlength="300"
+                placeholder="Optional moderation reason"
+            ></textarea>
+
+            <div class="field-hint">
+                This reason is sent to the seller and shown on listings frozen by this action.
+            </div>
+
+        </div>
+
+
+        <div
+            style="
+                padding:12px;
+                border:1px solid #ff6b6b;
+                border-radius:12px;
+                background:rgba(255,80,80,.08);
+                font-size:12px;
+                line-height:1.45;
+                font-weight:700;
+            "
+        >
+            🚫 The seller will not be able to open or use Handle Market while blocked.
+            Existing active, pending and reserved listings will be frozen automatically.
+        </div>
+    `;
+
+
+    action.textContent =
+        "Block Seller";
+
+
+    action.onclick =
+        async () => {
+
+            action.disabled =
+                true;
+
+
+            try {
+
+                const reason =
+                    document.getElementById(
+                        "adminSellerBlockReason"
+                    )?.value ||
+                    "";
+
+
+                await api(
+                    "/admin/seller-block",
+                    {
+                        initData:
+                            tg.initData,
+
+                        listing_id:
+                            listingId,
+
+                        action:
+                            "block",
+
+                        reason:
+                            reason
+                    }
+                );
+
+
+                closeModal(
+                    "inputModal"
+                );
+
+
+                await Promise.all(
+                    [
+                        loadAdminPanel(),
+                        loadMarketplace(),
+                        loadMyListings(),
+                        loadOfferCenter()
+                    ]
+                );
+
+
+                tg?.showAlert(
+                    `🚫 Seller for @${username} has been blocked.`
+                );
+
+            } catch (
+                error
+            ) {
+
+                const messages = {
+
+                    seller_not_found:
+                        "Seller not found.",
+
+                    cannot_block_admin:
+                        "Administrator accounts cannot be blocked.",
+
+                    cannot_block_self:
+                        "You cannot block your own administrator account.",
+
+                    invalid_seller_telegram_id:
+                        "Invalid seller account.",
+
+                    invalid_seller_block_action:
+                        "Invalid seller block action."
+                };
+
+
+                tg?.showAlert(
+                    messages[
+                        error.message
+                    ] ||
+                    friendlyError(
+                        error.message
+                    )
+                );
+
+            } finally {
+
+                action.disabled =
+                    false;
+            }
+        };
+
+
+    showModal(
+        "inputModal"
+    );
+}
+
+
+async function adminUnblockSeller(
+    sellerTelegramId,
+    sellerLabel
+) {
+
+    const performUnblock =
+        async () => {
+
+            try {
+
+                await api(
+                    "/admin/seller-block",
+                    {
+                        initData:
+                            tg.initData,
+
+                        seller_telegram_id:
+                            sellerTelegramId,
+
+                        action:
+                            "unblock"
+                    }
+                );
+
+
+                await Promise.all(
+                    [
+                        loadAdminPanel(),
+                        loadMarketplace(),
+                        loadMyListings(),
+                        loadOfferCenter()
+                    ]
+                );
+
+
+                tg?.showAlert(
+                    `✅ ${sellerLabel || "Seller"} has been unblocked.`
+                );
+
+            } catch (
+                error
+            ) {
+
+                tg?.showAlert(
+                    friendlyError(
+                        error.message
+                    )
+                );
+            }
+        };
+
+
+    if (
+        tg?.showConfirm
+    ) {
+
+        tg.showConfirm(
+            `Unblock ${sellerLabel || "this seller"}?\n\nListings frozen only because of the seller block will be restored automatically.`,
+            confirmed => {
+
+                if (confirmed) {
+
+                    performUnblock();
+                }
+            }
+        );
+
+
+        return;
+    }
+
+
+    if (
+        confirm(
+            `Unblock ${sellerLabel || "this seller"}?`
+        )
+    ) {
+
+        await performUnblock();
+    }
+}
+
+
+async function loadBlockedSellers() {
+
+    const container =
+        document.getElementById(
+            "blockedSellers"
+        );
+
+
+    if (!container) {
+
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/blocked-sellers",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const sellers =
+            data.sellers ||
+            [];
+
+
+        container.innerHTML =
+
+            sellers.length
+
+                ? sellers
+                    .map(
+                        seller => {
+
+                            const name =
+                                [
+                                    seller.first_name,
+                                    seller.last_name
+                                ]
+                                    .filter(
+                                        Boolean
+                                    )
+                                    .join(
+                                        " "
+                                    )
+                                ||
+                                "Seller";
+
+
+                            const username =
+                                seller.telegram_username
+                                    ? `@${seller.telegram_username}`
+                                    : "No Telegram username";
+
+
+                            const label =
+                                seller.telegram_username
+                                    ? `@${seller.telegram_username}`
+                                    : name;
+
+
+                            return `
+
+                                <div class="card">
+
+                                    <div class="username">
+                                        🚫 ${escapeHtml(
+                                            name
+                                        )}
+                                    </div>
+
+
+                                    <div
+                                        class="description"
+                                        style="margin-top:6px"
+                                    >
+                                        ${escapeHtml(
+                                            username
+                                        )}
+                                    </div>
+
+
+                                    <div
+                                        class="field-hint"
+                                        style="margin-top:6px"
+                                    >
+                                        Telegram ID:
+                                        ${escapeHtml(
+                                            String(
+                                                seller.telegram_id
+                                            )
+                                        )}
+                                    </div>
+
+
+                                    <div
+                                        class="buttons"
+                                        style="margin-top:12px"
+                                    >
+
+                                        <button
+                                            class="unfreeze-button"
+                                            onclick="
+                                                adminUnblockSeller(
+                                                    '${seller.telegram_id}',
+                                                    '${escapeJs(
+                                                        label
+                                                    )}'
+                                                )
+                                            "
+                                        >
+                                            ✅ Unblock Seller
+                                        </button>
+
+                                    </div>
+
+                                </div>
+                            `;
+                        }
+                    )
+                    .join("")
+
+                : '<div class="empty">No blocked sellers.</div>';
+
+    } catch (
+        error
+    ) {
+
+        console.error(
+            "Blocked sellers load:",
+            error
+        );
+
+
+        container.innerHTML =
+            '<div class="empty">Failed to load blocked sellers.</div>';
     }
 }
 
@@ -13709,6 +14168,21 @@ async function loadPendingListings() {
                                         "
                                     >
                                         🔎 View Contact
+                                    </button>
+
+
+                                    <button
+                                        class="reject-button"
+                                        onclick="
+                                            adminBlockSellerByListing(
+                                                '${listing.id}',
+                                                '${escapeJs(
+                                                    listing.whatsapp_username
+                                                )}'
+                                            )
+                                        "
+                                    >
+                                        🚫 Block Seller
                                     </button>
 
 
@@ -14003,6 +14477,21 @@ async function loadAdminPremiumListings() {
                                         "
                                     >
                                         🔎 View Contact
+                                    </button>
+
+
+                                    <button
+                                        class="reject-button"
+                                        onclick="
+                                            adminBlockSellerByListing(
+                                                '${listing.id}',
+                                                '${escapeJs(
+                                                    listing.whatsapp_username
+                                                )}'
+                                            )
+                                        "
+                                    >
+                                        🚫 Block Seller
                                     </button>
 
 
@@ -14497,6 +14986,20 @@ async function loadAdminReports() {
                                                 >
                                                     🔎 View Contact
                                                 </button>
+
+                                                <button
+                                                    class="reject-button"
+                                                    onclick="
+                                                        adminBlockSellerByListing(
+                                                            '${report.listing.id}',
+                                                            '${escapeJs(
+                                                                report.listing.whatsapp_username
+                                                            )}'
+                                                        )
+                                                    "
+                                                >
+                                                    🚫 Block Seller
+                                                </button>
                                             `
 
                                             : ""
@@ -14679,6 +15182,21 @@ async function loadFrozenListings() {
                                         "
                                     >
                                         🔎 View Contact
+                                    </button>
+
+
+                                    <button
+                                        class="reject-button"
+                                        onclick="
+                                            adminBlockSellerByListing(
+                                                '${listing.id}',
+                                                '${escapeJs(
+                                                    listing.whatsapp_username
+                                                )}'
+                                            )
+                                        "
+                                    >
+                                        🚫 Block Seller
                                     </button>
 
 

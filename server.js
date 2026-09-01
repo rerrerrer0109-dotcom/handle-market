@@ -3476,7 +3476,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v28-admin-contact-review"
+                    "v29-admin-block-seller"
             }
         );
     }
@@ -10750,6 +10750,623 @@ app.post(
     }
 );
 
+
+
+
+/* =========================================================
+   ADMIN BLOCK / UNBLOCK SELLER
+   Uses the existing users.is_blocked account flag.
+   Blocking also freezes the seller's current listings.
+   No new SQL columns are required.
+   ========================================================= */
+
+const SELLER_BLOCK_FREEZE_PREFIX =
+    "Seller account blocked by moderation";
+
+
+async function resolveSellerForAdminBlock(
+    body
+) {
+
+    let sellerTelegramId =
+        Number(
+            body.seller_telegram_id
+        );
+
+
+    const listingId =
+        String(
+            body.listing_id ||
+            ""
+        ).trim();
+
+
+    if (
+        !Number.isSafeInteger(
+            sellerTelegramId
+        ) ||
+        sellerTelegramId <= 0
+    ) {
+
+        sellerTelegramId =
+            0;
+    }
+
+
+    if (
+        !sellerTelegramId &&
+        listingId
+    ) {
+
+        const {
+            data:
+                listing,
+            error:
+                listingError
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "seller_telegram_id"
+                )
+                .eq(
+                    "id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (
+            listingError
+        ) {
+
+            throw listingError;
+        }
+
+
+        sellerTelegramId =
+            Number(
+                listing?.seller_telegram_id ||
+                0
+            );
+    }
+
+
+    if (
+        !Number.isSafeInteger(
+            sellerTelegramId
+        ) ||
+        sellerTelegramId <= 0
+    ) {
+
+        throw new Error(
+            "invalid_seller_telegram_id"
+        );
+    }
+
+
+    const {
+        data:
+            seller,
+        error:
+            sellerError
+    } =
+        await supabase
+            .from("users")
+            .select(
+                "telegram_id,first_name,last_name,telegram_username,is_admin,is_blocked"
+            )
+            .eq(
+                "telegram_id",
+                sellerTelegramId
+            )
+            .maybeSingle();
+
+
+    if (
+        sellerError
+    ) {
+
+        throw sellerError;
+    }
+
+
+    if (!seller) {
+
+        throw new Error(
+            "seller_not_found"
+        );
+    }
+
+
+    return seller;
+}
+
+
+app.post(
+    "/admin/seller-block",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            admin.error
+                    }
+                );
+        }
+
+
+        const action =
+            String(
+                req.body.action ||
+                "block"
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            ![
+                "block",
+                "unblock"
+            ].includes(
+                action
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "invalid_seller_block_action"
+                    }
+                );
+        }
+
+
+        const reason =
+            String(
+                req.body.reason ||
+                ""
+            )
+                .trim()
+                .slice(
+                    0,
+                    300
+                );
+
+
+        try {
+
+            const seller =
+                await resolveSellerForAdminBlock(
+                    req.body
+                );
+
+
+            if (
+                seller.is_admin
+            ) {
+
+                return res
+                    .status(409)
+                    .json(
+                        {
+                            ok: false,
+                            error:
+                                "cannot_block_admin"
+                        }
+                    );
+            }
+
+
+            if (
+                Number(
+                    seller.telegram_id
+                ) ===
+                Number(
+                    admin.user.telegram_id
+                )
+            ) {
+
+                return res
+                    .status(409)
+                    .json(
+                        {
+                            ok: false,
+                            error:
+                                "cannot_block_self"
+                        }
+                    );
+            }
+
+
+            if (
+                action ===
+                "block"
+            ) {
+
+                const {
+                    error:
+                        userError
+                } =
+                    await supabase
+                        .from("users")
+                        .update(
+                            {
+                                is_blocked:
+                                    true
+                            }
+                        )
+                        .eq(
+                            "telegram_id",
+                            seller.telegram_id
+                        );
+
+
+                if (
+                    userError
+                ) {
+
+                    throw userError;
+                }
+
+
+                const freezeReason =
+                    reason
+                        ? `${SELLER_BLOCK_FREEZE_PREFIX}: ${reason}`
+                        : SELLER_BLOCK_FREEZE_PREFIX;
+
+
+                const {
+                    error:
+                        freezeError
+                } =
+                    await supabase
+                        .from("listings")
+                        .update(
+                            {
+                                is_frozen:
+                                    true,
+
+                                frozen_reason:
+                                    freezeReason,
+
+                                frozen_at:
+                                    nowIso(),
+
+                                frozen_by:
+                                    Number(
+                                        admin.user.telegram_id
+                                    ),
+
+                                updated_at:
+                                    nowIso()
+                            }
+                        )
+                        .eq(
+                            "seller_telegram_id",
+                            seller.telegram_id
+                        )
+                        .in(
+                            "status",
+                            [
+                                "pending",
+                                "active",
+                                "reserved"
+                            ]
+                        )
+                        .eq(
+                            "is_frozen",
+                            false
+                        );
+
+
+                if (
+                    freezeError
+                ) {
+
+                    console.error(
+                        "Seller block listing freeze:",
+                        freezeError
+                    );
+                }
+
+
+                await safeSendMessage(
+                    seller.telegram_id,
+
+                    `🚫 Your Handle Market account was blocked by moderation.` +
+                    `\n\nYour current listings were frozen and you cannot use Handle Market while the block is active.` +
+                    (
+                        reason
+                            ? `\n\nReason: ${reason}`
+                            : ""
+                    )
+                );
+
+
+                return res.json(
+                    {
+                        ok: true,
+                        action:
+                            "block",
+                        seller:
+                            {
+                                telegram_id:
+                                    seller.telegram_id,
+
+                                first_name:
+                                    seller.first_name,
+
+                                last_name:
+                                    seller.last_name,
+
+                                telegram_username:
+                                    seller.telegram_username,
+
+                                is_blocked:
+                                    true
+                            }
+                    }
+                );
+            }
+
+
+            const {
+                error:
+                    userError
+            } =
+                await supabase
+                    .from("users")
+                    .update(
+                        {
+                            is_blocked:
+                                false
+                        }
+                    )
+                    .eq(
+                        "telegram_id",
+                        seller.telegram_id
+                    );
+
+
+            if (
+                userError
+            ) {
+
+                throw userError;
+            }
+
+
+            /*
+             * Only unfreeze listings that were frozen specifically
+             * because of the seller account block.
+             * Manual moderation freezes are preserved.
+             */
+
+            const {
+                error:
+                    unfreezeError
+            } =
+                await supabase
+                    .from("listings")
+                    .update(
+                        {
+                            is_frozen:
+                                false,
+
+                            frozen_reason:
+                                null,
+
+                            frozen_at:
+                                null,
+
+                            frozen_by:
+                                null,
+
+                            updated_at:
+                                nowIso()
+                        }
+                    )
+                    .eq(
+                        "seller_telegram_id",
+                        seller.telegram_id
+                    )
+                    .eq(
+                        "is_frozen",
+                        true
+                    )
+                    .ilike(
+                        "frozen_reason",
+                        `${SELLER_BLOCK_FREEZE_PREFIX}%`
+                    );
+
+
+            if (
+                unfreezeError
+            ) {
+
+                console.error(
+                    "Seller unblock listing unfreeze:",
+                    unfreezeError
+                );
+            }
+
+
+            await safeSendMessage(
+                seller.telegram_id,
+
+                `✅ Your Handle Market account was unblocked by moderation.` +
+                `\n\nListings that were frozen only because of the account block were restored.`
+            );
+
+
+            return res.json(
+                {
+                    ok: true,
+                    action:
+                        "unblock",
+                    seller:
+                        {
+                            telegram_id:
+                                seller.telegram_id,
+
+                            first_name:
+                                seller.first_name,
+
+                            last_name:
+                                seller.last_name,
+
+                            telegram_username:
+                                seller.telegram_username,
+
+                            is_blocked:
+                                false
+                        }
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Admin seller block:",
+                error
+            );
+
+
+            const code =
+                String(
+                    error?.message ||
+                    "seller_block_failed"
+                );
+
+
+            const status =
+                code ===
+                "seller_not_found"
+                    ? 404
+                    : code ===
+                        "invalid_seller_telegram_id"
+                        ? 400
+                        : 500;
+
+
+            return res
+                .status(
+                    status
+                )
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            code
+                    }
+                );
+        }
+    }
+);
+
+
+app.post(
+    "/admin/blocked-sellers",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            admin.error
+                    }
+                );
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from("users")
+                .select(
+                    "telegram_id,first_name,last_name,telegram_username,last_seen_at,is_admin,is_blocked"
+                )
+                .eq(
+                    "is_blocked",
+                    true
+                )
+                .eq(
+                    "is_admin",
+                    false
+                )
+                .order(
+                    "last_seen_at",
+                    {
+                        ascending:
+                            false
+                    }
+                );
+
+
+        if (
+            error
+        ) {
+
+            console.error(
+                "Blocked sellers load:",
+                error
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "blocked_sellers_load_failed"
+                    }
+                );
+        }
+
+
+        return res.json(
+            {
+                ok: true,
+                sellers:
+                    data ||
+                    []
+            }
+        );
+    }
+);
 
 
 /* =========================================================
