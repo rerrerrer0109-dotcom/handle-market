@@ -7518,7 +7518,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v42-follow-recommendations"
+                    "v44-ui-convenience"
             }
         );
     }
@@ -17070,7 +17070,7 @@ app.post(
         return res.json({
             ok:true,
             version:
-                "v42-follow-recommendations",
+                "v44-ui-convenience",
             uptime_seconds:
                 Math.floor(
                     process.uptime()
@@ -18121,6 +18121,693 @@ app.post(
                     supportUnread
             }
         );
+    }
+);
+
+
+/* =========================================================
+   V44 NOTIFICATION CENTER
+   Read-only activity feed. Opening the actual chat / offer /
+   support ticket keeps the existing read-state behavior.
+   ========================================================= */
+
+app.post(
+    "/notification-center",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            auth.error
+                    }
+                );
+        }
+
+
+        await expireStaleOffers();
+
+
+        const userId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const items = [];
+
+
+        try {
+
+            /* ---------- UNREAD CHATS ---------- */
+
+            const {
+                data:
+                    chatRows
+            } =
+                await supabase
+                    .from("listing_chats")
+                    .select(
+                        "id,listing_id,buyer_telegram_id,seller_telegram_id"
+                    )
+                    .or(
+                        `buyer_telegram_id.eq.${userId},seller_telegram_id.eq.${userId}`
+                    );
+
+
+            const chatIds =
+                (
+                    chatRows ||
+                    []
+                ).map(
+                    row =>
+                        row.id
+                );
+
+
+            let unreadChatMessages = [];
+
+
+            if (chatIds.length) {
+
+                const {
+                    data
+                } =
+                    await supabase
+                        .from("chat_messages")
+                        .select(
+                            "id,chat_id,sender_telegram_id,message,created_at"
+                        )
+                        .in(
+                            "chat_id",
+                            chatIds
+                        )
+                        .neq(
+                            "sender_telegram_id",
+                            userId
+                        )
+                        .is(
+                            "read_at",
+                            null
+                        )
+                        .order(
+                            "created_at",
+                            {
+                                ascending:false
+                            }
+                        )
+                        .limit(20);
+
+
+                unreadChatMessages =
+                    data ||
+                    [];
+            }
+
+
+            const chatMap =
+                new Map(
+                    (
+                        chatRows ||
+                        []
+                    ).map(
+                        row => [
+                            String(
+                                row.id
+                            ),
+                            row
+                        ]
+                    )
+                );
+
+
+            /* ---------- UNREAD OFFERS ---------- */
+
+            const {
+                data:
+                    buyerOffers
+            } =
+                await supabase
+                    .from("offers")
+                    .select(
+                        "id,listing_id,amount,seller_counter_amount,status,updated_at,created_at"
+                    )
+                    .eq(
+                        "buyer_telegram_id",
+                        userId
+                    )
+                    .eq(
+                        "buyer_unread",
+                        true
+                    )
+                    .order(
+                        "updated_at",
+                        {
+                            ascending:false
+                        }
+                    )
+                    .limit(20);
+
+
+            const {
+                data:
+                    sellerListings
+            } =
+                await supabase
+                    .from("listings")
+                    .select("id")
+                    .eq(
+                        "seller_telegram_id",
+                        userId
+                    );
+
+
+            const sellerListingIds =
+                (
+                    sellerListings ||
+                    []
+                ).map(
+                    row =>
+                        row.id
+                );
+
+
+            let sellerOffers = [];
+
+
+            if (sellerListingIds.length) {
+
+                const {
+                    data
+                } =
+                    await supabase
+                        .from("offers")
+                        .select(
+                            "id,listing_id,buyer_telegram_id,amount,seller_counter_amount,status,updated_at,created_at"
+                        )
+                        .in(
+                            "listing_id",
+                            sellerListingIds
+                        )
+                        .eq(
+                            "seller_unread",
+                            true
+                        )
+                        .order(
+                            "updated_at",
+                            {
+                                ascending:false
+                            }
+                        )
+                        .limit(20);
+
+
+                sellerOffers =
+                    data ||
+                    [];
+            }
+
+
+            /* ---------- UNREAD SUPPORT ---------- */
+
+            const {
+                data:
+                    ticketRows
+            } =
+                await supabase
+                    .from("support_tickets")
+                    .select(
+                        "id,ticket_number,related_listing_id,status"
+                    )
+                    .eq(
+                        "user_telegram_id",
+                        userId
+                    );
+
+
+            const ticketIds =
+                (
+                    ticketRows ||
+                    []
+                ).map(
+                    row =>
+                        row.id
+                );
+
+
+            let unreadSupportMessages = [];
+
+
+            if (ticketIds.length) {
+
+                const {
+                    data
+                } =
+                    await supabase
+                        .from("support_messages")
+                        .select(
+                            "id,ticket_id,message,created_at"
+                        )
+                        .in(
+                            "ticket_id",
+                            ticketIds
+                        )
+                        .eq(
+                            "sender_role",
+                            "admin"
+                        )
+                        .is(
+                            "read_at",
+                            null
+                        )
+                        .order(
+                            "created_at",
+                            {
+                                ascending:false
+                            }
+                        )
+                        .limit(20);
+
+
+                unreadSupportMessages =
+                    data ||
+                    [];
+            }
+
+
+            const ticketMap =
+                new Map(
+                    (
+                        ticketRows ||
+                        []
+                    ).map(
+                        row => [
+                            String(
+                                row.id
+                            ),
+                            row
+                        ]
+                    )
+                );
+
+
+            /* ---------- LISTING LABELS ---------- */
+
+            const listingIds = [
+                ...new Set(
+                    [
+                        ...(
+                            chatRows ||
+                            []
+                        ).map(
+                            row =>
+                                row.listing_id
+                        ),
+                        ...(
+                            buyerOffers ||
+                            []
+                        ).map(
+                            row =>
+                                row.listing_id
+                        ),
+                        ...(
+                            sellerOffers ||
+                            []
+                        ).map(
+                            row =>
+                                row.listing_id
+                        ),
+                        ...(
+                            ticketRows ||
+                            []
+                        ).map(
+                            row =>
+                                row.related_listing_id
+                        )
+                    ].filter(Boolean)
+                )
+            ];
+
+
+            let listingRows = [];
+
+
+            if (listingIds.length) {
+
+                const {
+                    data
+                } =
+                    await supabase
+                        .from("listings")
+                        .select(
+                            "id,listing_number,whatsapp_username,asking_price"
+                        )
+                        .in(
+                            "id",
+                            listingIds
+                        );
+
+
+                listingRows =
+                    data ||
+                    [];
+            }
+
+
+            const listingMap =
+                new Map(
+                    listingRows.map(
+                        row => [
+                            String(
+                                row.id
+                            ),
+                            row
+                        ]
+                    )
+                );
+
+
+            for (
+                const message of
+                unreadChatMessages
+            ) {
+
+                const chat =
+                    chatMap.get(
+                        String(
+                            message.chat_id
+                        )
+                    );
+
+
+                if (!chat) {
+                    continue;
+                }
+
+
+                const listing =
+                    listingMap.get(
+                        String(
+                            chat.listing_id
+                        )
+                    ) ||
+                    null;
+
+
+                items.push(
+                    {
+                        type:"chat",
+                        target_id:
+                            chat.id,
+                        listing_id:
+                            chat.listing_id,
+                        listing_number:
+                            listing?.listing_number ||
+                            null,
+                        username:
+                            listing?.whatsapp_username ||
+                            null,
+                        title:
+                            "New chat message",
+                        subtitle:
+                            String(
+                                message.message ||
+                                ""
+                            ).slice(
+                                0,
+                                160
+                            ),
+                        created_at:
+                            message.created_at
+                    }
+                );
+            }
+
+
+            const offerTitle =
+                (offer, role) => {
+
+                    const status =
+                        String(
+                            offer.status ||
+                            "pending"
+                        );
+
+
+                    if (
+                        role ===
+                        "seller" &&
+                        status ===
+                        "pending"
+                    ) {
+                        return "New offer received";
+                    }
+
+
+                    if (
+                        role ===
+                        "buyer" &&
+                        status ===
+                        "countered"
+                    ) {
+                        return "Seller sent a counter offer";
+                    }
+
+
+                    if (
+                        status ===
+                        "accepted"
+                    ) {
+                        return "Offer accepted";
+                    }
+
+
+                    if (
+                        status ===
+                        "declined"
+                    ) {
+                        return "Offer declined";
+                    }
+
+
+                    if (
+                        status ===
+                        "expired"
+                    ) {
+                        return "Offer expired";
+                    }
+
+
+                    if (
+                        role ===
+                        "seller" &&
+                        status ===
+                        "countered"
+                    ) {
+                        return "Counter offer updated";
+                    }
+
+
+                    return "Offer update";
+                };
+
+
+            for (
+                const [
+                    role,
+                    rows
+                ] of [
+                    [
+                        "buyer",
+                        buyerOffers ||
+                        []
+                    ],
+                    [
+                        "seller",
+                        sellerOffers ||
+                        []
+                    ]
+                ]
+            ) {
+
+                for (
+                    const offer of
+                    rows
+                ) {
+
+                    const listing =
+                        listingMap.get(
+                            String(
+                                offer.listing_id
+                            )
+                        ) ||
+                        null;
+
+
+                    const amount =
+                        role ===
+                            "buyer" &&
+                        Number(
+                            offer.seller_counter_amount
+                        ) > 0
+                            ? Number(
+                                offer.seller_counter_amount
+                            )
+                            : Number(
+                                offer.amount ||
+                                0
+                            );
+
+
+                    items.push(
+                        {
+                            type:"offer",
+                            target_id:
+                                offer.id,
+                            listing_id:
+                                offer.listing_id,
+                            listing_number:
+                                listing?.listing_number ||
+                                null,
+                            username:
+                                listing?.whatsapp_username ||
+                                null,
+                            title:
+                                offerTitle(
+                                    offer,
+                                    role
+                                ),
+                            subtitle:
+                                amount > 0
+                                    ? `$${amount.toLocaleString("en-US")}`
+                                    : "Open Offers for details",
+                            created_at:
+                                offer.updated_at ||
+                                offer.created_at
+                        }
+                    );
+                }
+            }
+
+
+            for (
+                const message of
+                unreadSupportMessages
+            ) {
+
+                const ticket =
+                    ticketMap.get(
+                        String(
+                            message.ticket_id
+                        )
+                    );
+
+
+                if (!ticket) {
+                    continue;
+                }
+
+
+                const listing =
+                    ticket.related_listing_id
+                        ? listingMap.get(
+                            String(
+                                ticket.related_listing_id
+                            )
+                          ) ||
+                          null
+                        : null;
+
+
+                items.push(
+                    {
+                        type:"support",
+                        target_id:
+                            ticket.id,
+                        listing_id:
+                            ticket.related_listing_id ||
+                            null,
+                        listing_number:
+                            listing?.listing_number ||
+                            null,
+                        username:
+                            listing?.whatsapp_username ||
+                            null,
+                        ticket_number:
+                            ticket.ticket_number ||
+                            null,
+                        title:
+                            "New support reply",
+                        subtitle:
+                            String(
+                                message.message ||
+                                ""
+                            ).slice(
+                                0,
+                                160
+                            ),
+                        created_at:
+                            message.created_at
+                    }
+                );
+            }
+
+
+            items.sort(
+                (a, b) =>
+                    new Date(
+                        b.created_at ||
+                        0
+                    ).getTime()
+                    -
+                    new Date(
+                        a.created_at ||
+                        0
+                    ).getTime()
+            );
+
+
+            return res.json(
+                {
+                    ok:true,
+                    items:
+                        items.slice(
+                            0,
+                            40
+                        )
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Notification center:",
+                error
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok:false,
+                        error:
+                            "notification_center_failed"
+                    }
+                );
+        }
     }
 );
 

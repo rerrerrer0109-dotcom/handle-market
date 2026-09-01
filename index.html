@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#ffffff">
 
 <title>Handle Market</title>
-<!-- UI version: v35-marketplace-offers -->
+<!-- UI version: v44-ui-convenience -->
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -3956,11 +3956,7 @@ Show Results
 <div class="section">
 
 <div id="marketListings">
-
-<div class="empty">
-Loading...
-</div>
-
+<div class="v44-skeleton-list"><div class="v44-skeleton-card"></div><div class="v44-skeleton-card"></div><div class="v44-skeleton-card"></div></div>
 </div>
 
 </div>
@@ -25632,6 +25628,1769 @@ if (authenticatedUser) {
     margin-top:12px;
 }
 </style>
+
+
+
+<style id="v44UiStyle">
+/* =========================================================
+   V44 UI + CONVENIENCE
+   ========================================================= */
+
+html[data-theme="light"] {
+    color-scheme:light;
+    --bg:#f5f7fa;
+    --surface:#ffffff;
+    --surface-2:#f8f9fb;
+    --surface-3:#eef1f5;
+    --text:#11141a;
+    --text-2:#525966;
+    --muted:#89909d;
+    --border:#e5e9ef;
+    --blue-soft:#edf6ff;
+    --green-soft:#eaf8ef;
+    --red-soft:#fff0f0;
+    --yellow-soft:#fff5d9;
+    --purple-soft:#f2efff;
+    --orange-soft:#fff2e8;
+    --cyan-soft:#e8f8ff;
+    --gold-soft:#fff7df;
+    --tg-theme-bg-color:#f5f7fa;
+    --tg-theme-secondary-bg-color:#ffffff;
+    --tg-theme-text-color:#11141a;
+    --tg-theme-hint-color:#89909d;
+    --tg-theme-button-color:#1688e8;
+    --tg-theme-button-text-color:#ffffff;
+}
+
+html[data-theme="dark"] {
+    color-scheme:dark;
+    --bg:#101216;
+    --surface:#181b20;
+    --surface-2:#202329;
+    --surface-3:#292d34;
+    --text:#f4f5f7;
+    --text-2:#c2c7cf;
+    --muted:#9299a5;
+    --border:#292d34;
+    --blue-soft:rgba(22,136,232,.14);
+    --green-soft:rgba(21,149,74,.14);
+    --red-soft:rgba(223,69,69,.14);
+    --yellow-soft:rgba(211,161,28,.14);
+    --purple-soft:rgba(104,72,201,.17);
+    --orange-soft:rgba(237,108,32,.15);
+    --cyan-soft:rgba(8,127,168,.17);
+    --gold-soft:rgba(212,166,57,.14);
+    --tg-theme-bg-color:#101216;
+    --tg-theme-secondary-bg-color:#181b20;
+    --tg-theme-text-color:#f4f5f7;
+    --tg-theme-hint-color:#9299a5;
+    --tg-theme-button-color:#1688e8;
+    --tg-theme-button-text-color:#ffffff;
+}
+
+html[data-theme="light"] body,
+html[data-theme="dark"] body {
+    color:var(--text);
+    background:
+        radial-gradient(circle at 95% 0%,rgba(22,136,232,.07),transparent 28%),
+        var(--bg);
+}
+
+html[data-theme="light"] header { background:rgba(255,255,255,.94); }
+html[data-theme="dark"] header { background:rgba(24,27,32,.94); }
+
+html[data-density="compact"] .listing-card {
+    padding:12px 13px;
+}
+
+html[data-density="compact"] .card {
+    margin-bottom:8px;
+}
+
+html[data-density="compact"] .listing-header {
+    gap:9px;
+}
+
+html[data-density="compact"] .username,
+html[data-density="compact"] .listing-username {
+    font-size:18px;
+}
+
+html[data-density="compact"] .listing-price {
+    font-size:17px;
+}
+
+html[data-density="compact"] .description {
+    margin-top:8px;
+    line-height:1.42;
+}
+
+html[data-density="compact"] .listing-info-row,
+html[data-density="compact"] .public-stats {
+    margin-top:7px;
+}
+
+.v44-header-bell {
+    position:absolute;
+    right:16px;
+    top:calc(14px + env(safe-area-inset-top));
+    width:40px;
+    height:40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--border);
+    border-radius:13px;
+    color:var(--text);
+    background:var(--surface);
+    box-shadow:var(--shadow);
+    z-index:2;
+}
+
+.v44-header-bell-badge {
+    position:absolute;
+    top:-5px;
+    right:-5px;
+    min-width:18px;
+    height:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 5px;
+    border:2px solid var(--surface);
+    border-radius:999px;
+    color:#fff;
+    background:var(--red);
+    font-size:9px;
+    font-weight:900;
+}
+
+.v44-hub-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+}
+
+.v44-hub-card {
+    min-height:118px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    justify-content:space-between;
+    padding:15px;
+    border:1px solid var(--border);
+    border-radius:18px;
+    color:var(--text);
+    background:var(--surface);
+    text-align:left;
+    box-shadow:var(--shadow);
+}
+
+.v44-hub-icon { font-size:24px; }
+.v44-hub-title { margin-top:12px;font-weight:900;font-size:13px; }
+.v44-hub-subtitle { margin-top:4px;color:var(--muted);font-size:10px;line-height:1.35; }
+
+.v44-notification-row {
+    width:100%;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    margin-bottom:9px;
+    padding:13px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    color:var(--text);
+    background:var(--surface);
+    text-align:left;
+}
+
+.v44-notification-icon {
+    width:36px;
+    height:36px;
+    flex:0 0 36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:11px;
+    background:var(--surface-2);
+    font-size:17px;
+}
+
+.v44-notification-copy { min-width:0;flex:1; }
+.v44-notification-title { font-size:12px;font-weight:900; }
+.v44-notification-subtitle { margin-top:3px;color:var(--text-2);font-size:10.5px;line-height:1.4;overflow-wrap:anywhere; }
+.v44-notification-meta { margin-top:5px;color:var(--muted);font-size:9px; }
+
+.v44-toolbar {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+}
+
+.v44-toolbar input,
+.v44-toolbar select {
+    min-height:40px;
+    flex:1 1 150px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:0 11px;
+    color:var(--text);
+    background:var(--surface);
+}
+
+.v44-detail-nav {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+    margin-top:14px;
+}
+
+.v44-detail-nav button {
+    min-height:42px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    color:var(--text);
+    background:var(--surface-2);
+    font-size:10px;
+    font-weight:850;
+}
+
+.v44-recent-card {
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:9px;
+    padding:13px 14px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    color:var(--text);
+    background:var(--surface);
+    text-align:left;
+}
+
+.v44-recent-main { min-width:0; }
+.v44-recent-user { font-size:15px;font-weight:900;overflow-wrap:anywhere; }
+.v44-recent-meta { margin-top:4px;color:var(--muted);font-size:9px; }
+.v44-recent-price { white-space:nowrap;font-size:14px;font-weight:900; }
+
+.v44-skeleton-list { display:grid;gap:10px; }
+.v44-skeleton-card {
+    height:138px;
+    border:1px solid var(--border);
+    border-radius:20px;
+    background:linear-gradient(90deg,var(--surface-2) 25%,var(--surface-3) 45%,var(--surface-2) 65%);
+    background-size:220% 100%;
+    animation:v44Shimmer 1.15s infinite linear;
+}
+
+@keyframes v44Shimmer {
+    from { background-position:100% 0; }
+    to { background-position:-120% 0; }
+}
+
+.v44-state {
+    padding:24px 18px;
+    border:1px dashed var(--border);
+    border-radius:18px;
+    color:var(--muted);
+    background:var(--surface-2);
+    text-align:center;
+    font-size:11px;
+    line-height:1.5;
+}
+
+.v44-state strong {
+    display:block;
+    margin-bottom:5px;
+    color:var(--text);
+    font-size:13px;
+}
+
+@media (max-width:390px) {
+    .v44-hub-grid { grid-template-columns:1fr; }
+    .v44-header-bell { right:12px; }
+}
+</style>
+
+<script>
+/* =========================================================
+   V44 UI + CONVENIENCE
+   No new payment logic and no database migration.
+   ========================================================= */
+
+const V44_THEME_KEY = "hm_theme_v44";
+const V44_DENSITY_KEY = "hm_density_v44";
+const V44_RECENT_LIMIT = 20;
+
+let v44WatchlistQuery = "";
+let v44WatchlistSort = "newest";
+let v44WatchlistCache = [];
+
+
+function v44StorageGet(
+    key,
+    fallback = ""
+) {
+
+    try {
+        return localStorage.getItem(key) || fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+
+function v44StorageSet(
+    key,
+    value
+) {
+
+    try {
+        localStorage.setItem(
+            key,
+            value
+        );
+    } catch {}
+}
+
+
+function v44ApplyAppearance() {
+
+    const theme =
+        v44StorageGet(
+            V44_THEME_KEY,
+            "system"
+        );
+
+    const density =
+        v44StorageGet(
+            V44_DENSITY_KEY,
+            "comfortable"
+        );
+
+
+    if (
+        theme === "light" ||
+        theme === "dark"
+    ) {
+        document.documentElement.dataset.theme = theme;
+    } else {
+        delete document.documentElement.dataset.theme;
+    }
+
+
+    if (density === "compact") {
+        document.documentElement.dataset.density = "compact";
+    } else {
+        delete document.documentElement.dataset.density;
+    }
+
+
+    const resolvedDark =
+        theme === "dark" ||
+        (
+            theme === "system" &&
+            window.matchMedia?.(
+                "(prefers-color-scheme: dark)"
+            ).matches
+        );
+
+
+    document.querySelector(
+        'meta[name="theme-color"]'
+    )?.setAttribute(
+        "content",
+        resolvedDark
+            ? "#101216"
+            : "#ffffff"
+    );
+
+
+    try {
+        tg?.setHeaderColor?.(
+            resolvedDark
+                ? "#181b20"
+                : "#ffffff"
+        );
+
+        tg?.setBackgroundColor?.(
+            resolvedDark
+                ? "#101216"
+                : "#f5f7fa"
+        );
+    } catch {}
+}
+
+
+function v44OpenAppearance() {
+
+    const theme =
+        v44StorageGet(
+            V44_THEME_KEY,
+            "system"
+        );
+
+    const density =
+        v44StorageGet(
+            V44_DENSITY_KEY,
+            "comfortable"
+        );
+
+
+    document.getElementById(
+        "inputModalTitle"
+    ).textContent =
+        "Appearance";
+
+
+    document.getElementById(
+        "inputModalSubtitle"
+    ).textContent =
+        "Choose a theme and listing card density for this device.";
+
+
+    document.getElementById(
+        "inputModalFields"
+    ).innerHTML = `
+        <div class="field">
+            <label>Theme</label>
+            <select id="v44ThemeInput">
+                <option value="system" ${theme === "system" ? "selected" : ""}>System</option>
+                <option value="light" ${theme === "light" ? "selected" : ""}>Light</option>
+                <option value="dark" ${theme === "dark" ? "selected" : ""}>Dark</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Listing cards</label>
+            <select id="v44DensityInput">
+                <option value="comfortable" ${density === "comfortable" ? "selected" : ""}>Comfortable</option>
+                <option value="compact" ${density === "compact" ? "selected" : ""}>Compact</option>
+            </select>
+        </div>
+
+        <div class="field-hint">
+            These settings are saved on this device. They do not affect other Handle Market users.
+        </div>
+    `;
+
+
+    const action =
+        document.getElementById(
+            "inputModalAction"
+        );
+
+
+    action.textContent =
+        "Save";
+
+
+    action.onclick =
+        () => {
+
+            v44StorageSet(
+                V44_THEME_KEY,
+                document.getElementById(
+                    "v44ThemeInput"
+                ).value
+            );
+
+            v44StorageSet(
+                V44_DENSITY_KEY,
+                document.getElementById(
+                    "v44DensityInput"
+                ).value
+            );
+
+            v44ApplyAppearance();
+            closeModal(
+                "inputModal"
+            );
+        };
+
+
+    showModal(
+        "inputModal"
+    );
+}
+
+
+function v44TotalUnread() {
+
+    return Math.max(
+        0,
+        Number(
+            unreadCounts?.chats ||
+            0
+        )
+        +
+        Number(
+            unreadCounts?.offers ||
+            0
+        )
+        +
+        Number(
+            unreadCounts?.support ||
+            0
+        )
+    );
+}
+
+
+function v44UpdateHeaderBell() {
+
+    const badge =
+        document.getElementById(
+            "v44HeaderBellBadge"
+        );
+
+
+    if (!badge) {
+        return;
+    }
+
+
+    const count =
+        v44TotalUnread();
+
+
+    badge.textContent =
+        count > 99
+            ? "99+"
+            : String(
+                count
+              );
+
+    badge.style.display =
+        count > 0
+            ? "flex"
+            : "none";
+}
+
+
+function v44EnsureHeaderBell() {
+
+    const header =
+        document.querySelector(
+            "header"
+        );
+
+
+    if (
+        !header ||
+        document.getElementById(
+            "v44HeaderBell"
+        )
+    ) {
+        return;
+    }
+
+
+    const button =
+        document.createElement(
+            "button"
+        );
+
+
+    button.id =
+        "v44HeaderBell";
+
+    button.className =
+        "v44-header-bell";
+
+    button.type =
+        "button";
+
+    button.setAttribute(
+        "aria-label",
+        "Notifications"
+    );
+
+    button.onclick =
+        v44OpenNotificationCenter;
+
+    button.innerHTML = `
+        🔔
+        <span
+            id="v44HeaderBellBadge"
+            class="v44-header-bell-badge"
+            style="display:none"
+        ></span>
+    `;
+
+
+    header.appendChild(
+        button
+    );
+
+
+    v44UpdateHeaderBell();
+}
+
+
+function v44EnsurePages() {
+
+    const nav =
+        document.querySelector(
+            ".bottom-nav"
+        );
+
+
+    if (!nav) {
+        return;
+    }
+
+
+    if (
+        !document.getElementById(
+            "v44Hub"
+        )
+    ) {
+
+        const page =
+            document.createElement(
+                "div"
+            );
+
+        page.id =
+            "v44Hub";
+        page.className =
+            "page";
+
+        page.innerHTML = `
+            <div class="page-heading">
+                <div class="page-title">✨ Activity & Appearance</div>
+                <div class="page-description">Quick access to activity, history and display preferences.</div>
+            </div>
+
+            <div class="section">
+                <div class="v44-hub-grid">
+                    <button class="v44-hub-card" onclick="v44OpenNotificationCenter()">
+                        <div class="v44-hub-icon">🔔</div>
+                        <div>
+                            <div class="v44-hub-title">Notification Center</div>
+                            <div class="v44-hub-subtitle">Unread chats, offers and support replies in one place.</div>
+                        </div>
+                    </button>
+
+                    <button class="v44-hub-card" onclick="v44OpenRecentlyViewed()">
+                        <div class="v44-hub-icon">🕘</div>
+                        <div>
+                            <div class="v44-hub-title">Recently Viewed</div>
+                            <div class="v44-hub-subtitle">Quickly return to usernames you opened recently.</div>
+                        </div>
+                    </button>
+
+                    <button class="v44-hub-card" onclick="v44OpenAppearance()">
+                        <div class="v44-hub-icon">🌗</div>
+                        <div>
+                            <div class="v44-hub-title">Appearance</div>
+                            <div class="v44-hub-subtitle">System, Light or Dark theme and compact listing cards.</div>
+                        </div>
+                    </button>
+
+                    <button class="v44-hub-card" onclick="openNotificationSettings()">
+                        <div class="v44-hub-icon">⚙️</div>
+                        <div>
+                            <div class="v44-hub-title">Alert Settings</div>
+                            <div class="v44-hub-subtitle">Choose which bot notifications Handle Market sends.</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        nav.parentNode.insertBefore(
+            page,
+            nav
+        );
+    }
+
+
+    if (
+        !document.getElementById(
+            "notificationCenter"
+        )
+    ) {
+
+        const page =
+            document.createElement(
+                "div"
+            );
+
+        page.id =
+            "notificationCenter";
+        page.className =
+            "page";
+
+        page.innerHTML = `
+            <div class="page-heading">
+                <div class="page-title">🔔 Notification Center</div>
+                <div class="page-description">Unread activity. Items become read when you open the related conversation or offer.</div>
+            </div>
+
+            <div class="section">
+                <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+                    <button class="secondary" style="width:auto" onclick="v44LoadNotificationCenter()">Refresh</button>
+                </div>
+                <div id="v44NotificationList"></div>
+            </div>
+        `;
+
+        nav.parentNode.insertBefore(
+            page,
+            nav
+        );
+    }
+
+
+    if (
+        !document.getElementById(
+            "recentlyViewed"
+        )
+    ) {
+
+        const page =
+            document.createElement(
+                "div"
+            );
+
+        page.id =
+            "recentlyViewed";
+        page.className =
+            "page";
+
+        page.innerHTML = `
+            <div class="page-heading">
+                <div class="page-title">🕘 Recently Viewed</div>
+                <div class="page-description">Stored only on this device for quick access.</div>
+            </div>
+
+            <div class="section">
+                <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+                    <button class="secondary" style="width:auto" onclick="v44ClearRecentlyViewed()">Clear History</button>
+                </div>
+                <div id="v44RecentlyViewedList"></div>
+            </div>
+        `;
+
+        nav.parentNode.insertBefore(
+            page,
+            nav
+        );
+    }
+}
+
+
+function v44OpenHub() {
+    v44EnsurePages();
+    openPage(
+        "v44Hub",
+        null
+    );
+}
+
+
+function v44NotificationIcon(
+    type
+) {
+
+    if (type === "chat") {
+        return "💬";
+    }
+
+    if (type === "offer") {
+        return "🤝";
+    }
+
+    if (type === "support") {
+        return "🎧";
+    }
+
+    return "🔔";
+}
+
+
+function v44NotificationMeta(
+    item
+) {
+
+    const parts = [];
+
+
+    if (
+        Number(
+            item.listing_number
+        ) > 0
+    ) {
+        parts.push(
+            "LOT #"
+            +
+            String(
+                Number(
+                    item.listing_number
+                )
+            ).padStart(
+                6,
+                "0"
+            )
+        );
+    }
+
+
+    if (item.username) {
+        parts.push(
+            "@"
+            +
+            item.username
+        );
+    }
+
+
+    if (item.ticket_number) {
+        parts.push(
+            "Ticket #"
+            +
+            String(
+                item.ticket_number
+            ).padStart(
+                6,
+                "0"
+            )
+        );
+    }
+
+
+    if (item.created_at) {
+        parts.push(
+            chatTimeLabel(
+                item.created_at
+            )
+        );
+    }
+
+
+    return parts.join(
+        " · "
+    );
+}
+
+
+async function v44OpenNotificationCenter() {
+
+    v44EnsurePages();
+
+    openPage(
+        "notificationCenter",
+        null
+    );
+
+    await v44LoadNotificationCenter();
+}
+
+
+async function v44LoadNotificationCenter() {
+
+    const container =
+        document.getElementById(
+            "v44NotificationList"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    if (
+        !authenticatedUser ||
+        !tg?.initData
+    ) {
+
+        container.innerHTML = `
+            <div class="v44-state">
+                <strong>Open Handle Market in Telegram</strong>
+                Notification Center requires your authenticated Telegram account.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML = `
+        <div class="v44-skeleton-list">
+            <div class="v44-skeleton-card"></div>
+            <div class="v44-skeleton-card"></div>
+        </div>
+    `;
+
+
+    try {
+
+        await loadUnreadCounts();
+
+
+        const data =
+            await api(
+                "/notification-center",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const items =
+            data.items ||
+            [];
+
+
+        if (!items.length) {
+
+            container.innerHTML = `
+                <div class="v44-state">
+                    <strong>You're all caught up</strong>
+                    No unread chat messages, offer updates or support replies.
+                </div>
+            `;
+
+            return;
+        }
+
+
+        container.innerHTML =
+            items.map(
+                item => `
+                    <button
+                        class="v44-notification-row"
+                        onclick="v44OpenNotificationItem('${escapeJs(item.type)}','${escapeJs(item.target_id)}')"
+                    >
+                        <div class="v44-notification-icon">
+                            ${v44NotificationIcon(item.type)}
+                        </div>
+
+                        <div class="v44-notification-copy">
+                            <div class="v44-notification-title">
+                                ${escapeHtml(item.title || "Notification")}
+                            </div>
+
+                            <div class="v44-notification-subtitle">
+                                ${escapeHtml(item.subtitle || "")}
+                            </div>
+
+                            <div class="v44-notification-meta">
+                                ${escapeHtml(v44NotificationMeta(item))}
+                            </div>
+                        </div>
+                    </button>
+                `
+            ).join("");
+
+    } catch (error) {
+
+        container.innerHTML = `
+            <div class="v44-state">
+                <strong>Could not load notifications</strong>
+                ${escapeHtml(friendlyError(error.message))}
+                <br><br>
+                <button class="secondary" onclick="v44LoadNotificationCenter()">Try Again</button>
+            </div>
+        `;
+    }
+}
+
+
+async function v44OpenNotificationItem(
+    type,
+    targetId
+) {
+
+    if (type === "chat") {
+        await openChatConversation(
+            targetId
+        );
+        return;
+    }
+
+
+    if (type === "support") {
+        await openSupportTicket(
+            targetId
+        );
+        return;
+    }
+
+
+    if (type === "offer") {
+        openOffers();
+    }
+}
+
+
+function v44RecentStorageKey() {
+
+    const id =
+        authenticatedUser?.id ||
+        authenticatedUser?.telegram_id ||
+        "guest";
+
+
+    return "hm_recent_v44_" + id;
+}
+
+
+function v44ReadRecentlyViewed() {
+
+    try {
+
+        const value =
+            JSON.parse(
+                localStorage.getItem(
+                    v44RecentStorageKey()
+                ) ||
+                "[]"
+            );
+
+
+        return Array.isArray(
+            value
+        )
+            ? value
+            : [];
+
+    } catch {
+        return [];
+    }
+}
+
+
+function v44RememberRecentlyViewed(
+    listing
+) {
+
+    if (
+        !listing?.id
+    ) {
+        return;
+    }
+
+
+    const current =
+        v44ReadRecentlyViewed()
+            .filter(
+                row =>
+                    String(
+                        row.id
+                    ) !==
+                    String(
+                        listing.id
+                    )
+            );
+
+
+    current.unshift(
+        {
+            id:
+                String(
+                    listing.id
+                ),
+            listing_number:
+                listing.listing_number ||
+                null,
+            username:
+                listing.whatsapp_username ||
+                "username",
+            price:
+                Number(
+                    listing.asking_price ||
+                    0
+                ),
+            category:
+                listing.category ||
+                "Other",
+            viewed_at:
+                new Date().toISOString()
+        }
+    );
+
+
+    try {
+        localStorage.setItem(
+            v44RecentStorageKey(),
+            JSON.stringify(
+                current.slice(
+                    0,
+                    V44_RECENT_LIMIT
+                )
+            )
+        );
+    } catch {}
+}
+
+
+function v44OpenRecentlyViewed() {
+
+    v44EnsurePages();
+
+    openPage(
+        "recentlyViewed",
+        null
+    );
+
+    v44RenderRecentlyViewed();
+}
+
+
+function v44RenderRecentlyViewed() {
+
+    const container =
+        document.getElementById(
+            "v44RecentlyViewedList"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const rows =
+        v44ReadRecentlyViewed();
+
+
+    if (!rows.length) {
+
+        container.innerHTML = `
+            <div class="v44-state">
+                <strong>No recently viewed listings</strong>
+                Open a username from Marketplace and it will appear here.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        rows.map(
+            row => `
+                <button
+                    class="v44-recent-card"
+                    onclick="openListingPage('${escapeJs(row.id)}')"
+                >
+                    <div class="v44-recent-main">
+                        <div class="v44-recent-user">
+                            @${escapeHtml(row.username || "username")}
+                        </div>
+
+                        <div class="v44-recent-meta">
+                            ${
+                                Number(row.listing_number) > 0
+                                    ? `LOT #${String(Number(row.listing_number)).padStart(6,"0")} · `
+                                    : ""
+                            }
+                            ${escapeHtml(row.category || "Other")}
+                            ${row.viewed_at ? ` · ${escapeHtml(chatTimeLabel(row.viewed_at))}` : ""}
+                        </div>
+                    </div>
+
+                    <div class="v44-recent-price">
+                        $${formatPrice(row.price || 0)}
+                    </div>
+                </button>
+            `
+        ).join("");
+}
+
+
+function v44ClearRecentlyViewed() {
+
+    try {
+        localStorage.removeItem(
+            v44RecentStorageKey()
+        );
+    } catch {}
+
+    v44RenderRecentlyViewed();
+}
+
+
+function v44WatchlistToolbarHtml() {
+
+    return `
+        <div class="v44-toolbar">
+            <input
+                id="v44WatchlistSearch"
+                type="search"
+                placeholder="Search Watchlist"
+                value="${escapeHtml(v44WatchlistQuery)}"
+                oninput="v44SetWatchlistQuery(this.value)"
+            >
+
+            <select
+                id="v44WatchlistSort"
+                onchange="v44SetWatchlistSort(this.value)"
+            >
+                <option value="newest" ${v44WatchlistSort === "newest" ? "selected" : ""}>Newest</option>
+                <option value="price_low" ${v44WatchlistSort === "price_low" ? "selected" : ""}>Price: Low to High</option>
+                <option value="price_high" ${v44WatchlistSort === "price_high" ? "selected" : ""}>Price: High to Low</option>
+                <option value="az" ${v44WatchlistSort === "az" ? "selected" : ""}>A–Z</option>
+            </select>
+        </div>
+    `;
+}
+
+
+function v44RenderWatchlist() {
+
+    const container =
+        document.getElementById(
+            "watchlistListings"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    let rows =
+        v44WatchlistCache
+            .filter(
+                listing =>
+                    watchedListingIds.has(
+                        String(
+                            listing.id
+                        )
+                    )
+            );
+
+
+    const query =
+        String(
+            v44WatchlistQuery ||
+            ""
+        )
+            .trim()
+            .replace(/^@/,"")
+            .toLowerCase();
+
+
+    if (query) {
+        rows = rows.filter(
+            listing =>
+                String(
+                    listing.whatsapp_username ||
+                    ""
+                ).toLowerCase().includes(
+                    query
+                )
+                ||
+                String(
+                    listing.listing_number ||
+                    ""
+                ).includes(
+                    query.replace(/\D/g,"")
+                )
+        );
+    }
+
+
+    rows = [
+        ...rows
+    ];
+
+
+    if (v44WatchlistSort === "price_low") {
+        rows.sort(
+            (a,b) =>
+                Number(a.asking_price || 0) - Number(b.asking_price || 0)
+        );
+    } else if (v44WatchlistSort === "price_high") {
+        rows.sort(
+            (a,b) =>
+                Number(b.asking_price || 0) - Number(a.asking_price || 0)
+        );
+    } else if (v44WatchlistSort === "az") {
+        rows.sort(
+            (a,b) =>
+                String(a.whatsapp_username || "").localeCompare(String(b.whatsapp_username || ""))
+        );
+    } else {
+        rows.sort(
+            (a,b) =>
+                new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+        );
+    }
+
+
+    container.innerHTML =
+        v44WatchlistToolbarHtml()
+        +
+        (
+            rows.length
+                ? rows.map(renderPublicListing).join("")
+                : `
+                    <div class="v44-state">
+                        <strong>${v44WatchlistCache.length ? "No Watchlist matches" : "Your Watchlist is empty"}</strong>
+                        ${v44WatchlistCache.length ? "Try another search or sort option." : "Tap ☆ on a listing to save it here."}
+                    </div>
+                  `
+        );
+
+
+    updateAllLikeButtons();
+    updateAllWatchButtons();
+    updateAllReportButtons();
+    updateLiveCountdowns();
+
+
+    if (
+        authenticatedUser &&
+        rows.length
+    ) {
+        checkUnlockedContacts(
+            rows
+        );
+    }
+}
+
+
+function v44SetWatchlistQuery(
+    value
+) {
+    v44WatchlistQuery =
+        String(
+            value ||
+            ""
+        );
+
+    v44RenderWatchlist();
+
+    setTimeout(
+        () => {
+            const input =
+                document.getElementById(
+                    "v44WatchlistSearch"
+                );
+
+            if (input) {
+                input.focus();
+                input.setSelectionRange(
+                    input.value.length,
+                    input.value.length
+                );
+            }
+        },
+        0
+    );
+}
+
+
+function v44SetWatchlistSort(
+    value
+) {
+    v44WatchlistSort =
+        value ||
+        "newest";
+
+    v44RenderWatchlist();
+}
+
+
+function v44DetailNavigationHtml(
+    listingId
+) {
+
+    let rows =
+        getFilteredMarketplaceListings();
+
+
+    if (
+        !rows.some(
+            row =>
+                String(row.id) === String(listingId)
+        )
+    ) {
+        rows = marketplaceListings;
+    }
+
+
+    const index =
+        rows.findIndex(
+            row =>
+                String(row.id) === String(listingId)
+        );
+
+
+    if (
+        index < 0 ||
+        rows.length < 2
+    ) {
+        return "";
+    }
+
+
+    const previous =
+        index > 0
+            ? rows[index - 1]
+            : null;
+
+    const next =
+        index < rows.length - 1
+            ? rows[index + 1]
+            : null;
+
+
+    return `
+        <div class="v44-detail-nav">
+            <button
+                ${previous ? `onclick="openListingPage('${escapeJs(previous.id)}')"` : "disabled"}
+            >
+                ← ${previous ? `@${escapeHtml(previous.whatsapp_username)}` : "Previous"}
+            </button>
+
+            <button
+                ${next ? `onclick="openListingPage('${escapeJs(next.id)}')"` : "disabled"}
+            >
+                ${next ? `@${escapeHtml(next.whatsapp_username)}` : "Next"} →
+            </button>
+        </div>
+    `;
+}
+
+
+function v44DecorateListingDetail(
+    listingId
+) {
+
+    const listing =
+        marketplaceListings.find(
+            row =>
+                String(row.id) === String(listingId)
+        );
+
+
+    if (!listing) {
+        return;
+    }
+
+
+    v44RememberRecentlyViewed(
+        listing
+    );
+
+
+    const card =
+        document.querySelector(
+            '#listingDetailContent .detail-card'
+        );
+
+
+    if (
+        !card ||
+        card.querySelector(
+            ".v44-detail-nav"
+        )
+    ) {
+        return;
+    }
+
+
+    card.insertAdjacentHTML(
+        "beforeend",
+        v44DetailNavigationHtml(
+            listingId
+        )
+    );
+}
+
+
+function v44EnhanceMarketplaceError() {
+
+    for (
+        const id of [
+            "marketListings",
+            "homeListings"
+        ]
+    ) {
+
+        const element =
+            document.getElementById(
+                id
+            );
+
+
+        if (
+            element?.textContent?.includes(
+                "Marketplace unavailable"
+            )
+        ) {
+            element.innerHTML = `
+                <div class="v44-state">
+                    <strong>Marketplace is temporarily unavailable</strong>
+                    Check your connection or try again in a moment.
+                    <br><br>
+                    <button class="secondary" onclick="loadMarketplace()">Try Again</button>
+                </div>
+            `;
+        }
+    }
+}
+
+
+function v44InjectProfileHubTile() {
+
+    const menu =
+        document.querySelector(
+            "#profileContent .profile-menu"
+        );
+
+
+    if (
+        !menu ||
+        menu.querySelector(
+            "[data-v44-hub-tile]"
+        )
+    ) {
+        return;
+    }
+
+
+    const button =
+        document.createElement(
+            "button"
+        );
+
+
+    button.className =
+        "profile-tile";
+    button.dataset.v44HubTile =
+        "1";
+    button.onclick =
+        v44OpenHub;
+
+    button.innerHTML = `
+        <div class="profile-tile-icon">✨</div>
+        <div>
+            <div class="profile-tile-title">
+                Activity & Appearance ${unreadBadgeHtml(v44TotalUnread())}
+            </div>
+            <div class="profile-tile-subtitle">
+                Notifications · Recent · Theme
+            </div>
+        </div>
+    `;
+
+
+    menu.appendChild(
+        button
+    );
+}
+
+
+/* ---------- Preserve v42 behavior and add v44 enhancements ---------- */
+
+const v44BaseRenderMainProfile =
+    renderMainProfile;
+
+renderMainProfile =
+function renderMainProfileV44(
+    user
+) {
+
+    v44BaseRenderMainProfile(
+        user
+    );
+
+    v44InjectProfileHubTile();
+    v44UpdateHeaderBell();
+};
+
+
+const v44BaseLoadUnreadCounts =
+    loadUnreadCounts;
+
+loadUnreadCounts =
+async function loadUnreadCountsV44() {
+
+    await v44BaseLoadUnreadCounts();
+    v44UpdateHeaderBell();
+    v44InjectProfileHubTile();
+};
+
+
+const v44BaseOpenListingPage =
+    openListingPage;
+
+openListingPage =
+async function openListingPageV44(
+    listingId
+) {
+
+    await v44BaseOpenListingPage(
+        listingId
+    );
+
+    v44DecorateListingDetail(
+        listingId
+    );
+};
+
+
+const v44BaseOpenWatchlist =
+    openWatchlist;
+
+openWatchlist =
+async function openWatchlistV44() {
+
+    const container =
+        document.getElementById(
+            "watchlistListings"
+        );
+
+
+    if (container) {
+        container.innerHTML = `
+            <div class="v44-skeleton-list">
+                <div class="v44-skeleton-card"></div>
+                <div class="v44-skeleton-card"></div>
+            </div>
+        `;
+    }
+
+
+    await v44BaseOpenWatchlist();
+
+
+    v44WatchlistCache =
+        marketplaceListings.filter(
+            listing =>
+                watchedListingIds.has(
+                    String(
+                        listing.id
+                    )
+                )
+        );
+
+
+    v44RenderWatchlist();
+};
+
+
+const v44BaseToggleWatch =
+    toggleWatch;
+
+toggleWatch =
+async function toggleWatchV44(
+    listingId
+) {
+
+    await v44BaseToggleWatch(
+        listingId
+    );
+
+
+    if (
+        document.getElementById(
+            "watchlist"
+        )?.classList.contains(
+            "active"
+        )
+    ) {
+        v44WatchlistCache =
+            marketplaceListings.filter(
+                listing =>
+                    watchedListingIds.has(
+                        String(
+                            listing.id
+                        )
+                    )
+            );
+
+        v44RenderWatchlist();
+    }
+};
+
+
+const v44BaseLoadMarketplace =
+    loadMarketplace;
+
+loadMarketplace =
+async function loadMarketplaceV44() {
+
+    const market =
+        document.getElementById(
+            "marketListings"
+        );
+
+    const home =
+        document.getElementById(
+            "homeListings"
+        );
+
+
+    if (!marketplaceListings.length) {
+
+        const skeleton = `
+            <div class="v44-skeleton-list">
+                <div class="v44-skeleton-card"></div>
+                <div class="v44-skeleton-card"></div>
+                <div class="v44-skeleton-card"></div>
+            </div>
+        `;
+
+        if (market) {
+            market.innerHTML = skeleton;
+        }
+
+        if (home) {
+            home.innerHTML = skeleton;
+        }
+    }
+
+
+    await v44BaseLoadMarketplace();
+    v44EnhanceMarketplaceError();
+};
+
+
+v44ApplyAppearance();
+v44EnsurePages();
+v44EnsureHeaderBell();
+
+
+try {
+    window.matchMedia?.(
+        "(prefers-color-scheme: dark)"
+    ).addEventListener(
+        "change",
+        () => {
+            if (
+                v44StorageGet(
+                    V44_THEME_KEY,
+                    "system"
+                ) ===
+                "system"
+            ) {
+                v44ApplyAppearance();
+            }
+        }
+    );
+} catch {}
+
+
+if (authenticatedUser) {
+    renderMainProfile(
+        authenticatedUser
+    );
+    loadUnreadCounts();
+}
+</script>
 
 </body>
 </html>
