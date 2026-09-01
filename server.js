@@ -1087,6 +1087,58 @@ async function requireAdmin(
 }
 
 
+function normalizedAdminRole(
+    user
+) {
+
+    if (
+        !user ||
+        !user.is_admin
+    ) {
+
+        return null;
+    }
+
+
+    const role =
+        String(
+            user.admin_role ||
+            "owner"
+        )
+            .trim()
+            .toLowerCase();
+
+
+    return [
+        "owner",
+        "moderator",
+        "support"
+    ].includes(role)
+        ? role
+        : "owner";
+}
+
+
+function adminRoleAllowed(
+    user,
+    allowedRoles
+) {
+
+    const role =
+        normalizedAdminRole(
+            user
+        );
+
+
+    return Boolean(
+        role &&
+        allowedRoles.includes(
+            role
+        )
+    );
+}
+
+
 /* =========================================================
    CATEGORIES
    ========================================================= */
@@ -6101,7 +6153,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v38-trust-moderation"
+                    "v39-admin-platform"
             }
         );
     }
@@ -6234,6 +6286,50 @@ app.post(
                         Boolean(
                             u.is_admin
                         ),
+
+                    admin_role:
+                        u.is_admin
+                            ? (
+                                [
+                                    "owner",
+                                    "moderator",
+                                    "support"
+                                ].includes(
+                                    String(
+                                        u.admin_role ||
+                                        ""
+                                    ).toLowerCase()
+                                )
+                                    ? String(
+                                        u.admin_role
+                                    ).toLowerCase()
+                                    : "owner"
+                            )
+                            : null,
+
+                    ui_language:
+                        [
+                            "en",
+                            "ru"
+                        ].includes(
+                            String(
+                                u.ui_language ||
+                                ""
+                            ).toLowerCase()
+                        )
+                            ? String(
+                                u.ui_language
+                            ).toLowerCase()
+                            : String(
+                                u.language_code ||
+                                ""
+                            )
+                                .toLowerCase()
+                                .startsWith(
+                                    "ru"
+                                )
+                                    ? "ru"
+                                    : "en",
 
                     free_listing_used:
                         Boolean(
@@ -14063,6 +14159,300 @@ app.post(
 );
 
 
+
+/* =========================================================
+   V39 UI LANGUAGE
+   ========================================================= */
+
+app.post(
+    "/settings/language",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json({
+                    ok:false,
+                    error:auth.error
+                });
+        }
+
+
+        const language =
+            String(
+                req.body.language ||
+                ""
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            ![
+                "en",
+                "ru"
+            ].includes(
+                language
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:"invalid_language"
+                });
+        }
+
+
+        const {
+            error
+        } =
+            await supabase
+                .from("users")
+                .update({
+                    ui_language:
+                        language
+                })
+                .eq(
+                    "telegram_id",
+                    auth.user.telegram_id
+                );
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"language_update_failed"
+                });
+        }
+
+
+        return res.json({
+            ok:true,
+            language
+        });
+    }
+);
+
+
+/* =========================================================
+   V39 ADMIN ROLE GATE
+   Owner: full access.
+   Moderator: moderation/listing safety.
+   Support: support tickets only + dashboard.
+   ========================================================= */
+
+const ADMIN_ROUTE_ROLES = {
+
+    "/admin/dashboard": [
+        "owner",
+        "moderator",
+        "support"
+    ],
+
+    "/admin/support-tickets": [
+        "owner",
+        "moderator",
+        "support"
+    ],
+
+    "/admin/support-status": [
+        "owner",
+        "moderator",
+        "support"
+    ],
+
+    "/admin/listing-contact": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/seller-block": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/blocked-sellers": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/pending-listings": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/listing-status": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/reports": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/frozen-listings": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/report-action": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/listing-freeze": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/listing-remove": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/risk-flags": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/risk-flag-action": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/listing-history": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/create-listing": [
+        "owner"
+    ],
+
+    "/admin/listing-promotion": [
+        "owner"
+    ],
+
+    "/admin/listing-premium": [
+        "owner"
+    ],
+
+    "/admin/activity-log": [
+        "owner"
+    ],
+
+    "/admin/team": [
+        "owner"
+    ],
+
+    "/admin/team-set": [
+        "owner"
+    ]
+};
+
+
+app.use(
+    "/admin",
+    async (req, res, next) => {
+
+        const path =
+            String(
+                req.originalUrl ||
+                ""
+            )
+                .split("?")[0];
+
+
+        const allowedRoles =
+            ADMIN_ROUTE_ROLES[
+                path
+            ] ||
+            [
+                "owner"
+            ];
+
+
+        const auth =
+            await getDatabaseUser(
+                req.body?.initData
+            );
+
+
+        if (!auth.ok) {
+
+            return res
+                .status(
+                    auth.status
+                )
+                .json({
+                    ok:false,
+                    error:auth.error
+                });
+        }
+
+
+        if (
+            !auth.user.is_admin
+        ) {
+
+            return res
+                .status(403)
+                .json({
+                    ok:false,
+                    error:"admin_required"
+                });
+        }
+
+
+        if (
+            !adminRoleAllowed(
+                auth.user,
+                allowedRoles
+            )
+        ) {
+
+            return res
+                .status(403)
+                .json({
+                    ok:false,
+                    error:"admin_role_forbidden",
+                    role:
+                        normalizedAdminRole(
+                            auth.user
+                        )
+                });
+        }
+
+
+        req.adminAuth =
+            auth;
+
+        req.adminRole =
+            normalizedAdminRole(
+                auth.user
+            );
+
+
+        next();
+    }
+);
+
+
 app.post(
     "/admin/support-tickets",
     async (req, res) => {
@@ -17068,7 +17458,8 @@ const ADMIN_AUDIT_MUTATION_PATHS =
         "/admin/listing-freeze",
         "/admin/listing-remove",
         "/admin/support-status",
-        "/admin/risk-flag-action"
+        "/admin/risk-flag-action",
+        "/admin/team-set"
     ]);
 
 
@@ -17194,6 +17585,641 @@ app.use(
 
 
         next();
+    }
+);
+
+
+
+/* =========================================================
+   V39 ADMIN DASHBOARD
+   ========================================================= */
+
+app.post(
+    "/admin/dashboard",
+    async (req, res) => {
+
+        const admin =
+            req.adminAuth ||
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json({
+                    ok:false,
+                    error:admin.error
+                });
+        }
+
+
+        try {
+
+            const now =
+                new Date();
+
+            const dayAgo =
+                new Date(
+                    now.getTime() -
+                    24 * 60 * 60 * 1000
+                ).toISOString();
+
+            const today =
+                new Date(
+                    now.getFullYear(),
+                    now.getMonth(),
+                    now.getDate()
+                ).toISOString();
+
+
+            const [
+                usersResult,
+                listingsResult,
+                reportsResult,
+                riskResult,
+                supportResult,
+                contactOrdersResult,
+                listingOrdersResult,
+                renewalOrdersResult,
+                promotionOrdersResult,
+                wantedOrdersResult
+            ] =
+                await Promise.all([
+
+                    supabase
+                        .from("users")
+                        .select(
+                            "telegram_id,last_seen_at,is_blocked,is_admin"
+                        ),
+
+                    supabase
+                        .from("listings")
+                        .select(
+                            "id,status,is_paused,is_frozen,listing_plan,listing_expires_at,created_at"
+                        ),
+
+                    supabase
+                        .from("reports")
+                        .select("id,status"),
+
+                    supabase
+                        .from("listing_risk_flags")
+                        .select("id,status"),
+
+                    supabase
+                        .from("support_tickets")
+                        .select("id,status"),
+
+                    supabase
+                        .from("contact_unlocks")
+                        .select("amount_stars,status"),
+
+                    supabase
+                        .from("listing_payment_orders")
+                        .select("amount_stars,status"),
+
+                    supabase
+                        .from("listing_renewal_orders")
+                        .select("amount_stars,status"),
+
+                    supabase
+                        .from("promotion_payment_orders")
+                        .select("amount_stars,status"),
+
+                    supabase
+                        .from("wanted_payment_orders")
+                        .select("amount_stars,status")
+                ]);
+
+
+            const results = [
+                usersResult,
+                listingsResult,
+                reportsResult,
+                riskResult,
+                supportResult,
+                contactOrdersResult,
+                listingOrdersResult,
+                renewalOrdersResult,
+                promotionOrdersResult,
+                wantedOrdersResult
+            ];
+
+
+            const failed =
+                results.find(
+                    result =>
+                        result.error
+                );
+
+
+            if (failed) {
+
+                throw failed.error;
+            }
+
+
+            const users =
+                usersResult.data ||
+                [];
+
+            const listings =
+                listingsResult.data ||
+                [];
+
+            const reports =
+                reportsResult.data ||
+                [];
+
+            const risks =
+                riskResult.data ||
+                [];
+
+            const support =
+                supportResult.data ||
+                [];
+
+
+            const totalStars =
+                [
+                    ...(contactOrdersResult.data || [])
+                        .filter(row => row.status === "paid"),
+                    ...(listingOrdersResult.data || [])
+                        .filter(row => row.status === "completed"),
+                    ...(renewalOrdersResult.data || [])
+                        .filter(row => row.status === "completed"),
+                    ...(promotionOrdersResult.data || [])
+                        .filter(row => row.status === "completed"),
+                    ...(wantedOrdersResult.data || [])
+                        .filter(row => row.status === "completed")
+                ]
+                    .reduce(
+                        (sum,row) =>
+                            sum +
+                            Number(
+                                row.amount_stars ||
+                                0
+                            ),
+                        0
+                    );
+
+
+            const activeListings =
+                listings.filter(
+                    listing =>
+                        listingIsPubliclyAvailable(
+                            listing
+                        )
+                ).length;
+
+
+            return res.json({
+                ok:true,
+                role:
+                    normalizedAdminRole(
+                        admin.user
+                    ),
+                stats:{
+                    users_total:
+                        users.length,
+                    users_active_24h:
+                        users.filter(
+                            user =>
+                                user.last_seen_at &&
+                                user.last_seen_at >=
+                                dayAgo
+                        ).length,
+                    admins_total:
+                        users.filter(
+                            user =>
+                                user.is_admin
+                        ).length,
+                    blocked_sellers:
+                        users.filter(
+                            user =>
+                                user.is_blocked &&
+                                !user.is_admin
+                        ).length,
+                    listings_active:
+                        activeListings,
+                    listings_pending:
+                        listings.filter(
+                            listing =>
+                                listing.status ===
+                                "pending"
+                        ).length,
+                    listings_frozen:
+                        listings.filter(
+                            listing =>
+                                listing.is_frozen
+                        ).length,
+                    listings_new_today:
+                        listings.filter(
+                            listing =>
+                                listing.created_at &&
+                                listing.created_at >=
+                                today
+                        ).length,
+                    reports_open:
+                        reports.filter(
+                            row =>
+                                row.status ===
+                                "open"
+                        ).length,
+                    risk_flags_open:
+                        risks.filter(
+                            row =>
+                                row.status ===
+                                "open"
+                        ).length,
+                    support_open:
+                        support.filter(
+                            row =>
+                                [
+                                    "open",
+                                    "in_progress"
+                                ].includes(
+                                    row.status
+                                )
+                        ).length,
+                    stars_collected:
+                        normalizedAdminRole(
+                            admin.user
+                        ) ===
+                        "owner"
+                            ? totalStars
+                            : null
+                }
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Admin dashboard:",
+                error
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"admin_dashboard_failed"
+                });
+        }
+    }
+);
+
+
+/* =========================================================
+   V39 ADMIN TEAM / ROLES
+   ========================================================= */
+
+app.post(
+    "/admin/team",
+    async (req, res) => {
+
+        const admin =
+            req.adminAuth ||
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json({
+                    ok:false,
+                    error:admin.error
+                });
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from("users")
+                .select(
+                    "telegram_id,first_name,last_name,telegram_username,is_admin,admin_role,last_seen_at"
+                )
+                .eq(
+                    "is_admin",
+                    true
+                )
+                .order(
+                    "telegram_id",
+                    {
+                        ascending:true
+                    }
+                );
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"admin_team_load_failed"
+                });
+        }
+
+
+        return res.json({
+            ok:true,
+            admins:(data || []).map(
+                row => ({
+                    ...row,
+                    admin_role:
+                        [
+                            "owner",
+                            "moderator",
+                            "support"
+                        ].includes(
+                            String(
+                                row.admin_role ||
+                                ""
+                            ).toLowerCase()
+                        )
+                            ? String(
+                                row.admin_role
+                            ).toLowerCase()
+                            : "owner"
+                })
+            )
+        });
+    }
+);
+
+
+app.post(
+    "/admin/team-set",
+    async (req, res) => {
+
+        const admin =
+            req.adminAuth ||
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json({
+                    ok:false,
+                    error:admin.error
+                });
+        }
+
+
+        const targetId =
+            Number(
+                req.body.telegram_id
+            );
+
+        const action =
+            String(
+                req.body.action ||
+                "set"
+            )
+                .trim()
+                .toLowerCase();
+
+        const role =
+            String(
+                req.body.role ||
+                "moderator"
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            !Number.isSafeInteger(
+                targetId
+            ) ||
+            targetId <= 0 ||
+            ![
+                "set",
+                "remove"
+            ].includes(
+                action
+            ) ||
+            (
+                action === "set" &&
+                ![
+                    "owner",
+                    "moderator",
+                    "support"
+                ].includes(
+                    role
+                )
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:"invalid_admin_team_action"
+                });
+        }
+
+
+        if (
+            Number(
+                admin.user.telegram_id
+            ) ===
+            targetId
+        ) {
+
+            return res
+                .status(409)
+                .json({
+                    ok:false,
+                    error:"cannot_change_own_admin_role"
+                });
+        }
+
+
+        const {
+            data:target,
+            error:targetError
+        } =
+            await supabase
+                .from("users")
+                .select(
+                    "telegram_id,first_name,last_name,telegram_username,is_admin,is_blocked,admin_role"
+                )
+                .eq(
+                    "telegram_id",
+                    targetId
+                )
+                .maybeSingle();
+
+
+        if (
+            targetError ||
+            !target
+        ) {
+
+            return res
+                .status(404)
+                .json({
+                    ok:false,
+                    error:"admin_target_user_not_found"
+                });
+        }
+
+
+        if (
+            action === "set" &&
+            target.is_blocked
+        ) {
+
+            return res
+                .status(409)
+                .json({
+                    ok:false,
+                    error:"blocked_user_cannot_be_admin"
+                });
+        }
+
+
+        if (
+            action === "remove" &&
+            target.is_admin &&
+            String(
+                target.admin_role ||
+                "owner"
+            ).toLowerCase() ===
+            "owner"
+        ) {
+
+            const {
+                count,
+                error:ownerCountError
+            } =
+                await supabase
+                    .from("users")
+                    .select(
+                        "telegram_id",
+                        {
+                            count:"exact",
+                            head:true
+                        }
+                    )
+                    .eq(
+                        "is_admin",
+                        true
+                    )
+                    .eq(
+                        "admin_role",
+                        "owner"
+                    );
+
+
+            if (ownerCountError) {
+
+                return res
+                    .status(500)
+                    .json({
+                        ok:false,
+                        error:"admin_owner_check_failed"
+                    });
+            }
+
+
+            if (
+                Number(
+                    count ||
+                    0
+                ) <= 1
+            ) {
+
+                return res
+                    .status(409)
+                    .json({
+                        ok:false,
+                        error:"cannot_remove_last_owner"
+                    });
+            }
+        }
+
+
+        const update =
+            action === "remove"
+                ? {
+                    is_admin:false,
+                    admin_role:null
+                }
+                : {
+                    is_admin:true,
+                    admin_role:role
+                };
+
+
+        const {
+            data:updated,
+            error:updateError
+        } =
+            await supabase
+                .from("users")
+                .update(
+                    update
+                )
+                .eq(
+                    "telegram_id",
+                    targetId
+                )
+                .select(
+                    "telegram_id,first_name,last_name,telegram_username,is_admin,admin_role"
+                )
+                .single();
+
+
+        if (updateError) {
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"admin_team_update_failed"
+                });
+        }
+
+
+        const actionText =
+            action === "remove"
+                ? "Administrator access removed."
+                : `Administrator role set to ${role}.`;
+
+
+        await safeSendMessage(
+            targetId,
+            `🛡 Handle Market\n\n${actionText}`
+        );
+
+
+        return res.json({
+            ok:true,
+            admin:updated
+        });
     }
 );
 

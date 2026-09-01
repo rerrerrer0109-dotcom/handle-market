@@ -21993,5 +21993,1626 @@ async function loadAdminActivityLog() {
 
 </script>
 
+
+
+<style>
+/* =========================================================
+   V39 ADMIN / PLATFORM
+   ========================================================= */
+
+.v39-dashboard-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+    margin-top:10px;
+}
+
+.v39-stat-card {
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:14px;
+    padding:12px;
+    background:var(--card,#fff);
+}
+
+.v39-stat-value {
+    font-size:22px;
+    font-weight:900;
+    line-height:1.05;
+}
+
+.v39-stat-label {
+    margin-top:5px;
+    font-size:11px;
+    opacity:.72;
+    font-weight:700;
+}
+
+.v39-role-badge {
+    display:inline-flex;
+    align-items:center;
+    padding:6px 9px;
+    border-radius:999px;
+    margin-top:7px;
+    border:1px solid var(--border,#e4e8ef);
+    background:var(--surface-2,#f5f7fa);
+    font-size:10px;
+    font-weight:900;
+}
+
+.v39-admin-row {
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:14px;
+    padding:12px;
+    background:var(--card,#fff);
+    margin-top:9px;
+}
+
+.v39-admin-row-top {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+}
+
+.v39-role-chip {
+    display:inline-flex;
+    padding:5px 8px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:900;
+    border:1px solid var(--border,#e4e8ef);
+    background:var(--surface-2,#f5f7fa);
+}
+
+.v39-help-card {
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:16px;
+    padding:14px;
+    background:var(--card,#fff);
+    margin-bottom:10px;
+}
+
+.v39-help-card h3 {
+    margin:0 0 7px;
+    font-size:15px;
+}
+
+.v39-help-card p,
+.v39-help-card li {
+    font-size:12px;
+    line-height:1.55;
+}
+
+.v39-help-card ul {
+    padding-left:20px;
+    margin:8px 0 0;
+}
+
+@media (min-width:700px) {
+    .v39-dashboard-grid {
+        grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+}
+</style>
+
+<script>
+/* =========================================================
+   V39 LANGUAGE
+   English source remains canonical. Russian is applied to
+   known UI strings and all new V39 pages/components.
+   ========================================================= */
+
+let v39CurrentLanguage =
+    localStorage.getItem(
+        "hm_ui_language"
+    ) ||
+    "en";
+
+
+const V39_RU = {
+    "Home":"Главная",
+    "Market":"Маркет",
+    "List":"Лоты",
+    "Wanted":"Ищу",
+    "Profile":"Профиль",
+    "Marketplace":"Маркетплейс",
+    "My Listings":"Мои лоты",
+    "Create Listing":"Создать лот",
+    "My Watchlist":"Избранное",
+    "Watchlist":"Избранное",
+    "Offers":"Предложения",
+    "Offers Sent":"Отправленные предложения",
+    "Offers Received":"Полученные предложения",
+    "Seller Profile":"Профиль продавца",
+    "Chats":"Чаты",
+    "Help & Support":"Помощь и поддержка",
+    "Saved Searches":"Сохранённые поиски",
+    "Notification Settings":"Настройки уведомлений",
+    "Admin Panel":"Админ-панель",
+    "Moderation":"Модерация",
+    "Negotiations":"Переговоры",
+    "Buyer & seller messages":"Сообщения покупателей и продавцов",
+    "Contact Handle Market":"Связаться с Handle Market",
+    "Search alerts":"Уведомления поиска",
+    "Control bot alerts":"Настроить уведомления бота",
+    "Saved usernames":"Сохранённые юзернеймы",
+    "Public":"Публичный",
+    "Private":"Приватный",
+    "Loading...":"Загрузка...",
+    "Loading":"Загрузка",
+    "Cancel":"Отмена",
+    "Confirm":"Подтвердить",
+    "Back":"Назад",
+    "Edit":"Изменить",
+    "Pause":"Пауза",
+    "Resume":"Возобновить",
+    "Remove":"Удалить",
+    "Renew":"Продлить",
+    "Promote":"Продвигать",
+    "Share":"Поделиться",
+    "Report":"Пожаловаться",
+    "Search":"Поиск",
+    "Filters":"Фильтры",
+    "Reset":"Сбросить",
+    "Save Search":"Сохранить поиск",
+    "Make Offer":"Сделать предложение",
+    "Unlock Seller Contact":"Открыть контакт продавца",
+    "Price":"Цена",
+    "Category":"Категория",
+    "Description":"Описание",
+    "Business":"Бизнес",
+    "Brand":"Бренд",
+    "Short":"Короткие",
+    "Travel":"Путешествия",
+    "Finance":"Финансы",
+    "Gaming":"Игры",
+    "Crypto":"Крипто",
+    "Media":"Медиа",
+    "Generic":"Общие",
+    "Other":"Другое",
+    "All usernames":"Все юзернеймы",
+    "Premium only":"Только Premium",
+    "Recommended":"Рекомендуемые",
+    "Newest":"Новые",
+    "Price: Low to High":"Цена: по возрастанию",
+    "Price: High to Low":"Цена: по убыванию",
+    "Most Viewed":"Самые просматриваемые",
+    "Most Liked":"Самые популярные",
+    "Most Watched":"Чаще в избранном",
+    "Trending":"В тренде",
+    "Discover":"Обзор",
+    "NEW":"НОВОЕ",
+    "Fixed Price":"Фиксированная цена",
+    "Negotiable":"Торг возможен",
+    "Minimum offer":"Минимальное предложение",
+    "Send Offer":"Отправить предложение",
+    "Send Counter":"Отправить встречное",
+    "Accept":"Принять",
+    "Decline":"Отклонить",
+    "Close":"Закрыть",
+    "Reopen":"Открыть снова",
+    "Open Chat":"Открыть чат",
+    "In Progress":"В работе",
+    "Resolve":"Решить",
+    "Open Reports":"Открытые жалобы",
+    "Frozen Listings":"Замороженные лоты",
+    "Blocked Sellers":"Заблокированные продавцы",
+    "Support Tickets":"Тикеты поддержки",
+    "Risk Flags":"Флаги риска",
+    "Listing History":"История лота",
+    "Admin Activity":"Действия админов",
+    "Pending Listings":"Лоты на модерации",
+    "Listing Management":"Управление лотами",
+    "Add Listing Without Payment":"Добавить лот без оплаты",
+    "View History":"Посмотреть историю",
+    "View Contact":"Посмотреть контакт",
+    "Freeze":"Заморозить",
+    "Unfreeze":"Разморозить",
+    "Block Seller":"Заблокировать продавца",
+    "Unblock Seller":"Разблокировать продавца",
+    "Mark Premium":"Выдать Premium",
+    "Remove Premium":"Убрать Premium",
+    "Apply Free Promotion":"Выдать продвижение бесплатно",
+    "Clear Promotion":"Убрать продвижение",
+    "24 hours":"24 часа",
+    "3 days":"3 дня",
+    "7 days":"7 дней",
+    "English":"Английский",
+    "Russian":"Русский",
+    "Language":"Язык",
+    "FAQ":"Частые вопросы",
+    "Rules & Safety":"Правила и безопасность",
+    "Admin Dashboard":"Панель статистики",
+    "Admin Team":"Команда админов",
+    "Owner":"Владелец",
+    "Moderator":"Модератор",
+    "Support":"Поддержка",
+    "Total Users":"Всего пользователей",
+    "Active 24h":"Активны за 24ч",
+    "Active Listings":"Активные лоты",
+    "Pending":"На модерации",
+    "Frozen":"Заморожено",
+    "Blocked Sellers":"Заблокировано продавцов",
+    "Open Reports":"Открытые жалобы",
+    "Open Risk Flags":"Открытые флаги риска",
+    "Open Support":"Открытые тикеты",
+    "New Today":"Новых сегодня",
+    "Stars Collected":"Получено Stars",
+    "Admins":"Админы",
+    "Assign / Update Admin":"Назначить / изменить админа",
+    "Telegram ID":"Telegram ID",
+    "Role":"Роль",
+    "Set Role":"Назначить роль",
+    "Remove Admin":"Убрать админа",
+    "No public Telegram username":"Нет публичного Telegram username",
+    "✓ Telegram account authenticated":"✓ Telegram-аккаунт подтверждён",
+    "✓ Telegram authenticated":"✓ Telegram авторизован",
+    "No active listings.":"Нет активных лотов.",
+    "No pending listings.":"Нет лотов на модерации.",
+    "No received offers.":"Нет полученных предложений.",
+    "No sent offers.":"Нет отправленных предложений.",
+    "Not enough activity yet.":"Пока недостаточно активности.",
+    "Discovery unavailable.":"Раздел временно недоступен.",
+    "Failed to load.":"Не удалось загрузить.",
+    "Open":"Открыт",
+    "Resolved":"Решён",
+    "Closed":"Закрыт"
+};
+
+
+const V39_PLACEHOLDERS_RU = {
+    "Search usernames...":"Поиск юзернеймов...",
+    "Write a message...":"Напишите сообщение...",
+    "Write a message to support...":"Напишите в поддержку...",
+    "Listing description":"Описание лота",
+    "Optional moderation reason":"Причина модерации · необязательно",
+    "000123":"000123",
+    "123456789":"123456789",
+    "@username":"@username",
+    "@telegramusername":"@telegramusername"
+};
+
+
+function v39T(
+    english,
+    russian
+) {
+
+    return v39CurrentLanguage ===
+        "ru"
+            ? russian
+            : english;
+}
+
+
+function v39TranslateTextNode(
+    node
+) {
+
+    if (
+        v39CurrentLanguage !==
+        "ru" ||
+        !node ||
+        node.nodeType !== 3
+    ) {
+        return;
+    }
+
+
+    const value =
+        node.nodeValue ||
+        "";
+
+    const trimmed =
+        value.trim();
+
+
+    if (!trimmed) {
+        return;
+    }
+
+
+    let translated =
+        V39_RU[
+            trimmed
+        ];
+
+
+    if (!translated) {
+
+        let match =
+            trimmed.match(
+                /^Last active (\d+) min ago$/
+            );
+
+        if (match) {
+            translated =
+                `Был(а) ${match[1]} мин назад`;
+        }
+
+
+        match =
+            trimmed.match(
+                /^Last active (\d+)h ago$/
+            );
+
+        if (match) {
+            translated =
+                `Был(а) ${match[1]} ч назад`;
+        }
+
+
+        match =
+            trimmed.match(
+                /^Usually replies within (\d+) min$/
+            );
+
+        if (match) {
+            translated =
+                `Обычно отвечает за ${match[1]} мин`;
+        }
+    }
+
+
+    if (!translated) {
+        return;
+    }
+
+
+    const leading =
+        value.match(/^\s*/)?.[0] ||
+        "";
+
+    const trailing =
+        value.match(/\s*$/)?.[0] ||
+        "";
+
+
+    node.nodeValue =
+        leading +
+        translated +
+        trailing;
+}
+
+
+function v39ApplyTranslations(
+    root = document.body
+) {
+
+    if (
+        v39CurrentLanguage !==
+        "ru" ||
+        !root
+    ) {
+        return;
+    }
+
+
+    const walker =
+        document.createTreeWalker(
+            root,
+            NodeFilter.SHOW_TEXT
+        );
+
+
+    let node;
+
+    while (
+        node = walker.nextNode()
+    ) {
+        v39TranslateTextNode(
+            node
+        );
+    }
+
+
+    root.querySelectorAll?.(
+        "input[placeholder],textarea[placeholder]"
+    ).forEach(
+        element => {
+
+            const placeholder =
+                element.getAttribute(
+                    "placeholder"
+                );
+
+            if (
+                V39_PLACEHOLDERS_RU[
+                    placeholder
+                ]
+            ) {
+                element.setAttribute(
+                    "placeholder",
+                    V39_PLACEHOLDERS_RU[
+                        placeholder
+                    ]
+                );
+            }
+        }
+    );
+}
+
+
+const v39TranslationObserver =
+    new MutationObserver(
+        mutations => {
+
+            if (
+                v39CurrentLanguage !==
+                "ru"
+            ) {
+                return;
+            }
+
+
+            for (
+                const mutation of
+                mutations
+            ) {
+
+                for (
+                    const node of
+                    mutation.addedNodes
+                ) {
+
+                    if (
+                        node.nodeType === 3
+                    ) {
+                        v39TranslateTextNode(
+                            node
+                        );
+                    }
+
+                    if (
+                        node.nodeType === 1
+                    ) {
+                        v39ApplyTranslations(
+                            node
+                        );
+                    }
+                }
+            }
+        }
+    );
+
+
+v39TranslationObserver.observe(
+    document.body,
+    {
+        childList:true,
+        subtree:true
+    }
+);
+
+
+/* =========================================================
+   V39 FAQ / RULES PAGES
+   ========================================================= */
+
+function v39InjectPlatformPages() {
+
+    if (
+        document.getElementById(
+            "faqPage"
+        )
+    ) {
+        return;
+    }
+
+
+    const nav =
+        document.querySelector(
+            ".bottom-nav"
+        );
+
+
+    if (!nav) {
+        return;
+    }
+
+
+    nav.insertAdjacentHTML(
+        "beforebegin",
+        `
+        <div id="faqPage" class="page">
+            <div class="page-heading">
+                <div class="page-title">❓ ${v39T("FAQ","Частые вопросы")}</div>
+                <div class="page-description">${v39T("Quick answers about Handle Market.","Короткие ответы о работе Handle Market.")}</div>
+            </div>
+            <div class="section" id="v39FaqContent"></div>
+        </div>
+
+        <div id="rulesPage" class="page">
+            <div class="page-heading">
+                <div class="page-title">📜 ${v39T("Rules & Safety","Правила и безопасность")}</div>
+                <div class="page-description">${v39T("Marketplace rules and important safety information.","Правила площадки и важная информация о безопасности.")}</div>
+            </div>
+            <div class="section" id="v39RulesContent"></div>
+        </div>
+        `
+    );
+
+
+    v39RenderHelpPages();
+}
+
+
+function v39RenderHelpPages() {
+
+    const faq =
+        document.getElementById(
+            "v39FaqContent"
+        );
+
+    const rules =
+        document.getElementById(
+            "v39RulesContent"
+        );
+
+
+    if (faq) {
+
+        faq.innerHTML =
+            v39CurrentLanguage === "ru"
+                ? `
+                    <div class="v39-help-card"><h3>Что такое Handle Market?</h3><p>Handle Market — площадка для поиска WhatsApp-юзернеймов, публикации лотов, связи с продавцами и переговоров.</p></div>
+                    <div class="v39-help-card"><h3>Как открыть контакт продавца?</h3><p>На странице лота нажмите Unlock Seller Contact. После успешной оплаты Stars доступ к контакту сохраняется для вашего аккаунта.</p></div>
+                    <div class="v39-help-card"><h3>Что означает ⭐ Premium?</h3><p>Premium выдаётся Handle Market выбранным уникальным и качественным именам. Его нельзя купить. VIP, HOT и Bump — отдельные виды платного продвижения.</p></div>
+                    <div class="v39-help-card"><h3>Сколько действует лот?</h3><p>Первый бесплатный лот действует 24 часа. Платный или продлённый лот действует 30 дней. Legacy-лоты могут не иметь автоматического срока окончания.</p></div>
+                    <div class="v39-help-card"><h3>Как работают предложения?</h3><p>Если лот допускает торг, покупатель может отправить предложение с установленным сроком действия. Продавец может принять, отклонить или отправить встречную цену.</p></div>
+                    <div class="v39-help-card"><h3>Куда писать при проблеме?</h3><p>Откройте Profile → Help & Support и создайте тикет. Вся переписка с поддержкой сохранится внутри Handle Market.</p></div>
+                `
+                : `
+                    <div class="v39-help-card"><h3>What is Handle Market?</h3><p>Handle Market is a marketplace for discovering WhatsApp usernames, publishing listings, contacting sellers and negotiating.</p></div>
+                    <div class="v39-help-card"><h3>How do I unlock a seller contact?</h3><p>Open a listing and tap Unlock Seller Contact. After a successful Stars payment, contact access stays available for your account.</p></div>
+                    <div class="v39-help-card"><h3>What does ⭐ Premium mean?</h3><p>Premium is awarded by Handle Market to selected unique, high-quality names and cannot be purchased. VIP, HOT and Bump are separate promotion products.</p></div>
+                    <div class="v39-help-card"><h3>How long does a listing stay active?</h3><p>The first free listing lasts 24 hours. A paid or renewed listing lasts 30 days. Legacy listings may have no automatic expiration.</p></div>
+                    <div class="v39-help-card"><h3>How do offers work?</h3><p>For negotiable listings, a buyer can send an offer with an expiration period. The seller can accept, decline or send a counter offer.</p></div>
+                    <div class="v39-help-card"><h3>Where can I get help?</h3><p>Open Profile → Help & Support and create a ticket. Your support conversation remains inside Handle Market.</p></div>
+                `;
+    }
+
+
+    if (rules) {
+
+        rules.innerHTML =
+            v39CurrentLanguage === "ru"
+                ? `
+                    <div class="v39-help-card"><h3>1. Честные объявления</h3><p>Не публикуйте вводящие в заблуждение описания, ложные гарантии, фишинговые ссылки, вредоносные сайты или контакты, созданные для обмана.</p></div>
+                    <div class="v39-help-card"><h3>2. Контакты продавца</h3><p>Контакт продавца хранится приватно и раскрывается покупателю только по действующим правилам Handle Market. Изменение контакта активного лота может отправить лот на повторную модерацию.</p></div>
+                    <div class="v39-help-card"><h3>3. Переговоры</h3><p>Используйте внутренний чат и систему предложений для переговоров. Не отправляйте пароли, recovery-коды, seed-фразы или другие секреты.</p></div>
+                    <div class="v39-help-card"><h3>4. Передача username</h3><p><strong>Handle Market не контролирует и не гарантирует передачу WhatsApp username и не является escrow-сервисом.</strong> Площадка помогает сторонам найти друг друга и вести переговоры.</p></div>
+                    <div class="v39-help-card"><h3>5. Модерация</h3><p>Handle Market может отправить лот на проверку, заморозить или удалить его, а также ограничить аккаунт при нарушении правил. Risk Flag является предупреждением для модератора, а не автоматическим доказательством мошенничества.</p></div>
+                    <div class="v39-help-card"><h3>6. Безопасность</h3><ul><li>Проверяйте внешние ссылки самостоятельно.</li><li>Не передавайте коды входа и данные восстановления.</li><li>При подозрительном поведении используйте Report или Support.</li></ul></div>
+                `
+                : `
+                    <div class="v39-help-card"><h3>1. Honest listings</h3><p>Do not publish misleading descriptions, false guarantees, phishing links, malicious websites or contacts intended to deceive users.</p></div>
+                    <div class="v39-help-card"><h3>2. Seller contacts</h3><p>Seller contact information remains private and is revealed only under Handle Market's contact-access rules. Changing an active listing's contact may send the listing back to moderation.</p></div>
+                    <div class="v39-help-card"><h3>3. Negotiations</h3><p>Use internal chat and offers for negotiations. Never send passwords, recovery codes, seed phrases or other account secrets.</p></div>
+                    <div class="v39-help-card"><h3>4. Username transfer</h3><p><strong>Handle Market does not control or guarantee the transfer of a WhatsApp username and is not an escrow service.</strong> The marketplace helps parties discover each other and negotiate.</p></div>
+                    <div class="v39-help-card"><h3>5. Moderation</h3><p>Handle Market may send a listing for review, freeze or remove it, or restrict an account when rules are violated. A Risk Flag is a moderation warning, not automatic proof of fraud.</p></div>
+                    <div class="v39-help-card"><h3>6. Safety</h3><ul><li>Review external links independently.</li><li>Never share login or recovery secrets.</li><li>Use Report or Support if something looks suspicious.</li></ul></div>
+                `;
+    }
+}
+
+
+function openFAQ() {
+
+    v39InjectPlatformPages();
+    v39RenderHelpPages();
+    openPage(
+        "faqPage",
+        null
+    );
+}
+
+
+function openRules() {
+
+    v39InjectPlatformPages();
+    v39RenderHelpPages();
+    openPage(
+        "rulesPage",
+        null
+    );
+}
+
+
+function openLanguageSettings() {
+
+    document.getElementById(
+        "inputModalTitle"
+    ).textContent =
+        "🌐 " +
+        v39T(
+            "Language",
+            "Язык"
+        );
+
+
+    document.getElementById(
+        "inputModalSubtitle"
+    ).textContent =
+        v39T(
+            "Choose the interface language.",
+            "Выберите язык интерфейса."
+        );
+
+
+    document.getElementById(
+        "inputModalFields"
+    ).innerHTML = `
+        <div class="field">
+            <label>${v39T("Language","Язык")}</label>
+            <select id="v39LanguageSelect">
+                <option value="en" ${v39CurrentLanguage === "en" ? "selected" : ""}>English</option>
+                <option value="ru" ${v39CurrentLanguage === "ru" ? "selected" : ""}>Русский</option>
+            </select>
+        </div>
+    `;
+
+
+    const action =
+        document.getElementById(
+            "inputModalAction"
+        );
+
+
+    action.textContent =
+        v39T(
+            "Save",
+            "Сохранить"
+        );
+
+
+    action.onclick =
+        saveV39Language;
+
+
+    showModal(
+        "inputModal"
+    );
+}
+
+
+async function saveV39Language() {
+
+    const language =
+        document.getElementById(
+            "v39LanguageSelect"
+        )?.value ||
+        "en";
+
+
+    try {
+
+        await api(
+            "/settings/language",
+            {
+                initData:
+                    tg.initData,
+                language
+            }
+        );
+
+
+        localStorage.setItem(
+            "hm_ui_language",
+            language
+        );
+
+
+        location.reload();
+
+    } catch (error) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+    }
+}
+
+
+/* =========================================================
+   V39 PROFILE TILES
+   ========================================================= */
+
+const v39BaseRenderMainProfile =
+    renderMainProfile;
+
+
+renderMainProfile =
+function renderMainProfileV39(
+    user
+) {
+
+    v39BaseRenderMainProfile(
+        user
+    );
+
+
+    const menu =
+        document.querySelector(
+            "#profileContent .profile-menu"
+        );
+
+
+    if (!menu) {
+        return;
+    }
+
+
+    if (
+        !document.getElementById(
+            "v39FaqTile"
+        )
+    ) {
+
+        menu.insertAdjacentHTML(
+            "beforeend",
+            `
+                <button id="v39FaqTile" class="profile-tile" onclick="openFAQ()">
+                    <div class="profile-tile-icon">❓</div>
+                    <div>
+                        <div class="profile-tile-title">FAQ</div>
+                        <div class="profile-tile-subtitle">${v39T("Common questions","Частые вопросы")}</div>
+                    </div>
+                </button>
+
+                <button id="v39RulesTile" class="profile-tile" onclick="openRules()">
+                    <div class="profile-tile-icon">📜</div>
+                    <div>
+                        <div class="profile-tile-title">Rules & Safety</div>
+                        <div class="profile-tile-subtitle">${v39T("Marketplace rules","Правила площадки")}</div>
+                    </div>
+                </button>
+
+                <button id="v39LanguageTile" class="profile-tile" onclick="openLanguageSettings()">
+                    <div class="profile-tile-icon">🌐</div>
+                    <div>
+                        <div class="profile-tile-title">Language</div>
+                        <div class="profile-tile-subtitle">${v39CurrentLanguage === "ru" ? "Русский" : "English"}</div>
+                    </div>
+                </button>
+            `
+        );
+    }
+
+
+    if (
+        user.is_admin
+    ) {
+
+        const subtitle =
+            document.querySelector(
+                '#profileContent .profile-tile[onclick="openAdmin()"] .profile-tile-subtitle'
+            );
+
+
+        if (subtitle) {
+
+            subtitle.textContent =
+                v39RoleLabel(
+                    user.admin_role
+                );
+        }
+    }
+
+
+    v39ApplyTranslations(
+        document.getElementById(
+            "profileContent"
+        )
+    );
+};
+
+
+/* =========================================================
+   V39 ADMIN DASHBOARD + ROLES
+   ========================================================= */
+
+function v39Role() {
+
+    if (
+        !authenticatedUser?.is_admin
+    ) {
+        return null;
+    }
+
+
+    const role =
+        String(
+            authenticatedUser.admin_role ||
+            "owner"
+        ).toLowerCase();
+
+
+    return [
+        "owner",
+        "moderator",
+        "support"
+    ].includes(role)
+        ? role
+        : "owner";
+}
+
+
+function v39RoleLabel(
+    role
+) {
+
+    const normalized =
+        String(
+            role ||
+            "owner"
+        ).toLowerCase();
+
+
+    if (
+        normalized ===
+        "moderator"
+    ) {
+        return v39T(
+            "Moderator",
+            "Модератор"
+        );
+    }
+
+
+    if (
+        normalized ===
+        "support"
+    ) {
+        return v39T(
+            "Support",
+            "Поддержка"
+        );
+    }
+
+
+    return v39T(
+        "Owner",
+        "Владелец"
+    );
+}
+
+
+function v39InjectAdminSections() {
+
+    const box =
+        document.querySelector(
+            "#admin .admin-box"
+        );
+
+    const header =
+        document.querySelector(
+            "#admin .admin-header"
+        );
+
+
+    if (
+        !box ||
+        !header
+    ) {
+        return;
+    }
+
+
+    if (
+        !document.getElementById(
+            "v39AdminRoleBadge"
+        )
+    ) {
+
+        header.insertAdjacentHTML(
+            "beforeend",
+            `<div id="v39AdminRoleBadge" class="v39-role-badge"></div>`
+        );
+    }
+
+
+    if (
+        !document.getElementById(
+            "v39AdminDashboardSection"
+        )
+    ) {
+
+        header.insertAdjacentHTML(
+            "afterend",
+            `
+                <div
+                    class="admin-section"
+                    id="v39AdminDashboardSection"
+                    data-v39-section="dashboard"
+                >
+                    <div class="admin-section-title">📊 Admin Dashboard</div>
+                    <div class="section-subtitle">${v39T("Live marketplace and moderation overview.","Сводная статистика маркетплейса и модерации.")}</div>
+                    <div id="v39AdminDashboard"><div class="empty">Loading...</div></div>
+                </div>
+            `
+        );
+    }
+
+
+    if (
+        !document.getElementById(
+            "v39AdminTeamSection"
+        )
+    ) {
+
+        box.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div
+                    class="admin-section"
+                    id="v39AdminTeamSection"
+                    data-v39-section="team"
+                >
+                    <div class="admin-section-title">👥 Admin Team</div>
+                    <div class="section-subtitle">${v39T("Owner-only role management. The user must have opened Handle Market at least once.","Управление ролями доступно только Owner. Пользователь должен хотя бы один раз открыть Handle Market.")}</div>
+
+                    <div class="card" style="margin-top:10px">
+                        <div class="field">
+                            <label>Telegram ID</label>
+                            <input id="v39AdminTargetId" type="number" inputmode="numeric" min="1" placeholder="123456789">
+                        </div>
+                        <div class="field">
+                            <label>Role</label>
+                            <select id="v39AdminTargetRole">
+                                <option value="moderator">Moderator</option>
+                                <option value="support">Support</option>
+                                <option value="owner">Owner</option>
+                            </select>
+                        </div>
+                        <button class="primary" style="width:100%" onclick="v39SetAdminRole()">Set Role</button>
+                    </div>
+
+                    <div id="v39AdminTeamList" style="margin-top:10px"><div class="empty">Loading...</div></div>
+                </div>
+            `
+        );
+    }
+
+
+    const titleMap = {
+        "➕ Add Listing Without Payment":"create",
+        "⏳ Pending Listings":"pending",
+        "🛠 Listing Management":"management",
+        "🚫 Blocked Sellers":"blocked",
+        "🎧 Support Tickets":"support",
+        "🚩 Risk Flags":"risk",
+        "🕓 Listing History":"history",
+        "📜 Admin Activity":"activity",
+        "🚩 Open Reports":"reports",
+        "🧊 Frozen Listings":"frozen"
+    };
+
+
+    box.querySelectorAll(
+        ".admin-section"
+    ).forEach(
+        section => {
+
+            if (
+                section.dataset.v39Section
+            ) {
+                return;
+            }
+
+
+            const title =
+                section.querySelector(
+                    ".admin-section-title"
+                )?.textContent?.trim();
+
+
+            if (
+                titleMap[
+                    title
+                ]
+            ) {
+                section.dataset.v39Section =
+                    titleMap[
+                        title
+                    ];
+            }
+        }
+    );
+
+
+    v39ApplyAdminRoleVisibility();
+}
+
+
+function v39ApplyAdminRoleVisibility() {
+
+    const role =
+        v39Role();
+
+
+    const badge =
+        document.getElementById(
+            "v39AdminRoleBadge"
+        );
+
+
+    if (badge) {
+        badge.textContent =
+            `🛡 ${v39RoleLabel(role)}`;
+    }
+
+
+    const allowed = {
+        owner:new Set([
+            "dashboard","create","pending","management","blocked","support","risk","history","activity","reports","frozen","team"
+        ]),
+        moderator:new Set([
+            "dashboard","pending","management","blocked","support","risk","history","reports","frozen"
+        ]),
+        support:new Set([
+            "dashboard","support"
+        ])
+    };
+
+
+    const set =
+        allowed[
+            role
+        ] ||
+        new Set();
+
+
+    document.querySelectorAll(
+        "#admin .admin-section[data-v39-section]"
+    ).forEach(
+        section => {
+
+            section.style.display =
+                set.has(
+                    section.dataset.v39Section
+                )
+                    ? ""
+                    : "none";
+        }
+    );
+}
+
+
+async function loadAdminDashboard() {
+
+    const container =
+        document.getElementById(
+            "v39AdminDashboard"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/dashboard",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const s =
+            data.stats ||
+            {};
+
+
+        const cards = [
+            ["👥",s.users_total,v39T("Total Users","Всего пользователей")],
+            ["🟢",s.users_active_24h,v39T("Active 24h","Активны за 24ч")],
+            ["📦",s.listings_active,v39T("Active Listings","Активные лоты")],
+            ["⏳",s.listings_pending,v39T("Pending","На модерации")],
+            ["🧊",s.listings_frozen,v39T("Frozen","Заморожено")],
+            ["🚫",s.blocked_sellers,v39T("Blocked Sellers","Заблокировано продавцов")],
+            ["🚩",s.reports_open,v39T("Open Reports","Открытые жалобы")],
+            ["⚠️",s.risk_flags_open,v39T("Open Risk Flags","Открытые флаги риска")],
+            ["🎧",s.support_open,v39T("Open Support","Открытые тикеты")],
+            ["🆕",s.listings_new_today,v39T("New Today","Новых сегодня")],
+            ["🛡",s.admins_total,v39T("Admins","Админы")]
+        ];
+
+
+        if (
+            s.stars_collected !==
+            null &&
+            s.stars_collected !==
+            undefined
+        ) {
+            cards.push([
+                "⭐",
+                Number(
+                    s.stars_collected ||
+                    0
+                ).toLocaleString("en-US"),
+                v39T("Stars Collected","Получено Stars")
+            ]);
+        }
+
+
+        container.innerHTML = `
+            <div class="v39-dashboard-grid">
+                ${cards.map(card => `
+                    <div class="v39-stat-card">
+                        <div class="v39-stat-value">${card[0]} ${escapeHtml(card[1] ?? 0)}</div>
+                        <div class="v39-stat-label">${escapeHtml(card[2])}</div>
+                    </div>
+                `).join("")}
+            </div>
+        `;
+
+    } catch (error) {
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+    }
+}
+
+
+async function loadAdminTeam() {
+
+    const container =
+        document.getElementById(
+            "v39AdminTeamList"
+        );
+
+
+    if (
+        !container ||
+        v39Role() !== "owner"
+    ) {
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/team",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const admins =
+            data.admins ||
+            [];
+
+
+        container.innerHTML =
+            admins.length
+                ? admins.map(
+                    admin => {
+
+                        const name =
+                            [
+                                admin.first_name,
+                                admin.last_name
+                            ]
+                                .filter(Boolean)
+                                .join(" ") ||
+                            "Admin";
+
+                        const isSelf =
+                            Number(admin.telegram_id) ===
+                            Number(authenticatedUser?.id);
+
+
+                        return `
+                            <div class="v39-admin-row">
+                                <div class="v39-admin-row-top">
+                                    <div>
+                                        <strong>${escapeHtml(name)}</strong>
+                                        <div class="field-hint">Telegram ID: ${escapeHtml(admin.telegram_id)}</div>
+                                        ${admin.telegram_username ? `<div class="field-hint">@${escapeHtml(admin.telegram_username)}</div>` : ""}
+                                    </div>
+                                    <span class="v39-role-chip">${escapeHtml(v39RoleLabel(admin.admin_role))}</span>
+                                </div>
+                                ${!isSelf ? `
+                                    <div class="buttons" style="margin-top:9px">
+                                        <button class="secondary" onclick="v39EditAdminRole('${admin.telegram_id}','${escapeJs(admin.admin_role || "moderator")}')">${v39T("Change Role","Изменить роль")}</button>
+                                        <button class="reject-button" onclick="v39RemoveAdmin('${admin.telegram_id}','${escapeJs(name)}')">${v39T("Remove Admin","Убрать админа")}</button>
+                                    </div>
+                                ` : `<div class="field-hint" style="margin-top:8px">${v39T("Your own role cannot be changed here.","Свою роль здесь изменить нельзя.")}</div>`}
+                            </div>
+                        `;
+                    }
+                ).join("")
+                : '<div class="empty">No administrators.</div>';
+
+    } catch (error) {
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+    }
+}
+
+
+async function v39SetAdminRole() {
+
+    const telegramId =
+        document.getElementById(
+            "v39AdminTargetId"
+        )?.value;
+
+    const role =
+        document.getElementById(
+            "v39AdminTargetRole"
+        )?.value ||
+        "moderator";
+
+
+    if (!telegramId) {
+        tg?.showAlert(
+            v39T(
+                "Enter a Telegram ID.",
+                "Введите Telegram ID."
+            )
+        );
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/admin/team-set",
+            {
+                initData:
+                    tg.initData,
+                telegram_id:
+                    telegramId,
+                action:"set",
+                role
+            }
+        );
+
+
+        document.getElementById(
+            "v39AdminTargetId"
+        ).value = "";
+
+
+        await Promise.all([
+            loadAdminTeam(),
+            loadAdminDashboard()
+        ]);
+
+
+        tg?.showAlert(
+            v39T(
+                "Admin role updated.",
+                "Роль администратора обновлена."
+            )
+        );
+
+    } catch (error) {
+
+        const messages = {
+            admin_target_user_not_found:v39T("User not found. The user must open Handle Market first.","Пользователь не найден. Сначала он должен открыть Handle Market."),
+            blocked_user_cannot_be_admin:v39T("A blocked user cannot be made an administrator.","Заблокированного пользователя нельзя назначить администратором."),
+            cannot_change_own_admin_role:v39T("You cannot change your own admin role here.","Свою роль администратора здесь изменить нельзя."),
+            admin_role_forbidden:v39T("Your admin role does not allow this action.","Ваша роль администратора не позволяет это действие.")
+        };
+
+        tg?.showAlert(
+            messages[error.message] ||
+            friendlyError(error.message)
+        );
+    }
+}
+
+
+function v39EditAdminRole(
+    telegramId,
+    role
+) {
+
+    document.getElementById(
+        "v39AdminTargetId"
+    ).value =
+        telegramId;
+
+    document.getElementById(
+        "v39AdminTargetRole"
+    ).value =
+        ["owner","moderator","support"].includes(role)
+            ? role
+            : "moderator";
+
+
+    document.getElementById(
+        "v39AdminTargetId"
+    ).scrollIntoView({
+        behavior:"smooth",
+        block:"center"
+    });
+}
+
+
+async function v39RemoveAdmin(
+    telegramId,
+    label
+) {
+
+    const perform =
+        async () => {
+
+            try {
+
+                await api(
+                    "/admin/team-set",
+                    {
+                        initData:
+                            tg.initData,
+                        telegram_id:
+                            telegramId,
+                        action:"remove"
+                    }
+                );
+
+
+                await Promise.all([
+                    loadAdminTeam(),
+                    loadAdminDashboard()
+                ]);
+
+
+                tg?.showAlert(
+                    `${label || "Admin"}: ${v39T("admin access removed.","доступ администратора удалён.")}`
+                );
+
+            } catch (error) {
+
+                const messages = {
+                    cannot_remove_last_owner:v39T("You cannot remove the last Owner.","Нельзя удалить последнего Owner."),
+                    cannot_change_own_admin_role:v39T("You cannot remove your own admin access here.","Здесь нельзя удалить собственный доступ администратора.")
+                };
+
+                tg?.showAlert(
+                    messages[error.message] ||
+                    friendlyError(error.message)
+                );
+            }
+        };
+
+
+    if (tg?.showConfirm) {
+
+        tg.showConfirm(
+            v39T(
+                `Remove admin access from ${label || "this user"}?`,
+                `Убрать права администратора у ${label || "этого пользователя"}?`
+            ),
+            confirmed => {
+                if (confirmed) {
+                    perform();
+                }
+            }
+        );
+        return;
+    }
+
+
+    if (
+        confirm(
+            `Remove admin access from ${label || "this user"}?`
+        )
+    ) {
+        await perform();
+    }
+}
+
+
+/* Moderator keeps moderation actions but not owner-only
+   Premium or free promotion controls. */
+const v39BaseLoadAdminPremiumListings =
+    loadAdminPremiumListings;
+
+
+loadAdminPremiumListings =
+async function loadAdminPremiumListingsV39() {
+
+    await v39BaseLoadAdminPremiumListings();
+
+
+    if (
+        v39Role() !==
+        "moderator"
+    ) {
+        return;
+    }
+
+
+    document.querySelectorAll(
+        '#adminPremiumListings button[onclick*="adminSetPremium"]'
+    ).forEach(
+        button =>
+            button.style.display =
+                "none"
+    );
+
+
+    document.querySelectorAll(
+        '#adminPremiumListings select[id^="adminPromoType-"]'
+    ).forEach(
+        select => {
+
+            const outer =
+                select.parentElement
+                    ?.parentElement;
+
+            if (outer) {
+                outer.style.display =
+                    "none";
+            }
+        }
+    );
+};
+
+
+/* Replace the old all-admin loader with role-aware loading. */
+loadAdminPanel =
+async function loadAdminPanelV39() {
+
+    v39InjectAdminSections();
+
+
+    const role =
+        v39Role();
+
+
+    v39ApplyAdminRoleVisibility();
+
+
+    const tasks = [
+        loadAdminDashboard()
+    ];
+
+
+    if (
+        role ===
+        "owner"
+    ) {
+
+        tasks.push(
+            loadPendingListings(),
+            loadAdminPremiumListings(),
+            loadAdminReports(),
+            loadFrozenListings(),
+            loadBlockedSellers(),
+            loadAdminSupportTickets(),
+            loadAdminRiskFlags(),
+            loadAdminActivityLog(),
+            loadAdminTeam()
+        );
+
+    } else if (
+        role ===
+        "moderator"
+    ) {
+
+        tasks.push(
+            loadPendingListings(),
+            loadAdminPremiumListings(),
+            loadAdminReports(),
+            loadFrozenListings(),
+            loadBlockedSellers(),
+            loadAdminSupportTickets(),
+            loadAdminRiskFlags()
+        );
+
+    } else if (
+        role ===
+        "support"
+    ) {
+
+        tasks.push(
+            loadAdminSupportTickets()
+        );
+    }
+
+
+    await Promise.all(
+        tasks
+    );
+
+
+    v39ApplyAdminRoleVisibility();
+    v39ApplyTranslations(
+        document.getElementById(
+            "admin"
+        )
+    );
+};
+
+
+/* =========================================================
+   V39 BOOT
+   ========================================================= */
+
+v39InjectPlatformPages();
+v39InjectAdminSections();
+
+
+const v39BootTimer =
+    setInterval(
+        () => {
+
+            if (
+                !authenticatedUser
+            ) {
+                return;
+            }
+
+
+            const language =
+                authenticatedUser.ui_language ||
+                localStorage.getItem(
+                    "hm_ui_language"
+                ) ||
+                "en";
+
+
+            if (
+                ["en","ru"].includes(
+                    language
+                )
+            ) {
+                v39CurrentLanguage =
+                    language;
+
+                localStorage.setItem(
+                    "hm_ui_language",
+                    language
+                );
+            }
+
+
+            renderMainProfile(
+                authenticatedUser
+            );
+
+            v39RenderHelpPages();
+            v39ApplyAdminRoleVisibility();
+            v39ApplyTranslations(
+                document.body
+            );
+
+
+            clearInterval(
+                v39BootTimer
+            );
+        },
+        250
+    );
+
+
+if (
+    v39CurrentLanguage ===
+    "ru"
+) {
+    v39ApplyTranslations(
+        document.body
+    );
+}
+</script>
+
 </body>
 </html>
