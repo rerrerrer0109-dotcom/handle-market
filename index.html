@@ -4078,6 +4078,307 @@ button {
     }
 }
 
+
+
+/* =========================================================
+   V63 MODERN MODALS & FORMS
+   Unified bottom-sheet/modal language for offers, reports,
+   promotion, confirmations and other input dialogs.
+   ========================================================= */
+
+.modal-backdrop {
+    padding:14px 12px max(14px, env(safe-area-inset-bottom));
+    background:rgba(14,20,30,.48);
+    -webkit-backdrop-filter:blur(7px);
+    backdrop-filter:blur(7px);
+}
+
+.modal-backdrop.show {
+    animation:v63BackdropIn .16s ease-out;
+}
+
+.modal {
+    position:relative;
+    width:100%;
+    max-width:500px;
+    max-height:min(88vh,760px);
+    padding:24px 18px 18px;
+    border:1px solid rgba(140,155,180,.22);
+    border-radius:24px 24px 20px 20px;
+    background:var(--surface);
+    box-shadow:0 24px 65px rgba(15,23,42,.24);
+    scrollbar-width:thin;
+    animation:v63ModalIn .2s cubic-bezier(.2,.8,.2,1);
+}
+
+.modal::before {
+    content:"";
+    position:absolute;
+    top:8px;
+    left:50%;
+    width:34px;
+    height:4px;
+    border-radius:999px;
+    transform:translateX(-50%);
+    background:var(--border);
+}
+
+.modal-title {
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin-top:2px;
+    color:var(--text);
+    font-size:17px;
+    line-height:1.2;
+    font-weight:900;
+    letter-spacing:-.2px;
+}
+
+.modal-title-with-icon {
+    padding-right:4px;
+}
+
+.modal-title-icon {
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid rgba(34,124,255,.16);
+    border-radius:11px;
+    color:var(--blue);
+    background:var(--blue-soft);
+}
+
+.modal-title-icon .hm-ui-icon {
+    width:17px;
+    height:17px;
+    stroke-width:1.9;
+}
+
+.modal-subtitle {
+    margin:6px 0 16px;
+    color:var(--muted);
+    font-size:9.5px;
+    line-height:1.5;
+}
+
+#inputModalFields {
+    display:block;
+}
+
+.modal .field {
+    margin-bottom:12px;
+}
+
+.modal .field label {
+    margin-bottom:6px;
+    color:var(--text-2);
+    font-size:9px;
+    font-weight:850;
+    letter-spacing:.01em;
+}
+
+.modal .field input,
+.modal .field select,
+.modal .field textarea {
+    min-height:44px;
+    padding:11px 12px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    color:var(--text);
+    background:var(--surface-2);
+    font-size:11px;
+    transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.modal .field textarea {
+    min-height:88px;
+    line-height:1.5;
+}
+
+.modal .field input:focus,
+.modal .field select:focus,
+.modal .field textarea:focus {
+    border-color:rgba(34,124,255,.55);
+    background:var(--surface);
+    box-shadow:0 0 0 3px rgba(34,124,255,.09);
+}
+
+.modal .field-hint {
+    margin-top:5px;
+    font-size:8.2px;
+    line-height:1.45;
+}
+
+.modal-actions {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:15px;
+    padding-top:13px;
+    border-top:1px solid var(--border);
+}
+
+.modal-actions:has(button:only-child) {
+    grid-template-columns:1fr;
+}
+
+.modal-actions button {
+    width:100%;
+    min-height:43px;
+    padding:0 14px;
+    border-radius:12px;
+    font-size:10.5px;
+    font-weight:850;
+}
+
+/* Promotion choices become quiet, product-like option cards. */
+.promotion-plan {
+    position:relative;
+    margin-bottom:9px;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:15px;
+    background:var(--surface-2);
+    box-shadow:none;
+}
+
+.promotion-plan-name {
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:12px;
+    line-height:1.2;
+    font-weight:900;
+}
+
+.promotion-plan-icon {
+    width:27px;
+    height:27px;
+    flex:0 0 27px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:9px;
+    color:var(--blue);
+    background:var(--blue-soft);
+}
+
+.promotion-plan-icon .hm-ui-icon {
+    width:14px;
+    height:14px;
+    stroke-width:1.9;
+}
+
+.promotion-plan-hot {
+    border-color:rgba(236,100,25,.22);
+    background:rgba(236,100,25,.07);
+}
+
+.promotion-plan-hot .promotion-plan-icon {
+    color:var(--orange);
+    background:rgba(236,100,25,.11);
+}
+
+.promotion-plan-vip {
+    border-color:rgba(167,112,255,.30);
+    color:var(--text);
+    background:linear-gradient(145deg,rgba(125,73,255,.10),rgba(92,52,174,.06));
+}
+
+.promotion-plan-vip .promotion-plan-icon {
+    color:var(--purple);
+    background:var(--purple-soft);
+}
+
+.promotion-plan-subtitle,
+.promotion-plan-vip .promotion-plan-subtitle {
+    margin:4px 0 0 34px;
+    color:var(--muted);
+    font-size:8.5px;
+    line-height:1.4;
+}
+
+.promotion-duration-grid {
+    gap:6px;
+    margin-top:10px;
+}
+
+.promotion-buy-button,
+.promotion-plan-vip .promotion-buy-button {
+    min-height:43px;
+    padding:8px 5px;
+    border:1px solid var(--border);
+    border-radius:11px;
+    color:var(--text);
+    background:var(--surface);
+    box-shadow:none;
+}
+
+.promotion-buy-button strong {
+    font-size:10px;
+}
+
+.promotion-buy-button span {
+    margin-top:2px;
+    color:var(--muted);
+    font-size:7.8px;
+}
+
+.promotion-rules {
+    margin-top:10px;
+    padding:10px 11px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    color:var(--muted);
+    background:transparent;
+    font-size:8px;
+    line-height:1.55;
+}
+
+@keyframes v63BackdropIn {
+    from { opacity:0; }
+    to { opacity:1; }
+}
+
+@keyframes v63ModalIn {
+    from { opacity:0; transform:translateY(12px) scale(.985); }
+    to { opacity:1; transform:translateY(0) scale(1); }
+}
+
+@media (min-width:650px) {
+    .modal {
+        border-radius:20px;
+    }
+
+    .modal::before {
+        display:none;
+    }
+}
+
+@media (max-width:430px) {
+    .modal-backdrop {
+        padding:10px 8px max(10px, env(safe-area-inset-bottom));
+    }
+
+    .modal {
+        max-height:90vh;
+        padding:23px 14px 14px;
+        border-radius:22px 22px 17px 17px;
+    }
+
+    .modal-title {
+        font-size:16px;
+    }
+
+    .promotion-duration-grid {
+        grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+}
+
 </style>
 
 <style>
@@ -8583,8 +8884,15 @@ Profile
 
 <div class="modal">
 
-<div class="modal-title">
-🚀 Promote Listing
+<div class="modal-title modal-title-with-icon">
+<span class="modal-title-icon">
+<svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M12 3v18"></path>
+<path d="m6.5 8.5 5.5-5.5 5.5 5.5"></path>
+<path d="M5 14.5v3.5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3.5"></path>
+</svg>
+</span>
+<span>Promote Listing</span>
 </div>
 
 <div
@@ -8596,7 +8904,13 @@ Profile
 <div class="promotion-plan">
 
 <div class="promotion-plan-name">
-⬆️ Bump
+<span class="promotion-plan-icon">
+<svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M12 19V5"></path>
+<path d="m7 10 5-5 5 5"></path>
+</svg>
+</span>
+<span>Bump</span>
 </div>
 
 <div class="promotion-plan-subtitle">
@@ -8614,7 +8928,13 @@ Move above regular listings.
 <div class="promotion-plan promotion-plan-hot">
 
 <div class="promotion-plan-name">
-🔥 HOT
+<span class="promotion-plan-icon">
+<svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M13.5 3.5c.5 3-1.7 4.2-3.1 6.1-1.3 1.8-1.1 4.4.8 5.8"></path>
+<path d="M15.9 8.1c2.6 2 3.6 4.1 2.8 6.8A6.8 6.8 0 0 1 12 20a6.8 6.8 0 0 1-6.7-5.1c-.7-2.9.9-5.2 3.4-7.4-.2 2.4.8 3.5 2 4.3"></path>
+</svg>
+</span>
+<span>HOT</span>
 </div>
 
 <div class="promotion-plan-subtitle">
@@ -8632,7 +8952,14 @@ Priority placement with HOT styling.
 <div class="promotion-plan promotion-plan-vip">
 
 <div class="promotion-plan-name">
-💎 VIP
+<span class="promotion-plan-icon">
+<svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+<path d="M5 5h14l2 5-9 10L3 10l2-5Z"></path>
+<path d="m3 10 9 2 9-2"></path>
+<path d="m8 5 4 7 4-7"></path>
+</svg>
+</span>
+<span>VIP</span>
 </div>
 
 <div class="promotion-plan-subtitle">
@@ -8656,7 +8983,7 @@ VIP → HOT → Bump → regular listings.
 
 <br><br>
 
-⭐ Premium is separate from paid promotion.
+Premium is separate from paid promotion.
 
 </div>
 
