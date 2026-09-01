@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#ffffff">
 
 <title>Handle Market</title>
-<!-- UI version: v47-production-pricing -->
+<!-- UI version: v48-onboarding -->
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -3537,6 +3537,183 @@ button {
 }
 </style>
 
+
+
+<!-- =====================================================
+     v48 ONBOARDING / HOW IT WORKS
+     ===================================================== -->
+<style>
+
+.how-it-works-btn {
+    display:block;
+    width:auto;
+    min-width:150px;
+    margin:18px auto 0;
+    padding:11px 24px;
+    border:1px solid rgba(255,255,255,.36);
+    border-radius:14px;
+    background:linear-gradient(135deg,#3e9cf4 0%,#7857ee 100%);
+    color:#fff;
+    font-size:15px;
+    line-height:1.2;
+    font-weight:800;
+    font-family:inherit;
+    cursor:pointer;
+    box-shadow:0 8px 20px rgba(52,74,220,.24),inset 0 1px 0 rgba(255,255,255,.22);
+    transition:transform .16s ease,filter .16s ease;
+}
+
+.how-it-works-btn:active {
+    transform:scale(.97);
+}
+
+@media (hover:hover) {
+    .how-it-works-btn:hover {
+        filter:brightness(1.05);
+        transform:translateY(-1px);
+    }
+}
+
+.onboarding-overlay {
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+    background:rgba(8,15,31,.68);
+    -webkit-backdrop-filter:blur(8px);
+    backdrop-filter:blur(8px);
+    z-index:100000;
+}
+
+.onboarding-overlay.active {
+    display:flex;
+}
+
+.onboarding-modal {
+    position:relative;
+    width:100%;
+    max-width:390px;
+    max-height:min(88vh,760px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    padding:24px;
+    border:1px solid var(--border);
+    border-radius:24px;
+    background:var(--surface);
+    color:var(--text);
+    box-shadow:0 28px 80px rgba(0,0,0,.30);
+}
+
+.onboarding-close {
+    position:absolute;
+    top:14px;
+    right:14px;
+    width:34px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    border:0;
+    border-radius:50%;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:22px;
+    line-height:1;
+    font-family:inherit;
+    cursor:pointer;
+}
+
+.onboarding-badge {
+    display:inline-flex;
+    align-items:center;
+    padding:6px 10px;
+    margin:0 0 12px;
+    border-radius:10px;
+    background:var(--blue-soft);
+    color:var(--blue);
+    font-size:12px;
+    line-height:1;
+    font-weight:900;
+    letter-spacing:.02em;
+}
+
+.onboarding-modal h2 {
+    margin:0 42px 8px 0;
+    color:var(--text);
+    font-size:25px;
+    line-height:1.16;
+}
+
+.onboarding-subtitle {
+    margin:0 0 18px;
+    color:var(--text-2);
+    font-size:14px;
+    line-height:1.5;
+}
+
+.onboarding-item {
+    display:flex;
+    gap:13px;
+    padding:13px 0;
+    border-bottom:1px solid var(--border);
+}
+
+.onboarding-icon {
+    flex:0 0 42px;
+    width:42px;
+    height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:13px;
+    background:var(--blue-soft);
+    font-size:20px;
+}
+
+.onboarding-item h3 {
+    margin:0 0 4px;
+    color:var(--text);
+    font-size:15px;
+    line-height:1.25;
+}
+
+.onboarding-item p {
+    margin:0;
+    color:var(--text-2);
+    font-size:13px;
+    line-height:1.46;
+}
+
+.onboarding-warning {
+    margin-top:17px;
+    padding:13px;
+    border-radius:14px;
+    background:var(--yellow-soft);
+    color:var(--yellow);
+    font-size:12px;
+    line-height:1.5;
+}
+
+.onboarding-start-btn {
+    width:100%;
+    margin-top:18px;
+    padding:14px 16px;
+    border:0;
+    border-radius:14px;
+    background:linear-gradient(135deg,#168cec 0%,#6556e8 100%);
+    color:#fff;
+    font-size:15px;
+    line-height:1.2;
+    font-weight:900;
+    font-family:inherit;
+    cursor:pointer;
+}
+
+</style>
+
 </head>
 
 <body>
@@ -3610,6 +3787,10 @@ New sellers can publish their first listing free. The 24-hour timer begins only 
 </div>
 
 </div>
+
+<button class="how-it-works-btn" id="howItWorksBtn" type="button">
+How it works
+</button>
 
 </div>
 
@@ -30211,6 +30392,158 @@ if (
     );
 }
 </script>
+
+
+
+<!-- =====================================================
+     v48 ONBOARDING MODAL
+     ===================================================== -->
+<div class="onboarding-overlay" id="onboardingOverlay" aria-hidden="true">
+
+<div class="onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+
+<button class="onboarding-close" id="onboardingClose" type="button" aria-label="Close">×</button>
+
+<div class="onboarding-badge">HANDLE MARKET</div>
+
+<h2 id="onboardingTitle">Welcome to Handle Market 👋</h2>
+
+<p class="onboarding-subtitle">
+A quick guide to buying, selling and discovering WhatsApp usernames.
+</p>
+
+<div class="onboarding-item">
+<div class="onboarding-icon">🛒</div>
+<div>
+<h3>Buy</h3>
+<p>Browse available usernames, open a listing and contact the seller when you're interested.</p>
+</div>
+</div>
+
+<div class="onboarding-item">
+<div class="onboarding-icon">💰</div>
+<div>
+<h3>Sell</h3>
+<p>Publish your WhatsApp username and receive offers from interested buyers.</p>
+</div>
+</div>
+
+<div class="onboarding-item">
+<div class="onboarding-icon">🔎</div>
+<div>
+<h3>Wanted</h3>
+<p>Looking for a specific username? Publish a Wanted request with the name you want and your budget.</p>
+</div>
+</div>
+
+<div class="onboarding-item">
+<div class="onboarding-icon">🎁</div>
+<div>
+<h3>First listing free</h3>
+<p>New sellers can publish their first listing free for 24 hours. The timer starts only after moderation approval.</p>
+</div>
+</div>
+
+<div class="onboarding-item">
+<div class="onboarding-icon">🔓</div>
+<div>
+<h3>Unlock Contact</h3>
+<p>Seller contact details may require an Unlock Contact payment before you can contact the seller directly.</p>
+</div>
+</div>
+
+<div class="onboarding-item">
+<div class="onboarding-icon">🚀</div>
+<div>
+<h3>Premium, VIP, HOT &amp; Bump</h3>
+<p>⭐ Premium is awarded by Handle Market and cannot be purchased. 💎 VIP, 🔥 HOT and ⬆️ Bump are paid promotion options.</p>
+</div>
+</div>
+
+<div class="onboarding-warning">
+⚠️ Handle Market connects buyers and sellers. The platform does not guarantee that a WhatsApp username can be transferred or successfully assigned to another account.
+</div>
+
+<button class="onboarding-start-btn" id="onboardingStart" type="button">Start exploring</button>
+
+</div>
+</div>
+
+<script>
+/* =========================================================
+   v48 ONBOARDING
+   ========================================================= */
+(function () {
+    const STORAGE_PREFIX = "handleMarketOnboardingSeen:v48:";
+
+    function onboardingStorageKey() {
+        try {
+            const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+            if (tgUserId) return STORAGE_PREFIX + String(tgUserId);
+        } catch (_) {}
+        return STORAGE_PREFIX + "device";
+    }
+
+    function openHandleMarketOnboarding() {
+        const overlay = document.getElementById("onboardingOverlay");
+        if (!overlay) return;
+        overlay.classList.add("active");
+        overlay.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeHandleMarketOnboarding(markSeen) {
+        const overlay = document.getElementById("onboardingOverlay");
+        if (!overlay) return;
+        overlay.classList.remove("active");
+        overlay.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+
+        if (markSeen) {
+            try {
+                localStorage.setItem(onboardingStorageKey(), "1");
+            } catch (_) {}
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const overlay = document.getElementById("onboardingOverlay");
+        const openBtn = document.getElementById("howItWorksBtn");
+        const closeBtn = document.getElementById("onboardingClose");
+        const startBtn = document.getElementById("onboardingStart");
+
+        if (!overlay || !openBtn || !closeBtn || !startBtn) return;
+
+        openBtn.addEventListener("click", openHandleMarketOnboarding);
+        closeBtn.addEventListener("click", function () {
+            closeHandleMarketOnboarding(true);
+        });
+        startBtn.addEventListener("click", function () {
+            closeHandleMarketOnboarding(true);
+        });
+        overlay.addEventListener("click", function (event) {
+            if (event.target === overlay) closeHandleMarketOnboarding(true);
+        });
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && overlay.classList.contains("active")) {
+                closeHandleMarketOnboarding(true);
+            }
+        });
+
+        let seen = false;
+        try {
+            seen = localStorage.getItem(onboardingStorageKey()) === "1";
+        } catch (_) {}
+
+        if (!seen) {
+            window.setTimeout(openHandleMarketOnboarding, 700);
+        }
+    });
+
+    window.openHandleMarketOnboarding = openHandleMarketOnboarding;
+})();
+</script>
+
 
 </body>
 </html>
