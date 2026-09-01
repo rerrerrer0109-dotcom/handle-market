@@ -3276,6 +3276,120 @@ button {
     }
 }
 
+
+
+/* =========================================================
+   v36 SELLER PROFILE
+   ========================================================= */
+
+.seller-avatar {
+    overflow:hidden;
+    flex:0 0 auto;
+    font-size:20px;
+    font-weight:900;
+}
+
+.seller-avatar img,
+.seller-mini-avatar img {
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:cover;
+}
+
+.seller-presence-row {
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:8px;
+}
+
+.seller-presence-chip {
+    display:inline-flex;
+    align-items:center;
+    min-height:25px;
+    padding:5px 8px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:var(--surface-2);
+    color:var(--text-2);
+    font-size:8.5px;
+    font-weight:800;
+}
+
+.seller-presence-chip.online {
+    color:var(--green);
+    background:var(--green-soft);
+}
+
+.seller-stats {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+}
+
+.seller-store-note {
+    margin-top:10px;
+    color:var(--muted);
+    font-size:9px;
+    line-height:1.45;
+}
+
+.seller-mini {
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin-top:11px;
+    padding:9px 10px;
+    border:1px solid var(--border);
+    border-radius:13px;
+    background:var(--surface-2);
+    color:var(--text);
+    text-align:left;
+}
+
+.seller-mini-avatar {
+    width:30px;
+    height:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+    overflow:hidden;
+    border-radius:10px;
+    background:linear-gradient(135deg,var(--purple-soft),var(--blue-soft));
+    color:var(--purple);
+    font-size:10px;
+    font-weight:900;
+}
+
+.seller-mini-copy {
+    min-width:0;
+    flex:1;
+}
+
+.seller-mini-name {
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:9.5px;
+    font-weight:900;
+}
+
+.seller-mini-status {
+    margin-top:2px;
+    color:var(--muted);
+    font-size:8px;
+}
+
+.seller-mini-status.online {
+    color:var(--green);
+}
+
+.seller-mini-arrow {
+    color:var(--muted);
+    font-size:15px;
+}
+
 </style>
 </head>
 
@@ -7956,6 +8070,11 @@ function renderListingCard(
         );
 
 
+    const sellerSummary =
+        listing.seller_summary ||
+        null;
+
+
     const sellerButton =
 
         showSeller &&
@@ -7964,7 +8083,7 @@ function renderListingCard(
             ? `
 
                 <button
-                    class="seller-link"
+                    class="seller-mini"
                     onclick="
                         openSellerProfile(
                             '${escapeJs(
@@ -7973,7 +8092,42 @@ function renderListingCard(
                         )
                     "
                 >
-                    👤 Seller
+
+                    <div class="seller-mini-avatar">
+                        ${sellerAvatarHtml(
+                            sellerSummary?.avatar_url,
+                            sellerSummary?.display_name ||
+                            "Seller"
+                        )}
+                    </div>
+
+                    <div class="seller-mini-copy">
+
+                        <div class="seller-mini-name">
+                            ${escapeHtml(
+                                sellerSummary?.display_name ||
+                                "Seller"
+                            )}
+                        </div>
+
+                        <div
+                            class="seller-mini-status ${
+                                sellerSummary?.is_online
+                                    ? "online"
+                                    : ""
+                            }"
+                        >
+                            ${sellerPresenceText(
+                                sellerSummary
+                            )}
+                        </div>
+
+                    </div>
+
+                    <div class="seller-mini-arrow">
+                        ›
+                    </div>
+
                 </button>
 
             `
@@ -16100,6 +16254,332 @@ async function openMySellerProfile() {
 }
 
 
+function sellerInitials(
+    displayName
+) {
+
+    const words =
+        String(
+            displayName ||
+            "Seller"
+        )
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+
+
+    return words
+        .slice(0,2)
+        .map(
+            word =>
+                word.charAt(0)
+                    .toUpperCase()
+        )
+        .join("") ||
+        "S";
+}
+
+
+function safeAvatarUrl(
+    value
+) {
+
+    const url =
+        String(
+            value ||
+            ""
+        ).trim();
+
+
+    return /^https:\/\//i.test(
+        url
+    )
+        ? url
+        : "";
+}
+
+
+function sellerAvatarHtml(
+    avatarUrl,
+    displayName
+) {
+
+    const safeUrl =
+        safeAvatarUrl(
+            avatarUrl
+        );
+
+
+    if (
+        safeUrl
+    ) {
+
+        return `
+            <img
+                src="${escapeHtml(
+                    safeUrl
+                )}"
+                alt="Seller avatar"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                onerror="this.remove();this.parentElement.textContent='${escapeJs(
+                    sellerInitials(
+                        displayName
+                    )
+                )}'"
+            >
+        `;
+    }
+
+
+    return escapeHtml(
+        sellerInitials(
+            displayName
+        )
+    );
+}
+
+
+function sellerLastSeenText(
+    lastSeenAt
+) {
+
+    const time =
+        new Date(
+            lastSeenAt ||
+            0
+        ).getTime();
+
+
+    if (
+        !Number.isFinite(
+            time
+        ) ||
+        time <= 0
+    ) {
+
+        return "Last active unavailable";
+    }
+
+
+    const seconds =
+        Math.max(
+            0,
+            Math.floor(
+                (
+                    Date.now() -
+                    time
+                ) /
+                1000
+            )
+        );
+
+
+    if (
+        seconds < 60
+    ) {
+
+        return "Active just now";
+    }
+
+
+    const minutes =
+        Math.floor(
+            seconds / 60
+        );
+
+
+    if (
+        minutes < 60
+    ) {
+
+        return `Last active ${minutes}m ago`;
+    }
+
+
+    const hours =
+        Math.floor(
+            minutes / 60
+        );
+
+
+    if (
+        hours < 24
+    ) {
+
+        return `Last active ${hours}h ago`;
+    }
+
+
+    const days =
+        Math.floor(
+            hours / 24
+        );
+
+
+    if (
+        days <= 30
+    ) {
+
+        return `Last active ${days}d ago`;
+    }
+
+
+    return "Last active over 30d ago";
+}
+
+
+function sellerPresenceText(
+    seller
+) {
+
+    if (
+        seller?.is_online ||
+        seller?.presence?.is_online
+    ) {
+
+        return "🟢 Online";
+    }
+
+
+    return sellerLastSeenText(
+        seller?.last_seen_at ||
+        seller?.presence?.last_seen_at
+    );
+}
+
+
+function sellerResponseTimeText(
+    responseTime
+) {
+
+    const seconds =
+        Number(
+            responseTime?.average_seconds
+        );
+
+
+    const samples =
+        Number(
+            responseTime?.samples ||
+            0
+        );
+
+
+    if (
+        !Number.isFinite(
+            seconds
+        ) ||
+        seconds < 0 ||
+        samples < 1
+    ) {
+
+        return "Response time not enough data";
+    }
+
+
+    if (
+        seconds < 60
+    ) {
+
+        return "Usually replies within a minute";
+    }
+
+
+    const minutes =
+        Math.max(
+            1,
+            Math.round(
+                seconds / 60
+            )
+        );
+
+
+    if (
+        minutes < 60
+    ) {
+
+        return `Usually replies within ${minutes} min`;
+    }
+
+
+    const hours =
+        Math.max(
+            1,
+            Math.round(
+                minutes / 60
+            )
+        );
+
+
+    if (
+        hours < 24
+    ) {
+
+        return `Usually replies within ${hours}h`;
+    }
+
+
+    const days =
+        Math.max(
+            1,
+            Math.round(
+                hours / 24
+            )
+        );
+
+
+    return `Usually replies within ${days}d`;
+}
+
+
+function compactStatNumber(
+    value
+) {
+
+    const number =
+        Number(
+            value ||
+            0
+        );
+
+
+    if (
+        number >= 1000000
+    ) {
+
+        return `${(
+            number /
+            1000000
+        ).toFixed(
+            number >= 10000000
+                ? 0
+                : 1
+        )}M`;
+    }
+
+
+    if (
+        number >= 1000
+    ) {
+
+        return `${(
+            number /
+            1000
+        ).toFixed(
+            number >= 10000
+                ? 0
+                : 1
+        )}K`;
+    }
+
+
+    return formatPrice(
+        number
+    );
+}
+
+
 function renderSellerProfile(
     profile,
     own
@@ -16108,6 +16588,18 @@ function renderSellerProfile(
     const listings =
         profile.listings ||
         [];
+
+
+    const presenceText =
+        sellerPresenceText(
+            profile
+        );
+
+
+    const responseText =
+        sellerResponseTimeText(
+            profile.response_time
+        );
 
 
     document.getElementById(
@@ -16119,7 +16611,11 @@ function renderSellerProfile(
             <div class="seller-top">
 
                 <div class="seller-avatar">
-                    👤
+                    ${sellerAvatarHtml(
+                        profile.avatar_url,
+                        profile.display_name ||
+                        "Seller"
+                    )}
                 </div>
 
                 <div>
@@ -16143,8 +16639,26 @@ function renderSellerProfile(
 
                     </div>
 
-                    <div class="seller-auth">
-                        ✓ Telegram authenticated
+                    <div class="seller-presence-row">
+
+                        <div
+                            class="seller-presence-chip ${
+                                profile.presence?.is_online
+                                    ? "online"
+                                    : ""
+                            }"
+                        >
+                            ${escapeHtml(
+                                presenceText
+                            )}
+                        </div>
+
+                        <div class="seller-presence-chip">
+                            ⚡ ${escapeHtml(
+                                responseText
+                            )}
+                        </div>
+
                     </div>
 
                 </div>
@@ -16180,7 +16694,37 @@ function renderSellerProfile(
                     </div>
 
                     <div class="seller-stat-label">
-                        Listings
+                        Active Listings
+                    </div>
+
+                </div>
+
+
+                <div class="seller-stat">
+
+                    <div class="seller-stat-number">
+                        ${compactStatNumber(
+                            profile.stats?.total_views
+                        )}
+                    </div>
+
+                    <div class="seller-stat-label">
+                        Total Views
+                    </div>
+
+                </div>
+
+
+                <div class="seller-stat">
+
+                    <div class="seller-stat-number">
+                        ${compactStatNumber(
+                            profile.stats?.total_likes
+                        )}
+                    </div>
+
+                    <div class="seller-stat-label">
+                        Total Likes
                     </div>
 
                 </div>
@@ -16198,19 +16742,11 @@ function renderSellerProfile(
 
                 </div>
 
+            </div>
 
-                <div class="seller-stat">
 
-                    <div class="seller-stat-number">
-                        ${profile.stats?.active_wanted || 0}
-                    </div>
-
-                    <div class="seller-stat-label">
-                        Wanted
-                    </div>
-
-                </div>
-
+            <div class="seller-store-note">
+                Contact details are private. Open a listing and use Unlock Contact to access the seller's contact information.
             </div>
 
 
@@ -16252,7 +16788,7 @@ function renderSellerProfile(
 
 
         <div class="seller-listings-title">
-            Active Listings
+            🏪 Seller Store
         </div>
 
 
@@ -16328,6 +16864,7 @@ function openSellerEdit() {
             <textarea
                 id="sellerBioInput"
                 maxlength="300"
+                placeholder="Tell buyers about your seller activity. Do not add contact details here."
             >${escapeHtml(
                 mySellerProfile.bio ||
                 ""
