@@ -4467,7 +4467,8 @@ const NOTIFICATION_KEYS = {
     support:"support",
     watchlist_updates:"watchlist_updates",
     price_drops:"price_drops",
-    saved_searches:"saved_searches"
+    saved_searches:"saved_searches",
+    seller_updates:"seller_updates"
 };
 
 
@@ -4499,7 +4500,7 @@ async function getNotificationPreferences(
                 "notification_preferences"
             )
             .select(
-                "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,updated_at"
+                "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,seller_updates,updated_at"
             )
             .eq(
                 "telegram_id",
@@ -4522,7 +4523,8 @@ async function getNotificationPreferences(
             support:true,
             watchlist_updates:true,
             price_drops:true,
-            saved_searches:true
+            saved_searches:true,
+            seller_updates:true
         };
     }
 
@@ -4541,6 +4543,7 @@ async function getNotificationPreferences(
         watchlist_updates:true,
         price_drops:true,
         saved_searches:true,
+        seller_updates:true,
         updated_at:nowIso()
     };
 
@@ -4559,7 +4562,7 @@ async function getNotificationPreferences(
                 defaults
             )
             .select(
-                "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,updated_at"
+                "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,seller_updates,updated_at"
             )
             .single();
 
@@ -4764,6 +4767,10 @@ app.post(
                 req.body.saved_searches === undefined
                     ? current?.saved_searches !== false
                     : Boolean(req.body.saved_searches),
+            seller_updates:
+                req.body.seller_updates === undefined
+                    ? current?.seller_updates !== false
+                    : Boolean(req.body.seller_updates),
             updated_at:
                 nowIso()
         };
@@ -4785,7 +4792,7 @@ app.post(
                     }
                 )
                 .select(
-                    "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,updated_at"
+                    "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,seller_updates,updated_at"
                 )
                 .single();
 
@@ -6176,6 +6183,592 @@ app.get(
 
 
 /* =========================================================
+   V42 PERSONALIZED RECOMMENDATIONS
+   Uses only existing marketplace activity: views, likes,
+   watchlist, saved searches and seller follows.
+   ========================================================= */
+
+function medianNumber(
+    values
+) {
+
+    const numbers =
+        (values || [])
+            .map(Number)
+            .filter(
+                value =>
+                    Number.isFinite(value) &&
+                    value > 0
+            )
+            .sort(
+                (a,b) =>
+                    a - b
+            );
+
+
+    if (!numbers.length) {
+        return null;
+    }
+
+
+    const middle =
+        Math.floor(
+            numbers.length / 2
+        );
+
+
+    if (
+        numbers.length % 2
+    ) {
+        return numbers[middle];
+    }
+
+
+    return (
+        numbers[middle - 1] +
+        numbers[middle]
+    ) / 2;
+}
+
+
+app.post(
+    "/recommendations",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+            return res
+                .status(auth.status)
+                .json({
+                    ok:false,
+                    error:auth.error
+                });
+        }
+
+
+        const userId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        try {
+
+            const [
+                viewsResult,
+                likesResult,
+                watchResult,
+                searchesResult,
+                followsResult
+            ] =
+                await Promise.all([
+
+                    supabase
+                        .from("listing_views")
+                        .select("listing_id")
+                        .eq(
+                            "viewer_telegram_id",
+                            userId
+                        )
+                        .limit(300),
+
+                    supabase
+                        .from("listing_likes")
+                        .select("listing_id")
+                        .eq(
+                            "user_telegram_id",
+                            userId
+                        )
+                        .limit(300),
+
+                    supabase
+                        .from("watchlist")
+                        .select("listing_id")
+                        .eq(
+                            "telegram_id",
+                            userId
+                        )
+                        .limit(300),
+
+                    supabase
+                        .from("saved_searches")
+                        .select(
+                            "category,min_price,max_price,premium_only"
+                        )
+                        .eq(
+                            "telegram_id",
+                            userId
+                        )
+                        .limit(50),
+
+                    supabase
+                        .from("seller_follows")
+                        .select("seller_telegram_id")
+                        .eq(
+                            "follower_telegram_id",
+                            userId
+                        )
+                        .limit(100)
+                ]);
+
+
+            const viewedIds =
+                new Set(
+                    (viewsResult.data || [])
+                        .map(row => String(row.listing_id))
+                );
+
+            const likedIds =
+                new Set(
+                    (likesResult.data || [])
+                        .map(row => String(row.listing_id))
+                );
+
+            const watchedIds =
+                new Set(
+                    (watchResult.data || [])
+                        .map(row => String(row.listing_id))
+                );
+
+            const interactedIds = [
+                ...new Set([
+                    ...viewedIds,
+                    ...likedIds,
+                    ...watchedIds
+                ])
+            ];
+
+
+            let interactedListings = [];
+
+
+            if (interactedIds.length) {
+
+                const result =
+                    await supabase
+                        .from("listings")
+                        .select(
+                            "id,category,asking_price,is_premium_name"
+                        )
+                        .in(
+                            "id",
+                            interactedIds
+                        );
+
+                interactedListings =
+                    result.data || [];
+            }
+
+
+            const categoryWeights =
+                new Map();
+
+            const priceSignals = [];
+
+
+            for (
+                const listing of
+                interactedListings
+            ) {
+
+                const id =
+                    String(listing.id);
+
+                let weight = 0;
+
+                if (viewedIds.has(id)) {
+                    weight += 1;
+                }
+
+                if (likedIds.has(id)) {
+                    weight += 3;
+                }
+
+                if (watchedIds.has(id)) {
+                    weight += 5;
+                }
+
+
+                const category =
+                    String(
+                        listing.category ||
+                        "Other"
+                    );
+
+
+                categoryWeights.set(
+                    category,
+                    Number(
+                        categoryWeights.get(category) ||
+                        0
+                    ) + weight
+                );
+
+
+                const price =
+                    Number(
+                        listing.asking_price
+                    );
+
+
+                if (
+                    Number.isFinite(price) &&
+                    price > 0
+                ) {
+
+                    for (
+                        let i = 0;
+                        i < Math.max(1, weight);
+                        i++
+                    ) {
+                        priceSignals.push(price);
+                    }
+                }
+            }
+
+
+            let premiumPreference = 0;
+
+
+            for (
+                const search of
+                searchesResult.data || []
+            ) {
+
+                const category =
+                    String(
+                        search.category ||
+                        "all"
+                    );
+
+
+                if (
+                    category !== "all"
+                ) {
+                    categoryWeights.set(
+                        category,
+                        Number(
+                            categoryWeights.get(category) ||
+                            0
+                        ) + 6
+                    );
+                }
+
+
+                const min =
+                    Number(search.min_price);
+
+                const max =
+                    Number(search.max_price);
+
+
+                if (
+                    Number.isFinite(min) &&
+                    min > 0 &&
+                    Number.isFinite(max) &&
+                    max >= min
+                ) {
+                    priceSignals.push(
+                        (min + max) / 2
+                    );
+                } else if (
+                    Number.isFinite(min) &&
+                    min > 0
+                ) {
+                    priceSignals.push(min);
+                } else if (
+                    Number.isFinite(max) &&
+                    max > 0
+                ) {
+                    priceSignals.push(max);
+                }
+
+
+                if (
+                    search.premium_only
+                ) {
+                    premiumPreference += 1;
+                }
+            }
+
+
+            const followedSellerIds =
+                new Set(
+                    (followsResult.data || [])
+                        .map(
+                            row =>
+                                Number(
+                                    row.seller_telegram_id
+                                )
+                        )
+                        .filter(Boolean)
+                );
+
+
+            const targetPrice =
+                medianNumber(
+                    priceSignals
+                );
+
+
+            const hasSignals =
+                interactedIds.length > 0 ||
+                categoryWeights.size > 0 ||
+                priceSignals.length > 0 ||
+                followedSellerIds.size > 0 ||
+                premiumPreference > 0;
+
+
+            const {
+                data:
+                    candidates,
+                error
+            } =
+                await supabase
+                    .from("listings")
+                    .select(
+                        "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,status,is_paused,is_frozen,listing_plan,listing_period_started_at,listing_expires_at"
+                    )
+                    .eq(
+                        "status",
+                        "active"
+                    )
+                    .eq(
+                        "is_paused",
+                        false
+                    )
+                    .eq(
+                        "is_frozen",
+                        false
+                    )
+                    .neq(
+                        "seller_telegram_id",
+                        userId
+                    )
+                    .limit(500);
+
+
+            if (error) {
+                throw error;
+            }
+
+
+            const ranked =
+                (candidates || [])
+                    .filter(
+                        listing =>
+                            listingIsPubliclyAvailable(
+                                listing
+                            )
+                    )
+                    .map(
+                        listing => {
+
+                            const category =
+                                String(
+                                    listing.category ||
+                                    "Other"
+                                );
+
+                            const categoryScore =
+                                Number(
+                                    categoryWeights.get(category) ||
+                                    0
+                                );
+
+                            const sellerFollowed =
+                                followedSellerIds.has(
+                                    Number(
+                                        listing.seller_telegram_id
+                                    )
+                                );
+
+                            const price =
+                                Number(
+                                    listing.asking_price ||
+                                    0
+                                );
+
+                            let priceScore = 0;
+
+
+                            if (
+                                targetPrice &&
+                                price > 0
+                            ) {
+
+                                const distance =
+                                    Math.abs(
+                                        Math.log(
+                                            price /
+                                            targetPrice
+                                        )
+                                    );
+
+                                priceScore =
+                                    Math.max(
+                                        0,
+                                        4 -
+                                        distance * 3
+                                    );
+                            }
+
+
+                            const ageHours =
+                                Math.max(
+                                    0,
+                                    (
+                                        Date.now() -
+                                        timeMs(
+                                            listing.created_at
+                                        )
+                                    ) /
+                                    3600000
+                                );
+
+                            const recencyScore =
+                                ageHours <= 72
+                                    ? 1.5
+                                    : ageHours <= 168
+                                        ? 0.8
+                                        : 0;
+
+                            const popularityScore =
+                                Math.log1p(
+                                    Number(
+                                        listing.views_count ||
+                                        0
+                                    )
+                                ) * 0.25 +
+                                Math.log1p(
+                                    Number(
+                                        listing.likes_count ||
+                                        0
+                                    )
+                                ) * 0.8;
+
+                            const premiumScore =
+                                premiumPreference > 0 &&
+                                listing.is_premium_name
+                                    ? 2
+                                    : 0;
+
+                            const interactionPenalty =
+                                interactedIds.includes(
+                                    String(listing.id)
+                                )
+                                    ? 1.25
+                                    : 0;
+
+                            const score =
+                                categoryScore +
+                                priceScore +
+                                recencyScore +
+                                popularityScore +
+                                premiumScore +
+                                (sellerFollowed ? 6 : 0) -
+                                interactionPenalty;
+
+
+                            let reason =
+                                "Popular now";
+
+
+                            if (sellerFollowed) {
+                                reason =
+                                    "Seller you follow";
+                            } else if (
+                                categoryScore > 0
+                            ) {
+                                reason =
+                                    `Because you like ${category}`;
+                            } else if (
+                                priceScore >= 2
+                            ) {
+                                reason =
+                                    "In your usual price range";
+                            } else if (
+                                listing.is_premium_name &&
+                                premiumPreference > 0
+                            ) {
+                                reason =
+                                    "Matches your Premium searches";
+                            }
+
+
+                            return {
+                                ...listing,
+                                recommendation_reason:
+                                    reason,
+                                __recommendation_score:
+                                    score
+                            };
+                        }
+                    )
+                    .sort(
+                        (a,b) =>
+                            b.__recommendation_score -
+                            a.__recommendation_score
+                    )
+                    .slice(
+                        0,
+                        12
+                    )
+                    .map(
+                        row => {
+
+                            const {
+                                __recommendation_score,
+                                ...clean
+                            } = row;
+
+                            return clean;
+                        }
+                    );
+
+
+            const publicRows =
+                await attachPublicSellerProfiles(
+                    ranked
+                );
+
+
+            res.json({
+                ok:true,
+                personalized:hasSignals,
+                listings:publicRows
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Recommendations:",
+                error
+            );
+
+            await logSystemError(
+                "recommendations",
+                error
+            );
+
+            res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "recommendations_load_failed"
+                });
+        }
+    }
+);
+
+
+/* =========================================================
    V41 SECURITY / ANTI-ABUSE
    Durable rate limits are stored in Supabase via the
    hm_security_check_and_record RPC created by the v41 SQL.
@@ -6261,6 +6854,14 @@ const SECURITY_LIMITS = {
         long_limit: 40,
         long_window_seconds: 86400,
         retry_after_seconds: 3600
+    },
+
+    seller_follow_toggle: {
+        short_limit: 20,
+        short_window_seconds: 600,
+        long_limit: 80,
+        long_window_seconds: 86400,
+        retry_after_seconds: 600
     }
 };
 
@@ -6917,7 +7518,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v41-security-anti-abuse"
+                    "v42-follow-recommendations"
             }
         );
     }
@@ -12669,6 +13270,690 @@ app.get(
 
 
 /* =========================================================
+   V42 FOLLOW SELLER
+   Followers never receive the seller's Telegram username,
+   Telegram ID, email or other private contact details.
+   ========================================================= */
+
+async function resolvePublicSellerProfileForFollow(
+    profileId
+) {
+
+    const id =
+        String(
+            profileId ||
+            ""
+        ).trim();
+
+
+    if (
+        !/^[0-9a-fA-F-]{36}$/.test(id)
+    ) {
+        return null;
+    }
+
+
+    const {
+        data:
+            profile
+    } =
+        await supabase
+            .from("seller_profiles")
+            .select(
+                "id,telegram_id,is_public"
+            )
+            .eq(
+                "id",
+                id
+            )
+            .eq(
+                "is_public",
+                true
+            )
+            .maybeSingle();
+
+
+    return profile ||
+        null;
+}
+
+
+async function sellerFollowerCount(
+    sellerTelegramId
+) {
+
+    const {
+        count
+    } =
+        await supabase
+            .from("seller_follows")
+            .select(
+                "follower_telegram_id",
+                {
+                    count:"exact",
+                    head:true
+                }
+            )
+            .eq(
+                "seller_telegram_id",
+                Number(
+                    sellerTelegramId
+                )
+            );
+
+
+    return Number(
+        count ||
+        0
+    );
+}
+
+
+app.post(
+    "/seller-follow/status",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+            return res
+                .status(auth.status)
+                .json({
+                    ok:false,
+                    error:auth.error
+                });
+        }
+
+
+        const profile =
+            await resolvePublicSellerProfileForFollow(
+                req.body.profile_id
+            );
+
+
+        if (!profile) {
+            return res
+                .status(404)
+                .json({
+                    ok:false,
+                    error:
+                        "seller_profile_not_found"
+                });
+        }
+
+
+        const followerId =
+            Number(
+                auth.user.telegram_id
+            );
+
+        const sellerId =
+            Number(
+                profile.telegram_id
+            );
+
+        const canFollow =
+            followerId !==
+            sellerId;
+
+
+        let following = false;
+
+
+        if (canFollow) {
+
+            const {
+                data:
+                    existing
+            } =
+                await supabase
+                    .from("seller_follows")
+                    .select(
+                        "seller_telegram_id"
+                    )
+                    .eq(
+                        "follower_telegram_id",
+                        followerId
+                    )
+                    .eq(
+                        "seller_telegram_id",
+                        sellerId
+                    )
+                    .maybeSingle();
+
+            following =
+                Boolean(existing);
+        }
+
+
+        res.json({
+            ok:true,
+            can_follow:canFollow,
+            following,
+            followers_count:
+                await sellerFollowerCount(
+                    sellerId
+                )
+        });
+    }
+);
+
+
+app.post(
+    "/seller-follow/toggle",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+            return res
+                .status(auth.status)
+                .json({
+                    ok:false,
+                    error:auth.error
+                });
+        }
+
+
+        const profile =
+            await resolvePublicSellerProfileForFollow(
+                req.body.profile_id
+            );
+
+
+        if (!profile) {
+            return res
+                .status(404)
+                .json({
+                    ok:false,
+                    error:
+                        "seller_profile_not_found"
+                });
+        }
+
+
+        const followerId =
+            Number(
+                auth.user.telegram_id
+            );
+
+        const sellerId =
+            Number(
+                profile.telegram_id
+            );
+
+
+        if (
+            followerId ===
+            sellerId
+        ) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:
+                        "cannot_follow_yourself"
+                });
+        }
+
+
+        const limit =
+            await securityRateLimit(
+                auth.user,
+                "seller_follow_toggle",
+                profile.id
+            );
+
+
+        if (!limit.ok) {
+            return sendRateLimitResponse(
+                res,
+                limit
+            );
+        }
+
+
+        const {
+            data:
+                existing
+        } =
+            await supabase
+                .from("seller_follows")
+                .select(
+                    "seller_telegram_id"
+                )
+                .eq(
+                    "follower_telegram_id",
+                    followerId
+                )
+                .eq(
+                    "seller_telegram_id",
+                    sellerId
+                )
+                .maybeSingle();
+
+
+        let following;
+
+
+        if (existing) {
+
+            const {
+                error
+            } =
+                await supabase
+                    .from("seller_follows")
+                    .delete()
+                    .eq(
+                        "follower_telegram_id",
+                        followerId
+                    )
+                    .eq(
+                        "seller_telegram_id",
+                        sellerId
+                    );
+
+
+            if (error) {
+                return res
+                    .status(500)
+                    .json({
+                        ok:false,
+                        error:
+                            "seller_follow_update_failed"
+                    });
+            }
+
+
+            following = false;
+
+        } else {
+
+            const {
+                error
+            } =
+                await supabase
+                    .from("seller_follows")
+                    .insert({
+                        follower_telegram_id:
+                            followerId,
+                        seller_telegram_id:
+                            sellerId
+                    });
+
+
+            if (
+                error &&
+                error.code !== "23505"
+            ) {
+                return res
+                    .status(500)
+                    .json({
+                        ok:false,
+                        error:
+                            "seller_follow_update_failed"
+                    });
+            }
+
+
+            following = true;
+        }
+
+
+        res.json({
+            ok:true,
+            following,
+            followers_count:
+                await sellerFollowerCount(
+                    sellerId
+                )
+        });
+    }
+);
+
+
+app.post(
+    "/seller-follow/list",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+            return res
+                .status(auth.status)
+                .json({
+                    ok:false,
+                    error:auth.error
+                });
+        }
+
+
+        const {
+            data:
+                follows,
+            error
+        } =
+            await supabase
+                .from("seller_follows")
+                .select(
+                    "seller_telegram_id,created_at"
+                )
+                .eq(
+                    "follower_telegram_id",
+                    auth.user.telegram_id
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(100);
+
+
+        if (error) {
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "seller_follows_load_failed"
+                });
+        }
+
+
+        const sellerIds =
+            (follows || [])
+                .map(
+                    row =>
+                        Number(
+                            row.seller_telegram_id
+                        )
+                )
+                .filter(Boolean);
+
+
+        if (!sellerIds.length) {
+            return res.json({
+                ok:true,
+                sellers:[]
+            });
+        }
+
+
+        const {
+            data:
+                profiles
+        } =
+            await supabase
+                .from("seller_profiles")
+                .select(
+                    "id,telegram_id,bio,is_public,created_at,updated_at"
+                )
+                .in(
+                    "telegram_id",
+                    sellerIds
+                )
+                .eq(
+                    "is_public",
+                    true
+                );
+
+
+        const orderMap =
+            new Map(
+                sellerIds.map(
+                    (id,index) => [
+                        String(id),
+                        index
+                    ]
+                )
+            );
+
+
+        const sellers = [];
+
+
+        for (
+            const profile of
+            (profiles || [])
+                .sort(
+                    (a,b) =>
+                        Number(
+                            orderMap.get(
+                                String(a.telegram_id)
+                            ) ||
+                            0
+                        ) -
+                        Number(
+                            orderMap.get(
+                                String(b.telegram_id)
+                            ) ||
+                            0
+                        )
+                )
+        ) {
+
+            const payload =
+                await buildSellerProfilePayload(
+                    profile,
+                    false
+                );
+
+
+            if (!payload) {
+                continue;
+            }
+
+
+            sellers.push({
+                id:payload.id,
+                display_name:
+                    payload.display_name,
+                avatar_url:
+                    payload.avatar_url,
+                seller_since:
+                    payload.seller_since,
+                presence:
+                    payload.presence,
+                response_time:
+                    payload.response_time,
+                stats:
+                    payload.stats,
+                latest_listings:
+                    (payload.listings || [])
+                        .slice(0,3)
+            });
+        }
+
+
+        res.json({
+            ok:true,
+            sellers
+        });
+    }
+);
+
+
+async function notifySellerFollowersOfListing(
+    listingId
+) {
+
+    try {
+
+        const {
+            data:
+                listing
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,status,is_paused,is_frozen,listing_plan,listing_expires_at,seller_follow_notified_at"
+                )
+                .eq(
+                    "id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (
+            !listing ||
+            listing.seller_follow_notified_at ||
+            !listingIsPubliclyAvailable(
+                listing
+            )
+        ) {
+            return;
+        }
+
+
+        const {
+            data:
+                profile
+        } =
+            await supabase
+                .from("seller_profiles")
+                .select(
+                    "id,is_public"
+                )
+                .eq(
+                    "telegram_id",
+                    listing.seller_telegram_id
+                )
+                .eq(
+                    "is_public",
+                    true
+                )
+                .maybeSingle();
+
+
+        /* Mark even if the profile currently has no followers.
+           This prevents old listings from becoming "new" later. */
+        const markedAt =
+            nowIso();
+
+        const {
+            data:
+                marked
+        } =
+            await supabase
+                .from("listings")
+                .update({
+                    seller_follow_notified_at:
+                        markedAt
+                })
+                .eq(
+                    "id",
+                    listing.id
+                )
+                .is(
+                    "seller_follow_notified_at",
+                    null
+                )
+                .select("id")
+                .maybeSingle();
+
+
+        if (!marked) {
+            return;
+        }
+
+
+        if (!profile) {
+            return;
+        }
+
+
+        const {
+            data:
+                followers
+        } =
+            await supabase
+                .from("seller_follows")
+                .select(
+                    "follower_telegram_id"
+                )
+                .eq(
+                    "seller_telegram_id",
+                    listing.seller_telegram_id
+                )
+                .limit(1000);
+
+
+        const lot =
+            Number.isSafeInteger(
+                Number(
+                    listing.listing_number
+                )
+            )
+                ? `LOT #${String(Number(listing.listing_number)).padStart(6,"0")} · `
+                : "";
+
+
+        const text =
+            `🏪 A seller you follow added a new listing\n\n${lot}@${listing.whatsapp_username}\n$${Number(listing.asking_price || 0).toLocaleString("en-US")}\n\nOpen Handle Market → Profile → Following Sellers.`;
+
+
+        for (
+            const follower of
+            followers || []
+        ) {
+
+            if (
+                Number(
+                    follower.follower_telegram_id
+                ) ===
+                Number(
+                    listing.seller_telegram_id
+                )
+            ) {
+                continue;
+            }
+
+
+            await sendUserNotification(
+                follower.follower_telegram_id,
+                "seller_updates",
+                text
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Seller follower notification:",
+            error
+        );
+
+        await logSystemError(
+            "seller_follower_notification",
+            error,
+            {
+                listing_id:
+                    String(
+                        listingId ||
+                        ""
+                    )
+            }
+        );
+    }
+}
+
+
+/* =========================================================
    INTERNAL CHAT
    Buyer can start a chat only after seller contact is unlocked.
    Seller and buyer can continue the conversation from Profile → Chats.
@@ -15785,7 +17070,7 @@ app.post(
         return res.json({
             ok:true,
             version:
-                "v41-security-anti-abuse",
+                "v42-follow-recommendations",
             uptime_seconds:
                 Math.floor(
                     process.uptime()
@@ -20653,6 +21938,15 @@ app.post(
             );
 
 
+            if (
+                listingStatus ===
+                "active"
+            ) {
+                await notifySellerFollowersOfListing(
+                    listing.id
+                );
+            }
+
 
             await detectDuplicateUsernameRisk(
                 listing
@@ -22377,6 +23671,16 @@ app.post(
             data.seller_telegram_id,
             message
         );
+
+
+        if (
+            newStatus ===
+            "active"
+        ) {
+            await notifySellerFollowersOfListing(
+                data.id
+            );
+        }
 
 
         res.json(

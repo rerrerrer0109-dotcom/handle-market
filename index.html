@@ -3590,6 +3590,23 @@ Loading marketplace...
 
 
 
+<div class="section v42-recommendations-shell">
+
+<div class="section-title">
+🎯 Recommended for You
+</div>
+
+<div class="section-subtitle" id="recommendationSubtitle">
+Based on your marketplace activity.
+</div>
+
+<div id="recommendationListings" class="v42-recommendation-row">
+<div class="empty">Open Handle Market in Telegram to see recommendations.</div>
+</div>
+
+</div>
+
+
 <div class="section discovery-shell">
 
 <div class="section-title">
@@ -4471,6 +4488,22 @@ Loading seller profile...
 
 </div>
 
+</div>
+
+</div>
+
+
+<div id="followingSellers" class="page">
+
+<div class="page-heading">
+<div class="page-title">🏪 Following Sellers</div>
+<div class="page-description">Follow public seller stores without revealing private contact details.</div>
+</div>
+
+<div class="section">
+<div id="followingSellerList">
+<div class="empty">Loading...</div>
+</div>
 </div>
 
 </div>
@@ -6351,7 +6384,8 @@ async function authenticate() {
         await Promise.all(
             [
                 loadMyListings(),
-                loadMyWanted()
+                loadMyWanted(),
+                loadRecommendations()
             ]
         );
 
@@ -16501,6 +16535,30 @@ function renderMainProfile(
 
                 <button
                     class="profile-tile"
+                    onclick="openFollowingSellers()"
+                >
+
+                    <div class="profile-tile-icon">
+                        🏪
+                    </div>
+
+                    <div>
+
+                        <div class="profile-tile-title">
+                            Following Sellers
+                        </div>
+
+                        <div class="profile-tile-subtitle">
+                            Seller stores you follow
+                        </div>
+
+                    </div>
+
+                </button>
+
+
+                <button
+                    class="profile-tile"
                     onclick="openSavedSearches()"
                 >
 
@@ -17206,6 +17264,27 @@ function renderSellerProfile(
             </div>
 
 
+            ${
+                !own
+
+                    ? `
+                        <div
+                            id="sellerFollowActions"
+                            class="v42-follow-actions"
+                        >
+                            <button
+                                class="v42-follow-button"
+                                disabled
+                            >
+                                Loading...
+                            </button>
+                        </div>
+                    `
+
+                    : ""
+            }
+
+
             <div class="seller-store-note">
                 Contact details are private. Open a listing and use Unlock Contact to access the seller's contact information.
             </div>
@@ -17286,6 +17365,421 @@ function renderSellerProfile(
         checkUnlockedContacts(
             listings
         );
+
+
+        if (
+            !own &&
+            profile?.id
+        ) {
+            loadSellerFollowState(
+                profile.id
+            );
+        }
+    }
+}
+
+
+async function loadSellerFollowState(
+    profileId
+) {
+
+    const container =
+        document.getElementById(
+            "sellerFollowActions"
+        );
+
+
+    if (
+        !container ||
+        !authenticatedUser
+    ) {
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/seller-follow/status",
+                {
+                    initData:
+                        tg.initData,
+                    profile_id:
+                        profileId
+                }
+            );
+
+
+        if (!data.can_follow) {
+            container.innerHTML = "";
+            return;
+        }
+
+
+        container.innerHTML = `
+            <button
+                class="v42-follow-button ${data.following ? "following" : ""}"
+                onclick="toggleSellerFollow('${escapeJs(profileId)}')"
+            >
+                ${data.following ? "✓ Following" : "+ Follow Seller"}
+            </button>
+
+            <div class="v42-follow-count">
+                ${Number(data.followers_count || 0).toLocaleString("en-US")} followers
+            </div>
+        `;
+
+        if (
+            typeof v39ApplyTranslations ===
+            "function"
+        ) {
+            v39ApplyTranslations(
+                container
+            );
+        }
+
+    } catch {
+
+        container.innerHTML = `
+            <button
+                class="v42-follow-button"
+                onclick="loadSellerFollowState('${escapeJs(profileId)}')"
+            >
+                Retry Follow Status
+            </button>
+        `;
+    }
+}
+
+
+async function toggleSellerFollow(
+    profileId
+) {
+
+    try {
+
+        await api(
+            "/seller-follow/toggle",
+            {
+                initData:
+                    tg.initData,
+                profile_id:
+                    profileId
+            }
+        );
+
+
+        await Promise.all([
+            loadSellerFollowState(
+                profileId
+            ),
+            loadRecommendations()
+        ]);
+
+    } catch (error) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+    }
+}
+
+
+function openFollowingSellers() {
+
+    openPage(
+        "followingSellers",
+        null
+    );
+
+    loadFollowingSellers();
+}
+
+
+async function loadFollowingSellers() {
+
+    const container =
+        document.getElementById(
+            "followingSellerList"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    container.innerHTML =
+        '<div class="empty">Loading...</div>';
+
+
+    try {
+
+        const data =
+            await api(
+                "/seller-follow/list",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const sellers =
+            data.sellers ||
+            [];
+
+
+        if (!sellers.length) {
+            container.innerHTML =
+                '<div class="empty">You are not following any sellers yet.</div>';
+            return;
+        }
+
+
+        container.innerHTML =
+            sellers
+                .map(
+                    seller => {
+
+                        const presence =
+                            sellerPresenceText(
+                                seller
+                            );
+
+                        const response =
+                            sellerResponseTimeText(
+                                seller.response_time
+                            );
+
+
+                        return `
+                            <div class="v42-following-card">
+                                <div class="v42-following-top">
+                                    <div class="seller-avatar v42-following-avatar">
+                                        ${sellerAvatarHtml(
+                                            seller.avatar_url,
+                                            seller.display_name ||
+                                            "Seller"
+                                        )}
+                                    </div>
+
+                                    <div class="v42-following-copy">
+                                        <div class="seller-name">
+                                            ${escapeHtml(
+                                                seller.display_name ||
+                                                "Seller"
+                                            )}
+                                        </div>
+
+                                        <div class="v42-following-meta">
+                                            ${escapeHtml(presence)} · ⚡ ${escapeHtml(response)}
+                                        </div>
+
+                                        <div class="v42-following-meta">
+                                            📦 ${Number(seller.stats?.active_listings || 0)} active listings
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="buttons v42-following-buttons">
+                                    <button
+                                        class="primary"
+                                        onclick="openSellerProfile('${escapeJs(seller.id)}')"
+                                    >
+                                        View Store
+                                    </button>
+
+                                    <button
+                                        class="secondary"
+                                        onclick="unfollowSellerFromList('${escapeJs(seller.id)}')"
+                                    >
+                                        Unfollow
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                )
+                .join("");
+
+
+        if (
+            typeof v39ApplyTranslations ===
+            "function"
+        ) {
+            v39ApplyTranslations(
+                container
+            );
+        }
+
+    } catch (error) {
+
+        container.innerHTML =
+            '<div class="empty">Failed to load followed sellers.</div>';
+    }
+}
+
+
+async function unfollowSellerFromList(
+    profileId
+) {
+
+    try {
+
+        await api(
+            "/seller-follow/toggle",
+            {
+                initData:
+                    tg.initData,
+                profile_id:
+                    profileId
+            }
+        );
+
+
+        await Promise.all([
+            loadFollowingSellers(),
+            loadRecommendations()
+        ]);
+
+    } catch (error) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+    }
+}
+
+
+async function loadRecommendations() {
+
+    const container =
+        document.getElementById(
+            "recommendationListings"
+        );
+
+    const subtitle =
+        document.getElementById(
+            "recommendationSubtitle"
+        );
+
+
+    if (
+        !container ||
+        !authenticatedUser ||
+        !tg?.initData
+    ) {
+        return;
+    }
+
+
+    container.innerHTML =
+        '<div class="empty">Loading...</div>';
+
+
+    try {
+
+        const data =
+            await api(
+                "/recommendations",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+
+        const listings =
+            data.listings ||
+            [];
+
+
+        if (subtitle) {
+            subtitle.textContent =
+                data.personalized
+                    ? "Based on your views, likes, Watchlist, saved searches and followed sellers."
+                    : "Popular marketplace picks while we learn your preferences.";
+        }
+
+
+        if (!listings.length) {
+            container.innerHTML =
+                '<div class="empty">No recommendations yet.</div>';
+            return;
+        }
+
+
+        container.innerHTML =
+            listings
+                .slice(0,8)
+                .map(
+                    listing => {
+
+                        const lot =
+                            formatListingNumber(
+                                listing
+                            );
+
+
+                        return `
+                            <button
+                                class="v42-recommendation-card"
+                                onclick="openListingPage('${escapeJs(listing.id)}')"
+                            >
+                                <div class="v42-rec-reason">
+                                    ${escapeHtml(
+                                        listing.recommendation_reason ||
+                                        "Recommended"
+                                    )}
+                                </div>
+
+                                <div class="v42-rec-row">
+                                    <div class="v42-rec-user">
+                                        @${escapeHtml(listing.whatsapp_username)}
+                                    </div>
+
+                                    <div class="v42-rec-price">
+                                        $${formatPrice(listing.asking_price)}
+                                    </div>
+                                </div>
+
+                                <div class="v42-rec-meta">
+                                    ${lot ? `<span>LOT #${lot}</span>` : ""}
+                                    <span>${escapeHtml(listing.category || "Other")}</span>
+                                    ${listing.is_premium_name ? "<span>⭐ Premium</span>" : ""}
+                                    ${listing.promotion_type === "vip" ? "<span>💎 VIP</span>" : listing.promotion_type === "hot" ? "<span>🔥 HOT</span>" : ""}
+                                </div>
+                            </button>
+                        `;
+                    }
+                )
+                .join("");
+
+
+        if (
+            typeof v39ApplyTranslations ===
+            "function"
+        ) {
+            v39ApplyTranslations(
+                container
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Recommendations:",
+            error
+        );
+
+        container.innerHTML =
+            '<div class="empty">Recommendations unavailable.</div>';
     }
 }
 
@@ -21185,6 +21679,11 @@ const notificationSettingMeta = [
         key:"saved_searches",
         title:"📌 Saved search alerts",
         subtitle:"New listings that match your saved searches."
+    },
+    {
+        key:"seller_updates",
+        title:"🏪 Followed seller updates",
+        subtitle:"New listings from public seller stores you follow."
     }
 ];
 
@@ -22163,6 +22662,15 @@ const V39_RU = {
     "Help & Support":"Помощь и поддержка",
     "Saved Searches":"Сохранённые поиски",
     "Notification Settings":"Настройки уведомлений",
+    "Following Sellers":"Подписки на продавцов",
+    "Seller stores you follow":"Магазины продавцов, на которых вы подписаны",
+    "Recommended for You":"Рекомендации для вас",
+    "Follow Seller":"Подписаться на продавца",
+    "+ Follow Seller":"+ Подписаться",
+    "✓ Following":"✓ Вы подписаны",
+    "View Store":"Открыть магазин",
+    "Unfollow":"Отписаться",
+    "Followed seller updates":"Обновления продавцов",
     "Admin Panel":"Админ-панель",
     "Moderation":"Модерация",
     "Negotiations":"Переговоры",
@@ -24997,6 +25505,133 @@ if (authenticatedUser) {
     );
 }
 </script>
+
+
+<style>
+/* =========================================================
+   V42 FOLLOW SELLER + RECOMMENDATIONS
+   ========================================================= */
+.v42-recommendations-shell {
+    overflow:hidden;
+}
+
+.v42-recommendation-row {
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding:3px 1px 8px;
+    scroll-snap-type:x proximity;
+}
+
+.v42-recommendation-card {
+    min-width:230px;
+    max-width:260px;
+    text-align:left;
+    border:1px solid var(--border, rgba(127,127,127,.22));
+    border-radius:16px;
+    padding:13px;
+    background:var(--card, rgba(127,127,127,.07));
+    color:inherit;
+    cursor:pointer;
+    scroll-snap-align:start;
+}
+
+.v42-rec-reason {
+    font-size:11px;
+    font-weight:800;
+    opacity:.68;
+    margin-bottom:8px;
+}
+
+.v42-rec-row {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.v42-rec-user {
+    font-size:16px;
+    font-weight:900;
+    overflow-wrap:anywhere;
+}
+
+.v42-rec-price {
+    font-size:15px;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+.v42-rec-meta {
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:10px;
+    font-size:10px;
+    opacity:.72;
+}
+
+.v42-follow-actions {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:14px;
+}
+
+.v42-follow-button {
+    min-height:40px;
+    border-radius:12px;
+    border:1px solid rgba(59,130,246,.45);
+    padding:9px 16px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.v42-follow-button.following {
+    border-color:rgba(34,197,94,.45);
+}
+
+.v42-follow-count {
+    font-size:12px;
+    opacity:.68;
+    font-weight:700;
+}
+
+.v42-following-card {
+    border:1px solid var(--border, rgba(127,127,127,.22));
+    border-radius:16px;
+    padding:14px;
+    margin-bottom:10px;
+    background:var(--card, rgba(127,127,127,.06));
+}
+
+.v42-following-top {
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.v42-following-avatar {
+    width:52px;
+    height:52px;
+    flex:0 0 52px;
+}
+
+.v42-following-copy {
+    min-width:0;
+}
+
+.v42-following-meta {
+    margin-top:4px;
+    font-size:11px;
+    opacity:.72;
+}
+
+.v42-following-buttons {
+    margin-top:12px;
+}
+</style>
 
 </body>
 </html>
