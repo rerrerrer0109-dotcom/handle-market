@@ -2198,6 +2198,29 @@ async function createFreeListing(
         );
 
 
+
+        const {
+            data:createdFreeListing
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status"
+                )
+                .eq(
+                    "id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (createdFreeListing) {
+            await detectDuplicateUsernameRisk(
+                createdFreeListing
+            );
+        }
+
+
         return listingId;
 
     } catch (error) {
@@ -5311,6 +5334,21 @@ app.post(
         }
 
 
+        const security =
+            await securityRateLimit(
+                auth.user,
+                "saved_search_create"
+            );
+
+
+        if (!security.ok) {
+            return sendRateLimitResponse(
+                res,
+                security
+            );
+        }
+
+
         const validation =
             normalizeSavedSearchInput(
                 req.body
@@ -6138,6 +6176,732 @@ app.get(
 
 
 /* =========================================================
+   V41 SECURITY / ANTI-ABUSE
+   Durable rate limits are stored in Supabase via the
+   hm_security_check_and_record RPC created by the v41 SQL.
+   ========================================================= */
+
+const SECURITY_LIMITS = {
+
+    listing_create: {
+        short_limit: 6,
+        short_window_seconds: 3600,
+        long_limit: 12,
+        long_window_seconds: 86400,
+        retry_after_seconds: 3600
+    },
+
+    listing_edit: {
+        short_limit: 8,
+        short_window_seconds: 900,
+        long_limit: 30,
+        long_window_seconds: 86400,
+        retry_after_seconds: 900
+    },
+
+    contact_change: {
+        short_limit: 2,
+        short_window_seconds: 3600,
+        long_limit: 5,
+        long_window_seconds: 86400,
+        retry_after_seconds: 3600
+    },
+
+    offer_create: {
+        short_limit: 4,
+        short_window_seconds: 600,
+        long_limit: 20,
+        long_window_seconds: 3600,
+        retry_after_seconds: 600
+    },
+
+    chat_send: {
+        short_limit: 20,
+        short_window_seconds: 60,
+        long_limit: 200,
+        long_window_seconds: 3600,
+        retry_after_seconds: 60
+    },
+
+    support_create: {
+        short_limit: 2,
+        short_window_seconds: 600,
+        long_limit: 5,
+        long_window_seconds: 86400,
+        retry_after_seconds: 600
+    },
+
+    support_send: {
+        short_limit: 12,
+        short_window_seconds: 60,
+        long_limit: 120,
+        long_window_seconds: 3600,
+        retry_after_seconds: 60
+    },
+
+    report_create: {
+        short_limit: 3,
+        short_window_seconds: 3600,
+        long_limit: 10,
+        long_window_seconds: 86400,
+        retry_after_seconds: 3600
+    },
+
+    saved_search_create: {
+        short_limit: 8,
+        short_window_seconds: 3600,
+        long_limit: 25,
+        long_window_seconds: 86400,
+        retry_after_seconds: 3600
+    },
+
+    contact_unlock_create: {
+        short_limit: 12,
+        short_window_seconds: 3600,
+        long_limit: 40,
+        long_window_seconds: 86400,
+        retry_after_seconds: 3600
+    }
+};
+
+
+function sanitizedLogText(
+    value
+) {
+
+    let text =
+        String(
+            value ??
+            ""
+        );
+
+
+    for (
+        const secret of
+        [
+            BOT_TOKEN,
+            SUPABASE_SECRET_KEY,
+            TELEGRAM_WEBHOOK_SECRET
+        ]
+    ) {
+
+        if (
+            secret &&
+            String(secret).length >= 8
+        ) {
+
+            text =
+                text.split(
+                    String(secret)
+                ).join(
+                    "[REDACTED]"
+                );
+        }
+    }
+
+
+    return text.slice(
+        0,
+        1500
+    );
+}
+
+
+async function recordSecurityEvent(
+    telegramId,
+    eventType,
+    severity = "low",
+    targetType = null,
+    targetId = null,
+    details = null
+) {
+
+    try {
+
+        await supabase
+            .from(
+                "security_events"
+            )
+            .insert(
+                {
+                    telegram_id:
+                        Number(
+                            telegramId ||
+                            0
+                        ) ||
+                        null,
+
+                    event_type:
+                        String(
+                            eventType ||
+                            "security_event"
+                        ).slice(0,100),
+
+                    severity:
+                        [
+                            "low",
+                            "medium",
+                            "high"
+                        ].includes(
+                            severity
+                        )
+                            ? severity
+                            : "low",
+
+                    target_type:
+                        targetType
+                            ? String(targetType).slice(0,50)
+                            : null,
+
+                    target_id:
+                        targetId
+                            ? String(targetId).slice(0,150)
+                            : null,
+
+                    details:
+                        details ||
+                        null
+                }
+            );
+
+    } catch (error) {
+
+        console.error(
+            "Security event log:",
+            error
+        );
+    }
+}
+
+
+async function logSystemError(
+    scope,
+    error,
+    details = null
+) {
+
+    try {
+
+        const code =
+            sanitizedLogText(
+                error?.code ||
+                error?.name ||
+                "error"
+            );
+
+        const message =
+            sanitizedLogText(
+                error?.message ||
+                error ||
+                "Unknown error"
+            );
+
+
+        await supabase
+            .from(
+                "system_error_log"
+            )
+            .insert(
+                {
+                    scope:
+                        String(
+                            scope ||
+                            "server"
+                        ).slice(0,100),
+
+                    error_code:
+                        code.slice(0,100),
+
+                    message,
+
+                    details:
+                        details ||
+                        null
+                }
+            );
+
+    } catch (logError) {
+
+        console.error(
+            "System error logger:",
+            logError
+        );
+    }
+}
+
+
+async function securityRateLimit(
+    user,
+    action,
+    targetId = null
+) {
+
+    /* Admin actions are already role-protected and are exempt. */
+    if (
+        user?.is_admin
+    ) {
+        return {
+            ok:true
+        };
+    }
+
+
+    const config =
+        SECURITY_LIMITS[
+            action
+        ];
+
+
+    if (!config) {
+        return {
+            ok:true
+        };
+    }
+
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .rpc(
+                    "hm_security_check_and_record",
+                    {
+                        p_telegram_id:
+                            Number(
+                                user.telegram_id
+                            ),
+
+                        p_action:
+                            action,
+
+                        p_target_id:
+                            targetId
+                                ? String(targetId)
+                                : null,
+
+                        p_short_limit:
+                            config.short_limit,
+
+                        p_short_window_seconds:
+                            config.short_window_seconds,
+
+                        p_long_limit:
+                            config.long_limit,
+
+                        p_long_window_seconds:
+                            config.long_window_seconds
+                    }
+                );
+
+
+        if (error) {
+
+            console.error(
+                "Security rate limit RPC:",
+                error
+            );
+
+            await logSystemError(
+                "security_rate_limit",
+                error,
+                {
+                    action
+                }
+            );
+
+            /* Fail open if the security table/RPC is temporarily unavailable. */
+            return {
+                ok:true
+            };
+        }
+
+
+        if (!data) {
+
+            await recordSecurityEvent(
+                user.telegram_id,
+                "rate_limit_hit",
+                "low",
+                "action",
+                action,
+                {
+                    target_id:
+                        targetId ||
+                        null,
+                    short_limit:
+                        config.short_limit,
+                    long_limit:
+                        config.long_limit
+                }
+            );
+
+
+            return {
+                ok:false,
+                retry_after_seconds:
+                    config.retry_after_seconds ||
+                    60
+            };
+        }
+
+
+        return {
+            ok:true
+        };
+
+    } catch (error) {
+
+        console.error(
+            "Security limiter:",
+            error
+        );
+
+        await logSystemError(
+            "security_rate_limit",
+            error,
+            {
+                action
+            }
+        );
+
+        return {
+            ok:true
+        };
+    }
+}
+
+
+function sendRateLimitResponse(
+    res,
+    result
+) {
+
+    return res
+        .status(429)
+        .json(
+            {
+                ok:false,
+                error:
+                    "rate_limited",
+                retry_after_seconds:
+                    Number(
+                        result?.retry_after_seconds ||
+                        60
+                    )
+            }
+        );
+}
+
+
+async function detectDuplicateUsernameRisk(
+    listing
+) {
+
+    if (
+        !listing?.id ||
+        !listing?.whatsapp_username
+    ) {
+        return [];
+    }
+
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,listing_number,seller_telegram_id,whatsapp_username,status,created_at"
+                )
+                .ilike(
+                    "whatsapp_username",
+                    String(
+                        listing.whatsapp_username
+                    )
+                )
+                .neq(
+                    "id",
+                    listing.id
+                )
+                .neq(
+                    "seller_telegram_id",
+                    Number(
+                        listing.seller_telegram_id ||
+                        0
+                    )
+                )
+                .in(
+                    "status",
+                    [
+                        "pending",
+                        "active",
+                        "reserved"
+                    ]
+                )
+                .limit(10);
+
+
+        if (error) {
+
+            await logSystemError(
+                "duplicate_username_check",
+                error,
+                {
+                    listing_id:
+                        listing.id
+                }
+            );
+
+            return [];
+        }
+
+
+        const duplicates =
+            data ||
+            [];
+
+
+        if (!duplicates.length) {
+            return [];
+        }
+
+
+        await ensureRiskFlag(
+            listing.id,
+            "duplicate_username",
+            "high",
+            {
+                username:
+                    listing.whatsapp_username,
+                matches:
+                    duplicates.map(
+                        row => ({
+                            listing_id:
+                                row.id,
+                            listing_number:
+                                row.listing_number,
+                            seller_telegram_id:
+                                row.seller_telegram_id,
+                            status:
+                                row.status
+                        })
+                    )
+            }
+        );
+
+
+        await recordSecurityEvent(
+            listing.seller_telegram_id,
+            "duplicate_username_submission",
+            "medium",
+            "listing",
+            listing.id,
+            {
+                username:
+                    listing.whatsapp_username,
+                matches:
+                    duplicates.map(
+                        row =>
+                            row.listing_number ||
+                            row.id
+                    )
+            }
+        );
+
+
+        await notifyAdmins(
+            `⚠️ Duplicate username detected\n\nNew listing: @${listing.whatsapp_username}${listing.listing_number ? ` · LOT #${String(listing.listing_number).padStart(6,"0")}` : ""}\nExisting matching listing(s): ${duplicates.map(row => row.listing_number ? `LOT #${String(row.listing_number).padStart(6,"0")}` : row.id).join(", ")}\n\nThis is a review flag only. No seller was automatically blocked.`
+        );
+
+
+        return duplicates;
+
+    } catch (error) {
+
+        await logSystemError(
+            "duplicate_username_check",
+            error,
+            {
+                listing_id:
+                    listing.id
+            }
+        );
+
+        return [];
+    }
+}
+
+
+async function maybeFlagFrequentListingChanges(
+    listingId,
+    sellerTelegramId
+) {
+
+    try {
+
+        const oneDayAgo =
+            new Date(
+                Date.now() -
+                24 * 60 * 60 * 1000
+            ).toISOString();
+
+        const sevenDaysAgo =
+            new Date(
+                Date.now() -
+                7 * 24 * 60 * 60 * 1000
+            ).toISOString();
+
+
+        const [
+            priceResult,
+            contactResult
+        ] =
+            await Promise.all([
+
+                supabase
+                    .from(
+                        "listing_change_history"
+                    )
+                    .select(
+                        "id",
+                        {
+                            head:true,
+                            count:"exact"
+                        }
+                    )
+                    .eq(
+                        "listing_id",
+                        listingId
+                    )
+                    .eq(
+                        "change_type",
+                        "price"
+                    )
+                    .gte(
+                        "created_at",
+                        oneDayAgo
+                    ),
+
+                supabase
+                    .from(
+                        "listing_change_history"
+                    )
+                    .select(
+                        "id",
+                        {
+                            head:true,
+                            count:"exact"
+                        }
+                    )
+                    .eq(
+                        "listing_id",
+                        listingId
+                    )
+                    .eq(
+                        "change_type",
+                        "contact"
+                    )
+                    .gte(
+                        "created_at",
+                        sevenDaysAgo
+                    )
+            ]);
+
+
+        if (
+            Number(
+                priceResult.count ||
+                0
+            ) >= 5
+        ) {
+
+            await ensureRiskFlag(
+                listingId,
+                "frequent_price_changes",
+                "medium",
+                {
+                    changes_24h:
+                        Number(
+                            priceResult.count ||
+                            0
+                        )
+                }
+            );
+
+            await recordSecurityEvent(
+                sellerTelegramId,
+                "frequent_price_changes",
+                "low",
+                "listing",
+                listingId,
+                {
+                    changes_24h:
+                        Number(
+                            priceResult.count ||
+                            0
+                        )
+                }
+            );
+        }
+
+
+        if (
+            Number(
+                contactResult.count ||
+                0
+            ) >= 3
+        ) {
+
+            await ensureRiskFlag(
+                listingId,
+                "frequent_contact_changes",
+                "high",
+                {
+                    changes_7d:
+                        Number(
+                            contactResult.count ||
+                            0
+                        )
+                }
+            );
+
+            await recordSecurityEvent(
+                sellerTelegramId,
+                "frequent_contact_changes",
+                "medium",
+                "listing",
+                listingId,
+                {
+                    changes_7d:
+                        Number(
+                            contactResult.count ||
+                            0
+                        )
+                }
+            );
+        }
+
+    } catch (error) {
+
+        await logSystemError(
+            "frequent_change_check",
+            error,
+            {
+                listing_id:
+                    listingId
+            }
+        );
+    }
+}
+
+
+/* =========================================================
    HEALTH
    ========================================================= */
 
@@ -6153,7 +6917,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v40-analytics-admin-search"
+                    "v41-security-anti-abuse"
             }
         );
     }
@@ -6414,6 +7178,21 @@ app.post(
                             auth.error
                     }
                 );
+        }
+
+
+        const createSecurity =
+            await securityRateLimit(
+                auth.user,
+                "listing_create"
+            );
+
+
+        if (!createSecurity.ok) {
+            return sendRateLimitResponse(
+                res,
+                createSecurity
+            );
         }
 
 
@@ -8699,6 +9478,23 @@ app.post(
         }
 
 
+
+        const editSecurity =
+            await securityRateLimit(
+                auth.user,
+                "listing_edit",
+                listingId
+            );
+
+
+        if (!editSecurity.ok) {
+            return sendRateLimitResponse(
+                res,
+                editSecurity
+            );
+        }
+
+
         const {
             data:oldContact,
             error:contactLoadError
@@ -8744,6 +9540,28 @@ app.post(
                 ""
             ).trim() !==
             contactValue;
+
+
+
+        if (
+            contactChanged
+        ) {
+
+            const contactSecurity =
+                await securityRateLimit(
+                    auth.user,
+                    "contact_change",
+                    listingId
+                );
+
+
+            if (!contactSecurity.ok) {
+                return sendRateLimitResponse(
+                    res,
+                    contactSecurity
+                );
+            }
+        }
 
 
         const priceChanged =
@@ -9087,6 +9905,19 @@ app.post(
             await safeSendMessage(
                 sellerId,
                 `⚠️ Your contact for @${listing.whatsapp_username} was changed.\n\nThe listing has been sent back to moderation and is temporarily hidden. Its existing listing timer continues to run.`
+            );
+        }
+
+
+
+        if (
+            priceChanged ||
+            contactChanged
+        ) {
+
+            await maybeFlagFrequentListingChanges(
+                listingId,
+                sellerId
             );
         }
 
@@ -10183,6 +11014,23 @@ app.post(
                             auth.error
                     }
                 );
+        }
+
+
+        const unlockSecurity =
+            await securityRateLimit(
+                auth.user,
+                "contact_unlock_create",
+                req.body.listing_id ||
+                null
+            );
+
+
+        if (!unlockSecurity.ok) {
+            return sendRateLimitResponse(
+                res,
+                unlockSecurity
+            );
         }
 
 
@@ -12788,6 +13636,24 @@ app.post(
             );
 
 
+
+        const chatSecurity =
+            await securityRateLimit(
+                auth.user,
+                "chat_send",
+                req.body.chat_id ||
+                null
+            );
+
+
+        if (!chatSecurity.ok) {
+            return sendRateLimitResponse(
+                res,
+                chatSecurity
+            );
+        }
+
+
         const chatId =
             String(
                 req.body.chat_id ||
@@ -13292,6 +14158,22 @@ app.post(
             Number(
                 auth.user.telegram_id
             );
+
+
+
+        const supportSecurity =
+            await securityRateLimit(
+                auth.user,
+                "support_create"
+            );
+
+
+        if (!supportSecurity.ok) {
+            return sendRateLimitResponse(
+                res,
+                supportSecurity
+            );
+        }
 
 
         const category =
@@ -14025,6 +14907,24 @@ app.post(
             );
 
 
+
+        const supportSecurity =
+            await securityRateLimit(
+                auth.user,
+                "support_send",
+                req.body.ticket_id ||
+                null
+            );
+
+
+        if (!supportSecurity.ok) {
+            return sendRateLimitResponse(
+                res,
+                supportSecurity
+            );
+        }
+
+
         const ticketId =
             String(
                 req.body.ticket_id ||
@@ -14560,6 +15460,20 @@ const ADMIN_ROUTE_ROLES = {
         "support"
     ],
 
+    "/admin/security-status": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/security-events": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/system-errors": [
+        "owner"
+    ],
+
     "/admin/search": [
         "owner",
         "moderator"
@@ -14751,6 +15665,234 @@ app.use(
 
 
         next();
+    }
+);
+
+
+/* =========================================================
+   V41 ADMIN SECURITY CENTER
+   Owner / Moderator: status + security events.
+   Owner only: recent technical errors.
+   ========================================================= */
+
+app.post(
+    "/admin/security-status",
+    async (req, res) => {
+
+        const startedAt =
+            Date.now();
+
+
+        let database = {
+            ok:false,
+            latency_ms:null
+        };
+
+
+        try {
+
+            const dbStarted =
+                Date.now();
+
+            const {
+                error
+            } =
+                await supabase
+                    .from("users")
+                    .select(
+                        "telegram_id",
+                        {
+                            head:true,
+                            count:"exact"
+                        }
+                    );
+
+
+            database = {
+                ok:!error,
+                latency_ms:
+                    Date.now() -
+                    dbStarted
+            };
+
+
+            if (error) {
+                await logSystemError(
+                    "security_status_db",
+                    error
+                );
+            }
+
+        } catch (error) {
+
+            await logSystemError(
+                "security_status_db",
+                error
+            );
+        }
+
+
+        let telegram = {
+            ok:false,
+            webhook_configured:false,
+            pending_updates:0,
+            last_error:null
+        };
+
+
+        try {
+
+            const info =
+                await telegramApi(
+                    "getWebhookInfo"
+                );
+
+
+            telegram = {
+                ok:true,
+                webhook_configured:
+                    Boolean(
+                        info?.url
+                    ),
+                pending_updates:
+                    Number(
+                        info?.pending_update_count ||
+                        0
+                    ),
+                last_error:
+                    info?.last_error_message
+                        ? sanitizedLogText(
+                            info.last_error_message
+                        )
+                        : null
+            };
+
+        } catch (error) {
+
+            telegram.last_error =
+                sanitizedLogText(
+                    error?.message ||
+                    error
+                );
+
+            await logSystemError(
+                "security_status_telegram",
+                error
+            );
+        }
+
+
+        return res.json({
+            ok:true,
+            version:
+                "v41-security-anti-abuse",
+            uptime_seconds:
+                Math.floor(
+                    process.uptime()
+                ),
+            response_ms:
+                Date.now() -
+                startedAt,
+            database,
+            telegram,
+            protections:
+                SECURITY_LIMITS
+        });
+    }
+);
+
+
+app.post(
+    "/admin/security-events",
+    async (req, res) => {
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from(
+                    "security_events"
+                )
+                .select(
+                    "id,telegram_id,event_type,severity,target_type,target_id,details,created_at"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(60);
+
+
+        if (error) {
+
+            await logSystemError(
+                "security_events_load",
+                error
+            );
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"security_events_load_failed"
+                });
+        }
+
+
+        return res.json({
+            ok:true,
+            events:
+                data ||
+                []
+        });
+    }
+);
+
+
+app.post(
+    "/admin/system-errors",
+    async (req, res) => {
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from(
+                    "system_error_log"
+                )
+                .select(
+                    "id,scope,error_code,message,details,created_at"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(40);
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"system_errors_load_failed"
+                });
+        }
+
+
+        return res.json({
+            ok:true,
+            errors:
+                data ||
+                []
+        });
     }
 );
 
@@ -15967,6 +17109,24 @@ app.post(
             Number(
                 auth.user.telegram_id
             );
+
+
+
+        const offerSecurity =
+            await securityRateLimit(
+                auth.user,
+                "offer_create",
+                req.body.listing_id ||
+                null
+            );
+
+
+        if (!offerSecurity.ok) {
+            return sendRateLimitResponse(
+                res,
+                offerSecurity
+            );
+        }
 
 
         const listingId =
@@ -17836,6 +18996,23 @@ app.post(
         }
 
 
+        const reportSecurity =
+            await securityRateLimit(
+                auth.user,
+                "report_create",
+                req.body.listing_id ||
+                null
+            );
+
+
+        if (!reportSecurity.ok) {
+            return sendRateLimitResponse(
+                res,
+                reportSecurity
+            );
+        }
+
+
         const listingId =
             String(
                 req.body.listing_id ||
@@ -19476,6 +20653,12 @@ app.post(
             );
 
 
+
+            await detectDuplicateUsernameRisk(
+                listing
+            );
+
+
             return res.json(
                 {
                     ok: true,
@@ -20742,6 +21925,81 @@ app.post(
             );
 
 
+
+        const pendingIds =
+            (
+                listings ||
+                []
+            ).map(
+                row =>
+                    row.id
+            );
+
+
+        let openFlags = [];
+
+
+        if (
+            pendingIds.length
+        ) {
+
+            const {
+                data
+            } =
+                await supabase
+                    .from(
+                        "listing_risk_flags"
+                    )
+                    .select(
+                        "id,listing_id,flag_type,severity,status,details,created_at"
+                    )
+                    .in(
+                        "listing_id",
+                        pendingIds
+                    )
+                    .eq(
+                        "status",
+                        "open"
+                    );
+
+
+            openFlags =
+                data ||
+                [];
+        }
+
+
+        const riskMap =
+            new Map();
+
+
+        for (
+            const flag of
+            openFlags
+        ) {
+
+            const key =
+                String(
+                    flag.listing_id
+                );
+
+            const list =
+                riskMap.get(
+                    key
+                ) ||
+                [];
+
+            list.push(
+                flag
+            );
+
+            riskMap.set(
+                key,
+                list
+            );
+        }
+
+
         res.json(
             {
                 ok: true,
@@ -20761,7 +22019,15 @@ app.post(
                                         row.seller_telegram_id
                                     )
                                 ) ||
-                                null
+                                null,
+
+                            risk_flags:
+                                riskMap.get(
+                                    String(
+                                        row.id
+                                    )
+                                ) ||
+                                []
                         })
                     )
             }
@@ -23796,11 +25062,45 @@ app.post(
                         }
                     );
 
+
+
+                    const {
+                        data:createdPaidListing
+                    } =
+                        await supabase
+                            .from("listings")
+                            .select(
+                                "id,seller_telegram_id,listing_number,whatsapp_username,status"
+                            )
+                            .eq(
+                                "id",
+                                order.id
+                            )
+                            .maybeSingle();
+
+
+                    if (createdPaidListing) {
+                        await detectDuplicateUsernameRisk(
+                            createdPaidListing
+                        );
+                    }
+
                 } catch (error) {
 
                     console.error(
                         "Listing fulfillment failed:",
                         error
+                    );
+
+
+                    await logSystemError(
+                        "listing_fulfillment",
+                        error,
+                        {
+                            order_id:
+                                order?.id ||
+                                null
+                        }
                     );
 
 
@@ -24493,6 +25793,11 @@ app.post(
                 "Webhook processing error:",
                 error
             );
+
+            await logSystemError(
+                "telegram_webhook",
+                error
+            );
         }
     }
 );
@@ -24513,6 +25818,21 @@ app.use(
         console.error(
             error
         );
+
+
+        logSystemError(
+            "express_error",
+            error,
+            {
+                method:
+                    req.method,
+                path:
+                    String(
+                        req.originalUrl ||
+                        ""
+                    ).split("?")[0]
+            }
+        ).catch(() => {});
 
 
         res
@@ -24561,19 +25881,25 @@ app.listen(
 
                 processListingExpiryNotifications()
                     .catch(
-                        error =>
-                            console.error(
+                        error => {
+                            console.error(error);
+                            logSystemError(
+                                "listing_expiry_scheduler",
                                 error
-                            )
+                            ).catch(() => {});
+                        }
                     );
 
 
                 processSavedSearchNotifications()
                     .catch(
-                        error =>
-                            console.error(
+                        error => {
+                            console.error(error);
+                            logSystemError(
+                                "saved_search_scheduler",
                                 error
-                            )
+                            ).catch(() => {});
+                        }
                     );
 
             },
@@ -24586,19 +25912,25 @@ app.listen(
 
                 processListingExpiryNotifications()
                     .catch(
-                        error =>
-                            console.error(
+                        error => {
+                            console.error(error);
+                            logSystemError(
+                                "listing_expiry_scheduler",
                                 error
-                            )
+                            ).catch(() => {});
+                        }
                     );
 
 
                 processSavedSearchNotifications()
                     .catch(
-                        error =>
-                            console.error(
+                        error => {
+                            console.error(error);
+                            logSystemError(
+                                "saved_search_scheduler",
                                 error
-                            )
+                            ).catch(() => {});
+                        }
                     );
 
             },

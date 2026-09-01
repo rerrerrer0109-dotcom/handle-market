@@ -18694,6 +18694,41 @@ async function loadPendingListings() {
                                 }
 
 
+                                ${
+                                    (
+                                        listing.risk_flags ||
+                                        []
+                                    ).some(
+                                        flag =>
+                                            flag.flag_type ===
+                                            "duplicate_username"
+                                    )
+                                        ? `
+                                            <div class="badge badge-rejected" style="margin-top:8px">
+                                                ⚠️ DUPLICATE USERNAME · REVIEW REQUIRED
+                                            </div>
+                                          `
+                                        : ""
+                                }
+
+                                ${
+                                    (
+                                        listing.risk_flags ||
+                                        []
+                                    ).some(
+                                        flag =>
+                                            flag.flag_type ===
+                                            "frequent_contact_changes"
+                                    )
+                                        ? `
+                                            <div class="badge badge-paused" style="margin-top:8px">
+                                                ⚠️ FREQUENT CONTACT CHANGES
+                                            </div>
+                                          `
+                                        : ""
+                                }
+
+
                                 <div class="price">
 
                                     $${formatPrice(
@@ -24296,6 +24331,666 @@ v40InjectAdminSearch();
 
 
 /* If auth finished before this patch loaded, refresh the Profile once. */
+if (authenticatedUser) {
+    renderMainProfile(
+        authenticatedUser
+    );
+}
+</script>
+
+
+<style>
+/* =========================================================
+   V41 SECURITY CENTER / PRIVACY
+   ========================================================= */
+
+.v41-security-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;
+    margin-top:10px;
+}
+
+.v41-security-card {
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:14px;
+    padding:12px;
+    background:var(--card,#fff);
+}
+
+.v41-security-value {
+    font-size:16px;
+    font-weight:900;
+    line-height:1.2;
+}
+
+.v41-security-label {
+    font-size:10px;
+    opacity:.7;
+    font-weight:800;
+    margin-top:5px;
+}
+
+.v41-event {
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:13px;
+    padding:11px;
+    margin-top:8px;
+    background:var(--card,#fff);
+}
+
+.v41-event-top {
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:flex-start;
+}
+
+.v41-severity {
+    display:inline-flex;
+    padding:4px 7px;
+    border-radius:999px;
+    font-size:9px;
+    font-weight:900;
+    border:1px solid var(--border,#e4e8ef);
+}
+
+.v41-protection-row {
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    padding:9px 0;
+    border-bottom:1px solid var(--border,#e4e8ef);
+    font-size:11px;
+}
+
+.v41-protection-row:last-child {
+    border-bottom:0;
+}
+
+@media (min-width:700px) {
+    .v41-security-grid {
+        grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+}
+</style>
+
+<script>
+/* =========================================================
+   V41 FRIENDLY SECURITY ERRORS
+   ========================================================= */
+
+const v41BaseFriendlyError =
+    friendlyError;
+
+
+friendlyError =
+function friendlyErrorV41(
+    code
+) {
+
+    const messages = {
+        rate_limited:
+            v39T(
+                "Too many actions in a short time. Please wait and try again.",
+                "Слишком много действий за короткое время. Подождите и попробуйте снова."
+            ),
+        security_events_load_failed:
+            v39T(
+                "Could not load security events.",
+                "Не удалось загрузить события безопасности."
+            ),
+        system_errors_load_failed:
+            v39T(
+                "Could not load technical errors.",
+                "Не удалось загрузить технические ошибки."
+            )
+    };
+
+
+    return messages[
+        code
+    ] ||
+    v41BaseFriendlyError(
+        code
+    );
+};
+
+
+/* =========================================================
+   V41 PRIVACY & TERMS PAGE
+   ========================================================= */
+
+function v41InjectPrivacyPage() {
+
+    if (
+        document.getElementById(
+            "v41PrivacyTerms"
+        )
+    ) {
+        return;
+    }
+
+
+    const bottomNav =
+        document.querySelector(
+            ".bottom-nav"
+        );
+
+
+    if (!bottomNav) {
+        return;
+    }
+
+
+    bottomNav.insertAdjacentHTML(
+        "beforebegin",
+        `
+            <div id="v41PrivacyTerms" class="page">
+                <div class="page-heading">
+                    <div class="page-title">🔐 ${v39T("Privacy & Terms","Конфиденциальность и условия")}</div>
+                    <div class="page-description">${v39T("How Handle Market handles marketplace data and platform use.","Как Handle Market обрабатывает данные маркетплейса и правила использования платформы.")}</div>
+                </div>
+
+                <div class="section">
+                    <div class="v39-help-card">
+                        <h3>${v39T("Privacy","Конфиденциальность")}</h3>
+                        <p>${v39T(
+                            "Handle Market stores the information needed to operate your account, listings, offers, chats, support requests and moderation. Seller contact details are not displayed publicly and are revealed only through the existing contact-access flow or to authorized moderators for safety review.",
+                            "Handle Market хранит данные, необходимые для работы аккаунта, лотов, предложений, чатов, поддержки и модерации. Контакты продавца не показываются публично и раскрываются только через существующий механизм доступа к контакту или уполномоченным модераторам для проверки безопасности."
+                        )}</p>
+                    </div>
+
+                    <div class="v39-help-card">
+                        <h3>${v39T("Marketplace Terms","Условия маркетплейса")}</h3>
+                        <p>${v39T(
+                            "Handle Market is a discovery and negotiation platform. It does not control WhatsApp username ownership or transfer, does not guarantee that a transfer will occur, and is not an escrow service. Users remain responsible for verifying counterparties and complying with applicable platform rules and law.",
+                            "Handle Market — площадка для поиска и переговоров. Она не контролирует владение или передачу WhatsApp username, не гарантирует передачу и не является escrow-сервисом. Пользователи самостоятельно проверяют контрагентов и обязаны соблюдать применимые правила платформ и законодательство."
+                        )}</p>
+                    </div>
+
+                    <div class="v39-help-card">
+                        <h3>${v39T("Safety & Abuse Prevention","Безопасность и защита от злоупотреблений")}</h3>
+                        <p>${v39T(
+                            "Automated limits may temporarily slow repeated offers, messages, reports, listing edits or other high-frequency actions. Risk flags help moderators review unusual activity; they are not automatic accusations of fraud.",
+                            "Автоматические ограничения могут временно замедлять частые предложения, сообщения, жалобы, редактирование лотов и другие массовые действия. Флаги риска помогают модераторам проверять необычную активность и не являются автоматическим обвинением в мошенничестве."
+                        )}</p>
+                    </div>
+
+                    <button class="secondary" style="width:100%" onclick="openPage('profile',null)">← ${v39T("Back to Profile","Назад в профиль")}</button>
+                </div>
+            </div>
+        `
+    );
+}
+
+
+v41InjectPrivacyPage();
+
+
+const v41BaseRenderMainProfile =
+    renderMainProfile;
+
+
+renderMainProfile =
+function renderMainProfileV41(
+    user
+) {
+
+    v41BaseRenderMainProfile(
+        user
+    );
+
+
+    const menu =
+        document.querySelector(
+            "#profileContent .profile-menu"
+        );
+
+
+    if (
+        menu &&
+        !document.getElementById(
+            "v41PrivacyTile"
+        )
+    ) {
+
+        const rulesTile =
+            document.getElementById(
+                "v39RulesTile"
+            );
+
+        const html = `
+            <button id="v41PrivacyTile" class="profile-tile" onclick="openPage('v41PrivacyTerms',null)">
+                <div class="profile-tile-icon">🔐</div>
+                <div>
+                    <div class="profile-tile-title">${v39T("Privacy & Terms","Конфиденциальность и условия")}</div>
+                    <div class="profile-tile-subtitle">${v39T("Data, terms & anti-abuse","Данные, условия и защита")}</div>
+                </div>
+            </button>
+        `;
+
+
+        if (rulesTile) {
+            rulesTile.insertAdjacentHTML(
+                "afterend",
+                html
+            );
+        } else {
+            menu.insertAdjacentHTML(
+                "beforeend",
+                html
+            );
+        }
+    }
+};
+
+
+/* =========================================================
+   V41 ADMIN SECURITY CENTER
+   ========================================================= */
+
+function v41InjectSecurityCenter() {
+
+    if (
+        document.getElementById(
+            "v41SecurityCenter"
+        )
+    ) {
+        return;
+    }
+
+
+    const searchSection =
+        document.getElementById(
+            "v40AdminSearchSection"
+        );
+
+    const dashboard =
+        document.getElementById(
+            "v39AdminDashboardSection"
+        );
+
+    const anchor =
+        searchSection ||
+        dashboard;
+
+
+    if (!anchor) {
+        return;
+    }
+
+
+    anchor.insertAdjacentHTML(
+        "afterend",
+        `
+            <div class="admin-section" id="v41SecurityCenter">
+                <div class="admin-section-title">🛡 ${v39T("Security Center","Центр безопасности")}</div>
+                <div class="section-subtitle">${v39T("System status, anti-spam protection and recent security events.","Состояние системы, антиспам-защита и последние события безопасности.")}</div>
+
+                <button class="secondary" style="width:100%;margin-top:10px" onclick="v41LoadSecurityCenter()">↻ ${v39T("Refresh Security Status","Обновить состояние")}</button>
+
+                <div id="v41SecurityStatus"><div class="empty">Loading...</div></div>
+
+                <div class="section-title" style="margin-top:18px">${v39T("Protection Limits","Лимиты защиты")}</div>
+                <div id="v41ProtectionLimits"></div>
+
+                <div class="section-title" style="margin-top:18px">${v39T("Recent Security Events","Последние события безопасности")}</div>
+                <div id="v41SecurityEvents"><div class="empty">Loading...</div></div>
+
+                <div id="v41SystemErrorsWrap" style="display:none">
+                    <div class="section-title" style="margin-top:18px">${v39T("Technical Error Log · Owner","Журнал технических ошибок · Owner")}</div>
+                    <div id="v41SystemErrors"><div class="empty">Loading...</div></div>
+                </div>
+            </div>
+        `
+    );
+
+
+    v41ApplySecurityVisibility();
+}
+
+
+function v41ApplySecurityVisibility() {
+
+    const section =
+        document.getElementById(
+            "v41SecurityCenter"
+        );
+
+
+    if (!section) {
+        return;
+    }
+
+
+    const role =
+        v39Role();
+
+
+    section.style.display =
+        [
+            "owner",
+            "moderator"
+        ].includes(
+            role
+        )
+            ? ""
+            : "none";
+
+
+    const errorsWrap =
+        document.getElementById(
+            "v41SystemErrorsWrap"
+        );
+
+
+    if (errorsWrap) {
+        errorsWrap.style.display =
+            role ===
+            "owner"
+                ? ""
+                : "none";
+    }
+}
+
+
+function v41StatusText(
+    ok,
+    good,
+    bad
+) {
+
+    return ok
+        ? `✅ ${good}`
+        : `⚠️ ${bad}`;
+}
+
+
+function v41FormatUptime(
+    seconds
+) {
+
+    const total =
+        Math.max(
+            0,
+            Number(seconds || 0)
+        );
+
+    const days =
+        Math.floor(
+            total / 86400
+        );
+
+    const hours =
+        Math.floor(
+            (total % 86400) / 3600
+        );
+
+    const minutes =
+        Math.floor(
+            (total % 3600) / 60
+        );
+
+
+    if (days) {
+        return `${days}d ${hours}h`;
+    }
+
+    if (hours) {
+        return `${hours}h ${minutes}m`;
+    }
+
+    return `${minutes}m`;
+}
+
+
+function v41ProtectionName(
+    key
+) {
+
+    const names = {
+        listing_create:"Listing creation",
+        listing_edit:"Listing edits",
+        contact_change:"Contact changes",
+        offer_create:"Offers",
+        chat_send:"Chat messages",
+        support_create:"Support tickets",
+        support_send:"Support messages",
+        report_create:"Reports",
+        saved_search_create:"Saved searches",
+        contact_unlock_create:"Contact unlock requests"
+    };
+
+
+    return names[key] ||
+        key.replaceAll("_"," ");
+}
+
+
+async function v41LoadSecurityCenter() {
+
+    const statusBox =
+        document.getElementById(
+            "v41SecurityStatus"
+        );
+
+    const limitsBox =
+        document.getElementById(
+            "v41ProtectionLimits"
+        );
+
+    const eventsBox =
+        document.getElementById(
+            "v41SecurityEvents"
+        );
+
+    const errorsBox =
+        document.getElementById(
+            "v41SystemErrors"
+        );
+
+
+    if (
+        !statusBox ||
+        !limitsBox ||
+        !eventsBox
+    ) {
+        return;
+    }
+
+
+    statusBox.innerHTML =
+        '<div class="empty">Loading...</div>';
+
+
+    try {
+
+        const [
+            status,
+            events
+        ] =
+            await Promise.all([
+
+                api(
+                    "/admin/security-status",
+                    {
+                        initData:
+                            tg.initData
+                    }
+                ),
+
+                api(
+                    "/admin/security-events",
+                    {
+                        initData:
+                            tg.initData
+                    }
+                )
+            ]);
+
+
+        statusBox.innerHTML = `
+            <div class="v41-security-grid">
+                <div class="v41-security-card">
+                    <div class="v41-security-value">${v41StatusText(true,"API online","API unavailable")}</div>
+                    <div class="v41-security-label">${escapeHtml(status.version || "v41")}</div>
+                </div>
+
+                <div class="v41-security-card">
+                    <div class="v41-security-value">${v41StatusText(Boolean(status.database?.ok),"Database online","Database issue")}</div>
+                    <div class="v41-security-label">${Number(status.database?.latency_ms || 0)} ms</div>
+                </div>
+
+                <div class="v41-security-card">
+                    <div class="v41-security-value">${v41StatusText(Boolean(status.telegram?.ok && status.telegram?.webhook_configured),"Telegram webhook online","Telegram webhook issue")}</div>
+                    <div class="v41-security-label">${v39T("Pending updates","Ожидающие обновления")}: ${Number(status.telegram?.pending_updates || 0)}</div>
+                </div>
+
+                <div class="v41-security-card">
+                    <div class="v41-security-value">⏱ ${escapeHtml(v41FormatUptime(status.uptime_seconds))}</div>
+                    <div class="v41-security-label">${v39T("Server uptime","Время работы сервера")}</div>
+                </div>
+            </div>
+
+            ${status.telegram?.last_error ? `<div class="field-hint" style="margin-top:9px">Telegram: ${escapeHtml(status.telegram.last_error)}</div>` : ""}
+        `;
+
+
+        const protections =
+            status.protections ||
+            {};
+
+
+        limitsBox.innerHTML =
+            Object.entries(
+                protections
+            ).map(
+                ([key,value]) => `
+                    <div class="v41-protection-row">
+                        <strong>${escapeHtml(v41ProtectionName(key))}</strong>
+                        <span>${Number(value.short_limit || 0)} / ${Math.round(Number(value.short_window_seconds || 0) / 60)}m · ${Number(value.long_limit || 0)} / ${Math.round(Number(value.long_window_seconds || 0) / 3600)}h</span>
+                    </div>
+                `
+            ).join("");
+
+
+        const rows =
+            events.events ||
+            [];
+
+
+        eventsBox.innerHTML =
+            rows.length
+                ? rows.slice(0,30).map(row => `
+                    <div class="v41-event">
+                        <div class="v41-event-top">
+                            <strong>${escapeHtml(String(row.event_type || "security event").replaceAll("_"," "))}</strong>
+                            <span class="v41-severity">${escapeHtml(String(row.severity || "low").toUpperCase())}</span>
+                        </div>
+                        <div class="field-hint" style="margin-top:6px">
+                            ${row.telegram_id ? `User ID: ${escapeHtml(row.telegram_id)}` : "System"}
+                            ${row.target_id ? ` · Target: ${escapeHtml(row.target_id)}` : ""}
+                        </div>
+                        <div class="field-hint">${escapeHtml(v38DateTime(row.created_at))}</div>
+                    </div>
+                  `).join("")
+                : `<div class="empty">${v39T("No security events yet.","Событий безопасности пока нет.")}</div>`;
+
+
+        if (
+            v39Role() ===
+            "owner" &&
+            errorsBox
+        ) {
+
+            try {
+
+                const errors =
+                    await api(
+                        "/admin/system-errors",
+                        {
+                            initData:
+                                tg.initData
+                        }
+                    );
+
+
+                const errorRows =
+                    errors.errors ||
+                    [];
+
+
+                errorsBox.innerHTML =
+                    errorRows.length
+                        ? errorRows.slice(0,20).map(row => `
+                            <div class="v41-event">
+                                <div class="v41-event-top">
+                                    <strong>${escapeHtml(row.scope || "server")}</strong>
+                                    <span class="v41-severity">${escapeHtml(row.error_code || "error")}</span>
+                                </div>
+                                <div class="field-hint" style="margin-top:6px;word-break:break-word">${escapeHtml(row.message || "")}</div>
+                                <div class="field-hint">${escapeHtml(v38DateTime(row.created_at))}</div>
+                            </div>
+                          `).join("")
+                        : `<div class="empty">${v39T("No recorded technical errors.","Записанных технических ошибок нет.")}</div>`;
+
+            } catch (error) {
+
+                errorsBox.innerHTML =
+                    `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+            }
+        }
+
+    } catch (error) {
+
+        statusBox.innerHTML =
+            `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+    }
+}
+
+
+const v41BaseApplyAdminRoleVisibility =
+    v39ApplyAdminRoleVisibility;
+
+
+v39ApplyAdminRoleVisibility =
+function v39ApplyAdminRoleVisibilityV41() {
+
+    v41BaseApplyAdminRoleVisibility();
+    v41ApplySecurityVisibility();
+};
+
+
+const v41BaseLoadAdminPanel =
+    loadAdminPanel;
+
+
+loadAdminPanel =
+async function loadAdminPanelV41() {
+
+    v41InjectSecurityCenter();
+
+    await v41BaseLoadAdminPanel();
+
+    v41ApplySecurityVisibility();
+
+    if (
+        [
+            "owner",
+            "moderator"
+        ].includes(
+            v39Role()
+        )
+    ) {
+        await v41LoadSecurityCenter();
+    }
+};
+
+
+v41InjectSecurityCenter();
+
+
 if (authenticatedUser) {
     renderMainProfile(
         authenticatedUser
