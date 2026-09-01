@@ -3476,7 +3476,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v25-admin-free-listing"
+                    "v27-admin-free-promotions"
             }
         );
     }
@@ -10012,6 +10012,7 @@ app.post(
     }
 );
 
+
 /* =========================================================
    ADMIN CREATE LISTING WITHOUT PAYMENT
    ========================================================= */
@@ -10578,6 +10579,484 @@ app.post(
         }
     }
 );
+
+
+
+/* =========================================================
+   ADMIN FREE PROMOTION MANAGEMENT
+   ========================================================= */
+
+app.post(
+    "/admin/listing-promotion",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            admin.error
+                    }
+                );
+        }
+
+
+        const listingId =
+            String(
+                req.body.listing_id ||
+                ""
+            ).trim();
+
+
+        const action =
+            String(
+                req.body.action ||
+                "apply"
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (!listingId) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "listing_id_required"
+                    }
+                );
+        }
+
+
+        const {
+            data:
+                listing,
+            error:
+                listingError
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,seller_telegram_id,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until"
+                )
+                .eq(
+                    "id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (
+            listingError ||
+            !listing
+        ) {
+
+            return res
+                .status(404)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "listing_not_found"
+                    }
+                );
+        }
+
+
+        if (
+            listing.status !==
+            "active"
+        ) {
+
+            return res
+                .status(409)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "listing_not_active"
+                    }
+                );
+        }
+
+
+        if (
+            isListingExpired(
+                listing
+            )
+        ) {
+
+            return res
+                .status(409)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "listing_expired"
+                    }
+                );
+        }
+
+
+        /* ---------------------------------------------
+           CLEAR ALL PAID / ADMIN PROMOTIONS
+           --------------------------------------------- */
+
+        if (
+            action ===
+            "clear"
+        ) {
+
+            const {
+                data,
+                error
+            } =
+                await supabase
+                    .from("listings")
+                    .update(
+                        {
+                            bump_until:
+                                null,
+
+                            hot_until:
+                                null,
+
+                            vip_until:
+                                null,
+
+                            bump_promoted_at:
+                                null,
+
+                            hot_promoted_at:
+                                null,
+
+                            vip_promoted_at:
+                                null,
+
+                            bump_expiry_1h_notified_at:
+                                null,
+
+                            bump_expired_notified_at:
+                                null,
+
+                            hot_expiry_1h_notified_at:
+                                null,
+
+                            hot_expired_notified_at:
+                                null,
+
+                            vip_expiry_1h_notified_at:
+                                null,
+
+                            vip_expired_notified_at:
+                                null,
+
+                            updated_at:
+                                nowIso()
+                        }
+                    )
+                    .eq(
+                        "id",
+                        listingId
+                    )
+                    .select(
+                        "id,whatsapp_username,bump_until,hot_until,vip_until"
+                    )
+                    .single();
+
+
+            if (error) {
+
+                console.error(
+                    "Admin promotion clear:",
+                    error
+                );
+
+
+                return res
+                    .status(500)
+                    .json(
+                        {
+                            ok: false,
+                            error:
+                                "admin_promotion_update_failed"
+                        }
+                    );
+            }
+
+
+            await safeSendMessage(
+                listing.seller_telegram_id,
+                `ℹ️ Handle Market admin removed active promotion from @${listing.whatsapp_username}.`
+            );
+
+
+            return res.json(
+                {
+                    ok: true,
+                    action:
+                        "clear",
+                    listing:
+                        data
+                }
+            );
+        }
+
+
+        if (
+            action !==
+            "apply"
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "invalid_promotion_action"
+                    }
+                );
+        }
+
+
+        const type =
+            String(
+                req.body.promotion_type ||
+                ""
+            )
+                .trim()
+                .toLowerCase();
+
+
+        const durationHours =
+            Number(
+                req.body.duration_hours
+            );
+
+
+        if (
+            ![
+                "bump",
+                "hot",
+                "vip"
+            ].includes(
+                type
+            ) ||
+            ![
+                24,
+                72,
+                168
+            ].includes(
+                durationHours
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "invalid_promotion"
+                    }
+                );
+        }
+
+
+        /*
+         * Admin assignment starts a fresh timer from now.
+         * It never extends the listing itself.
+         * If the listing expires sooner, promotion is capped
+         * at the listing expiration time.
+         */
+
+        const now =
+            Date.now();
+
+
+        let appliedUntilMs =
+            now +
+            durationHours *
+            60 *
+            60 *
+            1000;
+
+
+        const listingExpiryMs =
+            timeMs(
+                listing.listing_expires_at
+            );
+
+
+        let cappedByListingExpiry =
+            false;
+
+
+        if (
+            listingExpiryMs &&
+            appliedUntilMs >
+            listingExpiryMs
+        ) {
+
+            appliedUntilMs =
+                listingExpiryMs;
+
+
+            cappedByListingExpiry =
+                true;
+        }
+
+
+        if (
+            appliedUntilMs <=
+            now
+        ) {
+
+            return res
+                .status(409)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "listing_expired"
+                    }
+                );
+        }
+
+
+        const appliedUntil =
+            new Date(
+                appliedUntilMs
+            ).toISOString();
+
+
+        const untilField =
+            `${type}_until`;
+
+
+        const promotedAtField =
+            `${type}_promoted_at`;
+
+
+        const hourField =
+            `${type}_expiry_1h_notified_at`;
+
+
+        const expiredField =
+            `${type}_expired_notified_at`;
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from("listings")
+                .update(
+                    {
+                        [untilField]:
+                            appliedUntil,
+
+                        [promotedAtField]:
+                            nowIso(),
+
+                        [hourField]:
+                            null,
+
+                        [expiredField]:
+                            null,
+
+                        updated_at:
+                            nowIso()
+                    }
+                )
+                .eq(
+                    "id",
+                    listingId
+                )
+                .select(
+                    "id,whatsapp_username,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at"
+                )
+                .single();
+
+
+        if (error) {
+
+            console.error(
+                "Admin promotion apply:",
+                error
+            );
+
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "admin_promotion_update_failed"
+                    }
+                );
+        }
+
+
+        const label =
+            type === "vip"
+                ? "💎 VIP"
+                : type === "hot"
+                    ? "🔥 HOT"
+                    : "⬆️ Bump";
+
+
+        const durationLabel =
+            durationHours === 24
+                ? "24 hours"
+                : durationHours === 72
+                    ? "3 days"
+                    : "7 days";
+
+
+        await safeSendMessage(
+            listing.seller_telegram_id,
+            `${label} promotion was added to @${listing.whatsapp_username} by Handle Market admin for ${durationLabel}.${cappedByListingExpiry ? "\n\nThe promotion will end earlier because the listing itself expires first." : ""}`
+        );
+
+
+        res.json(
+            {
+                ok: true,
+                action:
+                    "apply",
+                promotion_type:
+                    type,
+                duration_hours:
+                    durationHours,
+                applied_until:
+                    appliedUntil,
+                capped_by_listing_expiry:
+                    cappedByListingExpiry,
+                listing:
+                    data
+            }
+        );
+    }
+);
+
 /* =========================================================
    ADMIN PENDING
    ========================================================= */

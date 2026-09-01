@@ -13588,6 +13588,124 @@ async function loadAdminPremiumListings() {
 
 
                                 <div
+                                    style="
+                                        margin-top:14px;
+                                        padding:12px;
+                                        border:1px solid var(--border);
+                                        border-radius:14px;
+                                        background:var(--surface-2);
+                                    "
+                                >
+
+                                    <div
+                                        style="
+                                            font-size:10px;
+                                            font-weight:900;
+                                            margin-bottom:8px;
+                                        "
+                                    >
+                                        🚀 Free Promotion
+                                    </div>
+
+
+                                    <div
+                                        style="
+                                            display:grid;
+                                            grid-template-columns:1fr 1fr;
+                                            gap:8px;
+                                        "
+                                    >
+
+                                        <select
+                                            id="adminPromoType-${listing.id}"
+                                            class="filter-select"
+                                        >
+
+                                            <option value="bump">
+                                                ⬆️ Bump
+                                            </option>
+
+                                            <option value="hot">
+                                                🔥 HOT
+                                            </option>
+
+                                            <option value="vip">
+                                                💎 VIP
+                                            </option>
+
+                                        </select>
+
+
+                                        <select
+                                            id="adminPromoDuration-${listing.id}"
+                                            class="filter-select"
+                                        >
+
+                                            <option value="24">
+                                                24 hours
+                                            </option>
+
+                                            <option value="72">
+                                                3 days
+                                            </option>
+
+                                            <option value="168">
+                                                7 days
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+
+                                    <div
+                                        class="buttons"
+                                        style="margin-top:9px"
+                                    >
+
+                                        <button
+                                            class="approve-button"
+                                            onclick="
+                                                adminApplyFreePromotion(
+                                                    '${listing.id}',
+                                                    '${escapeJs(
+                                                        listing.whatsapp_username
+                                                    )}'
+                                                )
+                                            "
+                                        >
+                                            Apply Free Promotion
+                                        </button>
+
+
+                                        <button
+                                            class="secondary"
+                                            onclick="
+                                                adminClearPromotion(
+                                                    '${listing.id}',
+                                                    '${escapeJs(
+                                                        listing.whatsapp_username
+                                                    )}'
+                                                )
+                                            "
+                                        >
+                                            Clear Promotion
+                                        </button>
+
+                                    </div>
+
+
+                                    <div
+                                        class="field-hint"
+                                        style="margin-top:8px"
+                                    >
+                                        Admin promotion costs 0 Stars. It does not extend the listing expiration date.
+                                    </div>
+
+                                </div>
+
+
+                                <div
                                     class="buttons"
                                     style="margin-top:12px"
                                 >
@@ -13657,10 +13775,263 @@ async function loadAdminPremiumListings() {
 
         updateLiveCountdowns();
 
-    } catch {
+    } catch (
+        error
+    ) {
+
+        console.error(
+            "Admin listing management load:",
+            error
+        );
+
 
         container.innerHTML =
             '<div class="empty">Failed to load listing management.</div>';
+    }
+}
+
+
+async function adminApplyFreePromotion(
+    listingId,
+    username
+) {
+
+    const type =
+        document.getElementById(
+            `adminPromoType-${listingId}`
+        )?.value;
+
+
+    const durationHours =
+        Number(
+            document.getElementById(
+                `adminPromoDuration-${listingId}`
+            )?.value
+        );
+
+
+    if (
+        !type ||
+        ![
+            24,
+            72,
+            168
+        ].includes(
+            durationHours
+        )
+    ) {
+
+        tg?.showAlert(
+            "Choose a promotion and duration."
+        );
+
+        return;
+    }
+
+
+    const labels = {
+        bump:
+            "⬆️ Bump",
+        hot:
+            "🔥 HOT",
+        vip:
+            "💎 VIP"
+    };
+
+
+    const durationLabel =
+        durationHours === 24
+            ? "24 hours"
+            : durationHours === 72
+                ? "3 days"
+                : "7 days";
+
+
+    const applyPromotion =
+        async () => {
+
+            try {
+
+                const data =
+                    await api(
+                        "/admin/listing-promotion",
+                        {
+                            initData:
+                                tg.initData,
+
+                            listing_id:
+                                listingId,
+
+                            action:
+                                "apply",
+
+                            promotion_type:
+                                type,
+
+                            duration_hours:
+                                durationHours
+                        }
+                    );
+
+
+                await Promise.all(
+                    [
+                        loadAdminPanel(),
+                        loadMarketplace(),
+                        loadMyListings()
+                    ]
+                );
+
+
+                const capText =
+                    data.capped_by_listing_expiry
+                        ? "\n\n⚠️ The promotion was shortened because the listing expires earlier."
+                        : "";
+
+
+                tg?.showAlert(
+                    `${labels[type]} added to @${username} for ${durationLabel}.${capText}`
+                );
+
+            } catch (
+                error
+            ) {
+
+                const messages = {
+
+                    listing_expired:
+                        "This listing has already expired.",
+
+                    listing_not_active:
+                        "Only active listings can be promoted.",
+
+                    invalid_promotion:
+                        "Choose Bump, HOT or VIP and a valid duration.",
+
+                    admin_promotion_update_failed:
+                        "Could not update the promotion."
+                };
+
+
+                tg?.showAlert(
+                    messages[
+                        error.message
+                    ] ||
+                    error.message
+                );
+            }
+        };
+
+
+    if (
+        tg?.showConfirm
+    ) {
+
+        tg.showConfirm(
+            `Apply ${labels[type]} to @${username} for ${durationLabel} for FREE?`,
+            confirmed => {
+
+                if (
+                    confirmed
+                ) {
+
+                    applyPromotion();
+                }
+            }
+        );
+
+        return;
+    }
+
+
+    if (
+        confirm(
+            `Apply ${labels[type]} to @${username} for ${durationLabel}?`
+        )
+    ) {
+
+        await applyPromotion();
+    }
+}
+
+
+async function adminClearPromotion(
+    listingId,
+    username
+) {
+
+    const clearPromotion =
+        async () => {
+
+            try {
+
+                await api(
+                    "/admin/listing-promotion",
+                    {
+                        initData:
+                            tg.initData,
+
+                        listing_id:
+                            listingId,
+
+                        action:
+                            "clear"
+                    }
+                );
+
+
+                await Promise.all(
+                    [
+                        loadAdminPanel(),
+                        loadMarketplace(),
+                        loadMyListings()
+                    ]
+                );
+
+
+                tg?.showAlert(
+                    `Promotion cleared for @${username}.`
+                );
+
+            } catch (
+                error
+            ) {
+
+                tg?.showAlert(
+                    error.message
+                );
+            }
+        };
+
+
+    if (
+        tg?.showConfirm
+    ) {
+
+        tg.showConfirm(
+            `Clear Bump / HOT / VIP from @${username}?`,
+            confirmed => {
+
+                if (
+                    confirmed
+                ) {
+
+                    clearPromotion();
+                }
+            }
+        );
+
+        return;
+    }
+
+
+    if (
+        confirm(
+            `Clear promotion from @${username}?`
+        )
+    ) {
+
+        await clearPromotion();
     }
 }
 
