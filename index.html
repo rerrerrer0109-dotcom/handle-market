@@ -3603,6 +3603,85 @@ button {
     font-size:15px;
 }
 
+
+
+/* =========================================================
+   V60 FEED CARD LAYOUT POLISH
+   - Premium next to LOT number
+   - NEW badge uses the blue outline language
+   - View / Views / Likes sit in one compact row
+   ========================================================= */
+
+.badge-new {
+    color:var(--blue);
+    background:rgba(34,124,255,.10);
+    border:1px solid rgba(34,124,255,.18);
+}
+
+.listing-top-badges {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:8px;
+}
+
+.listing-top-badges .listing-number,
+.listing-top-badges .premium-name-badge,
+.listing-top-badges .badge-new {
+    margin:0;
+}
+
+.listing-info-row {
+    margin-top:7px;
+}
+
+.listing-main > .seller-mini {
+    margin-top:10px;
+}
+
+.listing-engagement-row {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-top:10px;
+}
+
+.listing-engagement-row .listing-view-link {
+    min-height:29px;
+    border-radius:10px;
+}
+
+.listing-engagement-row .public-stats {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-top:0;
+}
+
+.listing-engagement-row .public-stat {
+    margin:0;
+}
+
+@media (max-width:430px) {
+    .listing-top-badges {
+        gap:5px;
+        margin-top:7px;
+    }
+
+    .listing-info-row {
+        gap:5px;
+        margin-top:6px;
+    }
+
+    .listing-engagement-row {
+        gap:6px;
+        margin-top:9px;
+    }
+}
+
 </style>
 
 <style>
@@ -5660,6 +5739,228 @@ option {
         border-top-color:rgba(255,255,255,.10);
     }
 }
+</style>
+
+
+
+<!-- =====================================================
+     v59 LISTING DETAIL FINAL POLISH
+     Tighter spacing · compact actions · nav safe area
+     ===================================================== -->
+<style>
+
+/* Keep the detail screen comfortably clear of the fixed navigation. */
+.listing-detail-page {
+    padding-bottom:calc(
+        var(--nav-height)
+        + env(safe-area-inset-bottom)
+        + 72px
+    );
+}
+
+html,
+body {
+    scroll-padding-bottom:calc(
+        var(--nav-height)
+        + env(safe-area-inset-bottom)
+        + 42px
+    );
+}
+
+/* Compact the listing detail without changing its hierarchy. */
+.v58-detail-card {
+    padding:15px;
+    border-radius:20px;
+}
+
+.v58-detail-badges {
+    gap:5px;
+}
+
+.v58-detail-hero {
+    gap:14px;
+    margin-top:9px;
+    padding:12px 13px;
+    border-radius:15px;
+}
+
+.v58-detail-card .detail-username {
+    margin-top:4px;
+    font-size:23px;
+}
+
+.v58-detail-lot {
+    margin-top:6px;
+}
+
+.v58-detail-card .detail-price {
+    margin-top:3px;
+    font-size:20px;
+}
+
+.v58-detail-meta {
+    gap:5px;
+    margin-top:7px;
+}
+
+.v58-detail-section-label {
+    margin-top:10px;
+    margin-bottom:5px;
+}
+
+/* Seller is one compact row, not a second large card. */
+.v58-detail-seller {
+    width:100%;
+    min-height:48px;
+    margin-top:0;
+    padding:7px 9px;
+    border-radius:13px;
+}
+
+.v58-detail-seller .seller-mini-avatar {
+    width:32px;
+    height:32px;
+    border-radius:9px;
+}
+
+.v58-detail-seller .seller-mini-name {
+    font-size:10px;
+}
+
+.v58-detail-seller .seller-mini-status {
+    font-size:7.7px;
+}
+
+.v58-detail-card .detail-description {
+    margin-top:10px;
+    padding:10px 11px;
+    border-radius:13px;
+}
+
+.v58-description-label {
+    margin:0 0 5px;
+}
+
+.v58-detail-card .public-stats {
+    margin-top:8px;
+}
+
+/* Free/Paid lifetime strip should support the card, not dominate it. */
+.v58-detail-card .listing-lifetime {
+    min-height:35px;
+    margin-top:8px;
+    padding:7px 10px;
+    border-radius:12px;
+    font-size:8.8px;
+}
+
+/* Final compact CTA row for the detail screen only. */
+.v58-detail-card .detail-actions {
+    grid-template-columns:minmax(0,1fr) 38px 38px 38px;
+    gap:6px;
+    margin-top:10px;
+}
+
+.v58-detail-card .offer-button {
+    height:40px;
+    min-height:40px;
+    padding:0 14px;
+    border-radius:12px;
+    font-size:12px;
+}
+
+.v58-detail-card .action-icon-button {
+    width:38px !important;
+    min-width:38px !important;
+    height:38px !important;
+    min-height:38px !important;
+    border-radius:11px !important;
+}
+
+.v58-detail-card .action-icon-button .hm-icon {
+    width:16px !important;
+    height:16px !important;
+}
+
+/* Give unlocked/locked contact content a clean separation from actions. */
+.v58-detail-card .contact-area {
+    margin-top:10px;
+}
+
+.v58-detail-card .detail-share-section {
+    margin-top:9px;
+}
+
+.v58-detail-card .detail-share-note {
+    margin-top:5px;
+}
+
+@media (max-width:430px) {
+    .listing-detail-page {
+        padding:10px 8px calc(
+            var(--nav-height)
+            + env(safe-area-inset-bottom)
+            + 76px
+        );
+    }
+
+    .v58-detail-card {
+        padding:13px;
+        border-radius:19px;
+    }
+
+    .v58-detail-hero {
+        gap:10px;
+        padding:11px;
+    }
+
+    .v58-detail-card .detail-username {
+        font-size:21px;
+    }
+
+    .v58-detail-card .detail-price {
+        font-size:18px;
+    }
+
+    .v58-detail-card .detail-actions {
+        grid-template-columns:minmax(0,1fr) 36px 36px 36px;
+        gap:5px;
+    }
+
+    .v58-detail-card .offer-button {
+        height:39px;
+        min-height:39px;
+        padding:0 12px;
+        font-size:11.5px;
+    }
+
+    .v58-detail-card .action-icon-button {
+        width:36px !important;
+        min-width:36px !important;
+        height:36px !important;
+        min-height:36px !important;
+        border-radius:10px !important;
+    }
+}
+
+@media (max-width:360px) {
+    .v58-detail-hero {
+        gap:8px;
+    }
+
+    .v58-detail-card .detail-actions {
+        grid-template-columns:minmax(0,1fr) 34px 34px 34px;
+        gap:5px;
+    }
+
+    .v58-detail-card .action-icon-button {
+        width:34px !important;
+        min-width:34px !important;
+        height:34px !important;
+        min-height:34px !important;
+    }
+}
+
 </style>
 
 </head>
@@ -10723,7 +11024,7 @@ function newListingBadgeHtml(
         listing
     )
         ? `
-            <span class="badge badge-active">
+            <span class="badge badge-new">
                 <svg class="hm-chip-icon" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M12 3v4M12 17v4M3 12h4M17 12h4"></path>
                     <path d="m5.6 5.6 2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"></path>
@@ -10934,14 +11235,9 @@ function renderListingCard(
 
                     </div>
 
-                    ${listingNumberHtml(
-                        listing
-                    )}
+                    <div class="listing-top-badges">
 
-
-                    <div class="listing-info-row">
-
-                        ${promotionBadgeHtml(
+                        ${listingNumberHtml(
                             listing
                         )}
 
@@ -10950,6 +11246,15 @@ function renderListingCard(
                         )}
 
                         ${newListingBadgeHtml(
+                            listing
+                        )}
+
+                    </div>
+
+
+                    <div class="listing-info-row">
+
+                        ${promotionBadgeHtml(
                             listing
                         )}
 
@@ -10966,7 +11271,13 @@ function renderListingCard(
 
                         </span>
 
-                        ${sellerButton}
+                    </div>
+
+
+                    ${sellerButton}
+
+
+                    <div class="listing-engagement-row">
 
                         <button
                             class="listing-view-link"
@@ -10984,6 +11295,10 @@ function renderListingCard(
                             </svg>
                             <span>View</span>
                         </button>
+
+                        ${publicStatsHtml(
+                            listing
+                        )}
 
                     </div>
 
@@ -11027,11 +11342,6 @@ function renderListingCard(
 
                     : ""
             }
-
-
-            ${publicStatsHtml(
-                listing
-            )}
 
 
             ${listingLifetimeHtml(
