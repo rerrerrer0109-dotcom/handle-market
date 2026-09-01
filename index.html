@@ -11,7 +11,7 @@
 <meta name="theme-color" content="#ffffff">
 
 <title>Handle Market</title>
-<!-- UI version: v44-ui-convenience -->
+<!-- UI version: v44-ui-convenience-green-bump -->
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -25912,6 +25912,160 @@ html[data-density="compact"] .public-stats {
 @media (max-width:390px) {
     .v44-hub-grid { grid-template-columns:1fr; }
     .v44-header-bell { right:12px; }
+}
+</style>
+
+<style id="v44GreenBumpStyle">
+/* =========================================================
+   V44 GREEN BUMP — VISUAL ONLY
+   VIP and HOT styles are intentionally untouched.
+   ========================================================= */
+
+.promotion-badge-bump {
+    color:#ffffff;
+    border:1px solid rgba(20,128,63,.30);
+    background:linear-gradient(135deg,#3dcc6c 0%,#15954a 58%,#0f7f3d 100%);
+    box-shadow:
+        0 4px 12px rgba(21,149,74,.18),
+        inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+.listing-card.promotion-bump,
+.detail-card.promotion-bump {
+    position:relative;
+    overflow:hidden;
+    border:1.5px solid transparent;
+    background:
+        radial-gradient(
+            circle at 90% 17%,
+            rgba(61,204,108,.15) 0%,
+            rgba(21,149,74,.08) 24%,
+            transparent 48%
+        ) padding-box,
+        linear-gradient(
+            135deg,
+            rgba(21,149,74,.035),
+            rgba(61,204,108,.095)
+        ) padding-box,
+        linear-gradient(
+            var(--surface),
+            var(--surface)
+        ) padding-box,
+        linear-gradient(
+            125deg,
+            #72df95 0%,
+            #28b85a 33%,
+            #15954a 64%,
+            #72df95 100%
+        ) border-box;
+    box-shadow:
+        0 14px 38px rgba(21,149,74,.12),
+        0 4px 15px rgba(21,149,74,.07);
+}
+
+.listing-card.promotion-bump::after,
+.detail-card.promotion-bump::after {
+    content:"↗";
+    position:absolute;
+    right:18px;
+    top:47%;
+    transform:translateY(-50%) rotate(-3deg);
+    z-index:0;
+    pointer-events:none;
+    color:rgba(21,149,74,.075);
+    font-size:64px;
+    line-height:1;
+    font-weight:900;
+}
+
+.listing-card.promotion-bump > *,
+.detail-card.promotion-bump > * {
+    position:relative;
+    z-index:1;
+}
+
+.promotion-bump .listing-view-link {
+    color:#11833f;
+    background:rgba(61,204,108,.11);
+}
+
+.promotion-bump .offer-button {
+    color:#ffffff;
+    background:linear-gradient(135deg,#39c969 0%,#15954a 58%,#0f803d 100%);
+    box-shadow:0 7px 18px rgba(21,149,74,.18);
+}
+
+.promotion-bump .contact-lock-card {
+    border-color:rgba(21,149,74,.20);
+    background:rgba(61,204,108,.09);
+}
+
+.promotion-bump .contact-lock-price {
+    color:#11833f;
+}
+
+.promotion-status-bump {
+    color:#11833f;
+    background:var(--green-soft);
+}
+
+html[data-theme="dark"] .listing-card.promotion-bump,
+html[data-theme="dark"] .detail-card.promotion-bump {
+    background:
+        radial-gradient(
+            circle at 90% 17%,
+            rgba(61,204,108,.17) 0%,
+            rgba(21,149,74,.09) 25%,
+            transparent 49%
+        ) padding-box,
+        linear-gradient(
+            135deg,
+            rgba(21,149,74,.07),
+            rgba(61,204,108,.11)
+        ) padding-box,
+        linear-gradient(
+            var(--surface),
+            var(--surface)
+        ) padding-box,
+        linear-gradient(
+            125deg,
+            #55cf7e 0%,
+            #24a953 35%,
+            #11783a 68%,
+            #55cf7e 100%
+        ) border-box;
+    box-shadow:
+        0 15px 40px rgba(21,149,74,.14),
+        0 4px 18px rgba(0,0,0,.22);
+}
+
+@media (prefers-color-scheme:dark) {
+    html:not([data-theme="light"]) .listing-card.promotion-bump,
+    html:not([data-theme="light"]) .detail-card.promotion-bump {
+        background:
+            radial-gradient(
+                circle at 90% 17%,
+                rgba(61,204,108,.17) 0%,
+                rgba(21,149,74,.09) 25%,
+                transparent 49%
+            ) padding-box,
+            linear-gradient(
+                135deg,
+                rgba(21,149,74,.07),
+                rgba(61,204,108,.11)
+            ) padding-box,
+            linear-gradient(
+                var(--surface),
+                var(--surface)
+            ) padding-box,
+            linear-gradient(
+                125deg,
+                #55cf7e 0%,
+                #24a953 35%,
+                #11783a 68%,
+                #55cf7e 100%
+            ) border-box;
+    }
 }
 </style>
 
