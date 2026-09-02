@@ -8062,7 +8062,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v75-referral-growth-3day-free"
+                    "v76-admin-reactivate-expired"
             }
         );
     }
@@ -26543,6 +26543,432 @@ app.post(
                     )
             }
         );
+    }
+);
+
+
+/* =========================================================
+   V76 — ADMIN LISTING MANAGEMENT FEED
+   Includes current + time-expired active listings so admins
+   can restore expired listings without exposing them publicly.
+   ========================================================= */
+
+app.post(
+    "/admin/listings-management",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json({
+                    ok:false,
+                    error:
+                        admin.error
+                });
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,status,is_paused,is_frozen,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
+                )
+                .eq(
+                    "status",
+                    "active"
+                )
+                .eq(
+                    "is_paused",
+                    false
+                )
+                .eq(
+                    "is_frozen",
+                    false
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending:false
+                    }
+                )
+                .limit(500);
+
+
+        if (error) {
+
+            await logSystemError(
+                "v76_admin_listings_management",
+                error,
+                {
+                    admin_telegram_id:
+                        admin.user.telegram_id
+                }
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "admin_listing_management_load_failed"
+                });
+        }
+
+
+        const listings =
+            (data || [])
+                .map(
+                    listing =>
+                        withLifecycle(
+                            listing
+                        )
+                )
+                .sort(
+                    (a, b) => {
+
+                        const expiredDiff =
+                            Number(
+                                Boolean(
+                                    b.is_expired
+                                )
+                            ) -
+                            Number(
+                                Boolean(
+                                    a.is_expired
+                                )
+                            );
+
+
+                        if (expiredDiff) {
+
+                            return expiredDiff;
+                        }
+
+
+                        return (
+                            timeMs(
+                                b.created_at
+                            ) -
+                            timeMs(
+                                a.created_at
+                            )
+                        );
+                    }
+                );
+
+
+        return res.json({
+            ok:true,
+            server_time:
+                nowIso(),
+            listings
+        });
+    }
+);
+
+
+/* =========================================================
+   V76 — ADMIN REACTIVATE EXPIRED LISTING
+   Restarts only the listing visibility period. It does NOT
+   reset created_at / NEW badge and does NOT restore promotions.
+   ========================================================= */
+
+app.post(
+    "/admin/listing-reactivate",
+    async (req, res) => {
+
+        const admin =
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json({
+                    ok:false,
+                    error:
+                        admin.error
+                });
+        }
+
+
+        const listingId =
+            String(
+                req.body.listing_id ||
+                ""
+            ).trim();
+
+
+        const durationDays =
+            Number(
+                req.body.duration_days
+            );
+
+
+        if (
+            !listingId ||
+            ![
+                3,
+                7,
+                30
+            ].includes(
+                durationDays
+            )
+        ) {
+
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:
+                        "invalid_reactivation_duration"
+                });
+        }
+
+
+        const {
+            data:
+                existing,
+            error:
+                existingError
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_period_started_at,listing_expires_at"
+                )
+                .eq(
+                    "id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        if (existingError) {
+
+            await logSystemError(
+                "v76_admin_reactivate_lookup",
+                existingError,
+                {
+                    listing_id:
+                        listingId,
+                    admin_telegram_id:
+                        admin.user.telegram_id
+                }
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "listing_reactivation_failed"
+                });
+        }
+
+
+        if (!existing) {
+
+            return res
+                .status(404)
+                .json({
+                    ok:false,
+                    error:
+                        "listing_not_found"
+                });
+        }
+
+
+        if (
+            existing.status !==
+            "active"
+        ) {
+
+            return res
+                .status(409)
+                .json({
+                    ok:false,
+                    error:
+                        "listing_not_active"
+                });
+        }
+
+
+        if (
+            existing.is_frozen
+        ) {
+
+            return res
+                .status(409)
+                .json({
+                    ok:false,
+                    error:
+                        "listing_frozen"
+                });
+        }
+
+
+        if (
+            !isListingExpired(
+                existing
+            )
+        ) {
+
+            return res
+                .status(409)
+                .json({
+                    ok:false,
+                    error:
+                        "listing_not_expired"
+                });
+        }
+
+
+        const startedAt =
+            nowIso();
+
+
+        const expiresAt =
+            addDaysIso(
+                startedAt,
+                durationDays
+            );
+
+
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from("listings")
+                .update({
+                    is_paused:false,
+                    listing_period_started_at:
+                        startedAt,
+                    listing_expires_at:
+                        expiresAt,
+                    listing_expiry_1h_notified_at:
+                        null,
+                    listing_expired_notified_at:
+                        null,
+                    updated_at:
+                        startedAt
+                })
+                .eq(
+                    "id",
+                    listingId
+                )
+                .eq(
+                    "status",
+                    "active"
+                )
+                .select(
+                    "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_period_started_at,listing_expires_at"
+                )
+                .maybeSingle();
+
+
+        if (
+            error ||
+            !data
+        ) {
+
+            if (error) {
+
+                await logSystemError(
+                    "v76_admin_reactivate_update",
+                    error,
+                    {
+                        listing_id:
+                            listingId,
+                        admin_telegram_id:
+                            admin.user.telegram_id
+                    }
+                );
+            }
+
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "listing_reactivation_failed"
+                });
+        }
+
+
+        await addListingChangeHistory(
+            listingId,
+            "admin",
+            admin.user.telegram_id,
+            "admin_reactivated_expired_listing",
+            {
+                listing_expires_at:
+                    existing.listing_expires_at
+            },
+            {
+                listing_expires_at:
+                    expiresAt,
+                duration_days:
+                    durationDays
+            }
+        );
+
+
+        await logAdminActivity(
+            admin.user.telegram_id,
+            "listing_reactivated",
+            "listing",
+            listingId,
+            {
+                username:
+                    data.whatsapp_username,
+                duration_days:
+                    durationDays,
+                previous_expires_at:
+                    existing.listing_expires_at,
+                new_expires_at:
+                    expiresAt
+            }
+        );
+
+
+        safeSendMessage(
+            data.seller_telegram_id,
+            `♻️ @${data.whatsapp_username} was reactivated by Handle Market for ${durationDays} days.\n\nThe new active period starts now.`
+        );
+
+
+        return res.json({
+            ok:true,
+            duration_days:
+                durationDays,
+            listing:
+                withLifecycle(
+                    data
+                )
+        });
     }
 );
 

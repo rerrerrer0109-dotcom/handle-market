@@ -23279,7 +23279,7 @@ function renderSellerProfile(
                     )
                     .join("")
 
-                : '<div class="empty">No active listings.</div>'
+                : '<div class="empty">No active or expired listings.</div>'
         }
 
     `;
@@ -25630,15 +25630,14 @@ async function loadAdminPremiumListings() {
 
     try {
 
-        const response =
-            await fetch(
-                API_URL +
-                "/listings"
-            );
-
-
         const data =
-            await response.json();
+            await api(
+                "/admin/listings-management",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
 
 
         if (
@@ -25709,6 +25708,71 @@ async function loadAdminPremiumListings() {
                                 ${listingLifetimeHtml(
                                     listing
                                 )}
+
+
+                                ${
+                                    isClientExpired(
+                                        listing
+                                    )
+                                        ? `
+                                            <div
+                                                style="
+                                                    margin-top:14px;
+                                                    padding:12px;
+                                                    border:1px solid var(--border);
+                                                    border-radius:14px;
+                                                    background:var(--surface-2);
+                                                "
+                                            >
+
+                                                <div
+                                                    style="
+                                                        font-size:10px;
+                                                        font-weight:900;
+                                                        margin-bottom:8px;
+                                                    "
+                                                >
+                                                    ♻️ Reactivate Expired Listing
+                                                </div>
+
+
+                                                <select
+                                                    id="adminReactivateDuration-${listing.id}"
+                                                    class="filter-select"
+                                                >
+                                                    <option value="3">3 days</option>
+                                                    <option value="7">7 days</option>
+                                                    <option value="30" selected>30 days</option>
+                                                </select>
+
+
+                                                <button
+                                                    class="approve-button"
+                                                    style="margin-top:9px;width:100%"
+                                                    onclick="
+                                                        adminReactivateExpiredListing(
+                                                            '${listing.id}',
+                                                            '${escapeJs(
+                                                                listing.whatsapp_username
+                                                            )}'
+                                                        )
+                                                    "
+                                                >
+                                                    ♻️ Reactivate
+                                                </button>
+
+
+                                                <div
+                                                    class="field-hint"
+                                                    style="margin-top:8px"
+                                                >
+                                                    Starts a new admin-granted active period from now. The NEW badge is not restored.
+                                                </div>
+
+                                            </div>
+                                        `
+                                        : ""
+                                }
 
 
                                 <div
@@ -25789,6 +25853,13 @@ async function loadAdminPremiumListings() {
 
                                         <button
                                             class="approve-button"
+                                            ${
+                                                isClientExpired(
+                                                    listing
+                                                )
+                                                    ? "disabled"
+                                                    : ""
+                                            }
                                             onclick="
                                                 adminApplyFreePromotion(
                                                     '${listing.id}',
@@ -25798,7 +25869,13 @@ async function loadAdminPremiumListings() {
                                                 )
                                             "
                                         >
-                                            Apply Free Promotion
+                                            ${
+                                                isClientExpired(
+                                                    listing
+                                                )
+                                                    ? "Reactivate First"
+                                                    : "Apply Free Promotion"
+                                            }
                                         </button>
 
 
@@ -25941,6 +26018,142 @@ async function loadAdminPremiumListings() {
 
         container.innerHTML =
             '<div class="empty">Failed to load listing management.</div>';
+    }
+}
+
+
+async function adminReactivateExpiredListing(
+    listingId,
+    username
+) {
+
+    const durationDays =
+        Number(
+            document.getElementById(
+                `adminReactivateDuration-${listingId}`
+            )?.value
+        );
+
+
+    if (
+        ![
+            3,
+            7,
+            30
+        ].includes(
+            durationDays
+        )
+    ) {
+
+        hmToast(
+            "Choose 3, 7 or 30 days."
+        );
+
+        return;
+    }
+
+
+    const reactivate =
+        async () => {
+
+            try {
+
+                await api(
+                    "/admin/listing-reactivate",
+                    {
+                        initData:
+                            tg.initData,
+
+                        listing_id:
+                            listingId,
+
+                        duration_days:
+                            durationDays
+                    }
+                );
+
+
+                await Promise.all(
+                    [
+                        loadAdminPanel(),
+                        loadMarketplace(),
+                        loadMyListings()
+                    ]
+                );
+
+
+                hmToast(
+                    `@${username} reactivated for ${durationDays} days.`
+                );
+
+            } catch (
+                error
+            ) {
+
+                const messages = {
+
+                    listing_not_found:
+                        "Listing not found.",
+
+                    listing_not_active:
+                        "Only an active listing with an expired timer can be reactivated.",
+
+                    listing_frozen:
+                        "Unfreeze this listing before reactivating it.",
+
+                    listing_not_expired:
+                        "This listing has not expired.",
+
+                    invalid_reactivation_duration:
+                        "Choose 3, 7 or 30 days.",
+
+                    listing_reactivation_failed:
+                        "Could not reactivate the listing."
+                };
+
+
+                hmToast(
+                    messages[
+                        error.message
+                    ] ||
+                    error.message
+                );
+            }
+        };
+
+
+    const message =
+        `Reactivate @${username} for ${durationDays} days?`;
+
+
+    if (
+        tg?.showConfirm
+    ) {
+
+        tg.showConfirm(
+            message,
+            confirmed => {
+
+                if (
+                    confirmed
+                ) {
+
+                    reactivate();
+                }
+            }
+        );
+
+        return;
+    }
+
+
+    if (
+        confirm(
+            message
+        )
+    ) {
+
+        await reactivate();
     }
 }
 
