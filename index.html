@@ -4376,7 +4376,7 @@ button {
     }
 
     .promotion-duration-grid {
-        grid-template-columns:repeat(3,minmax(0,1fr));
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     }
 }
 
@@ -7949,11 +7949,11 @@ Browse listings, discover sellers and negotiate directly through Handle Market.
 <div class="hero-premium-info">
 
 <div class="hero-premium-title">
-🎁 First listing free for 24 hours
+🎁 First listing free for 3 days
 </div>
 
 <div class="hero-premium-text">
-New sellers can publish their first listing free. The 24-hour timer begins only after moderation approval.
+New sellers can publish their first listing free. The 3-day timer begins only after moderation approval.
 </div>
 
 <div class="hero-promotion-text">
@@ -8170,7 +8170,7 @@ Rankings are based on real marketplace activity.
 
 <div class="warning">
 
-🎁 First listing: free for 24 hours after approval.
+🎁 First listing: free for 3 days after approval.
 
 <br><br>
 
@@ -9797,7 +9797,7 @@ Listing plan
 
 <select id="adminListingPlan" required>
 <option value="paid" selected>🟢 Paid plan · 30 days · no charge</option>
-<option value="free">🎁 Free · 24 hours</option>
+<option value="free">🎁 Free · 3 days</option>
 <option value="legacy">∞ Legacy · no automatic expiration</option>
 </select>
 
@@ -9820,7 +9820,7 @@ Status
 </select>
 
 <div class="field-hint">
-For Pending listings, the 24-hour or 30-day timer starts only after approval.
+For Pending listings, the 3-day or 30-day timer starts only after approval.
 </div>
 
 </div>
@@ -11197,7 +11197,7 @@ async function authenticate() {
         freeListingDurationHours =
             Number(
                 data.free_listing_duration_hours ||
-                24
+                72
             );
 
 
@@ -11374,7 +11374,7 @@ function updateListingPlanUi() {
 
 
         text.textContent =
-            `Your first listing is free for ${freeListingDurationHours} hours. The timer starts only after moderation approval.`;
+            `Your first listing is free for ${Math.round(freeListingDurationHours / 24)} days. The timer starts only after moderation approval.`;
 
 
         feeLabel.textContent =
@@ -11386,7 +11386,7 @@ function updateListingPlanUi() {
 
 
         feeSubtitle.textContent =
-            `${freeListingDurationHours} hours of Marketplace visibility after approval.`;
+            `${Math.round(freeListingDurationHours / 24)} days of Marketplace visibility after approval.`;
 
 
         button.textContent =
@@ -11406,12 +11406,26 @@ function updateListingPlanUi() {
             "listing-plan-box free";
 
 
+        const rewardDays =
+            Math.max(
+                1,
+                Math.round(
+                    Number(
+                        v46ReferralNextListingCredit
+                            ?.duration_hours ||
+                        168
+                    ) /
+                    24
+                )
+            );
+
+
         title.textContent =
-            `🎁 Invite Reward — FREE 7 Days`;
+            `🎁 Invite Reward — FREE ${rewardDays} Days`;
 
 
         text.textContent =
-            `You have ${v46ReferralListingCredits} free 7-day listing ${v46ReferralListingCredits === 1 ? "credit" : "credits"}. The timer starts only after moderation approval.`;
+            `Your next referral listing credit is ${rewardDays} days. You have ${v46ReferralListingCredits} listing ${v46ReferralListingCredits === 1 ? "credit" : "credits"} available. The timer starts only after moderation approval.`;
 
 
         feeLabel.textContent =
@@ -11690,6 +11704,22 @@ function listingLifetimeHtml(
 
 
     if (
+        plan ===
+        "lifetime" &&
+        listing.status ===
+        "active"
+    ) {
+
+        return `
+            <div class="listing-lifetime listing-lifetime-paid">
+                <span class="lifetime-title">🏆 LIFETIME LISTING</span>
+                <span>No renewal required</span>
+            </div>
+        `;
+    }
+
+
+    if (
         !listing.listing_expires_at
     ) {
 
@@ -11704,7 +11734,8 @@ function listingLifetimeHtml(
                     class="listing-lifetime ${
                         [
                             "free",
-                            "referral"
+                            "referral",
+                            "referral30"
                         ].includes(
                             plan
                         )
@@ -11722,7 +11753,13 @@ function listingLifetimeHtml(
                                 : plan ===
                                     "referral"
                                     ? "🎁 INVITE REWARD · 7 DAYS"
-                                    : "🟢 PAID"
+                                    : plan ===
+                                        "referral30"
+                                        ? "🎁 INVITE REWARD · 30 DAYS"
+                                        : plan ===
+                                            "lifetime"
+                                            ? "🏆 LIFETIME LISTING"
+                                            : "🟢 PAID"
                         }
 
                     </span>
@@ -11777,8 +11814,12 @@ function listingLifetimeHtml(
 
 
     const referral =
-        plan ===
-        "referral";
+        [
+            "referral",
+            "referral30"
+        ].includes(
+            plan
+        );
 
 
     return `
@@ -13752,7 +13793,7 @@ function isNewListing(
         created > 0 &&
         currentServerTimeMs() -
         created <
-        24 * 60 * 60 * 1000
+        3 * 24 * 60 * 60 * 1000
     );
 }
 
@@ -16564,7 +16605,7 @@ async function startListingPayment(
             hmToast(
                 data.referral_free
                     ? `🎁 Referral reward listing submitted. Your free ${Number(data.duration_hours || 168) / 24}-day timer will start after moderation approval.`
-                    : `🎁 Free listing submitted. Your ${freeListingDurationHours}-hour timer will start after moderation approval.`
+                    : `🎁 Free listing submitted. Your ${Math.round(freeListingDurationHours / 24)}-day timer will start after moderation approval.`
             );
 
 
@@ -17006,7 +17047,29 @@ function renderMyListing(
 
                     `
 
-                : "";
+                    : plan ===
+                        "referral30"
+
+                        ? `
+
+                            <span class="badge badge-active">
+                                🎁 INVITE · 30 DAYS
+                            </span>
+
+                        `
+
+                        : plan ===
+                            "lifetime"
+
+                            ? `
+
+                                <span class="badge badge-active">
+                                    🏆 LIFETIME
+                                </span>
+
+                            `
+
+                            : "";
 
 
     return `
@@ -25392,7 +25455,7 @@ async function loadPendingListings() {
                                             ? `
 
                                                 <span class="badge badge-active">
-                                                    🎁 FREE · 24H
+                                                    🎁 FREE · 3 DAYS
                                                 </span>
 
                                             `
@@ -25419,7 +25482,29 @@ async function loadPendingListings() {
 
                                                     `
 
-                                                : ""
+                                                    : listing.listing_plan ===
+                                                        "referral30"
+
+                                                        ? `
+
+                                                            <span class="badge badge-active">
+                                                                🎁 INVITE · 30 DAYS
+                                                            </span>
+
+                                                        `
+
+                                                        : listing.listing_plan ===
+                                                            "lifetime"
+
+                                                            ? `
+
+                                                                <span class="badge badge-active">
+                                                                    🏆 LIFETIME
+                                                                </span>
+
+                                                            `
+
+                                                            : ""
                                     }
 
                                     <span class="category-badge">
@@ -29407,7 +29492,7 @@ function v39RenderHelpPages() {
                     <div class="v39-help-card"><h3>Who can see Wanted contacts?</h3><p>The public API does not expose the actual Wanted contact values. Telegram, WhatsApp, Email or Other contact values supplied by the buyer are available only to authenticated Handle Market users inside the Telegram Mini App.</p></div>
                     <div class="v39-help-card"><h3>Can administrators review internal chats?</h3><p>Yes. Authorized administrators may review internal Listing and Wanted chats to investigate fraud, suspicious links, reports and platform abuse. Never send passwords, recovery codes, seed phrases or other secrets.</p></div>
                                         <div class="v39-help-card"><h3>What does ⭐ Premium mean?</h3><p>Premium is awarded by Handle Market to selected unique, high-quality names and cannot be purchased. VIP, HOT and Bump are separate paid promotion products and do not guarantee a sale, ownership or transfer.</p></div>
-                    <div class="v39-help-card"><h3>How long does a listing stay active?</h3><p>The first free listing lasts 24 hours. A paid or renewed listing lasts 30 days. Legacy listings may have no automatic expiration.</p></div>
+                    <div class="v39-help-card"><h3>How long does a listing stay active?</h3><p>The first free listing lasts 3 days. A paid or renewed listing lasts 30 days. Lifetime and Legacy listings may have no automatic expiration.</p></div>
                     <div class="v39-help-card"><h3>Does Handle Market guarantee username transfer?</h3><p><strong>No.</strong> Handle Market helps users discover opportunities and negotiate, but it does not control WhatsApp, username ownership or the technical transfer process and is not an escrow service.</p></div>
                     <div class="v39-help-card"><h3>Where can I get help?</h3><p>Open Profile → Help & Support and create a ticket. Your support conversation remains inside Handle Market.</p></div>
                 `;
@@ -35466,6 +35551,9 @@ var v46ReferralStatusData =
 var v46ReferralListingCredits =
     0;
 
+var v46ReferralNextListingCredit =
+    null;
+
 
 function v46ReferralStartCode() {
 
@@ -35539,6 +35627,11 @@ function v46ApplyReferralStatus(
                 0
             )
         );
+
+
+    v46ReferralNextListingCredit =
+        status?.next_listing_credit ||
+        null;
 
 
     if (
@@ -35787,6 +35880,24 @@ function v46RewardRows(
                             ${v39T("List username","Создать лот")}
                         </button>
                     `;
+                } else if (
+                    status ===
+                    "available" &&
+                    reward.kind ===
+                    "lifetime"
+                ) {
+
+                    statusText =
+                        v39T(
+                            "Ready · choose one listing",
+                            "Готово · выберите один лот"
+                        );
+
+                    action = `
+                        <button onclick="v46ChooseLifetime('${escapeJs(reward.id)}')">
+                            ${v39T("Choose listing","Выбрать лот")}
+                        </button>
+                    `;
                 }
 
 
@@ -35842,7 +35953,7 @@ function v46RenderReferralPage() {
             100,
             Math.round(
                 count /
-                25 *
+                100 *
                 100
             )
         );
@@ -35866,6 +35977,14 @@ function v46RenderReferralPage() {
         },
         {
             value:25,
+            title:v39T("Premium reward","Премиальная награда")
+        },
+        {
+            value:50,
+            title:v39T("Power reward","Большая награда")
+        },
+        {
+            value:100,
             title:v39T("Ultimate reward","Главная награда")
         }
     ];
@@ -35873,7 +35992,7 @@ function v46RenderReferralPage() {
 
     content.innerHTML = `
         <div class="v46-referral-hero">
-            <div class="v46-referral-kicker">Handle Market · v46</div>
+            <div class="v46-referral-kicker">Handle Market · v75</div>
             <div class="v46-referral-title">🎁 ${v39T("Invite & Earn","Приглашай и получай")}</div>
             <div class="v46-referral-copy">${v39T("Invite new Handle Market users. Rewards are cumulative and each reward can be used once.","Приглашайте новых пользователей Handle Market. Награды суммируются, каждую можно использовать один раз.")}</div>
             <div class="v46-referral-count"><strong>${count}</strong><span>${v39T("qualified invites","засчитанных приглашений")}</span></div>
@@ -36217,6 +36336,178 @@ async function v46ClaimPromotion(
 }
 
 
+async function v46ChooseLifetime(
+    rewardId
+) {
+
+    const reward =
+        (
+            v46ReferralStatusData?.rewards ||
+            []
+        ).find(
+            item =>
+                String(item.id) ===
+                String(rewardId)
+        );
+
+
+    if (!reward) {
+        return;
+    }
+
+
+    if (!myListingsData.length) {
+        await loadMyListings();
+    }
+
+
+    const eligible =
+        myListingsData.filter(
+            listing =>
+                listing.status ===
+                "active" &&
+                !listing.is_frozen &&
+                !isClientExpired(listing) &&
+                String(
+                    listing.listing_plan ||
+                    "legacy"
+                ) !==
+                "lifetime"
+        );
+
+
+    if (!eligible.length) {
+        hmToast(
+            v39T(
+                "You do not have an eligible active listing for the Lifetime reward.",
+                "Нет подходящего активного лота для награды Lifetime."
+            )
+        );
+        return;
+    }
+
+
+    document.getElementById(
+        "inputModalTitle"
+    ).textContent =
+        reward.title;
+
+    document.getElementById(
+        "inputModalSubtitle"
+    ).textContent =
+        v39T(
+            "Choose carefully: this one-time reward is permanently attached to the selected listing and cannot be moved later.",
+            "Выберите внимательно: одноразовая награда навсегда закрепляется за выбранным лотом и не переносится."
+        );
+
+    document.getElementById(
+        "inputModalFields"
+    ).innerHTML = `
+        <div class="field">
+            <label>${v39T("Listing for Lifetime status","Лот для Lifetime")}</label>
+            <select id="v46LifetimeListing">
+                ${eligible.map(listing => `<option value="${escapeHtml(listing.id)}">@${escapeHtml(listing.whatsapp_username)}${formatListingNumber(listing) ? ` · LOT #${formatListingNumber(listing)}` : ""}</option>`).join("")}
+            </select>
+        </div>
+        <div class="field-hint">
+            ${v39T(
+                "The listing will never require renewal. Bump, HOT and VIP can still be purchased normally.",
+                "Лот больше не потребует продления. Bump, HOT и VIP можно будет покупать как обычно."
+            )}
+        </div>
+    `;
+
+
+    const action =
+        document.getElementById(
+            "inputModalAction"
+        );
+
+    action.textContent =
+        v39T(
+            "Activate Lifetime",
+            "Активировать Lifetime"
+        );
+
+    action.onclick =
+        () =>
+            v46ClaimLifetime(
+                reward.id,
+                document.getElementById(
+                    "v46LifetimeListing"
+                ).value
+            );
+
+
+    showModal(
+        "inputModal"
+    );
+}
+
+
+async function v46ClaimLifetime(
+    rewardId,
+    listingId
+) {
+
+    const action =
+        document.getElementById(
+            "inputModalAction"
+        );
+
+    action.disabled =
+        true;
+
+
+    try {
+        const data =
+            await api(
+                "/referrals/claim-lifetime",
+                {
+                    initData:
+                        tg.initData,
+                    reward_id:
+                        rewardId,
+                    listing_id:
+                        listingId
+                }
+            );
+
+        v46ApplyReferralStatus(
+            data.referral
+        );
+
+        closeModal(
+            "inputModal"
+        );
+
+        await Promise.all([
+            loadMyListings(),
+            loadMarketplace()
+        ]);
+
+        v46RenderReferralPage();
+
+        hmToast(
+            v39T(
+                "Lifetime Listing activated 🏆",
+                "Lifetime Listing активирован 🏆"
+            )
+        );
+
+    } catch (error) {
+        hmToast(
+            friendlyError(
+                error.message
+            )
+        );
+    } finally {
+        action.disabled =
+            false;
+    }
+}
+
+
 async function openInviteEarn() {
 
     v46EnsureReferralPage();
@@ -36246,7 +36537,13 @@ function friendlyErrorV46(
         referral_reward_unavailable:
             v39T("This reward is no longer available.","Эта награда больше недоступна."),
         referral_listing_reward_unavailable:
-            v39T("No free 7-day listing credit is available.","Нет доступного бесплатного 7-дневного лота."),
+            v39T("No referral listing credit is available.","Нет доступной реферальной награды на лот."),
+        referral_lifetime_claim_failed:
+            v39T("Could not activate the Lifetime Listing reward.","Не удалось активировать награду Lifetime Listing."),
+        lifetime_listing_reward_unavailable:
+            v39T("The Lifetime Listing reward is no longer available.","Награда Lifetime Listing больше недоступна."),
+        listing_already_lifetime:
+            v39T("This listing already has Lifetime status.","У этого лота уже есть статус Lifetime."),
         referral_listing_create_failed:
             v39T("Could not create the referral reward listing.","Не удалось создать лот по реферальной награде."),
         promotion_exceeds_listing_period:
@@ -36377,7 +36674,7 @@ A quick guide to buying, selling and discovering WhatsApp usernames.
 <div class="onboarding-icon">🎁</div>
 <div>
 <h3>First listing free</h3>
-<p>New sellers can publish their first listing free for 24 hours. The timer starts only after moderation approval.</p>
+<p>New sellers can publish their first listing free for 3 days. The timer starts only after moderation approval.</p>
 </div>
 </div>
 

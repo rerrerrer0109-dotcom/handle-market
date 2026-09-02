@@ -105,7 +105,7 @@ const WANTED_PRICE_STARS =
 
 
 const FREE_LISTING_DURATION_HOURS =
-    24;
+    3 * 24;
 
 
 const PAID_LISTING_DURATION_DAYS =
@@ -149,6 +149,9 @@ const TELEGRAM_MINI_APP_SHORT_NAME =
 
 const REFERRAL_LISTING_DURATION_HOURS =
     7 * 24;
+
+const REFERRAL_30D_LISTING_DURATION_HOURS =
+    30 * 24;
 
 
 /* =========================================================
@@ -2280,7 +2283,7 @@ async function notifyAdminsNewListing(
     ) {
 
         planText =
-            `🎁 FREE · ${FREE_LISTING_DURATION_HOURS}H`;
+            `🎁 FREE · ${FREE_LISTING_DURATION_HOURS / 24} DAYS`;
     }
 
 
@@ -2299,6 +2302,24 @@ async function notifyAdminsNewListing(
 
         planText =
             `🎁 REFERRAL REWARD · ${REFERRAL_LISTING_DURATION_HOURS / 24} DAYS`;
+    }
+
+
+    if (
+        plan === "referral30"
+    ) {
+
+        planText =
+            `🎁 REFERRAL REWARD · ${REFERRAL_30D_LISTING_DURATION_HOURS / 24} DAYS`;
+    }
+
+
+    if (
+        plan === "lifetime"
+    ) {
+
+        planText =
+            "🏆 LIFETIME REFERRAL LISTING";
     }
 
 
@@ -2538,7 +2559,7 @@ async function createFreeListing(
 
             seller.telegram_id,
 
-            `🎁 Your first listing @${input.username} was submitted for moderation.\n\nYour free ${FREE_LISTING_DURATION_HOURS}-hour timer will start only after approval.`
+            `🎁 Your first listing @${input.username} was submitted for moderation.\n\nYour free ${FREE_LISTING_DURATION_HOURS / 24}-day timer will start only after approval.`
         );
 
 
@@ -2689,9 +2710,23 @@ async function createReferralRewardListingAtomic(
     );
 
 
+    const referralDurationHours =
+        Number(
+            data.duration_hours ||
+            REFERRAL_LISTING_DURATION_HOURS
+        );
+
+
+    const referralPlan =
+        String(
+            data.listing_plan ||
+            "referral"
+        );
+
+
     await safeSendMessage(
         seller.telegram_id,
-        `🎁 Your referral reward listing @${input.username} was submitted for moderation.\n\nIts free ${REFERRAL_LISTING_DURATION_HOURS / 24}-day timer starts only after approval.`
+        `🎁 Your referral reward listing @${input.username} was submitted for moderation.\n\nIts free ${referralDurationHours / 24}-day timer starts only after approval.`
     );
 
 
@@ -2704,7 +2739,7 @@ async function createReferralRewardListingAtomic(
             category:
                 input.category,
             listing_plan:
-                "referral"
+                referralPlan
         }
     );
 
@@ -2741,7 +2776,18 @@ async function createReferralRewardListingAtomic(
         reward_id:
             data.reward_id,
         tier:
-            data.tier
+            data.tier,
+        reward_type:
+            data.reward_type ||
+            "listing_7d",
+        listing_plan:
+            data.listing_plan ||
+            "referral",
+        duration_hours:
+            Number(
+                data.duration_hours ||
+                REFERRAL_LISTING_DURATION_HOURS
+            )
     };
 }
 
@@ -3664,7 +3710,8 @@ function calculatePromotionUntil(
     if (
         [
             "paid",
-            "referral"
+            "referral",
+            "referral30"
         ].includes(
             plan
         ) &&
@@ -8015,7 +8062,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v74-launch-guard"
+                    "v75-referral-growth-3day-free"
             }
         );
     }
@@ -8572,7 +8619,16 @@ app.post(
                     listing_plan:
                         "referral",
                     duration_hours:
-                        REFERRAL_LISTING_DURATION_HOURS
+                        Number(
+                            created.duration_hours ||
+                            REFERRAL_LISTING_DURATION_HOURS
+                        ),
+                    referral_reward_type:
+                        created.reward_type ||
+                        "listing_7d",
+                    listing_plan:
+                        created.listing_plan ||
+                        "referral"
                 });
 
             } catch (error) {
@@ -8974,7 +9030,8 @@ app.post(
             ![
                 "free",
                 "paid",
-                "referral"
+                "referral",
+                "referral30"
             ].includes(
                 String(
                     listing.listing_plan
@@ -19132,7 +19189,7 @@ app.post(
         return res.json({
             ok:true,
             version:
-                "v74-launch-guard",
+                "v75-referral-growth-3day-free",
             uptime_seconds:
                 Math.floor(
                     process.uptime()
@@ -25075,7 +25132,7 @@ app.post(
             ) {
 
                 sellerMessage +=
-                    `\n\nStatus: ✅ Active\n🎁 Free listing · ${FREE_LISTING_DURATION_HOURS} hours.`;
+                    `\n\nStatus: ✅ Active\n🎁 Free listing · ${FREE_LISTING_DURATION_HOURS / 24} days.`;
 
             } else if (
                 listingPlan ===
@@ -26706,6 +26763,52 @@ app.post(
                 update.listing_expired_notified_at =
                     null;
             }
+
+
+            if (
+                !restartingExistingPeriod &&
+                existing.listing_plan ===
+                "referral30"
+            ) {
+
+                update.listing_period_started_at =
+                    startedAt;
+
+
+                update.listing_expires_at =
+                    addHoursIso(
+                        startedAt,
+                        REFERRAL_30D_LISTING_DURATION_HOURS
+                    );
+
+
+                update.listing_expiry_1h_notified_at =
+                    null;
+
+
+                update.listing_expired_notified_at =
+                    null;
+            }
+
+
+            if (
+                !restartingExistingPeriod &&
+                existing.listing_plan ===
+                "lifetime"
+            ) {
+
+                update.listing_period_started_at =
+                    startedAt;
+
+                update.listing_expires_at =
+                    null;
+
+                update.listing_expiry_1h_notified_at =
+                    null;
+
+                update.listing_expired_notified_at =
+                    null;
+            }
         }
 
 
@@ -26790,7 +26893,7 @@ app.post(
             ) {
 
                 message =
-                    `✅ @${data.whatsapp_username} was approved and is now live.\n\n🎁 Your free ${FREE_LISTING_DURATION_HOURS}-hour timer has started.`;
+                    `✅ @${data.whatsapp_username} was approved and is now live.\n\n🎁 Your free ${FREE_LISTING_DURATION_HOURS / 24}-day timer has started.`;
 
             } else if (
                 data.listing_plan ===
@@ -26807,6 +26910,22 @@ app.post(
 
                 message =
                     `✅ @${data.whatsapp_username} was approved. Your referral reward listing is now live for ${REFERRAL_LISTING_DURATION_HOURS / 24} days.`;
+
+            } else if (
+                data.listing_plan ===
+                "referral30"
+            ) {
+
+                message =
+                    `✅ @${data.whatsapp_username} was approved. Your referral reward listing is now live for ${REFERRAL_30D_LISTING_DURATION_HOURS / 24} days.`;
+
+            } else if (
+                data.listing_plan ===
+                "lifetime"
+            ) {
+
+                message =
+                    `🏆 @${data.whatsapp_username} was approved. Your Lifetime Listing is now active with no renewal required.`;
 
             } else {
 
@@ -28843,7 +28962,9 @@ app.post(
                             listing.is_frozen ||
                             ![
                                 "free",
-                                "paid"
+                                "paid",
+                                "referral",
+                                "referral30"
                             ].includes(
                                 listing.listing_plan
                             ) ||
@@ -29815,7 +29936,9 @@ app.post(
                         listing.is_frozen ||
                         ![
                             "free",
-                            "paid"
+                            "paid",
+                            "referral",
+                            "referral30"
                         ].includes(
                             listing.listing_plan
                         ) ||
@@ -31360,7 +31483,7 @@ app.get(
             return res.json({
                 ok:true,
                 version:
-                    "v74-launch-guard",
+                    "v75-referral-growth-3day-free",
                 server_time:
                     nowIso(),
                 page:
@@ -31423,7 +31546,7 @@ app.get(
         return res.json({
             ok:true,
             version:
-                "v74-launch-guard",
+                "v75-referral-growth-3day-free",
             service:
                 "Handle Market API",
             maintenance:
@@ -31514,7 +31637,7 @@ app.post(
         return res.json({
             ok:true,
             version:
-                "v74-launch-guard",
+                "v75-referral-growth-3day-free",
             maintenance,
             marketplace:{
                 ok:
@@ -31650,9 +31773,9 @@ app.post(
 
 /* =========================================================
    V46 — REFERRAL SYSTEM
-   - Cumulative one-time rewards at 3 / 10 / 25 qualified invites.
+   - Cumulative one-time rewards at 3 / 10 / 25 / 50 / 100 qualified invites.
    - Telegram-authenticated attribution for new Handle Market accounts only.
-   - Atomic promotion claims and reserved 7-day listing credits.
+   - Atomic promotion claims, timed listing credits, and one Lifetime Listing reward.
    ========================================================= */
 
 const V46_REFERRAL_REWARDS = [
@@ -31672,6 +31795,7 @@ const V46_REFERRAL_REWARDS = [
         tier:10,
         reward_type:"listing_7d",
         kind:"listing",
+        duration_hours:7 * 24,
         title:"📦 Free listing · 7 days"
     },
     {
@@ -31684,7 +31808,27 @@ const V46_REFERRAL_REWARDS = [
         tier:25,
         reward_type:"listing_7d",
         kind:"listing",
+        duration_hours:7 * 24,
         title:"📦 Free listing · 7 days"
+    },
+    {
+        tier:50,
+        reward_type:"vip_7d",
+        kind:"promotion",
+        title:"💎 VIP · 7 days"
+    },
+    {
+        tier:50,
+        reward_type:"listing_30d",
+        kind:"listing",
+        duration_hours:30 * 24,
+        title:"📦 Free listing · 30 days"
+    },
+    {
+        tier:100,
+        reward_type:"lifetime_listing",
+        kind:"lifetime",
+        title:"🏆 Lifetime Listing ×1"
     }
 ];
 
@@ -31999,6 +32143,24 @@ async function v46RegisterReferral(
         }
 
 
+        if (
+            count === 50
+        ) {
+
+            unlocked =
+                "\n\n🎁 Unlocked: VIP for 7 days + one free 30-day listing.";
+        }
+
+
+        if (
+            count === 100
+        ) {
+
+            unlocked =
+                "\n\n🏆 Unlocked: Lifetime Listing ×1.";
+        }
+
+
         await safeSendMessage(
             Number(
                 data.referrer_id
@@ -32169,7 +32331,9 @@ async function v46ReferralStatus(
         [
             3,
             10,
-            25
+            25,
+            50,
+            100
         ].find(
             threshold =>
                 qualifiedCount <
@@ -32198,6 +32362,15 @@ async function v46ReferralStatus(
                     reward.status ===
                     "available"
             ).length,
+        next_listing_credit:
+            rewards.find(
+                reward =>
+                    reward.kind ===
+                    "listing" &&
+                    reward.status ===
+                    "available"
+            ) ||
+            null,
         rules:{
             new_accounts_only:true,
             unique_telegram_account:true,
@@ -32420,6 +32593,133 @@ app.post(
                     ok:false,
                     error:
                         "referral_claim_failed"
+                });
+        }
+    }
+);
+
+
+app.post(
+    "/referrals/claim-lifetime",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+            return res
+                .status(auth.status)
+                .json({
+                    ok:false,
+                    error:auth.error
+                });
+        }
+
+
+        const rewardId =
+            String(
+                req.body.reward_id ||
+                ""
+            ).trim();
+
+        const listingId =
+            String(
+                req.body.listing_id ||
+                ""
+            ).trim();
+
+        const uuidPattern =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+        if (
+            !uuidPattern.test(rewardId) ||
+            !uuidPattern.test(listingId)
+        ) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:"invalid_referral_claim"
+                });
+        }
+
+
+        try {
+            const {
+                data,
+                error
+            } =
+                await supabase.rpc(
+                    "hm_claim_referral_lifetime_v75",
+                    {
+                        p_telegram_id:
+                            auth.user.telegram_id,
+                        p_reward_id:
+                            rewardId,
+                        p_listing_id:
+                            listingId
+                    }
+                );
+
+
+            if (error) {
+                throw error;
+            }
+
+
+            if (!data?.ok) {
+                return res
+                    .status(409)
+                    .json({
+                        ok:false,
+                        error:
+                            data?.error ||
+                            "referral_reward_unavailable"
+                    });
+            }
+
+
+            v45MarketplaceCache.clear();
+
+
+            await safeSendMessage(
+                auth.user.telegram_id,
+                `🏆 Lifetime Listing activated for @${data.whatsapp_username}.\n\nThis listing no longer requires renewal. Bump, HOT and VIP promotions remain available.`
+            );
+
+
+            return res.json({
+                ok:true,
+                claim:data,
+                referral:
+                    await v46ReferralStatus(
+                        auth.user.telegram_id
+                    )
+            });
+
+        } catch (error) {
+            await logSystemError(
+                "v75_referral_lifetime_claim",
+                error,
+                {
+                    telegram_id:
+                        auth.user.telegram_id,
+                    reward_id:
+                        rewardId,
+                    listing_id:
+                        listingId
+                }
+            );
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"referral_lifetime_claim_failed"
                 });
         }
     }
