@@ -7646,6 +7646,219 @@ body {
 }
 </style>
 
+
+<style>
+/* =========================================================
+   V71.1 HERO REFERRAL GIFT
+   Compact referral entry point inside the Home hero.
+   ========================================================= */
+
+.v711-hero-referral-gift {
+    position:absolute;
+    top:16px;
+    right:16px;
+    z-index:5;
+
+    width:78px;
+    height:78px;
+    padding:8px 7px 7px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.32);
+    border-radius:23px;
+
+    color:#fff;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.23) 0%,
+            rgba(255,255,255,.10) 46%,
+            rgba(93,72,213,.22) 100%
+        );
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.28),
+        0 10px 26px rgba(13,74,158,.18);
+
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+
+    cursor:pointer;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        background .18s ease,
+        box-shadow .18s ease;
+}
+
+.v711-hero-referral-gift:hover {
+    transform:translateY(-1px);
+    border-color:rgba(255,255,255,.48);
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.29) 0%,
+            rgba(255,255,255,.13) 48%,
+            rgba(93,72,213,.26) 100%
+        );
+}
+
+.v711-hero-referral-gift:active {
+    transform:scale(.97);
+}
+
+.v711-hero-referral-gift:focus-visible {
+    outline:2px solid rgba(255,255,255,.96);
+    outline-offset:3px;
+}
+
+.v711-gift-shine {
+    position:absolute;
+    width:76px;
+    height:76px;
+    top:-44px;
+    left:-35px;
+    border-radius:50%;
+    background:rgba(255,255,255,.23);
+    filter:blur(1px);
+    pointer-events:none;
+}
+
+.v711-gift-icon {
+    position:relative;
+    z-index:2;
+    width:37px;
+    height:37px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    filter:drop-shadow(0 3px 7px rgba(20,59,143,.22));
+}
+
+.v711-gift-icon svg {
+    width:100%;
+    height:100%;
+    display:block;
+}
+
+.v711-gift-label {
+    position:relative;
+    z-index:2;
+    margin-top:1px;
+    font-size:8px;
+    line-height:1;
+    font-weight:900;
+    letter-spacing:.65px;
+    text-transform:uppercase;
+    color:rgba(255,255,255,.94);
+}
+
+.v711-gift-count {
+    position:absolute;
+    top:5px;
+    right:5px;
+    z-index:4;
+
+    min-width:19px;
+    height:19px;
+    padding:0 5px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border:2px solid rgba(255,255,255,.92);
+    border-radius:999px;
+
+    background:#ffcc4d;
+    color:#3f3188;
+
+    font-size:9px;
+    font-weight:950;
+    line-height:1;
+
+    box-shadow:0 4px 12px rgba(54,43,132,.24);
+}
+
+.v711-hero-referral-gift.v711-has-reward {
+    border-color:rgba(255,239,166,.65);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.34),
+        0 0 0 1px rgba(255,217,98,.11),
+        0 12px 28px rgba(30,67,167,.22);
+}
+
+/* Keep the title clear of the gift emblem. */
+.hero-label,
+.hero-title {
+    padding-right:88px;
+}
+
+/* V71's large Home referral card is retired in v71.1. */
+#v71HomeReferral {
+    display:none !important;
+}
+
+@media (max-width:390px) {
+    .v711-hero-referral-gift {
+        top:14px;
+        right:14px;
+        width:70px;
+        height:70px;
+        border-radius:21px;
+    }
+
+    .v711-gift-icon {
+        width:33px;
+        height:33px;
+    }
+
+    .v711-gift-label {
+        font-size:7.4px;
+    }
+
+    .hero-label,
+    .hero-title {
+        padding-right:78px;
+    }
+}
+
+@media (max-width:350px) {
+    .v711-hero-referral-gift {
+        width:64px;
+        height:64px;
+        top:13px;
+        right:13px;
+        border-radius:19px;
+    }
+
+    .v711-gift-icon {
+        width:30px;
+        height:30px;
+    }
+
+    .hero-label,
+    .hero-title {
+        padding-right:70px;
+    }
+}
+
+@media (prefers-reduced-motion:reduce) {
+    .v711-hero-referral-gift {
+        transition:none;
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -7692,6 +7905,34 @@ Connecting...
 
 <div class="hero">
 
+<button
+    id="v711HeroReferralGift"
+    class="v711-hero-referral-gift"
+    type="button"
+    aria-label="Open Referral Rewards"
+    title="Referral Rewards"
+    onclick="openInviteEarn()"
+>
+    <span class="v711-gift-shine" aria-hidden="true"></span>
+    <span class="v711-gift-icon" aria-hidden="true">
+        <svg viewBox="0 0 32 32">
+            <defs>
+                <linearGradient id="v711GiftRibbon" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#fff7c7"></stop>
+                    <stop offset="1" stop-color="#ffd45f"></stop>
+                </linearGradient>
+            </defs>
+            <rect x="5.5" y="13" width="21" height="14" rx="3.3" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.96)" stroke-width="1.8"></rect>
+            <path d="M16 13v14M5.5 17.5h21" fill="none" stroke="url(#v711GiftRibbon)" stroke-width="2.15" stroke-linecap="round"></path>
+            <path d="M16 13h-4.9c-2.2 0-3.8-1.35-3.8-3.2 0-1.8 1.45-3.05 3.25-3.05C13.35 6.75 16 13 16 13Z" fill="none" stroke="rgba(255,255,255,.96)" stroke-width="1.8" stroke-linejoin="round"></path>
+            <path d="M16 13h4.9c2.2 0 3.8-1.35 3.8-3.2 0-1.8-1.45-3.05-3.25-3.05C18.65 6.75 16 13 16 13Z" fill="none" stroke="rgba(255,255,255,.96)" stroke-width="1.8" stroke-linejoin="round"></path>
+            <path d="m25.2 4.8.65 1.45 1.45.65-1.45.65-.65 1.45-.65-1.45-1.45-.65 1.45-.65.65-1.45Z" fill="#fff6b1"></path>
+        </svg>
+    </span>
+    <span class="v711-gift-label">Rewards</span>
+    <span id="v711HeroReferralCount" class="v711-gift-count" hidden>0</span>
+</button>
+
 <div class="hero-label">
 HANDLE MARKET
 </div>
@@ -7730,14 +7971,6 @@ New sellers can publish their first listing free. The 24-hour timer begins only 
 </button>
 
 </div>
-
-<div id="v71HomeReferral" class="v71-home-referral" aria-label="Referral rewards">
-    <div class="v71-referral-loading">
-        <span class="v71-loading-dot" aria-hidden="true"></span>
-        <span>Loading referral rewards...</span>
-    </div>
-</div>
-
 
 <div class="search">
 
@@ -39116,6 +39349,133 @@ setTimeout(
 setTimeout(
     v71RenderHomepageReferral,
     2500
+);
+</script>
+
+
+<script>
+/* =========================================================
+   V71.1 HERO REFERRAL GIFT
+   Shows available reward count and opens Invite & Earn.
+   ========================================================= */
+
+function v711UpdateHeroReferralGift() {
+    const button =
+        document.getElementById(
+            "v711HeroReferralGift"
+        );
+
+    const badge =
+        document.getElementById(
+            "v711HeroReferralCount"
+        );
+
+    if (!button || !badge) {
+        return;
+    }
+
+    const status =
+        typeof v46ReferralStatusData !==
+            "undefined"
+            ? v46ReferralStatusData
+            : null;
+
+    const rewards =
+        Array.isArray(status?.rewards)
+            ? status.rewards
+            : [];
+
+    const readyCount =
+        rewards.filter(
+            reward =>
+                String(
+                    reward?.status ||
+                    ""
+                ) === "available"
+        ).length;
+
+    if (readyCount > 0) {
+        badge.hidden = false;
+        badge.textContent =
+            readyCount > 99
+                ? "99+"
+                : String(readyCount);
+
+        button.classList.add(
+            "v711-has-reward"
+        );
+
+        const label =
+            v39T(
+                `${readyCount} referral reward${readyCount === 1 ? "" : "s"} ready`,
+                `Готовых реферальных наград: ${readyCount}`
+            );
+
+        button.setAttribute(
+            "aria-label",
+            label
+        );
+        button.setAttribute(
+            "title",
+            label
+        );
+    } else {
+        badge.hidden = true;
+        badge.textContent = "0";
+        button.classList.remove(
+            "v711-has-reward"
+        );
+
+        const label =
+            v39T(
+                "Open Referral Rewards",
+                "Открыть реферальные награды"
+            );
+
+        button.setAttribute(
+            "aria-label",
+            label
+        );
+        button.setAttribute(
+            "title",
+            label
+        );
+    }
+}
+
+
+/* Refresh the counter whenever referral status is applied. */
+if (
+    typeof v46ApplyReferralStatus ===
+    "function"
+) {
+    const v711BaseApplyReferralStatus =
+        v46ApplyReferralStatus;
+
+    v46ApplyReferralStatus =
+    function v46ApplyReferralStatusV711(
+        status
+    ) {
+        v711BaseApplyReferralStatus(
+            status
+        );
+        v711UpdateHeroReferralGift();
+    };
+}
+
+
+v711UpdateHeroReferralGift();
+setTimeout(
+    v711UpdateHeroReferralGift,
+    300
+);
+setTimeout(
+    v711UpdateHeroReferralGift,
+    1200
+);
+setTimeout(
+    v711UpdateHeroReferralGift,
+    2600
 );
 </script>
 
