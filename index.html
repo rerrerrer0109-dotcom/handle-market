@@ -29334,7 +29334,7 @@ function v39ApplyAdminRoleVisibility() {
 
     const allowed = {
         owner:new Set([
-            "dashboard","create","pending","wanted","management","blocked","support","chat_safety","risk","history","activity","reports","frozen","team"
+            "dashboard","stars_payments","create","pending","wanted","management","blocked","support","chat_safety","risk","history","activity","reports","frozen","team"
         ]),
         moderator:new Set([
             "dashboard","pending","wanted","management","blocked","support","risk","history","reports","frozen"
@@ -37309,6 +37309,987 @@ if (
 
 
 v68InjectTestEngagementSection();
+</script>
+
+
+<style>
+/* =========================================================
+   V70 OWNER STARS PAYMENTS & REFUNDS
+   ========================================================= */
+.v70-stars-section .section-subtitle {
+    margin-bottom:10px;
+}
+
+.v70-stars-toolbar {
+    display:grid;
+    grid-template-columns:minmax(0,1.35fr) minmax(118px,.65fr) minmax(112px,.6fr) auto;
+    gap:8px;
+    align-items:end;
+    margin:10px 0 12px;
+}
+
+.v70-stars-toolbar .field {
+    margin:0;
+}
+
+.v70-stars-toolbar button {
+    min-height:42px;
+    white-space:nowrap;
+}
+
+.v70-stars-summary {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px;
+    margin-bottom:10px;
+}
+
+.v70-stars-summary-card {
+    padding:11px 12px;
+    border:1px solid var(--border,#e5e7eb);
+    border-radius:14px;
+    background:var(--card,#fff);
+}
+
+.v70-stars-summary-label {
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    opacity:.58;
+}
+
+.v70-stars-summary-value {
+    margin-top:4px;
+    font-size:17px;
+    font-weight:900;
+    line-height:1.1;
+}
+
+.v70-stars-list {
+    display:grid;
+    gap:9px;
+}
+
+.v70-payment-card {
+    padding:13px;
+    border:1px solid var(--border,#e5e7eb);
+    border-radius:17px;
+    background:var(--card,#fff);
+}
+
+.v70-payment-head {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.v70-payment-service {
+    min-width:0;
+}
+
+.v70-payment-title {
+    display:flex;
+    align-items:center;
+    gap:7px;
+    flex-wrap:wrap;
+    font-size:13px;
+    font-weight:900;
+}
+
+.v70-payment-target {
+    margin-top:3px;
+    font-size:11px;
+    font-weight:700;
+    opacity:.68;
+    overflow-wrap:anywhere;
+}
+
+.v70-payment-stars {
+    flex:0 0 auto;
+    font-size:16px;
+    font-weight:950;
+    white-space:nowrap;
+}
+
+.v70-status-badge,
+.v70-type-badge {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:22px;
+    padding:3px 7px;
+    border-radius:999px;
+    border:1px solid currentColor;
+    font-size:8px;
+    line-height:1;
+    font-weight:900;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+}
+
+.v70-status-paid {
+    color:#16803b;
+    background:rgba(22,128,59,.06);
+}
+
+.v70-status-refunded {
+    color:#64748b;
+    background:rgba(100,116,139,.07);
+}
+
+.v70-status-warning {
+    color:#b45309;
+    background:rgba(180,83,9,.07);
+}
+
+.v70-status-error {
+    color:#b91c1c;
+    background:rgba(185,28,28,.06);
+}
+
+.v70-type-badge {
+    color:#2563eb;
+    background:rgba(37,99,235,.05);
+}
+
+.v70-payment-meta {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:7px;
+    margin-top:10px;
+}
+
+.v70-payment-meta-item {
+    padding:8px 9px;
+    border-radius:11px;
+    background:rgba(127,127,127,.055);
+    min-width:0;
+}
+
+.v70-payment-meta-label {
+    font-size:8px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    opacity:.52;
+}
+
+.v70-payment-meta-value {
+    margin-top:3px;
+    font-size:10px;
+    font-weight:750;
+    line-height:1.35;
+    overflow-wrap:anywhere;
+}
+
+.v70-refund-note {
+    margin-top:9px;
+    padding:9px 10px;
+    border-radius:11px;
+    border:1px solid rgba(180,83,9,.18);
+    background:rgba(180,83,9,.055);
+    font-size:9.5px;
+    line-height:1.4;
+}
+
+.v70-payment-actions {
+    display:flex;
+    justify-content:flex-end;
+    gap:7px;
+    margin-top:10px;
+}
+
+.v70-refund-button {
+    min-height:36px;
+    padding:0 12px;
+    border-radius:11px;
+    border:1px solid rgba(185,28,28,.36);
+    background:rgba(185,28,28,.055);
+    color:#b91c1c;
+    font-size:10px;
+    font-weight:900;
+}
+
+.v70-rollback-button {
+    min-height:36px;
+    padding:0 12px;
+    border-radius:11px;
+    border:1px solid rgba(180,83,9,.34);
+    background:rgba(180,83,9,.055);
+    color:#b45309;
+    font-size:10px;
+    font-weight:900;
+}
+
+.v70-refund-modal-summary {
+    padding:11px 12px;
+    border:1px solid rgba(185,28,28,.18);
+    border-radius:13px;
+    background:rgba(185,28,28,.045);
+    margin-bottom:12px;
+}
+
+.v70-refund-modal-amount {
+    font-size:18px;
+    font-weight:950;
+}
+
+.v70-refund-modal-service {
+    margin-top:3px;
+    font-size:11px;
+    font-weight:800;
+}
+
+.v70-refund-modal-warning {
+    margin-top:7px;
+    font-size:9.5px;
+    line-height:1.45;
+    opacity:.74;
+}
+
+@media (max-width:560px) {
+    .v70-stars-toolbar {
+        grid-template-columns:1fr 1fr;
+    }
+
+    .v70-stars-toolbar .field:first-child {
+        grid-column:1 / -1;
+    }
+
+    .v70-stars-toolbar button {
+        width:100%;
+    }
+}
+
+@media (max-width:390px) {
+    .v70-stars-summary {
+        grid-template-columns:1fr;
+    }
+
+    .v70-payment-meta {
+        grid-template-columns:1fr;
+    }
+
+    .v70-payment-head {
+        gap:7px;
+    }
+}
+</style>
+
+<script>
+/* =========================================================
+   V70 OWNER STARS PAYMENTS & REFUNDS
+   ========================================================= */
+let v70StarsPayments = [];
+let v70StarsPaymentMap = new Map();
+let v70StarsLoadTimer = null;
+
+
+function v70StarsIcon() {
+    return `
+        <svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2 7.5 14 3 9.6l6.2-.9L12 3Z"></path>
+        </svg>
+    `;
+}
+
+
+function v70InjectStarsPaymentsSection() {
+    if (
+        document.getElementById(
+            "v70StarsPaymentsSection"
+        )
+    ) {
+        return;
+    }
+
+    const box =
+        document.querySelector(
+            "#admin .admin-box"
+        );
+
+    if (!box) {
+        return;
+    }
+
+    const section =
+        document.createElement(
+            "div"
+        );
+
+    section.id =
+        "v70StarsPaymentsSection";
+    section.className =
+        "admin-section v70-stars-section";
+    section.dataset.v39Section =
+        "stars_payments";
+
+    section.innerHTML = `
+        <div class="admin-section-title">
+            ${v70StarsIcon()}
+            Stars Payments & Refunds
+            <span class="v68-test-badge">Owner</span>
+        </div>
+
+        <div class="section-subtitle">
+            Payment history for Telegram Stars. A refund returns the Stars and revokes the exact paid service.
+        </div>
+
+        <div class="v70-stars-toolbar">
+            <div class="field">
+                <label>Search</label>
+                <input
+                    id="v70StarsSearch"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="User, Telegram ID, LOT, username, order ID"
+                    oninput="v70ScheduleStarsPaymentsLoad()"
+                >
+            </div>
+
+            <div class="field">
+                <label>Service</label>
+                <select id="v70StarsType" onchange="v70LoadStarsPayments()">
+                    <option value="all">All services</option>
+                    <option value="listing">Listing</option>
+                    <option value="renewal">Renewal</option>
+                    <option value="contact">Unlock Contact</option>
+                    <option value="wanted">Wanted</option>
+                    <option value="promotion">Promotions</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Status</label>
+                <select id="v70StarsStatus" onchange="v70LoadStarsPayments()">
+                    <option value="all">All statuses</option>
+                    <option value="paid">Paid</option>
+                    <option value="refunded">Refunded</option>
+                </select>
+            </div>
+
+            <button class="secondary" type="button" onclick="v70LoadStarsPayments()">
+                Refresh
+            </button>
+        </div>
+
+        <div id="v70StarsSummary" class="v70-stars-summary"></div>
+        <div id="v70StarsPaymentsList" class="v70-stars-list">
+            <div class="empty">Loading Stars payments...</div>
+        </div>
+    `;
+
+    const anchor =
+        document.getElementById(
+            "v68TestEngagementSection"
+        ) ||
+        document.getElementById(
+            "v65ChatSafetySection"
+        );
+
+    if (
+        anchor &&
+        anchor.parentElement
+    ) {
+        anchor.insertAdjacentElement(
+            "afterend",
+            section
+        );
+    } else {
+        box.appendChild(section);
+    }
+}
+
+
+function v70ScheduleStarsPaymentsLoad() {
+    clearTimeout(
+        v70StarsLoadTimer
+    );
+
+    v70StarsLoadTimer =
+        setTimeout(
+            () =>
+                v70LoadStarsPayments(),
+            280
+        );
+}
+
+
+function v70StarsPayerLabel(
+    payment
+) {
+    const payer =
+        payment?.payer || {};
+
+    const name = [
+        payer.first_name,
+        payer.last_name
+    ]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+
+    const username =
+        payer.telegram_username
+            ? `@${payer.telegram_username}`
+            : "";
+
+    return [
+        name || "User",
+        username,
+        `ID ${payment.payer_telegram_id}`
+    ]
+        .filter(Boolean)
+        .join(" · ");
+}
+
+
+function v70StarsDate(
+    value
+) {
+    if (!value) {
+        return "—";
+    }
+
+    try {
+        return new Date(value)
+            .toLocaleString();
+    } catch {
+        return String(value);
+    }
+}
+
+
+function v70ShortId(
+    value
+) {
+    const text =
+        String(value || "");
+
+    if (text.length <= 18) {
+        return text || "—";
+    }
+
+    return `${text.slice(0,8)}…${text.slice(-7)}`;
+}
+
+
+function v70StatusInfo(
+    payment
+) {
+    if (
+        payment.refund_status ===
+        "rollback_failed"
+    ) {
+        return {
+            label:"Refunded · rollback error",
+            className:"v70-status-error"
+        };
+    }
+
+    if (
+        payment.refund_status ===
+        "stars_refunded"
+    ) {
+        return {
+            label:"Stars refunded · rollback pending",
+            className:"v70-status-warning"
+        };
+    }
+
+    if (
+        payment.refund_status ===
+        "processing"
+    ) {
+        return {
+            label:"Refunding",
+            className:"v70-status-warning"
+        };
+    }
+
+    if (
+        payment.status ===
+        "refunded"
+    ) {
+        return {
+            label:"Refunded",
+            className:"v70-status-refunded"
+        };
+    }
+
+    return {
+        label:"Paid",
+        className:"v70-status-paid"
+    };
+}
+
+
+function v70RenderStarsSummary(
+    summary
+) {
+    const container =
+        document.getElementById(
+            "v70StarsSummary"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const value =
+        number =>
+            Number(number || 0)
+                .toLocaleString("en-US");
+
+    container.innerHTML = `
+        <div class="v70-stars-summary-card">
+            <div class="v70-stars-summary-label">Payments</div>
+            <div class="v70-stars-summary-value">${value(summary?.count)}</div>
+        </div>
+        <div class="v70-stars-summary-card">
+            <div class="v70-stars-summary-label">Paid Stars</div>
+            <div class="v70-stars-summary-value">${value(summary?.paid_stars)} ⭐</div>
+        </div>
+        <div class="v70-stars-summary-card">
+            <div class="v70-stars-summary-label">Refunded Stars</div>
+            <div class="v70-stars-summary-value">${value(summary?.refunded_stars)} ⭐</div>
+        </div>
+    `;
+}
+
+
+function v70RenderStarsPayments(
+    payments
+) {
+    const container =
+        document.getElementById(
+            "v70StarsPaymentsList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    if (!payments?.length) {
+        container.innerHTML = `
+            <div class="empty">
+                No Stars payments found for these filters.
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML =
+        payments.map(
+            payment => {
+                const status =
+                    v70StatusInfo(
+                        payment
+                    );
+
+                const refundNote =
+                    payment.refund_status ===
+                    "rollback_failed"
+                        ? `
+                            <div class="v70-refund-note">
+                                Stars were already returned, but automatic service rollback needs attention.
+                                ${payment.refund_last_error ? `<br><strong>${escapeHtml(payment.refund_last_error)}</strong>` : ""}
+                            </div>
+                        `
+                        : payment.refund_reason &&
+                          payment.status === "refunded"
+                            ? `
+                                <div class="v70-refund-note">
+                                    Refund reason: ${escapeHtml(payment.refund_reason)}
+                                </div>
+                            `
+                            : "";
+
+                const actions =
+                    payment.can_retry_rollback
+                        ? `
+                            <button
+                                class="v70-rollback-button"
+                                type="button"
+                                onclick="v70OpenRefundModal('${escapeJs(payment.id)}',true)"
+                            >
+                                Complete rollback
+                            </button>
+                        `
+                        : payment.can_refund
+                            ? `
+                                <button
+                                    class="v70-refund-button"
+                                    type="button"
+                                    onclick="v70OpenRefundModal('${escapeJs(payment.id)}',false)"
+                                >
+                                    Refund ${Number(payment.amount_stars).toLocaleString("en-US")} ⭐
+                                </button>
+                            `
+                            : "";
+
+                return `
+                    <div class="v70-payment-card">
+                        <div class="v70-payment-head">
+                            <div class="v70-payment-service">
+                                <div class="v70-payment-title">
+                                    <span>${escapeHtml(payment.service_label || "Stars payment")}</span>
+                                    <span class="v70-type-badge">${escapeHtml(payment.payment_type || "payment")}</span>
+                                    <span class="v70-status-badge ${status.className}">${escapeHtml(status.label)}</span>
+                                </div>
+                                <div class="v70-payment-target">${escapeHtml(payment.target_label || "—")}</div>
+                            </div>
+                            <div class="v70-payment-stars">${Number(payment.amount_stars || 0).toLocaleString("en-US")} ⭐</div>
+                        </div>
+
+                        <div class="v70-payment-meta">
+                            <div class="v70-payment-meta-item">
+                                <div class="v70-payment-meta-label">Paid by</div>
+                                <div class="v70-payment-meta-value">${escapeHtml(v70StarsPayerLabel(payment))}</div>
+                            </div>
+                            <div class="v70-payment-meta-item">
+                                <div class="v70-payment-meta-label">Date</div>
+                                <div class="v70-payment-meta-value">${escapeHtml(v70StarsDate(payment.paid_at))}</div>
+                            </div>
+                            <div class="v70-payment-meta-item">
+                                <div class="v70-payment-meta-label">Order ID</div>
+                                <div class="v70-payment-meta-value" title="${escapeHtml(String(payment.order_id || ""))}">${escapeHtml(v70ShortId(payment.order_id))}</div>
+                            </div>
+                            <div class="v70-payment-meta-item">
+                                <div class="v70-payment-meta-label">Telegram charge</div>
+                                <div class="v70-payment-meta-value" title="${escapeHtml(String(payment.telegram_payment_charge_id || ""))}">${escapeHtml(v70ShortId(payment.telegram_payment_charge_id))}</div>
+                            </div>
+                        </div>
+
+                        ${refundNote}
+
+                        ${actions ? `<div class="v70-payment-actions">${actions}</div>` : ""}
+                    </div>
+                `;
+            }
+        ).join("");
+}
+
+
+function v70StarsFriendlyError(
+    code
+) {
+    const map = {
+        owner_required:
+            "Only the Owner can access Stars Payments.",
+        stars_payments_load_failed:
+            "Could not load Stars payment history.",
+        payment_not_found:
+            "Payment not found.",
+        invalid_payment_id:
+            "Invalid payment ID.",
+        refund_in_progress:
+            "This refund is already being processed.",
+        refund_payment_order_missing:
+            "The original payment order is missing, so the service cannot be safely rolled back.",
+        refund_payment_not_current:
+            "This payment is no longer the current service payment and cannot be safely refunded from this record.",
+        refund_newer_renewal_first:
+            "A newer renewal exists. Refund the newer renewal first.",
+        refund_newer_promotion_first:
+            "A newer promotion of the same type exists. Refund the newer promotion first.",
+        refund_telegram_failed:
+            "Telegram did not complete the Stars refund. No service was revoked.",
+        refund_service_rollback_failed:
+            "Stars were refunded, but service rollback needs attention. Use Complete rollback.",
+        stars_refund_failed:
+            "Stars refund could not be completed.",
+        refund_claim_failed:
+            "Refund could not be locked for processing."
+    };
+
+    return map[code] ||
+        friendlyError(code);
+}
+
+
+async function v70LoadStarsPayments() {
+    v70InjectStarsPaymentsSection();
+
+    if (
+        typeof v39Role === "function" &&
+        v39Role() !== "owner"
+    ) {
+        return;
+    }
+
+    const container =
+        document.getElementById(
+            "v70StarsPaymentsList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML =
+        '<div class="empty">Loading Stars payments...</div>';
+
+    try {
+        const data =
+            await api(
+                "/admin/stars-payments",
+                {
+                    initData:tg.initData,
+                    query:
+                        document.getElementById(
+                            "v70StarsSearch"
+                        )?.value || "",
+                    payment_type:
+                        document.getElementById(
+                            "v70StarsType"
+                        )?.value || "all",
+                    status:
+                        document.getElementById(
+                            "v70StarsStatus"
+                        )?.value || "all"
+                }
+            );
+
+        v70StarsPayments =
+            data.payments || [];
+
+        v70StarsPaymentMap =
+            new Map(
+                v70StarsPayments.map(
+                    payment => [
+                        String(payment.id),
+                        payment
+                    ]
+                )
+            );
+
+        v70RenderStarsSummary(
+            data.summary || {}
+        );
+        v70RenderStarsPayments(
+            v70StarsPayments
+        );
+
+    } catch (error) {
+        container.innerHTML = `
+            <div class="empty">
+                ${escapeHtml(v70StarsFriendlyError(error.message))}
+            </div>
+        `;
+    }
+}
+
+
+function v70OpenRefundModal(
+    paymentId,
+    retryRollback = false
+) {
+    const payment =
+        v70StarsPaymentMap.get(
+            String(paymentId)
+        );
+
+    if (!payment) {
+        hmToast(
+            "Payment not found.",
+            "error"
+        );
+        return;
+    }
+
+    const title =
+        document.getElementById(
+            "inputModalTitle"
+        );
+    const subtitle =
+        document.getElementById(
+            "inputModalSubtitle"
+        );
+    const fields =
+        document.getElementById(
+            "inputModalFields"
+        );
+    const action =
+        document.getElementById(
+            "inputModalAction"
+        );
+
+    if (
+        !title ||
+        !subtitle ||
+        !fields ||
+        !action
+    ) {
+        return;
+    }
+
+    title.textContent =
+        retryRollback
+            ? "Complete Service Rollback"
+            : "Refund Telegram Stars";
+
+    subtitle.textContent =
+        retryRollback
+            ? "Stars are already refunded. This action retries only the service rollback."
+            : "Refunding returns the Stars to the payer and revokes the purchased service.";
+
+    fields.innerHTML = `
+        <div class="v70-refund-modal-summary">
+            <div class="v70-refund-modal-amount">${Number(payment.amount_stars || 0).toLocaleString("en-US")} ⭐</div>
+            <div class="v70-refund-modal-service">${escapeHtml(payment.service_label || "Stars payment")} · ${escapeHtml(payment.target_label || "")}</div>
+            <div class="v70-refund-modal-warning">
+                ${retryRollback
+                    ? "Telegram will not be charged/refunded again. Only the matching Handle Market service will be revoked."
+                    : "Listing refund removes the listing; Wanted refund closes the request; Unlock refund revokes contact access; promotion is removed; renewal is rolled back."}
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Refund reason</label>
+            <textarea
+                id="v70RefundReason"
+                maxlength="300"
+                rows="2"
+                placeholder="Admin refund"
+            >${escapeHtml(payment.refund_reason || "")}</textarea>
+        </div>
+
+        <div class="field">
+            <label>Confirm</label>
+            <input
+                id="v70RefundConfirm"
+                type="text"
+                autocomplete="off"
+                placeholder="Type REFUND"
+            >
+            <div class="field-hint">Type REFUND to confirm this action.</div>
+        </div>
+    `;
+
+    action.textContent =
+        retryRollback
+            ? "Complete Rollback"
+            : `Refund ${Number(payment.amount_stars || 0).toLocaleString("en-US")} Stars`;
+
+    action.onclick =
+        async () => {
+            const confirmText =
+                String(
+                    document.getElementById(
+                        "v70RefundConfirm"
+                    )?.value ||
+                    ""
+                )
+                    .trim()
+                    .toUpperCase();
+
+            if (
+                confirmText !==
+                "REFUND"
+            ) {
+                hmToast(
+                    "Type REFUND to confirm.",
+                    "warning"
+                );
+                return;
+            }
+
+            action.disabled = true;
+
+            try {
+                const result =
+                    await api(
+                        "/admin/stars-refund",
+                        {
+                            initData:tg.initData,
+                            payment_id:
+                                payment.id,
+                            reason:
+                                document.getElementById(
+                                    "v70RefundReason"
+                                )?.value ||
+                                "Admin refund"
+                        }
+                    );
+
+                closeModal(
+                    "inputModal"
+                );
+
+                hmToast(
+                    result.already_refunded
+                        ? "Payment was already refunded."
+                        : retryRollback
+                            ? "Service rollback completed."
+                            : "Stars refunded and service revoked.",
+                    "success"
+                );
+
+                await Promise.all([
+                    v70LoadStarsPayments(),
+                    typeof loadAdminDashboard === "function"
+                        ? loadAdminDashboard()
+                        : Promise.resolve()
+                ]);
+
+            } catch (error) {
+                hmToast(
+                    v70StarsFriendlyError(
+                        error.message
+                    ),
+                    error.message ===
+                    "refund_service_rollback_failed"
+                        ? "warning"
+                        : "error"
+                );
+
+                await v70LoadStarsPayments();
+
+            } finally {
+                action.disabled = false;
+            }
+        };
+
+    showModal(
+        "inputModal"
+    );
+}
+
+
+if (
+    typeof loadAdminPanel ===
+    "function"
+) {
+    const v70BaseLoadAdminPanel =
+        loadAdminPanel;
+
+    loadAdminPanel =
+    async function loadAdminPanelV70() {
+        v70InjectStarsPaymentsSection();
+
+        await v70BaseLoadAdminPanel();
+
+        if (
+            typeof v39ApplyAdminRoleVisibility ===
+            "function"
+        ) {
+            v39ApplyAdminRoleVisibility();
+        }
+
+        if (
+            typeof v39Role !== "function" ||
+            v39Role() === "owner"
+        ) {
+            await v70LoadStarsPayments();
+        }
+    };
+}
+
+
+v70InjectStarsPaymentsSection();
 </script>
 
 </body>

@@ -18383,6 +18383,14 @@ const ADMIN_ROUTE_ROLES = {
         "owner"
     ],
 
+    "/admin/stars-payments": [
+        "owner"
+    ],
+
+    "/admin/stars-refund": [
+        "owner"
+    ],
+
     "/admin/activity-log": [
         "owner"
     ],
@@ -28842,16 +28850,6 @@ app.post(
 
                 if (
                     !await claimPaymentFulfillment(
-                        "renewal",
-                        order.id
-                    )
-                ) {
-                    return;
-                }
-
-
-                if (
-                    !await claimPaymentFulfillment(
                         "listing",
                         order.id
                     )
@@ -29267,7 +29265,7 @@ app.post(
                         await supabase
                             .from("listings")
                             .select(
-                                "id,seller_telegram_id,listing_number,whatsapp_username,status,is_frozen,listing_plan,listing_expires_at,renewal_count"
+                                "id,seller_telegram_id,listing_number,whatsapp_username,status,is_frozen,is_paused,listing_plan,listing_period_started_at,listing_expires_at,last_renewed_at,renewal_count,listing_expiry_1h_notified_at,listing_expired_notified_at"
                             )
                             .eq(
                                 "id",
@@ -29302,6 +29300,32 @@ app.post(
                             "listing_not_renewable"
                         );
                     }
+
+
+                    await v70SaveServiceSnapshot(
+                        "renewal",
+                        order.id,
+                        chargeId,
+                        listing.id,
+                        {
+                            listing_plan:
+                                listing.listing_plan ?? null,
+                            listing_period_started_at:
+                                listing.listing_period_started_at ?? null,
+                            listing_expires_at:
+                                listing.listing_expires_at ?? null,
+                            last_renewed_at:
+                                listing.last_renewed_at ?? null,
+                            renewal_count:
+                                Number(listing.renewal_count || 0),
+                            is_paused:
+                                Boolean(listing.is_paused),
+                            listing_expiry_1h_notified_at:
+                                listing.listing_expiry_1h_notified_at ?? null,
+                            listing_expired_notified_at:
+                                listing.listing_expired_notified_at ?? null
+                        }
+                    );
 
 
                     const startedAt =
@@ -29731,7 +29755,7 @@ app.post(
                     await supabase
                         .from("listings")
                         .select(
-                            "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until"
+                            "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,bump_expiry_1h_notified_at,hot_expiry_1h_notified_at,vip_expiry_1h_notified_at,bump_expired_notified_at,hot_expired_notified_at,vip_expired_notified_at"
                         )
                         .eq(
                             "id",
@@ -29786,6 +29810,25 @@ app.post(
 
                 const appliedUntil =
                     eligibility.applied_until;
+
+
+                await v70SaveServiceSnapshot(
+                    "promotion",
+                    order.id,
+                    chargeId,
+                    listing.id,
+                    {
+                        promotion_type:type,
+                        until:
+                            listing[untilField] ?? null,
+                        promoted_at:
+                            listing[promotedAtField] ?? null,
+                        expiry_1h_notified_at:
+                            listing[hourField] ?? null,
+                        expired_notified_at:
+                            listing[expiredField] ?? null
+                    }
+                );
 
 
                 await supabase
@@ -33973,6 +34016,1930 @@ app.post(
         }
     }
 );
+
+
+/* =========================================================
+   V70 — OWNER STARS PAYMENTS & REFUNDS
+   - Immutable normalized Stars payment ledger.
+   - Owner-only payment history.
+   - Telegram Stars refund + matching service rollback.
+   - Refund retry never calls Telegram twice after Stars were
+     already returned; it resumes only the service rollback.
+   ========================================================= */
+
+const V70_STARS_SUCCESS_STATUSES = {
+    listing:["paid","completed","refunded"],
+    renewal:["paid","completed","refunded"],
+    contact:["paid","refunded"],
+    wanted:["paid","completed","refunded"],
+    promotion:["paid","completed","refunded"]
+};
+
+
+function v70PromotionLabel(
+    type,
+    durationHours
+) {
+    const normalized =
+        String(type || "promotion")
+            .trim()
+            .toUpperCase();
+
+    const hours =
+        Number(durationHours || 0);
+
+    const duration =
+        hours === 24
+            ? "1 day"
+            : hours === 72
+                ? "3 days"
+                : hours === 168
+                    ? "7 days"
+                    : hours > 0
+                        ? `${hours}h`
+                        : "";
+
+    return duration
+        ? `${normalized} · ${duration}`
+        : normalized;
+}
+
+
+async function v70SaveServiceSnapshot(
+    paymentType,
+    orderId,
+    chargeId,
+    targetId,
+    snapshot
+) {
+    if (
+        !chargeId ||
+        !["renewal","promotion"].includes(
+            paymentType
+        )
+    ) {
+        return;
+    }
+
+    try {
+        const {
+            error
+        } =
+            await supabase
+                .from(
+                    "stars_payment_service_snapshots"
+                )
+                .insert({
+                    telegram_payment_charge_id:
+                        String(chargeId),
+                    payment_type:
+                        paymentType,
+                    order_id:
+                        orderId,
+                    target_id:
+                        targetId || null,
+                    snapshot:
+                        snapshot || {}
+                });
+
+        if (
+            error &&
+            error.code !== "23505"
+        ) {
+            throw error;
+        }
+
+    } catch (error) {
+        console.error(
+            "V70 payment snapshot:",
+            error
+        );
+
+        await logSystemError(
+            "v70_payment_snapshot",
+            error,
+            {
+                payment_type:
+                    paymentType,
+                order_id:
+                    orderId || null
+            }
+        );
+    }
+}
+
+
+async function v70SyncStarsLedger() {
+    const [
+        listingResult,
+        renewalResult,
+        contactResult,
+        wantedResult,
+        promotionResult
+    ] =
+        await Promise.all([
+            supabase
+                .from("listing_payment_orders")
+                .select("id,seller_telegram_id,amount_stars,status,telegram_payment_charge_id,invoice_payload,paid_at,listing_id,whatsapp_username")
+                .not("telegram_payment_charge_id","is",null)
+                .in("status",V70_STARS_SUCCESS_STATUSES.listing)
+                .order("paid_at",{ascending:false})
+                .limit(500),
+
+            supabase
+                .from("listing_renewal_orders")
+                .select("id,seller_telegram_id,listing_id,amount_stars,duration_days,status,telegram_payment_charge_id,invoice_payload,paid_at")
+                .not("telegram_payment_charge_id","is",null)
+                .in("status",V70_STARS_SUCCESS_STATUSES.renewal)
+                .order("paid_at",{ascending:false})
+                .limit(500),
+
+            supabase
+                .from("contact_unlocks")
+                .select("id,buyer_telegram_id,listing_id,amount_stars,status,telegram_payment_charge_id,invoice_payload,paid_at")
+                .not("telegram_payment_charge_id","is",null)
+                .in("status",V70_STARS_SUCCESS_STATUSES.contact)
+                .order("paid_at",{ascending:false})
+                .limit(500),
+
+            supabase
+                .from("wanted_payment_orders")
+                .select("id,buyer_telegram_id,amount_stars,status,telegram_payment_charge_id,invoice_payload,paid_at,wanted_post_id,desired_username")
+                .not("telegram_payment_charge_id","is",null)
+                .in("status",V70_STARS_SUCCESS_STATUSES.wanted)
+                .order("paid_at",{ascending:false})
+                .limit(500),
+
+            supabase
+                .from("promotion_payment_orders")
+                .select("id,seller_telegram_id,listing_id,promotion_type,duration_hours,amount_stars,status,telegram_payment_charge_id,invoice_payload,paid_at,applied_until")
+                .not("telegram_payment_charge_id","is",null)
+                .in("status",V70_STARS_SUCCESS_STATUSES.promotion)
+                .order("paid_at",{ascending:false})
+                .limit(500)
+        ]);
+
+    const results = [
+        listingResult,
+        renewalResult,
+        contactResult,
+        wantedResult,
+        promotionResult
+    ];
+
+    const firstError =
+        results.find(
+            result => result.error
+        )?.error;
+
+    if (firstError) {
+        throw firstError;
+    }
+
+    const listingOrders =
+        listingResult.data || [];
+    const renewalOrders =
+        renewalResult.data || [];
+    const contactOrders =
+        contactResult.data || [];
+    const wantedOrders =
+        wantedResult.data || [];
+    const promotionOrders =
+        promotionResult.data || [];
+
+    const listingIds = [
+        ...new Set(
+            [
+                ...listingOrders.map(
+                    row =>
+                        row.listing_id ||
+                        row.id
+                ),
+                ...renewalOrders.map(
+                    row => row.listing_id
+                ),
+                ...contactOrders.map(
+                    row => row.listing_id
+                ),
+                ...promotionOrders.map(
+                    row => row.listing_id
+                )
+            ]
+                .filter(Boolean)
+                .map(String)
+        )
+    ];
+
+    let listings = [];
+
+    if (listingIds.length) {
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from("listings")
+                .select("id,listing_number,whatsapp_username")
+                .in("id",listingIds);
+
+        if (error) {
+            throw error;
+        }
+
+        listings = data || [];
+    }
+
+    const listingMap =
+        new Map(
+            listings.map(
+                listing => [
+                    String(listing.id),
+                    listing
+                ]
+            )
+        );
+
+    const targetLabel =
+        listingId => {
+            const listing =
+                listingMap.get(
+                    String(listingId || "")
+                );
+
+            if (!listing) {
+                return "Listing";
+            }
+
+            return `@${listing.whatsapp_username}${
+                listing.listing_number
+                    ? ` · LOT #${listing.listing_number}`
+                    : ""
+            }`;
+        };
+
+    const rows = [];
+
+    for (const order of listingOrders) {
+        const listingId =
+            order.listing_id ||
+            order.id;
+
+        rows.push({
+            payment_type:"listing",
+            order_id:order.id,
+            payer_telegram_id:
+                Number(order.seller_telegram_id),
+            amount_stars:
+                Number(order.amount_stars || 0),
+            telegram_payment_charge_id:
+                order.telegram_payment_charge_id,
+            invoice_payload:
+                order.invoice_payload || null,
+            service_label:
+                "Listing / 30 days",
+            target_type:"listing",
+            target_id:
+                String(listingId),
+            target_label:
+                order.whatsapp_username
+                    ? `@${order.whatsapp_username}`
+                    : targetLabel(listingId),
+            service_meta:{
+                username:
+                    order.whatsapp_username || null
+            },
+            source_status:
+                order.status,
+            status:
+                order.status === "refunded"
+                    ? "refunded"
+                    : "paid",
+            paid_at:
+                order.paid_at ||
+                nowIso(),
+            updated_at:
+                nowIso()
+        });
+    }
+
+    for (const order of renewalOrders) {
+        rows.push({
+            payment_type:"renewal",
+            order_id:order.id,
+            payer_telegram_id:
+                Number(order.seller_telegram_id),
+            amount_stars:
+                Number(order.amount_stars || 0),
+            telegram_payment_charge_id:
+                order.telegram_payment_charge_id,
+            invoice_payload:
+                order.invoice_payload || null,
+            service_label:
+                `Listing Renewal / ${Number(order.duration_days || PAID_LISTING_DURATION_DAYS)} days`,
+            target_type:"listing",
+            target_id:
+                String(order.listing_id),
+            target_label:
+                targetLabel(order.listing_id),
+            service_meta:{
+                duration_days:
+                    Number(order.duration_days || 0)
+            },
+            source_status:
+                order.status,
+            status:
+                order.status === "refunded"
+                    ? "refunded"
+                    : "paid",
+            paid_at:
+                order.paid_at ||
+                nowIso(),
+            updated_at:
+                nowIso()
+        });
+    }
+
+    for (const order of contactOrders) {
+        rows.push({
+            payment_type:"contact",
+            order_id:order.id,
+            payer_telegram_id:
+                Number(order.buyer_telegram_id),
+            amount_stars:
+                Number(order.amount_stars || 0),
+            telegram_payment_charge_id:
+                order.telegram_payment_charge_id,
+            invoice_payload:
+                order.invoice_payload || null,
+            service_label:
+                "Unlock Contact",
+            target_type:"listing",
+            target_id:
+                String(order.listing_id),
+            target_label:
+                targetLabel(order.listing_id),
+            service_meta:{},
+            source_status:
+                order.status,
+            status:
+                order.status === "refunded"
+                    ? "refunded"
+                    : "paid",
+            paid_at:
+                order.paid_at ||
+                nowIso(),
+            updated_at:
+                nowIso()
+        });
+    }
+
+    for (const order of wantedOrders) {
+        rows.push({
+            payment_type:"wanted",
+            order_id:order.id,
+            payer_telegram_id:
+                Number(order.buyer_telegram_id),
+            amount_stars:
+                Number(order.amount_stars || 0),
+            telegram_payment_charge_id:
+                order.telegram_payment_charge_id,
+            invoice_payload:
+                order.invoice_payload || null,
+            service_label:
+                "Wanted / 30 days",
+            target_type:"wanted",
+            target_id:
+                String(
+                    order.wanted_post_id ||
+                    order.id
+                ),
+            target_label:
+                order.desired_username
+                    ? `@${order.desired_username}`
+                    : "Wanted",
+            service_meta:{
+                username:
+                    order.desired_username || null
+            },
+            source_status:
+                order.status,
+            status:
+                order.status === "refunded"
+                    ? "refunded"
+                    : "paid",
+            paid_at:
+                order.paid_at ||
+                nowIso(),
+            updated_at:
+                nowIso()
+        });
+    }
+
+    for (const order of promotionOrders) {
+        rows.push({
+            payment_type:"promotion",
+            order_id:order.id,
+            payer_telegram_id:
+                Number(order.seller_telegram_id),
+            amount_stars:
+                Number(order.amount_stars || 0),
+            telegram_payment_charge_id:
+                order.telegram_payment_charge_id,
+            invoice_payload:
+                order.invoice_payload || null,
+            service_label:
+                v70PromotionLabel(
+                    order.promotion_type,
+                    order.duration_hours
+                ),
+            target_type:"listing",
+            target_id:
+                String(order.listing_id),
+            target_label:
+                targetLabel(order.listing_id),
+            service_meta:{
+                promotion_type:
+                    order.promotion_type,
+                duration_hours:
+                    Number(order.duration_hours || 0),
+                applied_until:
+                    order.applied_until || null
+            },
+            source_status:
+                order.status,
+            status:
+                order.status === "refunded"
+                    ? "refunded"
+                    : "paid",
+            paid_at:
+                order.paid_at ||
+                nowIso(),
+            updated_at:
+                nowIso()
+        });
+    }
+
+    const safeRows =
+        rows.filter(
+            row =>
+                row.telegram_payment_charge_id &&
+                row.amount_stars > 0
+        );
+
+    if (!safeRows.length) {
+        return;
+    }
+
+    const {
+        data:existingLedger,
+        error:existingError
+    } =
+        await supabase
+            .from("stars_payment_ledger")
+            .select("telegram_payment_charge_id,status")
+            .order("paid_at",{ascending:false})
+            .limit(3000);
+
+    if (existingError) {
+        throw existingError;
+    }
+
+    const existingStatusMap =
+        new Map(
+            (existingLedger || []).map(
+                row => [
+                    String(
+                        row.telegram_payment_charge_id
+                    ),
+                    row.status
+                ]
+            )
+        );
+
+    for (const row of safeRows) {
+        if (
+            existingStatusMap.get(
+                String(
+                    row.telegram_payment_charge_id
+                )
+            ) === "refunded"
+        ) {
+            row.status = "refunded";
+        }
+    }
+
+    const {
+        error:upsertError
+    } =
+        await supabase
+            .from("stars_payment_ledger")
+            .upsert(
+                safeRows,
+                {
+                    onConflict:
+                        "telegram_payment_charge_id"
+                }
+            );
+
+    if (upsertError) {
+        throw upsertError;
+    }
+}
+
+
+async function v70LoadPaymentOrder(
+    payment
+) {
+    const type =
+        String(
+            payment?.payment_type ||
+            ""
+        );
+
+    const table =
+        type === "listing"
+            ? "listing_payment_orders"
+            : type === "renewal"
+                ? "listing_renewal_orders"
+                : type === "contact"
+                    ? "contact_unlocks"
+                    : type === "wanted"
+                        ? "wanted_payment_orders"
+                        : type === "promotion"
+                            ? "promotion_payment_orders"
+                            : null;
+
+    if (!table) {
+        return null;
+    }
+
+    const {
+        data,
+        error
+    } =
+        await supabase
+            .from(table)
+            .select("*")
+            .eq(
+                "id",
+                payment.order_id
+            )
+            .maybeSingle();
+
+    if (error) {
+        throw error;
+    }
+
+    return data || null;
+}
+
+
+async function v70RefundPreflight(
+    payment,
+    order
+) {
+    if (!order) {
+        return {
+            ok:false,
+            error:
+                "refund_payment_order_missing"
+        };
+    }
+
+    const currentCharge =
+        String(
+            order.telegram_payment_charge_id ||
+            ""
+        );
+
+    const paymentCharge =
+        String(
+            payment.telegram_payment_charge_id ||
+            ""
+        );
+
+    if (
+        currentCharge &&
+        currentCharge !==
+        paymentCharge
+    ) {
+        return {
+            ok:false,
+            error:
+                "refund_payment_not_current"
+        };
+    }
+
+    if (
+        payment.payment_type ===
+        "renewal"
+    ) {
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from("listing_renewal_orders")
+                .select("id")
+                .eq(
+                    "listing_id",
+                    order.listing_id
+                )
+                .gt(
+                    "paid_at",
+                    payment.paid_at
+                )
+                .in(
+                    "status",
+                    ["paid","completed"]
+                )
+                .not(
+                    "telegram_payment_charge_id",
+                    "is",
+                    null
+                )
+                .limit(1);
+
+        if (error) {
+            throw error;
+        }
+
+        if (data?.length) {
+            return {
+                ok:false,
+                error:
+                    "refund_newer_renewal_first"
+            };
+        }
+    }
+
+    if (
+        payment.payment_type ===
+        "promotion"
+    ) {
+        const {
+            data,
+            error
+        } =
+            await supabase
+                .from("promotion_payment_orders")
+                .select("id")
+                .eq(
+                    "listing_id",
+                    order.listing_id
+                )
+                .eq(
+                    "promotion_type",
+                    order.promotion_type
+                )
+                .gt(
+                    "paid_at",
+                    payment.paid_at
+                )
+                .in(
+                    "status",
+                    ["paid","completed"]
+                )
+                .not(
+                    "telegram_payment_charge_id",
+                    "is",
+                    null
+                )
+                .limit(1);
+
+        if (error) {
+            throw error;
+        }
+
+        if (data?.length) {
+            return {
+                ok:false,
+                error:
+                    "refund_newer_promotion_first"
+            };
+        }
+    }
+
+    return {
+        ok:true
+    };
+}
+
+
+async function v70MarkSourceOrderRefunded(
+    payment,
+    order
+) {
+    const type =
+        payment.payment_type;
+
+    if (type === "contact") {
+        const {
+            error
+        } =
+            await supabase
+                .from("contact_unlocks")
+                .update({
+                    status:"failed"
+                })
+                .eq("id",order.id)
+                .eq(
+                    "telegram_payment_charge_id",
+                    payment.telegram_payment_charge_id
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        return;
+    }
+
+    const table =
+        type === "listing"
+            ? "listing_payment_orders"
+            : type === "renewal"
+                ? "listing_renewal_orders"
+                : type === "wanted"
+                    ? "wanted_payment_orders"
+                    : type === "promotion"
+                        ? "promotion_payment_orders"
+                        : null;
+
+    if (!table) {
+        return;
+    }
+
+    const {
+        error
+    } =
+        await supabase
+            .from(table)
+            .update({
+                status:"refunded"
+            })
+            .eq("id",order.id)
+            .eq(
+                "telegram_payment_charge_id",
+                payment.telegram_payment_charge_id
+            );
+
+    if (error) {
+        throw error;
+    }
+}
+
+
+async function v70RollbackStarsService(
+    payment,
+    order
+) {
+    const type =
+        payment.payment_type;
+
+    if (type === "listing") {
+        const listingId =
+            order.listing_id ||
+            order.id;
+
+        const {
+            data:listing,
+            error:listingError
+        } =
+            await supabase
+                .from("listings")
+                .select("id,whatsapp_username,status")
+                .eq("id",listingId)
+                .maybeSingle();
+
+        if (listingError) {
+            throw listingError;
+        }
+
+        if (listing) {
+            const {
+                error
+            } =
+                await supabase
+                    .from("listings")
+                    .update({
+                        status:"removed",
+                        is_paused:true,
+                        updated_at:nowIso()
+                    })
+                    .eq("id",listingId);
+
+            if (error) {
+                throw error;
+            }
+
+            await closeListingOpenOffers(
+                listingId,
+                `↩️ @${listing.whatsapp_username} was removed after a Stars refund. Your open offer was closed.`
+            );
+        }
+
+        await v70MarkSourceOrderRefunded(
+            payment,
+            order
+        );
+
+        return {
+            target_type:"listing",
+            target_id:
+                String(listingId)
+        };
+    }
+
+    if (type === "wanted") {
+        const wantedId =
+            order.wanted_post_id ||
+            order.id;
+
+        const {
+            error
+        } =
+            await supabase
+                .from("wanted_requests")
+                .update({
+                    status:"closed",
+                    updated_at:nowIso()
+                })
+                .eq("id",wantedId);
+
+        if (error) {
+            throw error;
+        }
+
+        await v70MarkSourceOrderRefunded(
+            payment,
+            order
+        );
+
+        return {
+            target_type:"wanted",
+            target_id:
+                String(wantedId)
+        };
+    }
+
+    if (type === "contact") {
+        await v70MarkSourceOrderRefunded(
+            payment,
+            order
+        );
+
+        return {
+            target_type:"listing_contact",
+            target_id:
+                String(order.listing_id)
+        };
+    }
+
+    if (type === "renewal") {
+        const {
+            data:snapshotRow,
+            error:snapshotError
+        } =
+            await supabase
+                .from(
+                    "stars_payment_service_snapshots"
+                )
+                .select("snapshot")
+                .eq(
+                    "telegram_payment_charge_id",
+                    payment.telegram_payment_charge_id
+                )
+                .maybeSingle();
+
+        if (snapshotError) {
+            throw snapshotError;
+        }
+
+        const snapshot =
+            snapshotRow?.snapshot ||
+            null;
+
+        let update = null;
+
+        if (snapshot) {
+            update = {
+                listing_plan:
+                    snapshot.listing_plan ?? null,
+                listing_period_started_at:
+                    snapshot.listing_period_started_at ?? null,
+                listing_expires_at:
+                    snapshot.listing_expires_at ?? null,
+                last_renewed_at:
+                    snapshot.last_renewed_at ?? null,
+                renewal_count:
+                    Math.max(
+                        0,
+                        Number(
+                            snapshot.renewal_count ||
+                            0
+                        )
+                    ),
+                is_paused:
+                    Boolean(snapshot.is_paused),
+                listing_expiry_1h_notified_at:
+                    snapshot.listing_expiry_1h_notified_at ?? null,
+                listing_expired_notified_at:
+                    snapshot.listing_expired_notified_at ?? null,
+                updated_at:
+                    nowIso()
+            };
+        } else {
+            const {
+                data:listing,
+                error:listingError
+            } =
+                await supabase
+                    .from("listings")
+                    .select("id,renewal_count")
+                    .eq(
+                        "id",
+                        order.listing_id
+                    )
+                    .maybeSingle();
+
+            if (listingError) {
+                throw listingError;
+            }
+
+            const expiredAt =
+                new Date(
+                    Math.max(
+                        0,
+                        new Date(
+                            payment.paid_at ||
+                            Date.now()
+                        ).getTime() -
+                        1000
+                    )
+                ).toISOString();
+
+            update = {
+                listing_expires_at:
+                    expiredAt,
+                is_paused:true,
+                last_renewed_at:null,
+                renewal_count:
+                    Math.max(
+                        0,
+                        Number(
+                            listing?.renewal_count ||
+                            1
+                        ) - 1
+                    ),
+                listing_expiry_1h_notified_at:null,
+                listing_expired_notified_at:null,
+                updated_at:nowIso()
+            };
+        }
+
+        const {
+            error:updateError
+        } =
+            await supabase
+                .from("listings")
+                .update(update)
+                .eq(
+                    "id",
+                    order.listing_id
+                );
+
+        if (updateError) {
+            throw updateError;
+        }
+
+        await v70MarkSourceOrderRefunded(
+            payment,
+            order
+        );
+
+        return {
+            target_type:"listing_renewal",
+            target_id:
+                String(order.listing_id)
+        };
+    }
+
+    if (type === "promotion") {
+        const promotionType =
+            String(
+                order.promotion_type ||
+                ""
+            ).toLowerCase();
+
+        if (
+            !["bump","hot","vip"].includes(
+                promotionType
+            )
+        ) {
+            throw new Error(
+                "invalid_promotion_type"
+            );
+        }
+
+        const untilField =
+            `${promotionType}_until`;
+        const promotedAtField =
+            `${promotionType}_promoted_at`;
+        const hourField =
+            `${promotionType}_expiry_1h_notified_at`;
+        const expiredField =
+            `${promotionType}_expired_notified_at`;
+
+        const {
+            data:snapshotRow,
+            error:snapshotError
+        } =
+            await supabase
+                .from(
+                    "stars_payment_service_snapshots"
+                )
+                .select("snapshot")
+                .eq(
+                    "telegram_payment_charge_id",
+                    payment.telegram_payment_charge_id
+                )
+                .maybeSingle();
+
+        if (snapshotError) {
+            throw snapshotError;
+        }
+
+        const snapshot =
+            snapshotRow?.snapshot ||
+            null;
+
+        let previousUntil = null;
+        let previousPromotedAt = null;
+        let previousHour = null;
+        let previousExpired = null;
+
+        if (snapshot) {
+            previousUntil =
+                snapshot.until ?? null;
+            previousPromotedAt =
+                snapshot.promoted_at ?? null;
+            previousHour =
+                snapshot.expiry_1h_notified_at ?? null;
+            previousExpired =
+                snapshot.expired_notified_at ?? null;
+        } else if (order.applied_until) {
+            const appliedMs =
+                new Date(
+                    order.applied_until
+                ).getTime();
+            const baseMs =
+                appliedMs -
+                Number(
+                    order.duration_hours ||
+                    0
+                ) *
+                60 * 60 * 1000;
+            const paidMs =
+                new Date(
+                    payment.paid_at ||
+                    0
+                ).getTime();
+
+            if (
+                Number.isFinite(baseMs) &&
+                baseMs > paidMs
+            ) {
+                previousUntil =
+                    new Date(baseMs)
+                        .toISOString();
+            }
+        }
+
+        const {
+            error:updateError
+        } =
+            await supabase
+                .from("listings")
+                .update({
+                    [untilField]:
+                        previousUntil,
+                    [promotedAtField]:
+                        previousPromotedAt,
+                    [hourField]:
+                        previousHour,
+                    [expiredField]:
+                        previousExpired,
+                    updated_at:
+                        nowIso()
+                })
+                .eq(
+                    "id",
+                    order.listing_id
+                );
+
+        if (updateError) {
+            throw updateError;
+        }
+
+        await v70MarkSourceOrderRefunded(
+            payment,
+            order
+        );
+
+        return {
+            target_type:
+                `${promotionType}_promotion`,
+            target_id:
+                String(order.listing_id)
+        };
+    }
+
+    throw new Error(
+        "unsupported_payment_type"
+    );
+}
+
+
+app.post(
+    "/admin/stars-payments",
+    async (req, res) => {
+        const auth =
+            req.adminAuth;
+
+        if (
+            !auth?.ok ||
+            normalizedAdminRole(
+                auth.user
+            ) !== "owner"
+        ) {
+            return res
+                .status(403)
+                .json({
+                    ok:false,
+                    error:"owner_required"
+                });
+        }
+
+        try {
+            await v70SyncStarsLedger();
+
+            const {
+                data:ledgerRows,
+                error:ledgerError
+            } =
+                await supabase
+                    .from(
+                        "stars_payment_ledger"
+                    )
+                    .select(
+                        "id,payment_type,order_id,payer_telegram_id,amount_stars,telegram_payment_charge_id,service_label,target_type,target_id,target_label,service_meta,source_status,status,paid_at,refunded_at,refund_id"
+                    )
+                    .order(
+                        "paid_at",
+                        {ascending:false}
+                    )
+                    .limit(500);
+
+            if (ledgerError) {
+                throw ledgerError;
+            }
+
+            const rows =
+                ledgerRows || [];
+
+            const payerIds = [
+                ...new Set(
+                    rows.map(
+                        row =>
+                            Number(
+                                row.payer_telegram_id
+                            )
+                    ).filter(Boolean)
+                )
+            ];
+
+            let users = [];
+
+            if (payerIds.length) {
+                const {
+                    data,
+                    error
+                } =
+                    await supabase
+                        .from("users")
+                        .select(
+                            "telegram_id,first_name,last_name,telegram_username,photo_url"
+                        )
+                        .in(
+                            "telegram_id",
+                            payerIds
+                        );
+
+                if (error) {
+                    throw error;
+                }
+
+                users = data || [];
+            }
+
+            const paymentIds =
+                rows.map(
+                    row => row.id
+                );
+
+            let refunds = [];
+
+            if (paymentIds.length) {
+                const {
+                    data,
+                    error
+                } =
+                    await supabase
+                        .from(
+                            "stars_payment_refunds"
+                        )
+                        .select(
+                            "id,payment_id,status,reason,requested_by,telegram_refunded_at,service_rolled_back_at,completed_at,last_error,created_at,updated_at"
+                        )
+                        .in(
+                            "payment_id",
+                            paymentIds
+                        );
+
+                if (error) {
+                    throw error;
+                }
+
+                refunds = data || [];
+            }
+
+            const userMap =
+                new Map(
+                    users.map(
+                        user => [
+                            String(
+                                user.telegram_id
+                            ),
+                            user
+                        ]
+                    )
+                );
+
+            const refundMap =
+                new Map(
+                    refunds.map(
+                        refund => [
+                            String(
+                                refund.payment_id
+                            ),
+                            refund
+                        ]
+                    )
+                );
+
+            const query =
+                String(
+                    req.body.query ||
+                    ""
+                )
+                    .trim()
+                    .toLowerCase();
+
+            const typeFilter =
+                String(
+                    req.body.payment_type ||
+                    "all"
+                ).toLowerCase();
+
+            const statusFilter =
+                String(
+                    req.body.status ||
+                    "all"
+                ).toLowerCase();
+
+            const normalized =
+                rows.map(
+                    row => {
+                        const user =
+                            userMap.get(
+                                String(
+                                    row.payer_telegram_id
+                                )
+                            ) ||
+                            null;
+                        const refund =
+                            refundMap.get(
+                                String(row.id)
+                            ) ||
+                            null;
+
+                        return {
+                            ...row,
+                            payer:user,
+                            refund_status:
+                                refund?.status ||
+                                null,
+                            refund_reason:
+                                refund?.reason ||
+                                null,
+                            refund_last_error:
+                                refund?.last_error ||
+                                null,
+                            refund_completed_at:
+                                refund?.completed_at ||
+                                null,
+                            can_refund:
+                                row.status === "paid" &&
+                                ![
+                                    "processing",
+                                    "stars_refunded",
+                                    "completed"
+                                ].includes(
+                                    refund?.status
+                                ),
+                            can_retry_rollback:
+                                [
+                                    "stars_refunded",
+                                    "rollback_failed"
+                                ].includes(
+                                    refund?.status
+                                )
+                        };
+                    }
+                )
+                .filter(
+                    row => {
+                        if (
+                            typeFilter !== "all" &&
+                            row.payment_type !==
+                            typeFilter
+                        ) {
+                            return false;
+                        }
+
+                        if (
+                            statusFilter !== "all" &&
+                            row.status !==
+                            statusFilter
+                        ) {
+                            return false;
+                        }
+
+                        if (!query) {
+                            return true;
+                        }
+
+                        const payer =
+                            row.payer || {};
+
+                        const haystack = [
+                            row.service_label,
+                            row.target_label,
+                            row.order_id,
+                            row.payer_telegram_id,
+                            payer.first_name,
+                            payer.last_name,
+                            payer.telegram_username
+                        ]
+                            .filter(Boolean)
+                            .join(" ")
+                            .toLowerCase();
+
+                        return haystack.includes(
+                            query
+                        );
+                    }
+                );
+
+            const summary =
+                normalized.reduce(
+                    (acc,row) => {
+                        acc.count += 1;
+
+                        if (
+                            row.status ===
+                            "refunded"
+                        ) {
+                            acc.refunded_count += 1;
+                            acc.refunded_stars +=
+                                Number(
+                                    row.amount_stars ||
+                                    0
+                                );
+                        } else {
+                            acc.paid_count += 1;
+                            acc.paid_stars +=
+                                Number(
+                                    row.amount_stars ||
+                                    0
+                                );
+                        }
+
+                        return acc;
+                    },
+                    {
+                        count:0,
+                        paid_count:0,
+                        refunded_count:0,
+                        paid_stars:0,
+                        refunded_stars:0
+                    }
+                );
+
+            return res.json({
+                ok:true,
+                payments:
+                    normalized.slice(0,300),
+                summary
+            });
+
+        } catch (error) {
+            console.error(
+                "V70 Stars payments:",
+                error
+            );
+
+            await logSystemError(
+                "v70_stars_payments",
+                error
+            );
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "stars_payments_load_failed"
+                });
+        }
+    }
+);
+
+
+app.post(
+    "/admin/stars-refund",
+    async (req, res) => {
+        const auth =
+            req.adminAuth;
+
+        if (
+            !auth?.ok ||
+            normalizedAdminRole(
+                auth.user
+            ) !== "owner"
+        ) {
+            return res
+                .status(403)
+                .json({
+                    ok:false,
+                    error:"owner_required"
+                });
+        }
+
+        const paymentId =
+            String(
+                req.body.payment_id ||
+                ""
+            ).trim();
+
+        if (
+            !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+                paymentId
+            )
+        ) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:
+                        "invalid_payment_id"
+                });
+        }
+
+        const reason =
+            String(
+                req.body.reason ||
+                "Admin refund"
+            )
+                .trim()
+                .slice(0,300) ||
+            "Admin refund";
+
+        try {
+            await v70SyncStarsLedger();
+
+            const {
+                data:payment,
+                error:paymentError
+            } =
+                await supabase
+                    .from(
+                        "stars_payment_ledger"
+                    )
+                    .select("*")
+                    .eq("id",paymentId)
+                    .maybeSingle();
+
+            if (
+                paymentError ||
+                !payment
+            ) {
+                return res
+                    .status(404)
+                    .json({
+                        ok:false,
+                        error:
+                            "payment_not_found"
+                    });
+            }
+
+            const {
+                data:existingRefund,
+                error:existingRefundError
+            } =
+                await supabase
+                    .from(
+                        "stars_payment_refunds"
+                    )
+                    .select("*")
+                    .eq(
+                        "payment_id",
+                        payment.id
+                    )
+                    .maybeSingle();
+
+            if (existingRefundError) {
+                throw existingRefundError;
+            }
+
+            if (
+                payment.status ===
+                "refunded" &&
+                ![
+                    "stars_refunded",
+                    "rollback_failed"
+                ].includes(
+                    existingRefund?.status
+                )
+            ) {
+                return res.json({
+                    ok:true,
+                    already_refunded:true,
+                    service_revoked:
+                        existingRefund?.status ===
+                        "completed"
+                });
+            }
+
+            const order =
+                await v70LoadPaymentOrder(
+                    payment
+                );
+
+            const preflight =
+                await v70RefundPreflight(
+                    payment,
+                    order
+                );
+
+            if (!preflight.ok) {
+                return res
+                    .status(409)
+                    .json({
+                        ok:false,
+                        error:
+                            preflight.error
+                    });
+            }
+
+            const {
+                data:claim,
+                error:claimError
+            } =
+                await supabase
+                    .rpc(
+                        "hm_claim_stars_refund_v70",
+                        {
+                            p_payment_id:
+                                payment.id,
+                            p_requested_by:
+                                Number(
+                                    auth.user.telegram_id
+                                ),
+                            p_reason:
+                                reason
+                        }
+                    );
+
+            if (claimError) {
+                throw claimError;
+            }
+
+            if (!claim?.ok) {
+                return res
+                    .status(409)
+                    .json({
+                        ok:false,
+                        error:
+                            claim?.error ||
+                            "refund_claim_failed"
+                    });
+            }
+
+            if (
+                claim.already_refunded
+            ) {
+                return res.json({
+                    ok:true,
+                    already_refunded:true,
+                    service_revoked:true
+                });
+            }
+
+            if (
+                claim.in_progress ||
+                !claim.claimed
+            ) {
+                return res
+                    .status(409)
+                    .json({
+                        ok:false,
+                        error:
+                            "refund_in_progress"
+                    });
+            }
+
+            const refundId =
+                claim.refund_id;
+
+            if (!claim.skip_telegram) {
+                try {
+                    await refundStars(
+                        payment.payer_telegram_id,
+                        payment.telegram_payment_charge_id
+                    );
+
+                } catch (error) {
+                    await supabase
+                        .from(
+                            "stars_payment_refunds"
+                        )
+                        .update({
+                            status:"failed",
+                            last_error:
+                                sanitizedLogText(
+                                    error?.message ||
+                                    error
+                                ),
+                            updated_at:
+                                nowIso()
+                        })
+                        .eq("id",refundId);
+
+                    await logSystemError(
+                        "v70_stars_refund_telegram",
+                        error,
+                        {
+                            payment_id:
+                                payment.id,
+                            payment_type:
+                                payment.payment_type
+                        }
+                    );
+
+                    return res
+                        .status(502)
+                        .json({
+                            ok:false,
+                            error:
+                                "refund_telegram_failed"
+                        });
+                }
+
+                const refundedAt =
+                    nowIso();
+
+                const [
+                    refundStateResult,
+                    ledgerStateResult
+                ] =
+                    await Promise.all([
+                        supabase
+                            .from(
+                                "stars_payment_refunds"
+                            )
+                            .update({
+                                status:
+                                    "stars_refunded",
+                                telegram_refunded_at:
+                                    refundedAt,
+                                last_error:null,
+                                updated_at:
+                                    refundedAt
+                            })
+                            .eq("id",refundId),
+
+                        supabase
+                            .from(
+                                "stars_payment_ledger"
+                            )
+                            .update({
+                                status:"refunded",
+                                refunded_at:
+                                    refundedAt,
+                                refund_id:
+                                    refundId,
+                                updated_at:
+                                    refundedAt
+                            })
+                            .eq("id",payment.id)
+                    ]);
+
+                if (
+                    refundStateResult.error ||
+                    ledgerStateResult.error
+                ) {
+                    throw (
+                        refundStateResult.error ||
+                        ledgerStateResult.error
+                    );
+                }
+
+            } else {
+                await supabase
+                    .from(
+                        "stars_payment_ledger"
+                    )
+                    .update({
+                        status:"refunded",
+                        refund_id:
+                            refundId,
+                        refunded_at:
+                            payment.refunded_at ||
+                            nowIso(),
+                        updated_at:
+                            nowIso()
+                    })
+                    .eq("id",payment.id);
+            }
+
+            let rollback;
+
+            try {
+                rollback =
+                    await v70RollbackStarsService(
+                        payment,
+                        order
+                    );
+
+            } catch (error) {
+                await supabase
+                    .from(
+                        "stars_payment_refunds"
+                    )
+                    .update({
+                        status:
+                            "rollback_failed",
+                        last_error:
+                            sanitizedLogText(
+                                error?.message ||
+                                error
+                            ),
+                        updated_at:
+                            nowIso()
+                    })
+                    .eq("id",refundId);
+
+                await logAdminActivity(
+                    auth.user.telegram_id,
+                    "stars_refund_rollback_failed",
+                    "stars_payment",
+                    payment.id,
+                    {
+                        payment_type:
+                            payment.payment_type,
+                        order_id:
+                            payment.order_id,
+                        amount_stars:
+                            payment.amount_stars,
+                        service_label:
+                            payment.service_label
+                    }
+                );
+
+                await logSystemError(
+                    "v70_stars_refund_rollback",
+                    error,
+                    {
+                        payment_id:
+                            payment.id,
+                        payment_type:
+                            payment.payment_type
+                    }
+                );
+
+                return res
+                    .status(500)
+                    .json({
+                        ok:false,
+                        error:
+                            "refund_service_rollback_failed",
+                        stars_refunded:true,
+                        refund_id:
+                            refundId
+                    });
+            }
+
+            const completedAt =
+                nowIso();
+
+            const {
+                error:completeError
+            } =
+                await supabase
+                    .from(
+                        "stars_payment_refunds"
+                    )
+                    .update({
+                        status:"completed",
+                        service_rolled_back_at:
+                            completedAt,
+                        completed_at:
+                            completedAt,
+                        last_error:null,
+                        updated_at:
+                            completedAt
+                    })
+                    .eq("id",refundId);
+
+            if (completeError) {
+                throw completeError;
+            }
+
+            await logAdminActivity(
+                auth.user.telegram_id,
+                "stars_payment_refund",
+                rollback?.target_type ||
+                    "stars_payment",
+                rollback?.target_id ||
+                    payment.target_id ||
+                    payment.id,
+                {
+                    payment_id:
+                        payment.id,
+                    payment_type:
+                        payment.payment_type,
+                    order_id:
+                        payment.order_id,
+                    amount_stars:
+                        payment.amount_stars,
+                    service_label:
+                        payment.service_label,
+                    reason,
+                    service_revoked:true
+                }
+            );
+
+            await safeSendMessage(
+                payment.payer_telegram_id,
+                `↩️ ${Number(payment.amount_stars)} Telegram Stars were refunded for ${payment.service_label}${payment.target_label ? ` (${payment.target_label})` : ""}.\n\nThe refunded service has been revoked.`
+            );
+
+            return res.json({
+                ok:true,
+                refunded:true,
+                service_revoked:true,
+                refund_id:
+                    refundId
+            });
+
+        } catch (error) {
+            console.error(
+                "V70 Stars refund:",
+                error
+            );
+
+            await logSystemError(
+                "v70_stars_refund",
+                error,
+                {
+                    payment_id:
+                        paymentId
+                }
+            );
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "stars_refund_failed"
+                });
+        }
+    }
+);
+
 
 app.listen(
     PORT,
