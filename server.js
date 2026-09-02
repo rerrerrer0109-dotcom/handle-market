@@ -1,4 +1,4 @@
-/* Handle Market v72 — Final Payment, Privacy & Performance Hardening */
+/* Handle Market v74 — Launch Guard */
 const express = require("express");
 const crypto = require("crypto");
 const { createClient } = require("@supabase/supabase-js");
@@ -1342,19 +1342,20 @@ function normalizedAdminRole(
     const role =
         String(
             user.admin_role ||
-            "owner"
+            ""
         )
             .trim()
             .toLowerCase();
 
 
+    /* V74: fail closed. An unknown or missing role never becomes Owner. */
     return [
         "owner",
         "moderator",
         "support"
     ].includes(role)
         ? role
-        : "owner";
+        : null;
 }
 
 
@@ -8014,7 +8015,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v47-production-pricing"
+                    "v74-launch-guard"
             }
         );
     }
@@ -8055,16 +8056,22 @@ app.get(
 
         if (error) {
 
+            console.error(
+                "DB health check:",
+                sanitizedLogText(
+                    error?.message ||
+                    error
+                )
+            );
+
+
             return res
                 .status(500)
                 .json(
                     {
                         ok: false,
                         database:
-                            "error",
-
-                        message:
-                            error.message
+                            "error"
                     }
                 );
         }
@@ -8185,6 +8192,12 @@ app.post(
             u.seller_profile;
 
 
+        const effectiveAdminRole =
+            normalizedAdminRole(
+                u
+            );
+
+
         res.json(
             {
                 ok: true,
@@ -8211,28 +8224,12 @@ app.post(
 
                     is_admin:
                         Boolean(
-                            u.is_admin
+                            u.is_admin &&
+                            effectiveAdminRole
                         ),
 
                     admin_role:
-                        u.is_admin
-                            ? (
-                                [
-                                    "owner",
-                                    "moderator",
-                                    "support"
-                                ].includes(
-                                    String(
-                                        u.admin_role ||
-                                        ""
-                                    ).toLowerCase()
-                                )
-                                    ? String(
-                                        u.admin_role
-                                    ).toLowerCase()
-                                    : "owner"
-                            )
-                            : null,
+                        effectiveAdminRole,
 
                     ui_language:
                         [
@@ -19135,7 +19132,7 @@ app.post(
         return res.json({
             ok:true,
             version:
-                "v47-production-pricing",
+                "v74-launch-guard",
             uptime_seconds:
                 Math.floor(
                     process.uptime()
@@ -24136,20 +24133,9 @@ app.post(
                 row => ({
                     ...row,
                     admin_role:
-                        [
-                            "owner",
-                            "moderator",
-                            "support"
-                        ].includes(
-                            String(
-                                row.admin_role ||
-                                ""
-                            ).toLowerCase()
+                        normalizedAdminRole(
+                            row
                         )
-                            ? String(
-                                row.admin_role
-                            ).toLowerCase()
-                            : "owner"
                 })
             )
         });
@@ -24298,10 +24284,9 @@ app.post(
         if (
             action === "remove" &&
             target.is_admin &&
-            String(
-                target.admin_role ||
-                "owner"
-            ).toLowerCase() ===
+            normalizedAdminRole(
+                target
+            ) ===
             "owner"
         ) {
 
@@ -28570,9 +28555,23 @@ app.post(
             req.body;
 
 
-        res.sendStatus(200);
+        const criticalPaymentUpdate =
+            Boolean(
+                update?.pre_checkout_query ||
+                update?.message
+                    ?.successful_payment
+            );
 
 
+        let webhookProcessingFailed =
+            false;
+
+
+        /*
+         * V74: payment updates are acknowledged only after processing.
+         * If an unexpected payment-processing error occurs before the
+         * acknowledgement, return 500 so Telegram can retry the update.
+         */
         try {
 
             /* =================================================
@@ -30683,6 +30682,10 @@ app.post(
 
         } catch (error) {
 
+            webhookProcessingFailed =
+                true;
+
+
             console.error(
                 "Webhook processing error:",
                 error
@@ -30692,6 +30695,20 @@ app.post(
                 "telegram_webhook",
                 error
             );
+
+        } finally {
+
+            if (
+                !res.headersSent
+            ) {
+
+                res.sendStatus(
+                    webhookProcessingFailed &&
+                    criticalPaymentUpdate
+                        ? 500
+                        : 200
+                );
+            }
         }
     }
 );
@@ -31343,7 +31360,7 @@ app.get(
             return res.json({
                 ok:true,
                 version:
-                    "v47-production-pricing",
+                    "v74-launch-guard",
                 server_time:
                     nowIso(),
                 page:
@@ -31406,7 +31423,7 @@ app.get(
         return res.json({
             ok:true,
             version:
-                "v47-production-pricing",
+                "v74-launch-guard",
             service:
                 "Handle Market API",
             maintenance:
@@ -31497,7 +31514,7 @@ app.post(
         return res.json({
             ok:true,
             version:
-                "v47-production-pricing",
+                "v74-launch-guard",
             maintenance,
             marketplace:{
                 ok:
