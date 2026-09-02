@@ -4761,6 +4761,324 @@ button {
     }
 }
 
+
+
+/* =========================================================
+   V67 FINAL UX — TOASTS, LOADING, EMPTY STATES, ACCESSIBILITY
+   ========================================================= */
+
+:root {
+    --hm-toast-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 18px);
+}
+
+body.hm-modal-open {
+    overflow:hidden;
+    overscroll-behavior:none;
+}
+
+button,
+input,
+select,
+textarea,
+[tabindex] {
+    -webkit-tap-highlight-color:transparent;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline:2px solid rgba(34,124,255,.38);
+    outline-offset:2px;
+}
+
+button:disabled,
+button[aria-disabled="true"] {
+    cursor:not-allowed;
+    opacity:.56;
+}
+
+button:not(:disabled):active {
+    transform:translateY(1px) scale(.99);
+}
+
+.hm-toast-stack {
+    position:fixed;
+    z-index:10050;
+    left:50%;
+    bottom:var(--hm-toast-bottom);
+    width:min(420px,calc(100% - 24px));
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:7px;
+    transform:translateX(-50%);
+    pointer-events:none;
+}
+
+.hm-toast {
+    position:relative;
+    display:grid;
+    grid-template-columns:30px minmax(0,1fr) 26px;
+    align-items:center;
+    gap:9px;
+    min-height:52px;
+    padding:9px 9px 9px 10px;
+    border:1px solid rgba(125,145,175,.24);
+    border-radius:15px;
+    color:var(--text);
+    background:var(--surface);
+    background:color-mix(in srgb,var(--surface) 94%,transparent);
+    box-shadow:0 14px 40px rgba(15,23,42,.18);
+    -webkit-backdrop-filter:blur(14px);
+    backdrop-filter:blur(14px);
+    pointer-events:auto;
+    overflow:hidden;
+    animation:hmToastIn .2s cubic-bezier(.2,.8,.2,1);
+}
+
+.hm-toast.is-leaving {
+    animation:hmToastOut .17s ease forwards;
+}
+
+.hm-toast-icon {
+    width:30px;
+    height:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid rgba(34,124,255,.15);
+    border-radius:10px;
+    color:var(--blue);
+    background:var(--blue-soft);
+}
+
+.hm-toast-icon svg {
+    width:15px;
+    height:15px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.hm-toast-success .hm-toast-icon {
+    color:var(--green);
+    border-color:rgba(35,166,96,.16);
+    background:var(--green-soft);
+}
+
+.hm-toast-warning .hm-toast-icon {
+    color:var(--yellow);
+    border-color:rgba(222,169,35,.18);
+    background:var(--yellow-soft);
+}
+
+.hm-toast-error .hm-toast-icon {
+    color:var(--red);
+    border-color:rgba(218,68,68,.16);
+    background:var(--red-soft);
+}
+
+.hm-toast-copy {
+    min-width:0;
+    font-size:9.6px;
+    line-height:1.45;
+    font-weight:750;
+    overflow-wrap:anywhere;
+}
+
+.hm-toast-close {
+    width:26px;
+    height:26px;
+    min-width:26px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:0;
+    border-radius:8px;
+    color:var(--muted);
+    background:transparent;
+}
+
+.hm-toast-close svg {
+    width:14px;
+    height:14px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+}
+
+.hm-toast-progress {
+    position:absolute;
+    left:0;
+    bottom:0;
+    height:2px;
+    width:100%;
+    background:currentColor;
+    opacity:.22;
+    transform-origin:left center;
+    animation:hmToastProgress var(--hm-toast-duration,4200ms) linear forwards;
+}
+
+.empty.hm-loading-state {
+    position:relative;
+    min-height:92px;
+    padding:18px;
+    overflow:hidden;
+    border-style:solid;
+    color:transparent !important;
+    user-select:none;
+}
+
+.empty.hm-loading-state::before {
+    content:"";
+    position:absolute;
+    inset:18px;
+    border-radius:9px;
+    background:
+        linear-gradient(90deg,var(--surface-2),var(--surface-3),var(--surface-2)) 0 0/72% 10px no-repeat,
+        linear-gradient(90deg,var(--surface-2),var(--surface-3),var(--surface-2)) 0 25px/92% 10px no-repeat,
+        linear-gradient(90deg,var(--surface-2),var(--surface-3),var(--surface-2)) 0 50px/58% 10px no-repeat;
+    animation:hmSkeletonPulse 1.15s ease-in-out infinite alternate;
+}
+
+.empty.hm-empty-state,
+.empty.hm-error-state {
+    padding:22px 16px;
+    border-style:solid;
+}
+
+.hm-state-icon {
+    width:34px;
+    height:34px;
+    margin:0 auto 9px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid rgba(34,124,255,.14);
+    border-radius:11px;
+    color:var(--blue);
+    background:var(--blue-soft);
+}
+
+.hm-error-state .hm-state-icon {
+    color:var(--red);
+    border-color:rgba(218,68,68,.14);
+    background:var(--red-soft);
+}
+
+.hm-state-icon svg {
+    width:17px;
+    height:17px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.hm-network-banner {
+    position:fixed;
+    z-index:10040;
+    top:max(8px,env(safe-area-inset-top));
+    left:50%;
+    width:min(390px,calc(100% - 24px));
+    min-height:38px;
+    padding:9px 12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    border:1px solid rgba(218,68,68,.18);
+    border-radius:12px;
+    color:var(--red);
+    background:var(--surface);
+    background:color-mix(in srgb,var(--surface) 94%,transparent);
+    box-shadow:0 10px 28px rgba(15,23,42,.13);
+    -webkit-backdrop-filter:blur(12px);
+    backdrop-filter:blur(12px);
+    transform:translate(-50%,-130%);
+    transition:transform .2s ease;
+    font-size:9px;
+    font-weight:850;
+    text-align:center;
+    pointer-events:none;
+}
+
+.hm-network-banner.show {
+    transform:translate(-50%,0);
+}
+
+.hm-network-banner svg {
+    width:15px;
+    height:15px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.modal-backdrop.show .modal {
+    will-change:transform,opacity;
+}
+
+@keyframes hmToastIn {
+    from { opacity:0; transform:translateY(10px) scale(.985); }
+    to { opacity:1; transform:translateY(0) scale(1); }
+}
+
+@keyframes hmToastOut {
+    from { opacity:1; transform:translateY(0) scale(1); }
+    to { opacity:0; transform:translateY(6px) scale(.985); }
+}
+
+@keyframes hmToastProgress {
+    from { transform:scaleX(1); }
+    to { transform:scaleX(0); }
+}
+
+@keyframes hmSkeletonPulse {
+    from { opacity:.55; }
+    to { opacity:1; }
+}
+
+@media (max-width:430px) {
+    .hm-toast-stack {
+        width:calc(100% - 18px);
+        bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 11px);
+    }
+
+    .hm-toast {
+        grid-template-columns:28px minmax(0,1fr) 24px;
+        gap:8px;
+        min-height:50px;
+        border-radius:14px;
+    }
+
+    .hm-toast-icon {
+        width:28px;
+        height:28px;
+        border-radius:9px;
+    }
+}
+
+@media (prefers-reduced-motion:reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior:auto !important;
+        animation-duration:.01ms !important;
+        animation-iteration-count:1 !important;
+        transition-duration:.01ms !important;
+    }
+}
+
 </style>
 
 <style>
@@ -9550,6 +9868,228 @@ const tg =
     window.Telegram?.WebApp;
 
 
+/* =========================================================
+   V67 FINAL UX RUNTIME
+   ========================================================= */
+
+let hmLastFocusedElement = null;
+
+function hmToastIconSvg(type) {
+
+    if (type === "success") {
+        return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7"></path></svg>`;
+    }
+
+    if (type === "error") {
+        return `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5v5.5M12 16.7h.01"></path></svg>`;
+    }
+
+    if (type === "warning") {
+        return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4.4 3.6 17a1.7 1.7 0 0 0 1.5 2.5h13.8a1.7 1.7 0 0 0 1.5-2.5L13.5 4.4a1.7 1.7 0 0 0-3 0Z"></path><path d="M12 9v4.2M12 16.5h.01"></path></svg>`;
+    }
+
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 10.8v5M12 7.5h.01"></path></svg>`;
+}
+
+function hmInferToastType(message) {
+
+    const value = String(message || "").toLowerCase();
+
+    if (/failed|error|invalid|cannot|can't|unable|unavailable|required|not found|blocked|denied|rejected|ошиб|не удалось/.test(value)) {
+        return "error";
+    }
+
+    if (/warning|expired|freeze|frozen|report|risk|suspicious|предупреж/.test(value)) {
+        return "warning";
+    }
+
+    if (/success|saved|created|sent|copied|updated|approved|added|removed|unlocked|paid|closed|reopened|resolved|dismissed|успеш/.test(value)) {
+        return "success";
+    }
+
+    return "info";
+}
+
+function hmToast(message, type = "") {
+
+    const text = String(message || "").trim();
+
+    if (!text) {
+        return;
+    }
+
+    const resolvedType = type || hmInferToastType(text);
+
+    let stack = document.getElementById("hmToastStack");
+
+    if (!stack) {
+        stack = document.createElement("div");
+        stack.id = "hmToastStack";
+        stack.className = "hm-toast-stack";
+        stack.setAttribute("aria-live", "polite");
+        stack.setAttribute("aria-atomic", "false");
+        document.body.appendChild(stack);
+    }
+
+    while (stack.children.length >= 3) {
+        stack.firstElementChild?.remove();
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `hm-toast hm-toast-${resolvedType}`;
+    toast.setAttribute("role", resolvedType === "error" ? "alert" : "status");
+
+    const duration = Math.min(6500, Math.max(3200, 2600 + text.length * 13));
+    toast.style.setProperty("--hm-toast-duration", `${duration}ms`);
+
+    const icon = document.createElement("span");
+    icon.className = "hm-toast-icon";
+    icon.innerHTML = hmToastIconSvg(resolvedType);
+
+    const copy = document.createElement("div");
+    copy.className = "hm-toast-copy";
+    copy.textContent = text;
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "hm-toast-close";
+    close.setAttribute("aria-label", "Dismiss notification");
+    close.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"></path></svg>`;
+
+    const progress = document.createElement("span");
+    progress.className = "hm-toast-progress";
+
+    const dismiss = () => {
+        if (!toast.isConnected || toast.classList.contains("is-leaving")) {
+            return;
+        }
+        toast.classList.add("is-leaving");
+        window.setTimeout(() => toast.remove(), 180);
+    };
+
+    close.addEventListener("click", dismiss);
+    toast.append(icon, copy, close, progress);
+    stack.appendChild(toast);
+
+    if (tg?.HapticFeedback?.notificationOccurred) {
+        try {
+            if (resolvedType === "success") tg.HapticFeedback.notificationOccurred("success");
+            if (resolvedType === "error") tg.HapticFeedback.notificationOccurred("error");
+            if (resolvedType === "warning") tg.HapticFeedback.notificationOccurred("warning");
+        } catch (error) {
+            // Haptics are optional and must never affect the action itself.
+        }
+    }
+
+    window.setTimeout(dismiss, duration);
+}
+
+function hmStateIconSvg(kind) {
+
+    if (kind === "error") {
+        return `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5v5.5M12 16.7h.01"></path></svg>`;
+    }
+
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>`;
+}
+
+function hmEnhanceEmptyState(element) {
+
+    if (!(element instanceof HTMLElement) || !element.classList.contains("empty")) {
+        return;
+    }
+
+    const raw = String(element.textContent || "").replace(/\s+/g, " ").trim();
+    const text = raw.toLowerCase();
+
+    element.classList.remove("hm-loading-state", "hm-empty-state", "hm-error-state");
+
+    if (/^(loading|загруз)|loading |загружа/.test(text)) {
+        element.classList.add("hm-loading-state");
+        element.querySelector(".hm-state-icon")?.remove();
+        return;
+    }
+
+    const isError = /failed|unavailable|error|expired|not available|не удалось|ошиб/.test(text);
+    const isEmpty = /^(no |your .* empty|nothing|not enough|you have no|you are not|нет |ничего|пока нет)/.test(text);
+
+    if (!isError && !isEmpty) {
+        element.querySelector(".hm-state-icon")?.remove();
+        return;
+    }
+
+    element.classList.add(isError ? "hm-error-state" : "hm-empty-state");
+
+    if (!element.querySelector(".hm-state-icon")) {
+        const icon = document.createElement("span");
+        icon.className = "hm-state-icon";
+        icon.innerHTML = hmStateIconSvg(isError ? "error" : "empty");
+        element.prepend(icon);
+    }
+}
+
+function hmEnhanceUxStates(root = document) {
+
+    if (root instanceof HTMLElement && root.classList.contains("empty")) {
+        hmEnhanceEmptyState(root);
+    }
+
+    root.querySelectorAll?.(".empty").forEach(hmEnhanceEmptyState);
+}
+
+function hmEnsureNetworkBanner() {
+
+    let banner = document.getElementById("hmNetworkBanner");
+
+    if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "hmNetworkBanner";
+        banner.className = "hm-network-banner";
+        banner.setAttribute("role", "status");
+        banner.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9.5a10.7 10.7 0 0 1 14 0M8 13a6 6 0 0 1 8 0M11 16.5a1.8 1.8 0 0 1 2 0M4 4l16 16"></path></svg><span>No internet connection</span>`;
+        document.body.appendChild(banner);
+    }
+
+    return banner;
+}
+
+function hmUpdateNetworkState(showRecoveryToast = false) {
+
+    const banner = hmEnsureNetworkBanner();
+    const offline = navigator.onLine === false;
+
+    banner.classList.toggle("show", offline);
+
+    if (!offline && showRecoveryToast) {
+        hmToast("Connection restored.", "success");
+    }
+}
+
+window.addEventListener("offline", () => hmUpdateNetworkState(false));
+window.addEventListener("online", () => hmUpdateNetworkState(true));
+
+window.addEventListener("DOMContentLoaded", () => {
+
+    hmEnhanceUxStates(document);
+    hmUpdateNetworkState(false);
+
+    const observer = new MutationObserver(mutations => {
+        for (const mutation of mutations) {
+            mutation.addedNodes.forEach(node => {
+                if (node instanceof HTMLElement) {
+                    hmEnhanceUxStates(node);
+                }
+            });
+        }
+    });
+
+    observer.observe(document.body, {
+        childList:true,
+        subtree:true
+    });
+});
+
+
 let authenticatedUser =
     null;
 
@@ -10430,24 +10970,10 @@ function premiumNameBadgeHtml(
 
 function showPremiumInfo() {
 
-    const text =
-        "⭐ Premium is awarded by Handle Market to selected unique, high-quality usernames. Sellers cannot select or purchase this status.";
-
-
-    if (
-        tg?.showAlert
-    ) {
-
-        tg.showAlert(
-            text
-        );
-
-    } else {
-
-        window.alert(
-            text
-        );
-    }
+    hmToast(
+        "Premium is awarded by Handle Market to selected unique, high-quality usernames. Sellers cannot select or purchase this status.",
+        "info"
+    );
 }
 
 
@@ -13212,7 +13738,7 @@ async function toggleLike(
         !authenticatedUser
     ) {
 
-        tg?.showAlert(
+        hmToast(
             "Open Handle Market inside Telegram to like listings."
         );
 
@@ -13285,13 +13811,13 @@ async function toggleLike(
             "cannot_like_own_listing"
         ) {
 
-            tg?.showAlert(
+            hmToast(
                 "You cannot like your own listing."
             );
 
         } else {
 
-            tg?.showAlert(
+            hmToast(
                 error.message
             );
         }
@@ -14031,13 +14557,13 @@ async function copyListingLink(
             );
 
 
-        tg?.showAlert(
+        hmToast(
             "Listing link copied ✓"
         );
 
     } catch {
 
-        tg?.showAlert(
+        hmToast(
             link
         );
     }
@@ -14321,7 +14847,7 @@ async function unlockSellerContact(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             error.message
         );
     }
@@ -14637,13 +15163,13 @@ async function copyContact(
             );
 
 
-        tg?.showAlert(
+        hmToast(
             "Copied ✓"
         );
 
     } catch {
 
-        tg?.showAlert(
+        hmToast(
             value
         );
     }
@@ -14739,7 +15265,7 @@ async function toggleWatch(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             error.message
         );
     }
@@ -14988,7 +15514,7 @@ function openReportModal(
         )
     ) {
 
-        tg?.showAlert(
+        hmToast(
             "You already reported this listing."
         );
 
@@ -15114,7 +15640,7 @@ function openReportModal(
                 updateAllReportButtons();
 
 
-                tg?.showAlert(
+                hmToast(
                     "Report submitted ✓"
                 );
 
@@ -15122,7 +15648,7 @@ function openReportModal(
                 error
             ) {
 
-                tg?.showAlert(
+                hmToast(
                     error.message
                 );
             }
@@ -15484,7 +16010,7 @@ async function startListingPayment(
             await loadMyListings();
 
 
-            tg?.showAlert(
+            hmToast(
                 data.referral_free
                     ? `🎁 Referral reward listing submitted. Your free ${Number(data.duration_hours || 168) / 24}-day timer will start after moderation approval.`
                     : `🎁 Free listing submitted. Your ${freeListingDurationHours}-hour timer will start after moderation approval.`
@@ -15562,7 +16088,7 @@ async function startListingPayment(
                             await loadMyListings();
 
 
-                            tg?.showAlert(
+                            hmToast(
                                 `Listing submitted ✓ Your ${paidListingDurationDays}-day timer will start after approval.`
                             );
 
@@ -15579,7 +16105,7 @@ async function startListingPayment(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -16335,7 +16861,7 @@ async function startListingRenewal(
                             );
 
 
-                            tg?.showAlert(
+                            hmToast(
                                 `✅ @${username} renewed for ${paidListingDurationDays} days.`
                             );
 
@@ -16349,7 +16875,7 @@ async function startListingRenewal(
                             "refunded"
                         ) {
 
-                            tg?.showAlert(
+                            hmToast(
                                 "Renewal was refunded."
                             );
 
@@ -16365,7 +16891,7 @@ async function startListingRenewal(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -16895,7 +17421,7 @@ function openEditListing(
                 );
 
 
-                tg?.showAlert(
+                hmToast(
                     data.contact_changed
                         ? "⚠️ Contact changed. The listing was sent back to moderation and is temporarily hidden. Your original listing timer continues."
                         : "Listing updated ✓"
@@ -16905,7 +17431,7 @@ function openEditListing(
                 error
             ) {
 
-                tg?.showAlert(
+                hmToast(
                     friendlyError(
                         error.message
                     )
@@ -16952,7 +17478,7 @@ async function changeListingPause(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -17002,7 +17528,7 @@ async function removeListing(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -17050,7 +17576,7 @@ function openPromotionModal(
         )
     ) {
 
-        tg?.showAlert(
+        hmToast(
             "Renew this listing before purchasing promotion."
         );
 
@@ -17461,7 +17987,7 @@ async function startPromotionPayment(
                         );
 
 
-                        tg?.showAlert(
+                        hmToast(
                             "Promotion activated ✓"
                         );
 
@@ -17476,7 +18002,7 @@ async function startPromotionPayment(
                         "refunded"
                     ) {
 
-                        tg?.showAlert(
+                        hmToast(
                             "Promotion payment was refunded."
                         );
 
@@ -17491,7 +18017,7 @@ async function startPromotionPayment(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -17685,7 +18211,7 @@ function openOfferModal(
                 await loadUnreadCounts();
 
 
-                tg?.showAlert(
+                hmToast(
                     "Offer sent ✓"
                 );
 
@@ -17698,13 +18224,13 @@ function openOfferModal(
                     "contact_unlock_required"
                 ) {
 
-                    tg?.showAlert(
+                    hmToast(
                         "Unlock seller contact first."
                     );
 
                 } else {
 
-                    tg?.showAlert(
+                    hmToast(
                         friendlyError(
                             error.message
                         )
@@ -18288,7 +18814,7 @@ async function sellerOfferAction(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -18386,7 +18912,7 @@ function openCounterOffer(
                 error
             ) {
 
-                tg?.showAlert(
+                hmToast(
                     friendlyError(
                         error.message
                     )
@@ -18433,7 +18959,7 @@ async function buyerOfferAction(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -18674,7 +19200,7 @@ async function startWantedPayment(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -18819,7 +19345,7 @@ async function closeWantedRequest(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             error.message
         );
     }
@@ -19109,7 +19635,7 @@ async function openChatByListing(
         };
 
 
-        tg?.showAlert(
+        hmToast(
             messages[
                 error.message
             ] ||
@@ -19147,7 +19673,7 @@ async function openWantedChat(
             wanted_chat_create_failed:"Could not start the Wanted chat."
         };
 
-        tg?.showAlert(
+        hmToast(
             messages[error.message] ||
             friendlyError(error.message)
         );
@@ -19471,7 +19997,7 @@ async function loadChatMessages(
 
         if (scrollToBottom) {
 
-            tg?.showAlert(
+            hmToast(
                 friendlyError(
                     error.message
                 )
@@ -19574,7 +20100,7 @@ async function sendChatMessage(
         };
 
 
-        tg?.showAlert(
+        hmToast(
             messages[
                 error.message
             ] ||
@@ -19834,7 +20360,7 @@ async function createSupportTicket(
         );
 
 
-        tg?.showAlert(
+        hmToast(
             `🎧 Support Ticket ${supportTicketNumberLabel(data.ticket.ticket_number)} created.`
         );
 
@@ -19857,7 +20383,7 @@ async function createSupportTicket(
         };
 
 
-        tg?.showAlert(
+        hmToast(
             messages[
                 error.message
             ] ||
@@ -20576,7 +21102,7 @@ async function loadSupportTicketMessages(
 
         if (scrollToBottom) {
 
-            tg?.showAlert(
+            hmToast(
                 friendlyError(
                     error.message
                 )
@@ -20688,7 +21214,7 @@ async function sendSupportMessage(
         };
 
 
-        tg?.showAlert(
+        hmToast(
             messages[
                 error.message
             ] ||
@@ -20744,7 +21270,7 @@ async function changeMySupportTicketStatus(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -21026,7 +21552,7 @@ async function adminSetSupportStatus(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -22273,7 +22799,7 @@ async function toggleSellerFollow(
 
     } catch (error) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -22442,7 +22968,7 @@ async function unfollowSellerFromList(
 
     } catch (error) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -22719,7 +23245,7 @@ function openSellerEdit() {
                 error
             ) {
 
-                tg?.showAlert(
+                hmToast(
                     error.message
                 );
             }
@@ -23024,7 +23550,7 @@ async function adminSetWantedStatus(
             loadAdminDashboard()
         ]);
 
-        tg?.showAlert(
+        hmToast(
             status === "active"
                 ? "Wanted request reopened."
                 : "Wanted request closed."
@@ -23032,7 +23558,7 @@ async function adminSetWantedStatus(
 
     } catch (error) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -23280,7 +23806,7 @@ async function adminCreateListing(
                 : "Active";
 
 
-        tg?.showAlert(
+        hmToast(
             `✅ @${listing.whatsapp_username || "username"} added without payment.\n\nStatus: ${statusText}`
         );
 
@@ -23319,7 +23845,7 @@ async function adminCreateListing(
         };
 
 
-        tg?.showAlert(
+        hmToast(
             messages[
                 error.message
             ] ||
@@ -23377,7 +23903,7 @@ async function adminFreezeListing(
                 );
 
 
-                tg?.showAlert(
+                hmToast(
                     `🧊 @${username} has been frozen.`
                 );
 
@@ -23385,7 +23911,7 @@ async function adminFreezeListing(
                 error
             ) {
 
-                tg?.showAlert(
+                hmToast(
                     error.message
                 );
             }
@@ -23454,7 +23980,7 @@ async function adminRemoveListingConfirmed(
                 );
 
 
-                tg?.showAlert(
+                hmToast(
                     `🗑 @${username} has been removed.`
                 );
 
@@ -23462,7 +23988,7 @@ async function adminRemoveListingConfirmed(
                 error
             ) {
 
-                tg?.showAlert(
+                hmToast(
                     error.message
                 );
             }
@@ -23597,7 +24123,7 @@ async function adminViewListingContact(
             !action
         ) {
 
-            tg?.showAlert(
+            hmToast(
                 contactValue ||
                 "Seller contact not found."
             );
@@ -23739,13 +24265,13 @@ async function adminViewListingContact(
                     );
 
 
-                    tg?.showAlert(
+                    hmToast(
                         "Contact copied."
                     );
 
                 } catch {
 
-                    tg?.showAlert(
+                    hmToast(
                         "Could not copy automatically. Press and hold the contact text to copy it."
                     );
                 }
@@ -23773,7 +24299,7 @@ async function adminViewListingContact(
         };
 
 
-        tg?.showAlert(
+        hmToast(
             messages[
                 error.message
             ] ||
@@ -23924,7 +24450,7 @@ function adminBlockSellerByListing(
                 );
 
 
-                tg?.showAlert(
+                hmToast(
                     `🚫 Seller for @${username} has been blocked.`
                 );
 
@@ -23951,7 +24477,7 @@ function adminBlockSellerByListing(
                 };
 
 
-                tg?.showAlert(
+                hmToast(
                     messages[
                         error.message
                     ] ||
@@ -24009,7 +24535,7 @@ async function adminUnblockSeller(
                 );
 
 
-                tg?.showAlert(
+                hmToast(
                     `✅ ${sellerLabel || "Seller"} has been unblocked.`
                 );
 
@@ -24017,7 +24543,7 @@ async function adminUnblockSeller(
                 error
             ) {
 
-                tg?.showAlert(
+                hmToast(
                     friendlyError(
                         error.message
                     )
@@ -24813,7 +25339,7 @@ async function adminApplyFreePromotion(
         )
     ) {
 
-        tg?.showAlert(
+        hmToast(
             "Choose a promotion and duration."
         );
 
@@ -24881,7 +25407,7 @@ async function adminApplyFreePromotion(
                         : "";
 
 
-                tg?.showAlert(
+                hmToast(
                     `${labels[type]} added to @${username} for ${durationLabel}.${capText}`
                 );
 
@@ -24905,7 +25431,7 @@ async function adminApplyFreePromotion(
                 };
 
 
-                tg?.showAlert(
+                hmToast(
                     messages[
                         error.message
                     ] ||
@@ -24981,7 +25507,7 @@ async function adminClearPromotion(
                 );
 
 
-                tg?.showAlert(
+                hmToast(
                     `Promotion cleared for @${username}.`
                 );
 
@@ -24989,7 +25515,7 @@ async function adminClearPromotion(
                 error
             ) {
 
-                tg?.showAlert(
+                hmToast(
                     error.message
                 );
             }
@@ -25061,7 +25587,7 @@ async function adminSetPremium(
         );
 
 
-        tg?.showAlert(
+        hmToast(
             isPremium
                 ? "⭐ Premium awarded."
                 : "Premium removed."
@@ -25071,7 +25597,7 @@ async function adminSetPremium(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             error.message
         );
     }
@@ -25111,7 +25637,7 @@ async function adminStatus(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             error.message
         );
     }
@@ -25332,7 +25858,7 @@ async function adminReportAction(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             error.message
         );
     }
@@ -25494,7 +26020,7 @@ async function adminUnfreezeListing(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             error.message
         );
     }
@@ -25531,7 +26057,7 @@ async function adminRemoveListing(
         error
     ) {
 
-        tg?.showAlert(
+        hmToast(
             error.message
         );
     }
@@ -25628,10 +26154,66 @@ function showModal(
     id
 ) {
 
-    document.getElementById(
-        id
-    ).classList.add(
+    const backdrop =
+        document.getElementById(
+            id
+        );
+
+    if (!backdrop) {
+        return;
+    }
+
+    hmLastFocusedElement =
+        document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
+
+    backdrop.classList.add(
         "show"
+    );
+
+    backdrop.setAttribute(
+        "aria-hidden",
+        "false"
+    );
+
+    const dialog =
+        backdrop.querySelector(
+            ".modal"
+        );
+
+    dialog?.setAttribute(
+        "role",
+        "dialog"
+    );
+
+    dialog?.setAttribute(
+        "aria-modal",
+        "true"
+    );
+
+    document.body.classList.add(
+        "hm-modal-open"
+    );
+
+    window.setTimeout(
+        () => {
+            const target =
+                backdrop.querySelector(
+                    "input:not([disabled]), textarea:not([disabled]), select:not([disabled])"
+                ) ||
+                backdrop.querySelector(
+                    "button.primary:not([disabled])"
+                ) ||
+                backdrop.querySelector(
+                    "button:not([disabled])"
+                );
+
+            target?.focus?.(
+                { preventScroll:true }
+            );
+        },
+        70
     );
 }
 
@@ -25640,11 +26222,44 @@ function closeModal(
     id
 ) {
 
-    document.getElementById(
-        id
-    ).classList.remove(
+    const backdrop =
+        document.getElementById(
+            id
+        );
+
+    if (!backdrop) {
+        return;
+    }
+
+    backdrop.classList.remove(
         "show"
     );
+
+    backdrop.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+    if (
+        !document.querySelector(
+            ".modal-backdrop.show"
+        )
+    ) {
+        document.body.classList.remove(
+            "hm-modal-open"
+        );
+    }
+
+    if (
+        hmLastFocusedElement?.isConnected
+    ) {
+        window.setTimeout(
+            () => hmLastFocusedElement?.focus?.(
+                { preventScroll:true }
+            ),
+            50
+        );
+    }
 }
 
 
@@ -25663,6 +26278,34 @@ function backdropClose(
         );
     }
 }
+
+
+document.addEventListener(
+    "keydown",
+    event => {
+        if (event.key !== "Escape") {
+            return;
+        }
+
+        const openModals =
+            Array.from(
+                document.querySelectorAll(
+                    ".modal-backdrop.show"
+                )
+            );
+
+        const top =
+            openModals[
+                openModals.length - 1
+            ];
+
+        if (top?.id) {
+            closeModal(
+                top.id
+            );
+        }
+    }
+);
 
 
 /* =========================================================
@@ -26236,7 +26879,7 @@ function openSaveSearchModal() {
 
     if (!authenticatedUser) {
 
-        tg?.showAlert(
+        hmToast(
             "Open Handle Market inside Telegram to save searches."
         );
 
@@ -26338,13 +26981,13 @@ async function saveCurrentSearch() {
         );
 
 
-        tg?.showAlert(
+        hmToast(
             "📌 Search saved. You will be notified about new matches."
         );
 
     } catch (error) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -26551,7 +27194,7 @@ function runSavedSearchById(
 
     if (!search) {
 
-        tg?.showAlert(
+        hmToast(
             "Saved search not found."
         );
 
@@ -26664,7 +27307,7 @@ async function toggleSavedSearchAlerts(
 
     } catch (error) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -26697,7 +27340,7 @@ async function deleteSavedSearch(
 
             } catch (error) {
 
-                tg?.showAlert(
+                hmToast(
                     friendlyError(
                         error.message
                     )
@@ -26887,7 +27530,7 @@ async function updateNotificationSetting(
 
     } catch (error) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -27109,7 +27752,7 @@ async function openPublicPriceHistory(
 
     } catch (error) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -27332,7 +27975,7 @@ async function adminRiskFlagAction(
 
     } catch (error) {
 
-        tg?.showAlert(
+        hmToast(
             error.message
         );
     }
@@ -27410,7 +28053,7 @@ async function adminLoadListingHistory() {
         !lookup
     ) {
 
-        tg?.showAlert(
+        hmToast(
             "Enter a LOT number or listing ID."
         );
 
@@ -28350,7 +28993,7 @@ async function saveV39Language() {
 
     } catch (error) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -28907,7 +29550,7 @@ async function v39SetAdminRole() {
 
 
     if (!telegramId) {
-        tg?.showAlert(
+        hmToast(
             v39T(
                 "Enter a Telegram ID.",
                 "Введите Telegram ID."
@@ -28943,7 +29586,7 @@ async function v39SetAdminRole() {
         ]);
 
 
-        tg?.showAlert(
+        hmToast(
             v39T(
                 "Admin role updated.",
                 "Роль администратора обновлена."
@@ -28959,7 +29602,7 @@ async function v39SetAdminRole() {
             admin_role_forbidden:v39T("Your admin role does not allow this action.","Ваша роль администратора не позволяет это действие.")
         };
 
-        tg?.showAlert(
+        hmToast(
             messages[error.message] ||
             friendlyError(error.message)
         );
@@ -29022,7 +29665,7 @@ async function v39RemoveAdmin(
                 ]);
 
 
-                tg?.showAlert(
+                hmToast(
                     `${label || "Admin"}: ${v39T("admin access removed.","доступ администратора удалён.")}`
                 );
 
@@ -29033,7 +29676,7 @@ async function v39RemoveAdmin(
                     cannot_change_own_admin_role:v39T("You cannot remove your own admin access here.","Здесь нельзя удалить собственный доступ администратора.")
                 };
 
-                tg?.showAlert(
+                hmToast(
                     messages[error.message] ||
                     friendlyError(error.message)
                 );
@@ -33917,7 +34560,7 @@ async function v45ToggleMaintenance() {
         await v45LoadLaunchStatus();
 
 
-        tg?.showAlert(
+        hmToast(
             next
                 ? (typeof v39T === "function" ? v39T("Maintenance Mode enabled.","Режим обслуживания включён.") : "Maintenance Mode enabled.")
                 : (typeof v39T === "function" ? v39T("Maintenance Mode disabled.","Режим обслуживания выключен.") : "Maintenance Mode disabled.")
@@ -33925,7 +34568,7 @@ async function v45ToggleMaintenance() {
 
     } catch (error) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -34681,7 +35324,7 @@ async function v46CopyReferral() {
         );
 
 
-        tg?.showAlert(
+        hmToast(
             v39T(
                 "Referral link copied ✓",
                 "Реферальная ссылка скопирована ✓"
@@ -34715,7 +35358,7 @@ function v46ShareReferral() {
         !link
     ) {
 
-        tg?.showAlert(
+        hmToast(
             v39T(
                 "Referral link is temporarily unavailable.",
                 "Реферальная ссылка временно недоступна."
@@ -34820,7 +35463,7 @@ async function v46ChoosePromotion(
         !eligible.length
     ) {
 
-        tg?.showAlert(
+        hmToast(
             v39T(
                 "You do not have an eligible active listing with enough time remaining.",
                 "Нет подходящего активного лота с достаточным оставшимся сроком."
@@ -34933,7 +35576,7 @@ async function v46ClaimPromotion(
         v46RenderReferralPage();
 
 
-        tg?.showAlert(
+        hmToast(
             v39T(
                 "Referral reward activated ✓",
                 "Реферальная награда активирована ✓"
@@ -34942,7 +35585,7 @@ async function v46ClaimPromotion(
 
     } catch (error) {
 
-        tg?.showAlert(
+        hmToast(
             friendlyError(
                 error.message
             )
@@ -35962,7 +36605,7 @@ async function v65SetChatSafetyFlag(flagId,status) {
             v65CurrentAdminChat ? v65ReviewAdminChat(v65CurrentAdminChat.chat_id,v65CurrentAdminChat.chat_type) : Promise.resolve()
         ]);
     } catch (error) {
-        tg?.showAlert(friendlyError(error.message));
+        hmToast(friendlyError(error.message));
     }
 }
 
