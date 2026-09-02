@@ -1318,7 +1318,7 @@ async function v781ResolveOrCreateAdminSellerByUsername(
                         telegram_id:
                             provisionalTelegramId,
                         first_name:
-                            `@${found.username}`,
+                            "Pending seller",
                         last_name:
                             "",
                         telegram_username:
@@ -1723,6 +1723,12 @@ async function getDatabaseUser(
                     0
                 );
 
+            const wantedMoved =
+                Number(
+                    claim.wanted_moved ||
+                    0
+                );
+
 
             if (
                 moved > 0
@@ -1731,6 +1737,17 @@ async function getDatabaseUser(
                 await safeSendMessage(
                     telegramId,
                     `✅ ${moved === 1 ? "A Handle Market listing" : `${moved} Handle Market listings`} created earlier for @${userRecord.telegram_username} ${moved === 1 ? "is" : "are"} now linked to your account.`
+                );
+            }
+
+
+            if (
+                wantedMoved > 0
+            ) {
+
+                await safeSendMessage(
+                    telegramId,
+                    `🎯 ${wantedMoved === 1 ? "A Handle Market Wanted request" : `${wantedMoved} Handle Market Wanted requests`} created earlier for @${userRecord.telegram_username} ${wantedMoved === 1 ? "is" : "are"} now linked to your account.`
                 );
             }
         }
@@ -4287,7 +4304,7 @@ async function attachPublicSellerProfiles(
                 supabase
                     .from("users")
                     .select(
-                        "telegram_id,first_name,last_name,telegram_username,photo_url,last_seen_at,is_provisional"
+                        "telegram_id,first_name,last_name,photo_url,last_seen_at"
                     )
                     .in(
                         "telegram_id",
@@ -4353,23 +4370,18 @@ async function attachPublicSellerProfiles(
                                         user
                                     ),
 
-                                masked_name:
-                                    maskedSellerTelegramName(
-                                        user
-                                    ),
-
                                 avatar_url:
                                     user?.photo_url ||
                                     null,
 
-                                is_provisional:
-                                    Boolean(
-                                        user?.is_provisional
-                                    ),
-
-                                user_last_seen_at:
+                                last_seen_at:
                                     user?.last_seen_at ||
-                                    null
+                                    null,
+
+                                is_online:
+                                    sellerIsOnline(
+                                        user?.last_seen_at
+                                    )
                             }
                         ];
                     }
@@ -4399,25 +4411,6 @@ async function attachPublicSellerProfiles(
                 null;
 
 
-            const sellerActivityAt =
-                sellerSummary
-                    ? (
-                        sellerSummary.is_provisional
-
-                            ? (
-                                copy.created_at ||
-                                sellerSummary.user_last_seen_at ||
-                                null
-                            )
-
-                            : (
-                                sellerSummary.user_last_seen_at ||
-                                null
-                            )
-                    )
-                    : null;
-
-
             delete copy
                 .seller_telegram_id;
 
@@ -4433,20 +4426,14 @@ async function attachPublicSellerProfiles(
                         display_name:
                             sellerSummary.display_name,
 
-                        masked_name:
-                            sellerSummary.masked_name ||
-                            null,
-
                         avatar_url:
                             sellerSummary.avatar_url,
 
                         last_seen_at:
-                            sellerActivityAt,
+                            sellerSummary.last_seen_at,
 
                         is_online:
-                            sellerIsOnline(
-                                sellerActivityAt
-                            )
+                            sellerSummary.is_online
                     }
                     : null;
 
@@ -4457,217 +4444,30 @@ async function attachPublicSellerProfiles(
 }
 
 
-function provisionalSellerAlias(
-    username
-) {
-
-    const raw =
-        String(
-            username ||
-            ""
-        )
-            .replace(/^@+/, "")
-            .trim();
-
-
-    if (!raw) {
-        return "SEL***";
-    }
-
-
-    const separated =
-        raw
-            .replace(
-                /([a-z0-9])([A-Z])/g,
-                "$1 $2"
-            )
-            .replace(
-                /[_\-.]+/g,
-                " "
-            )
-            .trim();
-
-
-    const parts =
-        separated
-            .split(/\s+/)
-            .filter(Boolean);
-
-
-    let base = "";
-
-
-    if (
-        parts.length >= 2
-    ) {
-
-        base =
-            parts
-                .map(
-                    part =>
-                        String(part)
-                            .charAt(0)
-                )
-                .join("")
-                .slice(0,3)
-                .toUpperCase();
-    }
-
-
-    const letters =
-        raw.replace(
-            /[^A-Za-z0-9]/g,
-            ""
-        );
-
-
-    if (!base) {
-
-        if (
-            letters.length <= 3
-        ) {
-
-            base =
-                (
-                    letters.charAt(0) ||
-                    "S"
-                ).toUpperCase();
-
-        } else if (
-            letters.length === 4
-        ) {
-
-            base =
-                letters
-                    .slice(0,2)
-                    .toUpperCase();
-
-        } else {
-
-            base =
-                letters
-                    .slice(0,3)
-                    .toUpperCase();
-        }
-    }
-
-
-    return `${base || "S"}***`;
-}
-
-
-function maskSellerNamePart(
-    value
-) {
-
-    const raw =
-        String(
-            value ||
-            ""
-        ).trim();
-
-
-    if (!raw) {
-        return "";
-    }
-
-
-    const chars =
-        Array.from(raw);
-
-
-    if (
-        chars.length <= 1
-    ) {
-
-        return `${chars[0] || ""}*`;
-    }
-
-
-    if (
-        chars.length === 2
-    ) {
-
-        return `${chars[0]}*`;
-    }
-
-
-    if (
-        chars.length === 3
-    ) {
-
-        return `${chars.slice(0,2).join("")}*`;
-    }
-
-
-    if (
-        chars.length === 4
-    ) {
-
-        return `${chars.slice(0,2).join("")}**`;
-    }
-
-
-    return `${chars.slice(0,3).join("")}**`;
-}
-
-
-function maskedSellerTelegramName(
-    user
-) {
-
-    if (
-        !user ||
-        user.is_provisional
-    ) {
-        return null;
-    }
-
-
-    const first =
-        maskSellerNamePart(
-            user.first_name
-        );
-
-
-    const last =
-        maskSellerNamePart(
-            user.last_name
-        );
-
-
-    const value =
-        [first,last]
-            .filter(Boolean)
-            .join(" ")
-            .trim();
-
-
-    return value ||
-        null;
-}
-
-
 function safeSellerDisplayName(
     user
 ) {
 
-    if (
-        user?.telegram_username
-    ) {
-
-        return provisionalSellerAlias(
-            user.telegram_username
-        );
-    }
+    const first =
+        String(
+            user?.first_name ||
+            "Seller"
+        ).trim() ||
+        "Seller";
 
 
-    return (
-        maskedSellerTelegramName(
-            user
-        ) ||
-        "Seller"
-    );
+    const last =
+        String(
+            user?.last_name ||
+            ""
+        ).trim();
+
+
+    return last
+
+        ? `${first} ${last.charAt(0).toUpperCase()}.`
+
+        : first;
 }
 
 
@@ -4947,7 +4747,7 @@ async function buildSellerProfilePayload(
         await supabase
             .from("users")
             .select(
-                "telegram_id,first_name,last_name,telegram_username,photo_url,last_seen_at,is_provisional"
+                "telegram_id,first_name,last_name,photo_url,last_seen_at"
             )
             .eq(
                 "telegram_id",
@@ -4968,7 +4768,7 @@ async function buildSellerProfilePayload(
     } =
         await supabase
             .from("listings")
-            .select("id,created_at")
+            .select("id")
             .eq(
                 "seller_telegram_id",
                 profile.telegram_id
@@ -4983,45 +4783,6 @@ async function buildSellerProfilePayload(
             row =>
                 row.id
         );
-
-
-    const provisionalActivityAt =
-        user.is_provisional
-
-            ? (
-                (
-                    allSellerListings ||
-                    []
-                )
-                    .map(
-                        row =>
-                            row.created_at
-                    )
-                    .filter(Boolean)
-                    .sort(
-                        (
-                            a,
-                            b
-                        ) =>
-                            new Date(b).getTime() -
-                            new Date(a).getTime()
-                    )[0] ||
-                user.last_seen_at ||
-                null
-            )
-
-            : null;
-
-
-    const sellerActivityAt =
-        user.is_provisional
-
-            ? provisionalActivityAt
-
-            : (
-                user.last_seen_at ||
-                null
-            );
 
 
     let acceptedAgreements =
@@ -5093,36 +4854,43 @@ async function buildSellerProfilePayload(
             );
 
 
-    const {
-        data:
-            activeListingsData
-    } =
-        await supabase
-            .from("listings")
-            .select(
-                "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
-            )
-            .eq(
-                "seller_telegram_id",
+    const [
+        activeListingsResult,
+        responseStats
+    ] =
+        await Promise.all([
+
+            supabase
+                .from("listings")
+                .select(
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
+                )
+                .eq(
+                    "seller_telegram_id",
+                    profile.telegram_id
+                )
+                .eq(
+                    "status",
+                    "active"
+                )
+                .eq(
+                    "is_paused",
+                    false
+                )
+                .eq(
+                    "is_frozen",
+                    false
+                )
+                .limit(200),
+
+            calculateSellerResponseStats(
                 profile.telegram_id
             )
-            .eq(
-                "status",
-                "active"
-            )
-            .eq(
-                "is_paused",
-                false
-            )
-            .eq(
-                "is_frozen",
-                false
-            )
-            .limit(200);
+        ]);
 
 
     const activeListings =
-        activeListingsData ||
+        activeListingsResult.data ||
         [];
 
 
@@ -5196,11 +4964,6 @@ async function buildSellerProfilePayload(
                 user
             ),
 
-        masked_name:
-            maskedSellerTelegramName(
-                user
-            ),
-
         avatar_url:
             user.photo_url ||
             null,
@@ -5216,11 +4979,21 @@ async function buildSellerProfilePayload(
 
             is_online:
                 sellerIsOnline(
-                    sellerActivityAt
+                    user.last_seen_at
                 ),
 
             last_seen_at:
-                sellerActivityAt
+                user.last_seen_at ||
+                null
+        },
+
+        response_time: {
+
+            average_seconds:
+                responseStats.average_seconds,
+
+            samples:
+                responseStats.samples
         },
 
         stats: {
@@ -8769,7 +8542,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v78.5-seller-mask-privacy"
+                    "v79-admin-workspace-wanted"
             }
         );
     }
@@ -16547,15 +16320,14 @@ app.post(
                 id:payload.id,
                 display_name:
                     payload.display_name,
-                masked_name:
-                    payload.masked_name ||
-                    null,
                 avatar_url:
                     payload.avatar_url,
                 seller_since:
                     payload.seller_since,
                 presence:
                     payload.presence,
+                response_time:
+                    payload.response_time,
                 stats:
                     payload.stats,
                 latest_listings:
@@ -19645,6 +19417,10 @@ const ADMIN_ROUTE_ROLES = {
     ],
 
     "/admin/create-listing": [
+        "owner"
+    ],
+
+    "/admin/create-wanted": [
         "owner"
     ],
 
@@ -23983,6 +23759,7 @@ app.post(
 const ADMIN_AUDIT_MUTATION_PATHS =
     new Set([
         "/admin/create-listing",
+        "/admin/create-wanted",
         "/admin/seller-block",
         "/admin/listing-promotion",
         "/admin/listing-status",
@@ -24067,7 +23844,8 @@ app.use(
                         if (
                             [
                                 "initData",
-                                "contact_value"
+                                "contact_value",
+                                "contacts"
                             ].includes(
                                 key
                             )
@@ -24343,7 +24121,7 @@ app.post(
                 );
 
 
-            const totalStars =
+            const successfulPayments =
                 [
                     ...(contactOrdersResult.data || [])
                         .filter(row => row.status === "paid"),
@@ -24355,7 +24133,11 @@ app.post(
                         .filter(row => row.status === "completed"),
                     ...(wantedOrdersResult.data || [])
                         .filter(row => row.status === "completed")
-                ]
+                ];
+
+
+            const totalStars =
+                successfulPayments
                     .reduce(
                         (sum,row) =>
                             sum +
@@ -24462,6 +24244,8 @@ app.post(
                                     row.status
                                 )
                         ).length,
+                    payments_total:
+                        successfulPayments.length,
                     stars_collected:
                         normalizedAdminRole(
                             admin.user
@@ -26111,6 +25895,500 @@ app.post(
     }
 );
 
+
+
+
+/* =========================================================
+   V79 ADMIN CREATE WANTED WITHOUT PAYMENT
+   Owner only. Uses the same Telegram ID / username lookup
+   and provisional-account behavior as admin listing creation.
+   ========================================================= */
+
+app.post(
+    "/admin/create-wanted",
+    async (req, res) => {
+
+        const admin =
+            req.adminAuth ||
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+            return res
+                .status(admin.status)
+                .json({
+                    ok:false,
+                    error:admin.error
+                });
+        }
+
+
+        if (
+            normalizedAdminRole(
+                admin.user
+            ) !== "owner"
+        ) {
+            return res
+                .status(403)
+                .json({
+                    ok:false,
+                    error:"owner_required"
+                });
+        }
+
+
+        const buyerLookupType =
+            String(
+                req.body.buyer_lookup_type ||
+                (
+                    req.body.buyer_telegram_username
+                        ? "username"
+                        : "id"
+                )
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            ![
+                "id",
+                "username"
+            ].includes(
+                buyerLookupType
+            )
+        ) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:"invalid_buyer_lookup_type"
+                });
+        }
+
+
+        let buyerTelegramId = 0;
+        let buyer = null;
+        let buyerIsProvisional = false;
+        let buyerLookupUsername = "";
+
+
+        if (
+            buyerLookupType === "id"
+        ) {
+
+            buyerTelegramId =
+                Number(
+                    req.body.buyer_telegram_id
+                );
+
+
+            if (
+                !Number.isSafeInteger(
+                    buyerTelegramId
+                ) ||
+                buyerTelegramId <= 0
+            ) {
+                return res
+                    .status(400)
+                    .json({
+                        ok:false,
+                        error:"invalid_buyer_telegram_id"
+                    });
+            }
+
+
+            const {
+                data:buyerById,
+                error:buyerByIdError
+            } =
+                await supabase
+                    .from("users")
+                    .select(
+                        "telegram_id,first_name,last_name,telegram_username,is_provisional"
+                    )
+                    .eq(
+                        "telegram_id",
+                        buyerTelegramId
+                    )
+                    .maybeSingle();
+
+
+            if (buyerByIdError) {
+                console.error(
+                    "Admin Wanted buyer lookup by ID:",
+                    buyerByIdError
+                );
+
+                return res
+                    .status(500)
+                    .json({
+                        ok:false,
+                        error:"buyer_lookup_failed"
+                    });
+            }
+
+
+            buyer = buyerById;
+
+        } else {
+
+            buyerLookupUsername =
+                v781NormalizeTelegramUsername(
+                    req.body.buyer_telegram_username
+                );
+
+
+            if (
+                !/^[A-Za-z0-9_]{1,64}$/.test(
+                    buyerLookupUsername
+                )
+            ) {
+                return res
+                    .status(400)
+                    .json({
+                        ok:false,
+                        error:"invalid_buyer_telegram_username"
+                    });
+            }
+
+
+            try {
+
+                const resolvedBuyer =
+                    await v781ResolveOrCreateAdminSellerByUsername(
+                        buyerLookupUsername
+                    );
+
+
+                buyer =
+                    resolvedBuyer.seller ||
+                    null;
+
+                buyerTelegramId =
+                    Number(
+                        buyer?.telegram_id ||
+                        0
+                    );
+
+                buyerIsProvisional =
+                    Boolean(
+                        resolvedBuyer.is_provisional ||
+                        buyer?.is_provisional
+                    );
+
+            } catch (error) {
+
+                const sourceCode =
+                    error?.code ||
+                    error?.message ||
+                    "provisional_buyer_create_failed";
+
+                const codeMap = {
+                    seller_username_ambiguous:
+                        "buyer_username_ambiguous",
+                    invalid_seller_telegram_username:
+                        "invalid_buyer_telegram_username",
+                    provisional_seller_create_failed:
+                        "provisional_buyer_create_failed"
+                };
+
+                const code =
+                    codeMap[sourceCode] ||
+                    "provisional_buyer_create_failed";
+
+
+                console.error(
+                    "Admin Wanted buyer resolve/create by username:",
+                    error
+                );
+
+
+                return res
+                    .status(
+                        code === "buyer_username_ambiguous"
+                            ? 409
+                            : code === "invalid_buyer_telegram_username"
+                                ? 400
+                                : 500
+                    )
+                    .json({
+                        ok:false,
+                        error:code
+                    });
+            }
+        }
+
+
+        if (
+            !buyer ||
+            !Number.isSafeInteger(
+                buyerTelegramId
+            ) ||
+            buyerTelegramId <= 0
+        ) {
+            return res
+                .status(404)
+                .json({
+                    ok:false,
+                    error:"buyer_not_found"
+                });
+        }
+
+
+        buyerIsProvisional =
+            buyerIsProvisional ||
+            Boolean(
+                buyer.is_provisional
+            );
+
+
+        const username =
+            normalizeWantedUsername(
+                req.body.desired_username
+            );
+
+        const budget =
+            Number(
+                req.body.budget
+            );
+
+
+        if (!username) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:"invalid_username"
+                });
+        }
+
+
+        if (
+            !Number.isFinite(budget) ||
+            budget <= 0 ||
+            budget > 100000000
+        ) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:"invalid_budget"
+                });
+        }
+
+
+        const category =
+            normalizeCategory(
+                req.body.category
+            );
+
+        const description =
+            String(
+                req.body.description ||
+                ""
+            )
+                .trim()
+                .slice(0,500);
+
+
+        const contactValidation =
+            validateContactInput(
+                req.body
+            );
+
+
+        if (!contactValidation.ok) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:contactValidation.error
+                });
+        }
+
+
+        const wantedContacts =
+            contactValidation.data.contacts;
+
+
+        const {
+            data:duplicate,
+            error:duplicateError
+        } =
+            await supabase
+                .from("wanted_requests")
+                .select("id")
+                .eq(
+                    "buyer_telegram_id",
+                    buyerTelegramId
+                )
+                .ilike(
+                    "desired_username",
+                    username
+                )
+                .eq(
+                    "status",
+                    "active"
+                )
+                .limit(1);
+
+
+        if (duplicateError) {
+            console.error(
+                "Admin Wanted duplicate check:",
+                duplicateError
+            );
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"wanted_check_failed"
+                });
+        }
+
+
+        if (duplicate?.length) {
+            return res
+                .status(409)
+                .json({
+                    ok:false,
+                    error:"wanted_already_exists"
+                });
+        }
+
+
+        const wantedId =
+            crypto.randomUUID();
+
+
+        try {
+
+            const {
+                data:wanted,
+                error:wantedError
+            } =
+                await supabase
+                    .from("wanted_requests")
+                    .insert({
+                        id:wantedId,
+                        buyer_telegram_id:
+                            buyerTelegramId,
+                        desired_username:
+                            username,
+                        budget,
+                        currency:"USD",
+                        category,
+                        description,
+                        status:"active"
+                    })
+                    .select(
+                        "id,buyer_telegram_id,desired_username,budget,currency,category,description,status,created_at"
+                    )
+                    .single();
+
+
+            if (wantedError) {
+                throw wantedError;
+            }
+
+
+            const {
+                error:contactError
+            } =
+                await supabase
+                    .from("wanted_contacts")
+                    .insert({
+                        wanted_id:wantedId,
+                        buyer_telegram_id:
+                            buyerTelegramId,
+                        telegram:
+                            wantedContacts.telegram ||
+                            null,
+                        whatsapp:
+                            wantedContacts.whatsapp ||
+                            null,
+                        email:
+                            wantedContacts.email ||
+                            null,
+                        other:
+                            wantedContacts.other ||
+                            null,
+                        updated_at:nowIso()
+                    });
+
+
+            if (contactError) {
+                throw contactError;
+            }
+
+
+            /* Let the standard admin audit middleware attach the real Wanted ID. */
+            req.body.wanted_id =
+                wantedId;
+            req.body.buyer_telegram_id =
+                buyerTelegramId;
+            req.body.admin_free =
+                true;
+
+
+            if (!buyerIsProvisional) {
+                await safeSendMessage(
+                    buyerTelegramId,
+                    `🎯 Handle Market admin published your Wanted request for @${username} without a payment.`
+                );
+            }
+
+
+            return res.json({
+                ok:true,
+                no_payment:true,
+                buyer_provisional:
+                    buyerIsProvisional,
+                buyer_telegram_username:
+                    buyer.telegram_username ||
+                    buyerLookupUsername ||
+                    null,
+                wanted
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Admin Wanted create:",
+                error
+            );
+
+
+            await supabase
+                .from("wanted_contacts")
+                .delete()
+                .eq(
+                    "wanted_id",
+                    wantedId
+                );
+
+            await supabase
+                .from("wanted_requests")
+                .delete()
+                .eq(
+                    "id",
+                    wantedId
+                );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"admin_wanted_create_failed"
+                });
+        }
+    }
+);
 
 
 

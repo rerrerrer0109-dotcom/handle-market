@@ -3589,23 +3589,6 @@ button {
     font-weight:900;
 }
 
-.seller-mini-masked-name {
-    margin-top:1px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    color:var(--muted);
-    font-size:8px;
-    font-weight:700;
-}
-
-.seller-masked-name {
-    margin-top:2px;
-    color:var(--muted);
-    font-size:10px;
-    font-weight:700;
-}
-
 .seller-mini-status {
     margin-top:2px;
     color:var(--muted);
@@ -14037,25 +14020,9 @@ function renderListingCard(
                             )}
                         </div>
 
-                        ${
-                            sellerSummary?.masked_name
-
-                                ? `
-                                    <div class="seller-mini-masked-name">
-                                        ${escapeHtml(
-                                            sellerSummary.masked_name
-                                        )}
-                                    </div>
-                                `
-
-                                : ""
-                        }
-
                         <div
                             class="seller-mini-status ${
-                                sellerPresenceIsOnline(
-                                        sellerSummary
-                                    )
+                                sellerSummary?.is_online
                                     ? "online"
                                     : ""
                             }"
@@ -14852,20 +14819,6 @@ async function openListingPage(
                                         "Seller"
                                     )}
                                 </div>
-
-                                ${
-                                    sellerSummary?.masked_name
-
-                                        ? `
-                                            <div class="seller-mini-masked-name">
-                                                ${escapeHtml(
-                                                    sellerSummary.masked_name
-                                                )}
-                                            </div>
-                                        `
-
-                                        : ""
-                                }
 
                                 <div
                                     class="seller-mini-status ${
@@ -22909,7 +22862,7 @@ function sellerLastSeenText(
         time <= 0
     ) {
 
-        return "Activity status unavailable";
+        return "Last active unavailable";
     }
 
 
@@ -22927,11 +22880,10 @@ function sellerLastSeenText(
 
 
     if (
-        seconds <=
-        5 * 60
+        seconds < 60
     ) {
 
-        return "🟢 Online";
+        return "Active just now";
     }
 
 
@@ -22945,7 +22897,7 @@ function sellerLastSeenText(
         minutes < 60
     ) {
 
-        return `Last seen ${minutes} min ago`;
+        return `Last active ${minutes}m ago`;
     }
 
 
@@ -22959,11 +22911,7 @@ function sellerLastSeenText(
         hours < 24
     ) {
 
-        return `Last seen ${hours} ${
-            hours === 1
-                ? "hour"
-                : "hours"
-        } ago`;
+        return `Last active ${hours}h ago`;
     }
 
 
@@ -22974,42 +22922,20 @@ function sellerLastSeenText(
 
 
     if (
-        days < 3
+        days <= 30
     ) {
 
-        return "Active recently";
+        return `Last active ${days}d ago`;
     }
 
 
-    if (
-        days < 7
-    ) {
-
-        return "Active this week";
-    }
-
-
-    return "Activity status unavailable";
+    return "Last active over 30d ago";
 }
 
 
 function sellerPresenceText(
     seller
 ) {
-
-    const lastSeenAt =
-        seller?.last_seen_at ||
-        seller?.presence?.last_seen_at ||
-        null;
-
-
-    if (lastSeenAt) {
-
-        return sellerLastSeenText(
-            lastSeenAt
-        );
-    }
-
 
     if (
         seller?.is_online ||
@@ -23020,44 +22946,94 @@ function sellerPresenceText(
     }
 
 
-    return "Activity status unavailable";
+    return sellerLastSeenText(
+        seller?.last_seen_at ||
+        seller?.presence?.last_seen_at
+    );
 }
 
 
-function sellerPresenceIsOnline(
-    seller
+function sellerResponseTimeText(
+    responseTime
 ) {
 
-    const lastSeenAt =
-        seller?.last_seen_at ||
-        seller?.presence?.last_seen_at ||
-        null;
+    const seconds =
+        Number(
+            responseTime?.average_seconds
+        );
 
 
-    const time =
-        new Date(
-            lastSeenAt ||
+    const samples =
+        Number(
+            responseTime?.samples ||
             0
-        ).getTime();
+        );
 
 
     if (
-        Number.isFinite(time) &&
-        time > 0
+        !Number.isFinite(
+            seconds
+        ) ||
+        seconds < 0 ||
+        samples < 1
     ) {
 
-        return (
-            Date.now() -
-            time
-        ) <=
-            5 * 60 * 1000;
+        return "Response time not enough data";
     }
 
 
-    return Boolean(
-        seller?.is_online ||
-        seller?.presence?.is_online
-    );
+    if (
+        seconds < 60
+    ) {
+
+        return "Usually replies within a minute";
+    }
+
+
+    const minutes =
+        Math.max(
+            1,
+            Math.round(
+                seconds / 60
+            )
+        );
+
+
+    if (
+        minutes < 60
+    ) {
+
+        return `Usually replies within ${minutes} min`;
+    }
+
+
+    const hours =
+        Math.max(
+            1,
+            Math.round(
+                minutes / 60
+            )
+        );
+
+
+    if (
+        hours < 24
+    ) {
+
+        return `Usually replies within ${hours}h`;
+    }
+
+
+    const days =
+        Math.max(
+            1,
+            Math.round(
+                hours / 24
+            )
+        );
+
+
+    return `Usually replies within ${days}d`;
 }
 
 
@@ -23124,6 +23100,12 @@ function renderSellerProfile(
         );
 
 
+    const responseText =
+        sellerResponseTimeText(
+            profile.response_time
+        );
+
+
     document.getElementById(
         "sellerProfileContent"
     ).innerHTML = `
@@ -23151,20 +23133,6 @@ function renderSellerProfile(
 
                     </div>
 
-                    ${
-                        profile.masked_name
-
-                            ? `
-                                <div class="seller-masked-name">
-                                    ${escapeHtml(
-                                        profile.masked_name
-                                    )}
-                                </div>
-                            `
-
-                            : ""
-                    }
-
                     <div class="seller-member">
 
                         Member since
@@ -23179,15 +23147,19 @@ function renderSellerProfile(
 
                         <div
                             class="seller-presence-chip ${
-                                sellerPresenceIsOnline(
-                                    profile
-                                )
+                                profile.presence?.is_online
                                     ? "online"
                                     : ""
                             }"
                         >
                             ${escapeHtml(
                                 presenceText
+                            )}
+                        </div>
+
+                        <div class="seller-presence-chip">
+                            ⚡ ${escapeHtml(
+                                responseText
                             )}
                         </div>
 
@@ -23563,6 +23535,12 @@ async function loadFollowingSellers() {
                                 seller
                             );
 
+                        const response =
+                            sellerResponseTimeText(
+                                seller.response_time
+                            );
+
+
                         return `
                             <div class="v42-following-card">
                                 <div class="v42-following-top">
@@ -23582,22 +23560,8 @@ async function loadFollowingSellers() {
                                             )}
                                         </div>
 
-                                        ${
-                                            seller.masked_name
-
-                                                ? `
-                                                    <div class="v42-following-meta">
-                                                        ${escapeHtml(
-                                                            seller.masked_name
-                                                        )}
-                                                    </div>
-                                                `
-
-                                                : ""
-                                        }
-
                                         <div class="v42-following-meta">
-                                            ${escapeHtml(presence)}
+                                            ${escapeHtml(presence)} · ⚡ ${escapeHtml(response)}
                                         </div>
 
                                         <div class="v42-following-meta">
@@ -40295,6 +40259,1418 @@ setTimeout(
 </script>
 
 
-<!-- Handle Market v73 — Privacy, Terms & Marketplace Rules -->
+
+<style>
+/* =========================================================
+   V79 ADMIN WORKSPACE
+   Cleaner grouped admin navigation + quick actions.
+   Existing management/promotion/test-engagement components
+   are reused; this patch changes navigation, not their logic.
+   ========================================================= */
+
+.v79-admin-layout {
+    display:grid;
+    grid-template-columns:178px minmax(0,1fr);
+    gap:12px;
+    align-items:start;
+    margin-top:12px;
+}
+
+.v79-admin-nav {
+    position:sticky;
+    top:10px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding:8px;
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:18px;
+    background:var(--card,#fff);
+    z-index:8;
+}
+
+.v79-admin-nav-button {
+    width:100%;
+    border:0;
+    border-radius:12px;
+    padding:10px 11px;
+    text-align:left;
+    font-size:12px;
+    font-weight:800;
+    line-height:1.15;
+    background:transparent;
+    color:var(--text,#111827);
+    cursor:pointer;
+}
+
+.v79-admin-nav-button.active {
+    background:var(--surface-2,#f3f5f8);
+    box-shadow:inset 0 0 0 1px var(--border,#e4e8ef);
+}
+
+.v79-admin-content {
+    min-width:0;
+}
+
+.v79-group-hidden {
+    display:none !important;
+}
+
+.v79-admin-quick-actions {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:8px;
+    margin:12px 0;
+}
+
+.v79-admin-quick-action {
+    min-height:64px;
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:15px;
+    padding:10px;
+    background:var(--card,#fff);
+    color:var(--text,#111827);
+    font-size:11px;
+    font-weight:900;
+    line-height:1.25;
+    cursor:pointer;
+    text-align:left;
+}
+
+.v79-admin-quick-action strong {
+    display:block;
+    font-size:18px;
+    margin-bottom:5px;
+}
+
+.v79-main-stats {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:8px;
+    margin-top:10px;
+}
+
+.v79-main-stat {
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:15px;
+    padding:12px;
+    background:var(--card,#fff);
+}
+
+.v79-main-stat-value {
+    font-size:20px;
+    font-weight:950;
+    letter-spacing:-.02em;
+}
+
+.v79-main-stat-label {
+    margin-top:4px;
+    font-size:10px;
+    font-weight:800;
+    opacity:.66;
+}
+
+.v79-dashboard-block {
+    margin-top:12px;
+    padding:12px;
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:16px;
+    background:var(--card,#fff);
+}
+
+.v79-dashboard-title {
+    font-size:12px;
+    font-weight:950;
+    margin-bottom:9px;
+}
+
+.v79-attention-grid {
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+}
+
+.v79-attention-item {
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:999px;
+    padding:7px 9px;
+    background:var(--surface-2,#f5f6f8);
+    color:var(--text,#111827);
+    font-size:10px;
+    font-weight:850;
+    cursor:pointer;
+}
+
+.v79-attention-item strong {
+    margin-right:4px;
+}
+
+.v79-dashboard-two {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    margin-top:12px;
+}
+
+.v79-recent-row {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 0;
+    border-top:1px solid var(--border,#e4e8ef);
+}
+
+.v79-recent-row:first-child {
+    border-top:0;
+    padding-top:0;
+}
+
+.v79-recent-main {
+    min-width:0;
+}
+
+.v79-recent-name {
+    font-size:11px;
+    font-weight:900;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.v79-recent-meta {
+    margin-top:2px;
+    font-size:9px;
+    opacity:.62;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.v79-mini-link {
+    border:0;
+    border-radius:9px;
+    padding:6px 8px;
+    background:var(--surface-2,#f3f5f8);
+    color:var(--text,#111827);
+    font-size:9px;
+    font-weight:850;
+    cursor:pointer;
+    white-space:nowrap;
+}
+
+.v79-wanted-free-badge {
+    display:inline-flex;
+    align-items:center;
+    border-radius:999px;
+    padding:4px 7px;
+    margin-left:6px;
+    font-size:9px;
+    font-weight:900;
+    background:rgba(34,197,94,.11);
+}
+
+@media (max-width:760px) {
+    .v79-admin-layout {
+        display:block;
+        margin-top:8px;
+    }
+
+    .v79-admin-nav {
+        position:sticky;
+        top:0;
+        flex-direction:row;
+        overflow-x:auto;
+        gap:5px;
+        margin-bottom:10px;
+        padding:7px;
+        border-radius:14px;
+        -webkit-overflow-scrolling:touch;
+    }
+
+    .v79-admin-nav-button {
+        width:auto;
+        min-width:max-content;
+        padding:9px 10px;
+        text-align:center;
+        font-size:10px;
+    }
+
+    .v79-admin-quick-actions,
+    .v79-main-stats,
+    .v79-dashboard-two {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+</style>
+
+<script>
+/* =========================================================
+   V79 ADMIN WORKSPACE + FREE WANTED
+   ========================================================= */
+
+let v79AdminGroup =
+    localStorage.getItem(
+        "hm_admin_group_v79"
+    ) ||
+    "dashboard";
+
+
+function v79AdminGroups() {
+    return [
+        ["dashboard","📊","Dashboard"],
+        ["marketplace","🛍","Marketplace"],
+        ["users","👥","Users"],
+        ["payments","⭐","Payments"],
+        ["reports","🚩","Reports"],
+        ["system","⚙️","System"]
+    ];
+}
+
+
+function v79EnsureAdminLayout() {
+
+    const box =
+        document.querySelector(
+            "#admin .admin-box"
+        );
+
+    const header =
+        document.querySelector(
+            "#admin .admin-header"
+        );
+
+
+    if (!box || !header) {
+        return null;
+    }
+
+
+    let layout =
+        document.getElementById(
+            "v79AdminLayout"
+        );
+
+
+    if (!layout) {
+
+        layout =
+            document.createElement(
+                "div"
+            );
+
+        layout.id =
+            "v79AdminLayout";
+        layout.className =
+            "v79-admin-layout";
+
+        layout.innerHTML = `
+            <nav id="v79AdminNav" class="v79-admin-nav"></nav>
+            <div id="v79AdminContent" class="v79-admin-content"></div>
+        `;
+
+        header.insertAdjacentElement(
+            "afterend",
+            layout
+        );
+    }
+
+
+    const content =
+        document.getElementById(
+            "v79AdminContent"
+        );
+
+
+    if (!content) {
+        return layout;
+    }
+
+
+    /* Sections injected by older patches may still land directly in admin-box. */
+    Array.from(
+        box.children
+    ).forEach(
+        child => {
+            if (
+                child !== header &&
+                child !== layout &&
+                child.classList?.contains(
+                    "admin-section"
+                )
+            ) {
+                content.appendChild(
+                    child
+                );
+            }
+        }
+    );
+
+
+    v79RenderAdminNav();
+    return layout;
+}
+
+
+function v79RenderAdminNav() {
+
+    const nav =
+        document.getElementById(
+            "v79AdminNav"
+        );
+
+    if (!nav) {
+        return;
+    }
+
+
+    nav.innerHTML =
+        v79AdminGroups()
+            .map(
+                ([key,icon,label]) => `
+                    <button
+                        type="button"
+                        class="v79-admin-nav-button ${v79AdminGroup === key ? "active" : ""}"
+                        data-v79-admin-group-button="${key}"
+                        onclick="v79SetAdminGroup('${key}')"
+                    >
+                        ${icon} ${label}
+                    </button>
+                `
+            )
+            .join("");
+}
+
+
+function v79SectionGroup(
+    section
+) {
+
+    if (!section) {
+        return "system";
+    }
+
+
+    if (
+        section.dataset.v79Group
+    ) {
+        return section.dataset.v79Group;
+    }
+
+
+    const id =
+        section.id ||
+        "";
+
+    const key =
+        section.dataset.v39Section ||
+        "";
+
+    const title =
+        String(
+            section.querySelector(
+                ".admin-section-title"
+            )?.textContent ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
+
+
+    if (
+        id === "v39AdminDashboardSection" ||
+        key === "dashboard"
+    ) {
+        return "dashboard";
+    }
+
+
+    if (
+        id === "v70StarsPaymentsSection" ||
+        key === "stars_payments" ||
+        title.includes(
+            "stars payments"
+        )
+    ) {
+        return "payments";
+    }
+
+
+    if (
+        id === "v40AdminSearchSection" ||
+        id === "v39AdminTeamSection" ||
+        key === "blocked" ||
+        key === "team" ||
+        title.includes(
+            "blocked seller"
+        ) ||
+        title.includes(
+            "admin team"
+        ) ||
+        title.includes(
+            "global admin search"
+        )
+    ) {
+        return "users";
+    }
+
+
+    if (
+        key === "support" ||
+        key === "risk" ||
+        key === "reports" ||
+        key === "chat_safety" ||
+        title.includes(
+            "support ticket"
+        ) ||
+        title.includes(
+            "risk flag"
+        ) ||
+        title.includes(
+            "open report"
+        ) ||
+        title.includes(
+            "chat safety"
+        )
+    ) {
+        return "reports";
+    }
+
+
+    if (
+        id === "v41SecurityCenter" ||
+        key === "history" ||
+        key === "activity" ||
+        title.includes(
+            "security center"
+        ) ||
+        title.includes(
+            "listing history"
+        ) ||
+        title.includes(
+            "admin activity"
+        )
+    ) {
+        return "system";
+    }
+
+
+    return "marketplace";
+}
+
+
+function v79ApplyAdminGroup() {
+
+    v79EnsureAdminLayout();
+
+
+    document.querySelectorAll(
+        "#v79AdminContent > .admin-section"
+    ).forEach(
+        section => {
+
+            const group =
+                v79SectionGroup(
+                    section
+                );
+
+            section.dataset.v79ResolvedGroup =
+                group;
+
+            section.classList.toggle(
+                "v79-group-hidden",
+                group !== v79AdminGroup
+            );
+        }
+    );
+
+
+    document.querySelectorAll(
+        "[data-v79-admin-group-button]"
+    ).forEach(
+        button =>
+            button.classList.toggle(
+                "active",
+                button.dataset.v79AdminGroupButton ===
+                    v79AdminGroup
+            )
+    );
+
+
+    const createWanted =
+        document.getElementById(
+            "v79AdminCreateWantedSection"
+        );
+
+    if (createWanted) {
+        createWanted.style.display =
+            typeof v39Role === "function" &&
+            v39Role() !== "owner"
+                ? "none"
+                : "";
+    }
+}
+
+
+function v79SetAdminGroup(
+    group
+) {
+
+    const valid =
+        new Set(
+            v79AdminGroups()
+                .map(row => row[0])
+        );
+
+    v79AdminGroup =
+        valid.has(group)
+            ? group
+            : "dashboard";
+
+    localStorage.setItem(
+        "hm_admin_group_v79",
+        v79AdminGroup
+    );
+
+    v79ApplyAdminGroup();
+
+
+    document.getElementById(
+        "v79AdminLayout"
+    )?.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+    });
+}
+
+
+function v79AdminTargetElement(
+    target
+) {
+
+    const map = {
+        create:
+            '#v79AdminContent > .admin-section[data-v39-section="create"]',
+        create_wanted:
+            "#v79AdminCreateWantedSection",
+        management:
+            '#v79AdminContent > .admin-section[data-v39-section="management"]',
+        test_engagement:
+            "#v68TestEngagementSection",
+        wanted:
+            "#v66AdminWantedSection",
+        payments:
+            "#v70StarsPaymentsSection",
+        reports:
+            '#v79AdminContent > .admin-section[data-v39-section="reports"]',
+        support:
+            '#v79AdminContent > .admin-section[data-v39-section="support"]',
+        risk:
+            '#v79AdminContent > .admin-section[data-v39-section="risk"]',
+        pending:
+            '#v79AdminContent > .admin-section[data-v39-section="pending"]',
+        activity:
+            '#v79AdminContent > .admin-section[data-v39-section="activity"]'
+    };
+
+    return document.querySelector(
+        map[target] ||
+        "#v79AdminLayout"
+    );
+}
+
+
+function v79OpenAdminTarget(
+    group,
+    target
+) {
+
+    v79AdminGroup =
+        group;
+
+    localStorage.setItem(
+        "hm_admin_group_v79",
+        v79AdminGroup
+    );
+
+    v79ApplyAdminGroup();
+
+
+    setTimeout(
+        () => {
+            v79AdminTargetElement(
+                target
+            )?.scrollIntoView({
+                behavior:"smooth",
+                block:"start"
+            });
+        },
+        40
+    );
+}
+
+
+function v79InjectQuickActions() {
+
+    const dashboard =
+        document.getElementById(
+            "v39AdminDashboardSection"
+        );
+
+    const stats =
+        document.getElementById(
+            "v39AdminDashboard"
+        );
+
+
+    if (
+        !dashboard ||
+        !stats
+    ) {
+        return;
+    }
+
+
+    const existing =
+        document.getElementById(
+            "v79AdminQuickActions"
+        );
+
+
+    if (existing) {
+        existing.style.display =
+            typeof v39Role === "function" &&
+            v39Role() !== "owner"
+                ? "none"
+                : "";
+        return;
+    }
+
+
+    const wrap =
+        document.createElement(
+            "div"
+        );
+
+    wrap.id =
+        "v79AdminQuickActions";
+    wrap.className =
+        "v79-admin-quick-actions";
+
+    wrap.innerHTML = `
+        <button class="v79-admin-quick-action" onclick="v79OpenAdminTarget('marketplace','create')">
+            <strong>＋</strong>
+            Create Listing
+        </button>
+        <button class="v79-admin-quick-action" onclick="v79OpenAdminTarget('marketplace','create_wanted')">
+            <strong>🎯</strong>
+            Create Wanted
+        </button>
+        <button class="v79-admin-quick-action" onclick="v79OpenAdminTarget('marketplace','management')">
+            <strong>🚀</strong>
+            Promote Listing
+        </button>
+        <button class="v79-admin-quick-action" onclick="v79OpenAdminTarget('marketplace','test_engagement')">
+            <strong>♡</strong>
+            Add Views &amp; Likes
+        </button>
+    `;
+
+    stats.insertAdjacentElement(
+        "beforebegin",
+        wrap
+    );
+
+
+    if (
+        typeof v39Role === "function" &&
+        v39Role() !== "owner"
+    ) {
+        wrap.style.display =
+            "none";
+    }
+}
+
+
+function v79InjectAdminCreateWanted() {
+
+    if (
+        document.getElementById(
+            "v79AdminCreateWantedSection"
+        )
+    ) {
+        return;
+    }
+
+
+    v79EnsureAdminLayout();
+
+
+    const createListing =
+        document.querySelector(
+            '#v79AdminContent > .admin-section[data-v39-section="create"]'
+        );
+
+    const content =
+        document.getElementById(
+            "v79AdminContent"
+        );
+
+
+    if (!content) {
+        return;
+    }
+
+
+    const section =
+        document.createElement(
+            "div"
+        );
+
+    section.id =
+        "v79AdminCreateWantedSection";
+    section.className =
+        "admin-section";
+    section.dataset.v79Group =
+        "marketplace";
+
+    section.innerHTML = `
+        <div class="admin-section-title">
+            🎯 Create Wanted
+            <span class="v79-wanted-free-badge">FREE / ADMIN</span>
+        </div>
+
+        <div class="section-subtitle">
+            Publish a Wanted request without payment for a buyer found by Telegram ID or Telegram username.
+        </div>
+
+        <form id="v79AdminCreateWantedForm" onsubmit="v79AdminCreateWanted(event)">
+
+            <div class="field">
+                <label>Find buyer by</label>
+                <select id="v79AdminWantedBuyerLookup" onchange="v79UpdateAdminWantedBuyerLookupUi()">
+                    <option value="username" selected>Telegram username</option>
+                    <option value="id">Telegram ID</option>
+                </select>
+            </div>
+
+            <div class="field" id="v79AdminWantedBuyerUsernameWrap">
+                <label>Buyer Telegram username</label>
+                <input id="v79AdminWantedBuyerUsername" placeholder="@telegramusername" maxlength="64" autocomplete="off">
+                <div class="field-hint">The buyer does not need to have opened Handle Market yet.</div>
+            </div>
+
+            <div class="field" id="v79AdminWantedBuyerIdWrap" style="display:none">
+                <label>Buyer Telegram ID</label>
+                <input id="v79AdminWantedBuyerId" type="number" inputmode="numeric" min="1" placeholder="123456789">
+                <div class="field-hint">Telegram ID lookup requires an existing Handle Market user.</div>
+            </div>
+
+            <div class="field">
+                <label>Desired username</label>
+                <input id="v79AdminWantedUsername" placeholder="@username" required>
+            </div>
+
+            <div class="field">
+                <label>Budget (USD)</label>
+                <input id="v79AdminWantedBudget" type="number" min="1" step="0.01" required>
+            </div>
+
+            <div class="field">
+                <label>Category</label>
+                <select id="v79AdminWantedCategory">
+                    <option>Brand</option>
+                    <option>Business</option>
+                    <option>Tech &amp; AI</option>
+                    <option>Short</option>
+                    <option>Travel</option>
+                    <option>Finance</option>
+                    <option>Gaming</option>
+                    <option>Crypto</option>
+                    <option>Media</option>
+                    <option>Generic</option>
+                    <option>Other</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Description</label>
+                <textarea id="v79AdminWantedDescription" maxlength="500"></textarea>
+            </div>
+
+            <div class="field">
+                <label>Buyer contact methods</label>
+                <div class="field-hint" style="margin-bottom:8px">At least one external contact is required.</div>
+
+                <div class="hm-contact-grid">
+                    <div class="field">
+                        <label>Telegram</label>
+                        <input id="v79AdminWantedContactTelegram" maxlength="200" placeholder="@telegramusername" autocomplete="off">
+                    </div>
+                    <div class="field">
+                        <label>WhatsApp</label>
+                        <input id="v79AdminWantedContactWhatsApp" maxlength="200" placeholder="+996... or wa.me link" autocomplete="off">
+                    </div>
+                    <div class="field">
+                        <label>Email</label>
+                        <input id="v79AdminWantedContactEmail" type="email" maxlength="200" placeholder="buyer@example.com" autocomplete="email">
+                    </div>
+                    <div class="field">
+                        <label>Other</label>
+                        <input id="v79AdminWantedContactOther" maxlength="200" placeholder="Website or other contact" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-box">
+                <div class="payment-label">ADMIN WANTED</div>
+                <div class="payment-price">FREE / NO PAYMENT</div>
+                <div class="payment-subtitle">Publicly it appears exactly like a normal Wanted request.</div>
+            </div>
+
+            <button id="v79AdminCreateWantedButton" class="payment-button" type="submit">
+                Add Wanted Without Payment
+            </button>
+        </form>
+    `;
+
+
+    if (createListing) {
+        createListing.insertAdjacentElement(
+            "afterend",
+            section
+        );
+    } else {
+        content.prepend(
+            section
+        );
+    }
+
+
+    v79UpdateAdminWantedBuyerLookupUi();
+}
+
+
+function v79UpdateAdminWantedBuyerLookupUi() {
+
+    const type =
+        document.getElementById(
+            "v79AdminWantedBuyerLookup"
+        )?.value ||
+        "username";
+
+    const usernameWrap =
+        document.getElementById(
+            "v79AdminWantedBuyerUsernameWrap"
+        );
+
+    const idWrap =
+        document.getElementById(
+            "v79AdminWantedBuyerIdWrap"
+        );
+
+
+    if (usernameWrap) {
+        usernameWrap.style.display =
+            type === "username"
+                ? ""
+                : "none";
+    }
+
+    if (idWrap) {
+        idWrap.style.display =
+            type === "id"
+                ? ""
+                : "none";
+    }
+}
+
+
+async function v79AdminCreateWanted(
+    event
+) {
+
+    event.preventDefault();
+
+
+    const button =
+        document.getElementById(
+            "v79AdminCreateWantedButton"
+        );
+
+    const originalText =
+        button?.textContent ||
+        "Add Wanted Without Payment";
+
+
+    if (button) {
+        button.disabled = true;
+        button.textContent =
+            "Publishing...";
+    }
+
+
+    try {
+
+        const lookupType =
+            document.getElementById(
+                "v79AdminWantedBuyerLookup"
+            )?.value ||
+            "username";
+
+
+        const contacts =
+            requireClientContactBundle({
+                telegram:"v79AdminWantedContactTelegram",
+                whatsapp:"v79AdminWantedContactWhatsApp",
+                email:"v79AdminWantedContactEmail",
+                other:"v79AdminWantedContactOther"
+            });
+
+
+        const data =
+            await api(
+                "/admin/create-wanted",
+                {
+                    initData:
+                        tg.initData,
+                    buyer_lookup_type:
+                        lookupType,
+                    buyer_telegram_id:
+                        lookupType === "id"
+                            ? document.getElementById(
+                                "v79AdminWantedBuyerId"
+                            )?.value
+                            : undefined,
+                    buyer_telegram_username:
+                        lookupType === "username"
+                            ? document.getElementById(
+                                "v79AdminWantedBuyerUsername"
+                            )?.value
+                            : undefined,
+                    desired_username:
+                        document.getElementById(
+                            "v79AdminWantedUsername"
+                        )?.value,
+                    budget:
+                        document.getElementById(
+                            "v79AdminWantedBudget"
+                        )?.value,
+                    category:
+                        document.getElementById(
+                            "v79AdminWantedCategory"
+                        )?.value,
+                    description:
+                        document.getElementById(
+                            "v79AdminWantedDescription"
+                        )?.value,
+                    contacts
+                }
+            );
+
+
+        document.getElementById(
+            "v79AdminCreateWantedForm"
+        )?.reset();
+
+        v79UpdateAdminWantedBuyerLookupUi();
+
+
+        await Promise.all([
+            typeof loadAdminWanted === "function"
+                ? loadAdminWanted()
+                : Promise.resolve(),
+            typeof loadWanted === "function"
+                ? loadWanted()
+                : Promise.resolve(),
+            v79RenderAdminDashboard()
+        ]);
+
+
+        const provisionalText =
+            data.buyer_provisional
+                ? `\n\nBuyer: @${data.buyer_telegram_username || "username"} · not registered yet. The Wanted request will link automatically when the owner opens Handle Market.`
+                : "";
+
+
+        hmToast(
+            `✅ @${data.wanted?.desired_username || "username"} Wanted request published without payment.${provisionalText}`
+        );
+
+    } catch (error) {
+
+        const messages = {
+            invalid_buyer_lookup_type:
+                "Choose Telegram ID or Telegram username.",
+            invalid_buyer_telegram_id:
+                "Enter a valid buyer Telegram ID.",
+            invalid_buyer_telegram_username:
+                "Enter a valid buyer Telegram username.",
+            buyer_username_ambiguous:
+                "More than one stored account matches this Telegram username. Use Telegram ID instead.",
+            provisional_buyer_create_failed:
+                "Could not prepare a provisional buyer for this Telegram username.",
+            buyer_not_found:
+                "Buyer not found. Telegram ID requires an existing Handle Market account.",
+            invalid_username:
+                "Enter a valid WhatsApp username.",
+            invalid_budget:
+                "Enter a valid budget.",
+            wanted_already_exists:
+                "This buyer already has an active Wanted request for this username.",
+            contact_required:
+                "Add at least one buyer contact method.",
+            admin_wanted_create_failed:
+                "Could not create the Wanted request. Please try again."
+        };
+
+        hmToast(
+            messages[error.message] ||
+            friendlyError(
+                error.message
+            )
+        );
+
+    } finally {
+
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                originalText;
+        }
+    }
+}
+
+
+function v79DashboardDate(
+    value
+) {
+    if (!value) {
+        return "";
+    }
+
+    const date =
+        new Date(value);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return "";
+    }
+
+    return date.toLocaleString(
+        "en-US",
+        {
+            month:"short",
+            day:"numeric",
+            hour:"2-digit",
+            minute:"2-digit"
+        }
+    );
+}
+
+
+async function v79RenderAdminDashboard() {
+
+    const container =
+        document.getElementById(
+            "v39AdminDashboard"
+        );
+
+    if (!container) {
+        return;
+    }
+
+
+    try {
+
+        const role =
+            typeof v39Role === "function"
+                ? v39Role()
+                : "owner";
+
+        const dashboardPromise =
+            api(
+                "/admin/dashboard",
+                { initData:tg.initData }
+            );
+
+        const listingsPromise =
+            ["owner","moderator"].includes(role)
+                ? api(
+                    "/admin/listings-management",
+                    { initData:tg.initData }
+                ).catch(() => ({listings:[]}))
+                : Promise.resolve({listings:[]});
+
+        const wantedPromise =
+            ["owner","moderator"].includes(role)
+                ? api(
+                    "/admin/wanted",
+                    { initData:tg.initData }
+                ).catch(() => ({posts:[]}))
+                : Promise.resolve({posts:[]});
+
+        const paymentsPromise =
+            role === "owner"
+                ? api(
+                    "/admin/stars-payments",
+                    {
+                        initData:tg.initData,
+                        payment_type:"all",
+                        status:"all",
+                        query:""
+                    }
+                ).catch(() => ({payments:[]}))
+                : Promise.resolve({payments:[]});
+
+        const activityPromise =
+            role === "owner"
+                ? api(
+                    "/admin/activity-log",
+                    { initData:tg.initData }
+                ).catch(() => ({activities:[]}))
+                : Promise.resolve({activities:[]});
+
+
+        const [
+            dashboard,
+            listingData,
+            wantedData,
+            paymentData,
+            activityData
+        ] =
+            await Promise.all([
+                dashboardPromise,
+                listingsPromise,
+                wantedPromise,
+                paymentsPromise,
+                activityPromise
+            ]);
+
+
+        const s =
+            dashboard.stats ||
+            {};
+
+        const listings =
+            (listingData.listings || [])
+                .slice(0,5);
+
+        const wanted =
+            (wantedData.posts || [])
+                .slice(0,5);
+
+        const payments =
+            (paymentData.payments || [])
+                .slice(0,5);
+
+        const activities =
+            (activityData.activities || [])
+                .slice(0,5);
+
+
+        const attention = [
+            [s.listings_pending,"Pending listings","marketplace","pending"],
+            [s.reports_open,"Open reports","reports","reports"],
+            [s.risk_flags_open,"Risk flags","reports","risk"],
+            [s.support_open,"Support tickets","reports","support"],
+            [s.suspicious_chats_open,"Suspicious chats","reports","reports"],
+            [s.listings_frozen,"Frozen listings","marketplace","management"]
+        ].filter(
+            row => Number(row[0] || 0) > 0
+        );
+
+
+        const listingRows =
+            listings.length
+                ? listings.map(
+                    row => `
+                        <div class="v79-recent-row">
+                            <div class="v79-recent-main">
+                                <div class="v79-recent-name">@${escapeHtml(row.whatsapp_username || "username")}</div>
+                                <div class="v79-recent-meta">${row.listing_number ? `LOT #${escapeHtml(row.listing_number)} · ` : ""}$${escapeHtml(formatPrice(row.asking_price || 0))} · ${escapeHtml(v79DashboardDate(row.created_at))}</div>
+                            </div>
+                            <button class="v79-mini-link" onclick="v79OpenAdminTarget('marketplace','management')">Open</button>
+                        </div>
+                    `
+                ).join("")
+                : '<div class="empty">No active listings.</div>';
+
+
+        const wantedRows =
+            wanted.length
+                ? wanted.map(
+                    row => `
+                        <div class="v79-recent-row">
+                            <div class="v79-recent-main">
+                                <div class="v79-recent-name">@${escapeHtml(row.desired_username || "username")}</div>
+                                <div class="v79-recent-meta">Budget $${escapeHtml(formatPrice(row.budget || 0))} · ${escapeHtml(v79DashboardDate(row.created_at))}</div>
+                            </div>
+                            <button class="v79-mini-link" onclick="v79OpenAdminTarget('marketplace','wanted')">Open</button>
+                        </div>
+                    `
+                ).join("")
+                : '<div class="empty">No Wanted requests.</div>';
+
+
+        const paymentRows =
+            payments.length
+                ? payments.map(
+                    row => `
+                        <div class="v79-recent-row">
+                            <div class="v79-recent-main">
+                                <div class="v79-recent-name">${escapeHtml(row.service_label || "Payment")}</div>
+                                <div class="v79-recent-meta">${escapeHtml(row.amount_stars || 0)} ⭐ · ${escapeHtml(row.target_label || "")} · ${escapeHtml(v79DashboardDate(row.paid_at))}</div>
+                            </div>
+                            <button class="v79-mini-link" onclick="v79OpenAdminTarget('payments','payments')">Open</button>
+                        </div>
+                    `
+                ).join("")
+                : '<div class="empty">No recent payments.</div>';
+
+
+        const activityRows =
+            activities.length
+                ? activities.map(
+                    row => `
+                        <div class="v79-recent-row">
+                            <div class="v79-recent-main">
+                                <div class="v79-recent-name">${escapeHtml(String(row.action || "Admin action").replace(/^\/admin\//,""))}</div>
+                                <div class="v79-recent-meta">${escapeHtml(row.target_type || "")} ${row.target_id ? `· ${escapeHtml(row.target_id)}` : ""} · ${escapeHtml(v79DashboardDate(row.created_at))}</div>
+                            </div>
+                        </div>
+                    `
+                ).join("")
+                : '<div class="empty">No recent admin activity.</div>';
+
+
+        container.innerHTML = `
+            <div class="v79-main-stats">
+                <div class="v79-main-stat">
+                    <div class="v79-main-stat-value">${escapeHtml(s.listings_active ?? 0)}</div>
+                    <div class="v79-main-stat-label">Active Listings</div>
+                </div>
+                <div class="v79-main-stat">
+                    <div class="v79-main-stat-value">${escapeHtml(s.wanted_active ?? 0)}</div>
+                    <div class="v79-main-stat-label">Wanted</div>
+                </div>
+                <div class="v79-main-stat">
+                    <div class="v79-main-stat-value">${escapeHtml(s.users_total ?? 0)}</div>
+                    <div class="v79-main-stat-label">Users</div>
+                </div>
+                <div class="v79-main-stat">
+                    <div class="v79-main-stat-value">${escapeHtml(s.payments_total ?? 0)}</div>
+                    <div class="v79-main-stat-label">Payments</div>
+                </div>
+            </div>
+
+            <div class="v79-dashboard-block">
+                <div class="v79-dashboard-title">Requires Attention</div>
+                ${
+                    attention.length
+                        ? `<div class="v79-attention-grid">${attention.map(row => `
+                            <button class="v79-attention-item" onclick="v79OpenAdminTarget('${row[2]}','${row[3]}')">
+                                <strong>${escapeHtml(row[0])}</strong>${escapeHtml(row[1])}
+                            </button>
+                        `).join("")}</div>`
+                        : '<div class="empty">All clear ✓</div>'
+                }
+            </div>
+
+            <div class="v79-dashboard-two">
+                <div class="v79-dashboard-block" style="margin-top:0">
+                    <div class="v79-dashboard-title">Recent Listings</div>
+                    ${listingRows}
+                </div>
+                <div class="v79-dashboard-block" style="margin-top:0">
+                    <div class="v79-dashboard-title">Recent Wanted</div>
+                    ${wantedRows}
+                </div>
+            </div>
+
+            ${role === "owner" ? `
+                <div class="v79-dashboard-two">
+                    <div class="v79-dashboard-block" style="margin-top:0">
+                        <div class="v79-dashboard-title">Recent Payments</div>
+                        ${paymentRows}
+                    </div>
+                    <div class="v79-dashboard-block" style="margin-top:0">
+                        <div class="v79-dashboard-title">Recent Admin Activity</div>
+                        ${activityRows}
+                    </div>
+                </div>
+            ` : ""}
+        `;
+
+    } catch (error) {
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+    }
+}
+
+
+function v79PrepareAdminWorkspace() {
+    v79EnsureAdminLayout();
+    v79InjectAdminCreateWanted();
+    v79InjectQuickActions();
+    v79ApplyAdminGroup();
+}
+
+
+if (
+    typeof loadAdminPanel ===
+    "function"
+) {
+
+    const v79BaseLoadAdminPanel =
+        loadAdminPanel;
+
+    loadAdminPanel =
+    async function loadAdminPanelV79() {
+
+        v79PrepareAdminWorkspace();
+
+        await v79BaseLoadAdminPanel();
+
+        v79PrepareAdminWorkspace();
+
+        if (
+            typeof v39ApplyAdminRoleVisibility ===
+            "function"
+        ) {
+            v39ApplyAdminRoleVisibility();
+        }
+
+        v79ApplyAdminGroup();
+        await v79RenderAdminDashboard();
+    };
+}
+
+
+/* Keep V79 grouping after older role-visibility refreshes. */
+if (
+    typeof v39ApplyAdminRoleVisibility ===
+    "function"
+) {
+
+    const v79BaseApplyAdminRoleVisibility =
+        v39ApplyAdminRoleVisibility;
+
+    v39ApplyAdminRoleVisibility =
+    function v39ApplyAdminRoleVisibilityV79() {
+        v79BaseApplyAdminRoleVisibility();
+        v79ApplyAdminGroup();
+    };
+}
+
+
+v79PrepareAdminWorkspace();
+</script>
+
+
+<!-- Handle Market v79 — Admin Workspace & Free Wanted -->
 </body>
 </html>
