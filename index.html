@@ -36621,5 +36621,695 @@ if (typeof loadAdminPanel === "function") {
 
 </script>
 
+
+
+<style>
+/* =========================================================
+   V68 OWNER TEST ENGAGEMENT
+   ========================================================= */
+.v68-test-engagement-card {
+    margin-top:10px;
+    padding:14px;
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:18px;
+    background:var(--card,#fff);
+}
+
+.v68-test-warning {
+    display:flex;
+    align-items:flex-start;
+    gap:9px;
+    padding:10px 11px;
+    margin-bottom:12px;
+    border:1px solid rgba(245,158,11,.28);
+    border-radius:13px;
+    background:rgba(245,158,11,.08);
+    font-size:11px;
+    line-height:1.45;
+}
+
+.v68-test-warning svg,
+.v68-test-engagement-title svg {
+    width:18px;
+    height:18px;
+    flex:0 0 auto;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.v68-test-engagement-title {
+    display:flex;
+    align-items:center;
+    gap:7px;
+}
+
+.v68-test-badge {
+    display:inline-flex;
+    align-items:center;
+    min-height:22px;
+    padding:0 8px;
+    border-radius:999px;
+    border:1px solid rgba(245,158,11,.34);
+    background:rgba(245,158,11,.10);
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+}
+
+.v68-test-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+}
+
+.v68-test-actions {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:8px;
+    margin-top:10px;
+}
+
+.v68-test-result {
+    margin-top:10px;
+}
+
+.v68-test-result-card {
+    padding:12px;
+    border:1px solid var(--border,#e4e8ef);
+    border-radius:14px;
+    background:var(--card,#fff);
+}
+
+.v68-test-result-head {
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:flex-start;
+    margin-bottom:10px;
+}
+
+.v68-test-result-name {
+    font-size:14px;
+    font-weight:900;
+}
+
+.v68-test-result-lot {
+    margin-top:2px;
+    font-size:9px;
+    opacity:.64;
+}
+
+.v68-test-stat-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:7px;
+}
+
+.v68-test-stat {
+    padding:9px 10px;
+    border-radius:12px;
+    background:rgba(127,127,127,.07);
+}
+
+.v68-test-stat-label {
+    font-size:9px;
+    opacity:.62;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+}
+
+.v68-test-stat-value {
+    margin-top:3px;
+    font-size:15px;
+    font-weight:900;
+}
+
+.v68-reset-button {
+    margin-top:8px;
+    width:100%;
+}
+
+@media (max-width:390px) {
+    .v68-test-grid,
+    .v68-test-actions {
+        grid-template-columns:1fr;
+    }
+}
+</style>
+
+<script>
+/* =========================================================
+   V68 OWNER TEST ENGAGEMENT
+   Temporary owner-only QA utility.
+   ========================================================= */
+
+function v68TestEngagementIcon(
+    type
+) {
+
+    if (type === "heart") {
+        return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"></path></svg>`;
+    }
+
+    if (type === "eye") {
+        return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    }
+
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.8 2.5 17.3A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.7L13.7 3.8a2 2 0 0 0-3.4 0Z"></path></svg>`;
+}
+
+
+function v68InjectTestEngagementSection() {
+
+    if (
+        document.getElementById(
+            "v68TestEngagementSection"
+        )
+    ) {
+        return;
+    }
+
+
+    const management =
+        document.getElementById(
+            "adminPremiumListings"
+        )?.closest(
+            ".admin-section"
+        );
+
+    const box =
+        document.querySelector(
+            "#admin .admin-box"
+        );
+
+
+    if (!box) {
+        return;
+    }
+
+
+    const section =
+        document.createElement(
+            "div"
+        );
+
+    section.className =
+        "admin-section";
+
+    section.id =
+        "v68TestEngagementSection";
+
+    section.dataset.v39Section =
+        "test_engagement";
+
+    section.innerHTML = `
+        <div class="admin-section-title v68-test-engagement-title">
+            ${v68TestEngagementIcon("eye")}
+            Test Engagement
+            <span class="v68-test-badge">Owner · Test only</span>
+        </div>
+
+        <div class="section-subtitle">
+            Temporarily increase the public Views / Likes counters of one listing for QA. Use “Reset to real” when the test is finished.
+        </div>
+
+        <div class="v68-test-engagement-card">
+            <div class="v68-test-warning">
+                ${v68TestEngagementIcon("warning")}
+                <div>
+                    <strong>Temporary test data.</strong><br>
+                    These numbers are visible publicly while active. The real unique views and likes are kept separately and can be restored exactly.
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Listing</label>
+                <input
+                    id="v68TestEngagementTarget"
+                    type="text"
+                    placeholder="LOT #123, @username or listing UUID"
+                    autocomplete="off"
+                >
+                <div class="field-hint">You can use LOT number, username or listing ID.</div>
+            </div>
+
+            <div class="v68-test-grid">
+                <div class="field" style="margin:0">
+                    <label>Add views</label>
+                    <input
+                        id="v68TestAddViews"
+                        type="number"
+                        inputmode="numeric"
+                        min="0"
+                        max="1000000"
+                        step="1"
+                        value="100"
+                    >
+                </div>
+
+                <div class="field" style="margin:0">
+                    <label>Add likes</label>
+                    <input
+                        id="v68TestAddLikes"
+                        type="number"
+                        inputmode="numeric"
+                        min="0"
+                        max="100000"
+                        step="1"
+                        value="10"
+                    >
+                </div>
+            </div>
+
+            <div class="v68-test-actions">
+                <button class="secondary" type="button" onclick="v68LoadTestEngagement()">
+                    Check current
+                </button>
+                <button class="primary" type="button" onclick="v68BoostTestEngagement()">
+                    Apply test boost
+                </button>
+            </div>
+
+            <div id="v68TestEngagementResult" class="v68-test-result"></div>
+        </div>
+    `;
+
+
+    if (management) {
+        management.insertAdjacentElement(
+            "afterend",
+            section
+        );
+    } else {
+        box.appendChild(
+            section
+        );
+    }
+}
+
+
+function v68TestTarget() {
+
+    return String(
+        document.getElementById(
+            "v68TestEngagementTarget"
+        )?.value ||
+        ""
+    ).trim();
+}
+
+
+function v68RenderTestEngagement(
+    state
+) {
+
+    const container =
+        document.getElementById(
+            "v68TestEngagementResult"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    if (!state) {
+        container.innerHTML = "";
+        return;
+    }
+
+
+    const number =
+        value =>
+            Number(
+                value ||
+                0
+            ).toLocaleString(
+                "en-US"
+            );
+
+
+    container.innerHTML = `
+        <div class="v68-test-result-card">
+            <div class="v68-test-result-head">
+                <div>
+                    <div class="v68-test-result-name">@${escapeHtml(state.username || "username")}</div>
+                    <div class="v68-test-result-lot">LOT #${escapeHtml(String(state.listing_number || "—"))}</div>
+                </div>
+                <span class="v68-test-badge">${state.test_active ? "TEST ACTIVE" : "REAL DATA"}</span>
+            </div>
+
+            <div class="v68-test-stat-grid">
+                <div class="v68-test-stat">
+                    <div class="v68-test-stat-label">Public views</div>
+                    <div class="v68-test-stat-value">${number(state.public_views)}</div>
+                </div>
+                <div class="v68-test-stat">
+                    <div class="v68-test-stat-label">Public likes</div>
+                    <div class="v68-test-stat-value">${number(state.public_likes)}</div>
+                </div>
+                <div class="v68-test-stat">
+                    <div class="v68-test-stat-label">Real views</div>
+                    <div class="v68-test-stat-value">${number(state.real_views)}</div>
+                </div>
+                <div class="v68-test-stat">
+                    <div class="v68-test-stat-label">Real likes</div>
+                    <div class="v68-test-stat-value">${number(state.real_likes)}</div>
+                </div>
+            </div>
+
+            ${
+                state.test_active
+                    ? `<button class="secondary v68-reset-button" type="button" onclick="v68ConfirmResetTestEngagement()">Reset to real counters</button>`
+                    : ""
+            }
+        </div>
+    `;
+}
+
+
+function v68TestFriendlyError(
+    code
+) {
+
+    const map = {
+        listing_not_found:
+            "Listing not found.",
+        invalid_test_engagement_amount:
+            "Enter a valid number of views or likes to add.",
+        owner_required:
+            "Only the Owner can use Test Engagement.",
+        admin_role_forbidden:
+            "Only the Owner can use Test Engagement.",
+        test_engagement_failed:
+            "Test engagement update failed.",
+        test_engagement_lookup_failed:
+            "Could not find the listing."
+    };
+
+
+    return map[code] ||
+        friendlyError(
+            code
+        );
+}
+
+
+async function v68LoadTestEngagement() {
+
+    const target =
+        v68TestTarget();
+
+
+    if (!target) {
+        hmToast(
+            "Enter LOT number, username or listing ID.",
+            "warning"
+        );
+        return;
+    }
+
+
+    const container =
+        document.getElementById(
+            "v68TestEngagementResult"
+        );
+
+
+    if (container) {
+        container.innerHTML =
+            `<div class="empty">Loading...</div>`;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/test-engagement",
+                {
+                    initData:
+                        tg.initData,
+                    action:
+                        "get",
+                    target
+                }
+            );
+
+
+        v68RenderTestEngagement(
+            data.state
+        );
+
+    } catch (error) {
+
+        if (container) {
+            container.innerHTML = "";
+        }
+
+        hmToast(
+            v68TestFriendlyError(
+                error.message
+            ),
+            "error"
+        );
+    }
+}
+
+
+async function v68BoostTestEngagement() {
+
+    const target =
+        v68TestTarget();
+
+    const addViews =
+        Number(
+            document.getElementById(
+                "v68TestAddViews"
+            )?.value ||
+            0
+        );
+
+    const addLikes =
+        Number(
+            document.getElementById(
+                "v68TestAddLikes"
+            )?.value ||
+            0
+        );
+
+
+    if (!target) {
+        hmToast(
+            "Enter a listing first.",
+            "warning"
+        );
+        return;
+    }
+
+
+    if (
+        !Number.isInteger(addViews) ||
+        !Number.isInteger(addLikes) ||
+        addViews < 0 ||
+        addLikes < 0 ||
+        (
+            addViews === 0 &&
+            addLikes === 0
+        )
+    ) {
+        hmToast(
+            "Enter views or likes to add.",
+            "warning"
+        );
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/test-engagement",
+                {
+                    initData:
+                        tg.initData,
+                    action:
+                        "boost",
+                    target,
+                    add_views:
+                        addViews,
+                    add_likes:
+                        addLikes
+                }
+            );
+
+
+        v68RenderTestEngagement(
+            data.state
+        );
+
+        hmToast(
+            "Test views / likes updated.",
+            "success"
+        );
+
+    } catch (error) {
+
+        hmToast(
+            v68TestFriendlyError(
+                error.message
+            ),
+            "error"
+        );
+    }
+}
+
+
+async function v68ResetTestEngagement() {
+
+    const target =
+        v68TestTarget();
+
+
+    if (!target) {
+        return;
+    }
+
+
+    try {
+
+        const data =
+            await api(
+                "/admin/test-engagement",
+                {
+                    initData:
+                        tg.initData,
+                    action:
+                        "reset",
+                    target
+                }
+            );
+
+
+        v68RenderTestEngagement(
+            data.state
+        );
+
+        hmToast(
+            "Real views / likes restored.",
+            "success"
+        );
+
+    } catch (error) {
+
+        hmToast(
+            v68TestFriendlyError(
+                error.message
+            ),
+            "error"
+        );
+    }
+}
+
+
+function v68ConfirmResetTestEngagement() {
+
+    const message =
+        "Remove the test boost and restore the exact real views and likes?";
+
+
+    if (
+        tg?.showConfirm
+    ) {
+
+        tg.showConfirm(
+            message,
+            confirmed => {
+                if (confirmed) {
+                    v68ResetTestEngagement();
+                }
+            }
+        );
+
+        return;
+    }
+
+
+    if (
+        window.confirm(
+            message
+        )
+    ) {
+        v68ResetTestEngagement();
+    }
+}
+
+
+if (
+    typeof v39ApplyAdminRoleVisibility ===
+    "function"
+) {
+
+    const v68BaseApplyAdminRoleVisibility =
+        v39ApplyAdminRoleVisibility;
+
+
+    v39ApplyAdminRoleVisibility =
+    function v68ApplyAdminRoleVisibility() {
+
+        v68BaseApplyAdminRoleVisibility();
+
+
+        const section =
+            document.getElementById(
+                "v68TestEngagementSection"
+            );
+
+
+        if (section) {
+            section.style.display =
+                v39Role() === "owner"
+                    ? ""
+                    : "none";
+        }
+    };
+}
+
+
+if (
+    typeof loadAdminPanel ===
+    "function"
+) {
+
+    const v68BaseLoadAdminPanel =
+        loadAdminPanel;
+
+
+    loadAdminPanel =
+    async function loadAdminPanelV68() {
+
+        v68InjectTestEngagementSection();
+
+        await v68BaseLoadAdminPanel();
+
+        if (
+            typeof v39ApplyAdminRoleVisibility ===
+            "function"
+        ) {
+            v39ApplyAdminRoleVisibility();
+        }
+    };
+}
+
+
+v68InjectTestEngagementSection();
+</script>
+
 </body>
 </html>

@@ -9551,7 +9551,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,status,is_paused,is_frozen,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,status,is_paused,is_frozen,listing_plan,listing_expires_at,views_count"
                 )
                 .eq(
                     "id",
@@ -9674,19 +9674,51 @@ app.post(
                 );
 
 
+        let publicViews =
+            Number(
+                count ||
+                0
+            );
+
+
         if (
             !countError
         ) {
+
+            const {
+                data:testEngagement
+            } =
+                await supabase
+                    .from(
+                        "admin_test_engagement"
+                    )
+                    .select(
+                        "views_floor"
+                    )
+                    .eq(
+                        "listing_id",
+                        listingId
+                    )
+                    .maybeSingle();
+
+
+            publicViews =
+                Math.max(
+                    publicViews,
+                    Number(
+                        testEngagement
+                            ?.views_floor ||
+                        0
+                    )
+                );
+
 
             await supabase
                 .from("listings")
                 .update(
                     {
                         views_count:
-                            Number(
-                                count ||
-                                0
-                            )
+                            publicViews
                     }
                 )
                 .eq(
@@ -9703,10 +9735,7 @@ app.post(
                 owner: false,
 
                 views:
-                    Number(
-                        count ||
-                        0
-                    )
+                    publicViews
             }
         );
     }
@@ -9834,7 +9863,7 @@ app.post(
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,status,is_paused,is_frozen,listing_plan,listing_expires_at"
+                    "id,seller_telegram_id,status,is_paused,is_frozen,listing_plan,listing_expires_at,likes_count"
                 )
                 .eq(
                     "id",
@@ -10037,10 +10066,38 @@ app.post(
                 );
 
 
-        const likesCount =
+        const realLikesCount =
             Number(
                 count ||
                 0
+            );
+
+
+        const {
+            data:testEngagement
+        } =
+            await supabase
+                .from(
+                    "admin_test_engagement"
+                )
+                .select(
+                    "likes_floor"
+                )
+                .eq(
+                    "listing_id",
+                    listingId
+                )
+                .maybeSingle();
+
+
+        const likesCount =
+            Math.max(
+                realLikesCount,
+                Number(
+                    testEngagement
+                        ?.likes_floor ||
+                    0
+                )
             );
 
 
@@ -17855,6 +17912,10 @@ const ADMIN_ROUTE_ROLES = {
     ],
 
     "/admin/listing-premium": [
+        "owner"
+    ],
+
+    "/admin/test-engagement": [
         "owner"
     ],
 
@@ -32735,6 +32796,633 @@ const PORT =
     process.env.PORT ||
     3000;
 
+
+
+/* =========================================================
+   V68 OWNER TEST ENGAGEMENT
+   Temporary QA tool for controlled view/like counter testing.
+   Synthetic floors are stored separately and can be reset
+   back to the real listing_views / listing_likes counts.
+   ========================================================= */
+
+async function v68ResolveTestListing(
+    target
+) {
+
+    const raw =
+        String(
+            target ||
+            ""
+        ).trim();
+
+
+    if (!raw) {
+        return null;
+    }
+
+
+    const uuidLike =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+            raw
+        );
+
+
+    let query =
+        supabase
+            .from("listings")
+            .select(
+                "id,listing_number,whatsapp_username,views_count,likes_count,status"
+            );
+
+
+    if (uuidLike) {
+
+        query =
+            query.eq(
+                "id",
+                raw
+            );
+
+    } else {
+
+        const lotCandidate =
+            raw
+                .replace(
+                    /^lot\s*#?\s*/i,
+                    ""
+                )
+                .replace(
+                    /^#/,
+                    ""
+                )
+                .trim();
+
+
+        if (
+            /^\d+$/.test(
+                lotCandidate
+            )
+        ) {
+
+            query =
+                query.eq(
+                    "listing_number",
+                    Number(
+                        lotCandidate
+                    )
+                );
+
+        } else {
+
+            const username =
+                raw
+                    .replace(
+                        /^@/,
+                        ""
+                    )
+                    .trim();
+
+
+            if (
+                !username ||
+                !/^[a-zA-Z0-9._]+$/.test(
+                    username
+                )
+            ) {
+                return null;
+            }
+
+
+            query =
+                query.ilike(
+                    "whatsapp_username",
+                    username
+                );
+        }
+    }
+
+
+    const {
+        data,
+        error
+    } =
+        await query
+            .limit(1)
+            .maybeSingle();
+
+
+    if (error) {
+        throw error;
+    }
+
+
+    return data || null;
+}
+
+
+async function v68RealEngagementCounts(
+    listingId
+) {
+
+    const [
+        viewsResult,
+        likesResult
+    ] =
+        await Promise.all([
+            supabase
+                .from("listing_views")
+                .select(
+                    "listing_id",
+                    {
+                        count:"exact",
+                        head:true
+                    }
+                )
+                .eq(
+                    "listing_id",
+                    listingId
+                ),
+
+            supabase
+                .from("listing_likes")
+                .select(
+                    "listing_id",
+                    {
+                        count:"exact",
+                        head:true
+                    }
+                )
+                .eq(
+                    "listing_id",
+                    listingId
+                )
+        ]);
+
+
+    if (
+        viewsResult.error ||
+        likesResult.error
+    ) {
+
+        throw (
+            viewsResult.error ||
+            likesResult.error
+        );
+    }
+
+
+    return {
+        views:
+            Number(
+                viewsResult.count ||
+                0
+            ),
+
+        likes:
+            Number(
+                likesResult.count ||
+                0
+            )
+    };
+}
+
+
+async function v68TestEngagementState(
+    listing
+) {
+
+    const [
+        real,
+        floorResult
+    ] =
+        await Promise.all([
+            v68RealEngagementCounts(
+                listing.id
+            ),
+
+            supabase
+                .from(
+                    "admin_test_engagement"
+                )
+                .select(
+                    "views_floor,likes_floor,updated_at,updated_by"
+                )
+                .eq(
+                    "listing_id",
+                    listing.id
+                )
+                .maybeSingle()
+        ]);
+
+
+    if (floorResult.error) {
+        throw floorResult.error;
+    }
+
+
+    const floor =
+        floorResult.data ||
+        null;
+
+
+    return {
+        listing_id:
+            listing.id,
+
+        listing_number:
+            listing.listing_number,
+
+        username:
+            listing.whatsapp_username,
+
+        status:
+            listing.status,
+
+        real_views:
+            real.views,
+
+        real_likes:
+            real.likes,
+
+        test_views_floor:
+            Number(
+                floor?.views_floor ||
+                0
+            ),
+
+        test_likes_floor:
+            Number(
+                floor?.likes_floor ||
+                0
+            ),
+
+        public_views:
+            Math.max(
+                real.views,
+                Number(
+                    floor?.views_floor ||
+                    0
+                )
+            ),
+
+        public_likes:
+            Math.max(
+                real.likes,
+                Number(
+                    floor?.likes_floor ||
+                    0
+                )
+            ),
+
+        test_active:
+            Boolean(
+                floor
+            ),
+
+        updated_at:
+            floor?.updated_at ||
+            null
+    };
+}
+
+
+app.post(
+    "/admin/test-engagement",
+    async (req, res) => {
+
+        const auth =
+            req.adminAuth;
+
+
+        if (
+            !auth?.ok ||
+            normalizedAdminRole(
+                auth.user
+            ) !== "owner"
+        ) {
+
+            return res
+                .status(403)
+                .json({
+                    ok:false,
+                    error:"owner_required"
+                });
+        }
+
+
+        const action =
+            String(
+                req.body.action ||
+                "get"
+            )
+                .trim()
+                .toLowerCase();
+
+
+        let listing;
+
+
+        try {
+
+            listing =
+                await v68ResolveTestListing(
+                    req.body.target
+                );
+
+        } catch (error) {
+
+            console.error(
+                "V68 test engagement lookup:",
+                error
+            );
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"test_engagement_lookup_failed"
+                });
+        }
+
+
+        if (!listing) {
+
+            return res
+                .status(404)
+                .json({
+                    ok:false,
+                    error:"listing_not_found"
+                });
+        }
+
+
+        try {
+
+            if (
+                action === "get"
+            ) {
+
+                const state =
+                    await v68TestEngagementState(
+                        listing
+                    );
+
+
+                return res.json({
+                    ok:true,
+                    state
+                });
+            }
+
+
+            if (
+                action === "reset"
+            ) {
+
+                const real =
+                    await v68RealEngagementCounts(
+                        listing.id
+                    );
+
+
+                const {
+                    error:updateError
+                } =
+                    await supabase
+                        .from("listings")
+                        .update({
+                            views_count:
+                                real.views,
+                            likes_count:
+                                real.likes
+                        })
+                        .eq(
+                            "id",
+                            listing.id
+                        );
+
+
+                if (updateError) {
+                    throw updateError;
+                }
+
+
+                const {
+                    error:deleteError
+                } =
+                    await supabase
+                        .from(
+                            "admin_test_engagement"
+                        )
+                        .delete()
+                        .eq(
+                            "listing_id",
+                            listing.id
+                        );
+
+
+                if (deleteError) {
+                    throw deleteError;
+                }
+
+
+                await logAdminActivity(
+                    auth.user.telegram_id,
+                    "test_engagement_reset",
+                    "listing",
+                    listing.id,
+                    {
+                        listing_number:
+                            listing.listing_number,
+                        username:
+                            listing.whatsapp_username,
+                        real_views:
+                            real.views,
+                        real_likes:
+                            real.likes
+                    }
+                );
+
+
+                return res.json({
+                    ok:true,
+                    state:
+                        await v68TestEngagementState(
+                            listing
+                        )
+                });
+            }
+
+
+            if (
+                action !== "boost"
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+                        ok:false,
+                        error:"invalid_test_engagement_action"
+                    });
+            }
+
+
+            const addViews =
+                Number(
+                    req.body.add_views ||
+                    0
+                );
+
+            const addLikes =
+                Number(
+                    req.body.add_likes ||
+                    0
+                );
+
+
+            if (
+                !Number.isInteger(
+                    addViews
+                ) ||
+                !Number.isInteger(
+                    addLikes
+                ) ||
+                addViews < 0 ||
+                addLikes < 0 ||
+                addViews > 1000000 ||
+                addLikes > 100000 ||
+                (
+                    addViews === 0 &&
+                    addLikes === 0
+                )
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+                        ok:false,
+                        error:"invalid_test_engagement_amount"
+                    });
+            }
+
+
+            const current =
+                await v68TestEngagementState(
+                    listing
+                );
+
+
+            const nextViews =
+                current.public_views +
+                addViews;
+
+            const nextLikes =
+                current.public_likes +
+                addLikes;
+
+
+            const {
+                error:floorError
+            } =
+                await supabase
+                    .from(
+                        "admin_test_engagement"
+                    )
+                    .upsert(
+                        {
+                            listing_id:
+                                listing.id,
+                            views_floor:
+                                nextViews,
+                            likes_floor:
+                                nextLikes,
+                            updated_by:
+                                Number(
+                                    auth.user.telegram_id
+                                ),
+                            updated_at:
+                                nowIso()
+                        },
+                        {
+                            onConflict:
+                                "listing_id"
+                        }
+                    );
+
+
+            if (floorError) {
+                throw floorError;
+            }
+
+
+            const {
+                error:updateError
+            } =
+                await supabase
+                    .from("listings")
+                    .update({
+                        views_count:
+                            nextViews,
+                        likes_count:
+                            nextLikes
+                    })
+                    .eq(
+                        "id",
+                        listing.id
+                    );
+
+
+            if (updateError) {
+                throw updateError;
+            }
+
+
+            await logAdminActivity(
+                auth.user.telegram_id,
+                "test_engagement_boost",
+                "listing",
+                listing.id,
+                {
+                    listing_number:
+                        listing.listing_number,
+                    username:
+                        listing.whatsapp_username,
+                    add_views:
+                        addViews,
+                    add_likes:
+                        addLikes,
+                    public_views:
+                        nextViews,
+                    public_likes:
+                        nextLikes
+                }
+            );
+
+
+            return res.json({
+                ok:true,
+                state:
+                    await v68TestEngagementState(
+                        listing
+                    )
+            });
+
+        } catch (error) {
+
+            console.error(
+                "V68 test engagement:",
+                error
+            );
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"test_engagement_failed"
+                });
+        }
+    }
+);
 
 app.listen(
     PORT,
