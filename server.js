@@ -1,3 +1,4 @@
+/* Handle Market v72 — Final Payment, Privacy & Performance Hardening */
 const express = require("express");
 const crypto = require("crypto");
 const { createClient } = require("@supabase/supabase-js");
@@ -935,6 +936,40 @@ async function ensureSellerProfile(
     telegramId
 ) {
 
+    const id =
+        Number(
+            telegramId
+        );
+
+
+    const {
+        data:existing,
+        error:existingError
+    } =
+        await supabase
+            .from(
+                "seller_profiles"
+            )
+            .select(
+                "id,telegram_id,bio,is_public,created_at,updated_at"
+            )
+            .eq(
+                "telegram_id",
+                id
+            )
+            .maybeSingle();
+
+
+    if (existingError) {
+        throw existingError;
+    }
+
+
+    if (existing) {
+        return existing;
+    }
+
+
     const {
         data,
         error
@@ -943,16 +978,9 @@ async function ensureSellerProfile(
             .from(
                 "seller_profiles"
             )
-            .upsert(
+            .insert(
                 {
-                    telegram_id:
-                        Number(
-                            telegramId
-                        )
-                },
-                {
-                    onConflict:
-                        "telegram_id"
+                    telegram_id:id
                 }
             )
             .select(
@@ -961,8 +989,41 @@ async function ensureSellerProfile(
             .single();
 
 
-    if (error) {
+    if (
+        error &&
+        error.code === "23505"
+    ) {
 
+        const {
+            data:racedProfile,
+            error:racedError
+        } =
+            await supabase
+                .from(
+                    "seller_profiles"
+                )
+                .select(
+                    "id,telegram_id,bio,is_public,created_at,updated_at"
+                )
+                .eq(
+                    "telegram_id",
+                    id
+                )
+                .maybeSingle();
+
+
+        if (racedError) {
+            throw racedError;
+        }
+
+
+        if (racedProfile) {
+            return racedProfile;
+        }
+    }
+
+
+    if (error) {
         throw error;
     }
 
@@ -1011,12 +1072,16 @@ async function getDatabaseUser(
         result.user;
 
 
+    const telegramId =
+        Number(
+            tgUser.id
+        );
+
+
     const userRecord = {
 
         telegram_id:
-            Number(
-                tgUser.id
-            ),
+            telegramId,
 
         first_name:
             tgUser.first_name ||
@@ -1043,37 +1108,168 @@ async function getDatabaseUser(
     };
 
 
-    const {
+    let {
         data,
         error
     } =
         await supabase
             .from("users")
-            .upsert(
-                userRecord,
-                {
-                    onConflict:
-                        "telegram_id"
-                }
+            .select("*")
+            .eq(
+                "telegram_id",
+                telegramId
             )
-            .select()
-            .single();
+            .maybeSingle();
 
 
     if (error) {
 
         console.error(
-            "User DB error:",
+            "User DB lookup error:",
             error
         );
 
 
         return {
-            ok: false,
-            status: 500,
-            error:
-                "database_error"
+            ok:false,
+            status:500,
+            error:"database_error"
         };
+    }
+
+
+    if (!data) {
+
+        const created =
+            await supabase
+                .from("users")
+                .insert(
+                    userRecord
+                )
+                .select()
+                .single();
+
+
+        if (created.error) {
+
+            console.error(
+                "User DB create error:",
+                created.error
+            );
+
+
+            return {
+                ok:false,
+                status:500,
+                error:"database_error"
+            };
+        }
+
+
+        data =
+            created.data;
+
+    } else {
+
+        const lastSeenMs =
+            data.last_seen_at
+                ? new Date(
+                    data.last_seen_at
+                ).getTime()
+                : 0;
+
+
+        const identityChanged =
+            String(
+                data.first_name ||
+                ""
+            ) !==
+                String(
+                    userRecord.first_name ||
+                    ""
+                ) ||
+            String(
+                data.last_name ||
+                ""
+            ) !==
+                String(
+                    userRecord.last_name ||
+                    ""
+                ) ||
+            String(
+                data.telegram_username ||
+                ""
+            ) !==
+                String(
+                    userRecord.telegram_username ||
+                    ""
+                ) ||
+            String(
+                data.language_code ||
+                ""
+            ) !==
+                String(
+                    userRecord.language_code ||
+                    ""
+                ) ||
+            String(
+                data.photo_url ||
+                ""
+            ) !==
+                String(
+                    userRecord.photo_url ||
+                    ""
+                );
+
+
+        const stalePresence =
+            !Number.isFinite(
+                lastSeenMs
+            ) ||
+            lastSeenMs <= 0 ||
+            Date.now() -
+                lastSeenMs >=
+                2 * 60 * 1000;
+
+
+        if (
+            identityChanged ||
+            stalePresence
+        ) {
+
+            const updated =
+                await supabase
+                    .from("users")
+                    .update(
+                        userRecord
+                    )
+                    .eq(
+                        "telegram_id",
+                        telegramId
+                    )
+                    .select()
+                    .single();
+
+
+            if (updated.error) {
+
+                console.error(
+                    "User DB update error:",
+                    updated.error
+                );
+
+
+                return {
+                    ok:false,
+                    status:500,
+                    error:"database_error"
+                };
+            }
+
+
+            data =
+                updated.data;
+        }
     }
 
 
@@ -1086,30 +1282,6 @@ async function getDatabaseUser(
             status: 403,
             error:
                 "account_blocked"
-        };
-    }
-
-
-    try {
-
-        data.seller_profile =
-            await ensureSellerProfile(
-                data.telegram_id
-            );
-
-    } catch (error) {
-
-        console.error(
-            "Seller profile ensure error:",
-            error
-        );
-
-
-        return {
-            ok: false,
-            status: 500,
-            error:
-                "seller_profile_error"
         };
     }
 
@@ -7939,6 +8111,26 @@ app.post(
         }
 
 
+        try {
+            auth.user.seller_profile =
+                await ensureSellerProfile(
+                    auth.user.telegram_id
+                );
+        } catch (error) {
+            console.error(
+                "Seller profile ensure error:",
+                error
+            );
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"seller_profile_error"
+                });
+        }
+
+
         let referral =
             null;
 
@@ -9470,6 +9662,24 @@ app.post(
         }
 
 
+        let sellerProfile;
+
+
+        try {
+            sellerProfile =
+                await ensureSellerProfile(
+                    auth.user.telegram_id
+                );
+        } catch (error) {
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"seller_profile_error"
+                });
+        }
+
+
         const {
             data,
             error
@@ -9574,9 +9784,7 @@ app.post(
                 ok: true,
 
                 seller_profile_id:
-                    auth.user
-                        .seller_profile
-                        ?.id ||
+                    sellerProfile?.id ||
                     null,
 
                 renewal_price_usd:
@@ -12045,6 +12253,289 @@ app.post(
    CONTACT
    ========================================================= */
 
+/* =========================================================
+   V72 BATCH CONTACT ACCESS STATE
+   One authenticated request replaces one request per card.
+   ========================================================= */
+
+app.post(
+    "/listing-contacts/state",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+
+        if (!auth.ok) {
+            return res
+                .status(
+                    auth.status
+                )
+                .json({
+                    ok:false,
+                    error:auth.error
+                });
+        }
+
+
+        const listingIds = [
+            ...new Set(
+                (
+                    Array.isArray(
+                        req.body.listing_ids
+                    )
+                        ? req.body.listing_ids
+                        : []
+                )
+                    .map(
+                        value =>
+                            String(
+                                value ||
+                                ""
+                            ).trim()
+                    )
+                    .filter(
+                        value =>
+                            /^[0-9a-fA-F-]{36}$/.test(
+                                value
+                            )
+                    )
+            )
+        ].slice(
+            0,
+            48
+        );
+
+
+        if (!listingIds.length) {
+            return res.json({
+                ok:true,
+                states:[]
+            });
+        }
+
+
+        const {
+            data:listings,
+            error:listingsError
+        } =
+            await supabase
+                .from("listings")
+                .select(
+                    "id,seller_telegram_id,status,is_paused,is_frozen,listing_plan,listing_expires_at"
+                )
+                .in(
+                    "id",
+                    listingIds
+                );
+
+
+        if (listingsError) {
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"contact_state_load_failed"
+                });
+        }
+
+
+        const buyerId =
+            Number(
+                auth.user.telegram_id
+            );
+
+
+        const {
+            data:unlockRows,
+            error:unlockError
+        } =
+            await supabase
+                .from(
+                    "contact_unlocks"
+                )
+                .select(
+                    "listing_id"
+                )
+                .eq(
+                    "buyer_telegram_id",
+                    buyerId
+                )
+                .eq(
+                    "status",
+                    "paid"
+                )
+                .in(
+                    "listing_id",
+                    listingIds
+                );
+
+
+        if (unlockError) {
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"contact_state_load_failed"
+                });
+        }
+
+
+        const paidSet =
+            new Set(
+                (
+                    unlockRows ||
+                    []
+                ).map(
+                    row =>
+                        String(
+                            row.listing_id
+                        )
+                )
+            );
+
+
+        const accessibleIds =
+            (
+                listings ||
+                []
+            )
+                .filter(
+                    listing =>
+                        Number(
+                            listing.seller_telegram_id
+                        ) === buyerId ||
+                        paidSet.has(
+                            String(
+                                listing.id
+                            )
+                        )
+                )
+                .map(
+                    listing =>
+                        listing.id
+                );
+
+
+        let contacts = [];
+
+
+        if (accessibleIds.length) {
+            const {
+                data,
+                error
+            } =
+                await supabase
+                    .from(
+                        "listing_contacts"
+                    )
+                    .select(
+                        "listing_id,contact_type,contact_value"
+                    )
+                    .in(
+                        "listing_id",
+                        accessibleIds
+                    );
+
+
+            if (error) {
+                return res
+                    .status(500)
+                    .json({
+                        ok:false,
+                        error:"contact_state_load_failed"
+                    });
+            }
+
+
+            contacts =
+                data ||
+                [];
+        }
+
+
+        const contactMap =
+            new Map(
+                contacts.map(
+                    row => [
+                        String(
+                            row.listing_id
+                        ),
+                        row
+                    ]
+                )
+            );
+
+
+        const states =
+            (
+                listings ||
+                []
+            ).map(
+                listing => {
+
+                    const owner =
+                        Number(
+                            listing.seller_telegram_id
+                        ) === buyerId;
+
+
+                    const unlocked =
+                        owner ||
+                        paidSet.has(
+                            String(
+                                listing.id
+                            )
+                        );
+
+
+                    const contact =
+                        unlocked
+                            ? contactMap.get(
+                                String(
+                                    listing.id
+                                )
+                            ) || null
+                            : null;
+
+
+                    const contactsBundle =
+                        contact
+                            ? decodeContactBundle(
+                                contact.contact_type,
+                                contact.contact_value
+                            )
+                            : null;
+
+
+                    return {
+                        listing_id:
+                            listing.id,
+                        unlocked,
+                        owner,
+                        contacts:
+                            contactsBundle,
+                        contact:
+                            contactsBundle
+                                ? firstContactFromBundle(
+                                    contactsBundle
+                                )
+                                : null
+                    };
+                }
+            );
+
+
+        return res.json({
+            ok:true,
+            states
+        });
+    }
+);
+
+
 app.post(
     "/listing-contact",
     async (req, res) => {
@@ -13077,7 +13568,7 @@ app.get(
                 await supabase
                     .from("users")
                     .select(
-                        "telegram_id,first_name,telegram_username"
+                        "telegram_id,first_name"
                     )
                     .in(
                         "telegram_id",
@@ -13150,15 +13641,39 @@ app.get(
                     ).map(
                         row => ({
 
-                            ...row,
+                            id:
+                                row.id,
 
-                            buyer:
-                                map.get(
-                                    String(
-                                        row.buyer_telegram_id
-                                    )
-                                ) ||
-                                null,
+                            desired_username:
+                                row.desired_username,
+
+                            budget:
+                                row.budget,
+
+                            currency:
+                                row.currency,
+
+                            category:
+                                row.category,
+
+                            description:
+                                row.description,
+
+                            status:
+                                row.status,
+
+                            created_at:
+                                row.created_at,
+
+                            buyer:{
+                                first_name:
+                                    map.get(
+                                        String(
+                                            row.buyer_telegram_id
+                                        )
+                                    )?.first_name ||
+                                    "Buyer"
+                            },
 
                             contact_methods:(() => {
                                 const c =
@@ -29206,61 +29721,70 @@ app.post(
                         order.status
                     )
                 ) {
-
                     return;
                 }
 
 
-                const valid =
-                    payerId ===
-                    Number(
-                        order.seller_telegram_id
-                    )
-                    &&
-                    payment.currency ===
-                    "XTR"
-                    &&
-                    Number(
-                        payment.total_amount
-                    ) ===
-                    Number(
+                if (
+                    !successfulStarsPaymentMatches(
+                        payment,
+                        payerId,
+                        order.seller_telegram_id,
                         order.amount_stars
-                    );
-
-
-                if (!valid) {
-
+                    )
+                ) {
                     return;
                 }
 
 
-                await supabase
-                    .from(
-                        "listing_renewal_orders"
-                    )
-                    .update(
-                        {
-                            status:
-                                "paid",
-
-                            telegram_payment_charge_id:
-                                chargeId,
-
-                            paid_at:
-                                nowIso()
-                        }
-                    )
-                    .eq(
-                        "id",
+                if (
+                    !await claimPaymentFulfillment(
+                        "renewal",
                         order.id
-                    );
+                    )
+                ) {
+                    return;
+                }
+
+
+                const paidAt =
+                    order.paid_at ||
+                    nowIso();
+
+
+                let listingUpdated =
+                    false;
 
 
                 try {
+                    const {
+                        error:paidError
+                    } =
+                        await supabase
+                            .from(
+                                "listing_renewal_orders"
+                            )
+                            .update({
+                                status:"paid",
+                                telegram_payment_charge_id:
+                                    chargeId,
+                                paid_at:
+                                    paidAt
+                            })
+                            .eq(
+                                "id",
+                                order.id
+                            );
+
+
+                    if (paidError) {
+                        throw paidError;
+                    }
+
 
                     const {
-                        data:
-                            listing
+                        data:listing,
+                        error:listingError
                     } =
                         await supabase
                             .from("listings")
@@ -29272,6 +29796,11 @@ app.post(
                                 order.listing_id
                             )
                             .maybeSingle();
+
+
+                    if (listingError) {
+                        throw listingError;
+                    }
 
 
                     if (
@@ -29295,7 +29824,6 @@ app.post(
                             listing
                         )
                     ) {
-
                         throw new Error(
                             "listing_not_renewable"
                         );
@@ -29317,9 +29845,14 @@ app.post(
                             last_renewed_at:
                                 listing.last_renewed_at ?? null,
                             renewal_count:
-                                Number(listing.renewal_count || 0),
+                                Number(
+                                    listing.renewal_count ||
+                                    0
+                                ),
                             is_paused:
-                                Boolean(listing.is_paused),
+                                Boolean(
+                                    listing.is_paused
+                                ),
                             listing_expiry_1h_notified_at:
                                 listing.listing_expiry_1h_notified_at ?? null,
                             listing_expired_notified_at:
@@ -29340,122 +29873,127 @@ app.post(
 
 
                     const {
-                        error:
-                            updateError
+                        error:updateError
                     } =
                         await supabase
                             .from("listings")
-                            .update(
-                                {
-                                    listing_plan:
-                                        "paid",
-
-                                    listing_period_started_at:
-                                        startedAt,
-
-                                    listing_expires_at:
-                                        expiresAt,
-
-                                    last_renewed_at:
-                                        startedAt,
-
-                                    renewal_count:
-                                        Number(
-                                            listing.renewal_count ||
-                                            0
-                                        ) + 1,
-
-                                    is_paused:
-                                        false,
-
-                                    listing_expiry_1h_notified_at:
-                                        null,
-
-                                    listing_expired_notified_at:
-                                        null,
-
-                                    updated_at:
-                                        nowIso()
-                                }
-                            )
+                            .update({
+                                listing_plan:"paid",
+                                listing_period_started_at:
+                                    startedAt,
+                                listing_expires_at:
+                                    expiresAt,
+                                last_renewed_at:
+                                    startedAt,
+                                renewal_count:
+                                    Number(
+                                        listing.renewal_count ||
+                                        0
+                                    ) + 1,
+                                is_paused:false,
+                                listing_expiry_1h_notified_at:null,
+                                listing_expired_notified_at:null,
+                                updated_at:nowIso()
+                            })
                             .eq(
                                 "id",
                                 listing.id
                             );
 
 
-                    if (
-                        updateError
-                    ) {
-
+                    if (updateError) {
                         throw updateError;
                     }
 
 
-                    await supabase
-                        .from(
-                            "listing_renewal_orders"
-                        )
-                        .update(
-                            {
-                                status:
-                                    "completed",
+                    listingUpdated =
+                        true;
 
-                                completed_at:
-                                    nowIso()
-                            }
-                        )
-                        .eq(
-                            "id",
-                            order.id
-                        );
+
+                    const {
+                        error:completedError
+                    } =
+                        await supabase
+                            .from(
+                                "listing_renewal_orders"
+                            )
+                            .update({
+                                status:"completed",
+                                completed_at:nowIso()
+                            })
+                            .eq(
+                                "id",
+                                order.id
+                            );
+
+
+                    if (completedError) {
+                        throw completedError;
+                    }
 
 
                     await safeSendMessage(
-
                         listing.seller_telegram_id,
-
                         `✅ @${listing.whatsapp_username} was renewed successfully.\n\nYour listing is active for another ${PAID_LISTING_DURATION_DAYS} days.`
                     );
 
                 } catch (error) {
-
                     console.error(
                         "Renewal fulfillment failed:",
                         error
                     );
 
 
-                    try {
+                    await logSystemError(
+                        "renewal_fulfillment",
+                        error,
+                        {
+                            order_id:order.id
+                        }
+                    );
 
+
+                    try {
                         await refundStars(
                             payerId,
                             chargeId
                         );
 
 
-                        await supabase
-                            .from(
-                                "listing_renewal_orders"
-                            )
-                            .update(
-                                {
-                                    status:
-                                        "refunded"
-                                }
-                            )
-                            .eq(
-                                "id",
-                                order.id
+                        const rollbackPayment = {
+                            payment_type:"renewal",
+                            telegram_payment_charge_id:
+                                chargeId,
+                            paid_at:paidAt
+                        };
+
+
+                        if (listingUpdated) {
+                            await v70RollbackStarsService(
+                                rollbackPayment,
+                                order
                             );
+                        } else {
+                            await v70MarkSourceOrderRefunded(
+                                rollbackPayment,
+                                order
+                            );
+                        }
 
-                    } catch (
-                        refundError
-                    ) {
-
+                    } catch (refundError) {
                         console.error(
-                            "Renewal refund failed:",
-                            refundError.message
+                            "Renewal refund/recovery failed:",
+                            refundError?.message ||
+                            refundError
+                        );
+
+
+                        await logSystemError(
+                            "renewal_refund_recovery",
+                            refundError,
+                            {
+                                order_id:order.id
+                            }
                         );
                     }
                 }
@@ -29476,8 +30014,7 @@ app.post(
             ) {
 
                 const {
-                    data:
-                        order
+                    data:order
                 } =
                     await supabase
                         .from(
@@ -29491,8 +30028,11 @@ app.post(
                         .maybeSingle();
 
 
-                if (!order) {
-
+                if (
+                    !order ||
+                    order.status !==
+                        "pending"
+                ) {
                     return;
                 }
 
@@ -29519,26 +30059,74 @@ app.post(
                 }
 
 
-                await supabase
-                    .from(
-                        "contact_unlocks"
-                    )
-                    .update(
-                        {
-                            status:
-                                "paid",
+                const paidAt =
+                    nowIso();
 
+
+                const {
+                    error:updateError
+                } =
+                    await supabase
+                        .from(
+                            "contact_unlocks"
+                        )
+                        .update({
+                            status:"paid",
                             telegram_payment_charge_id:
                                 chargeId,
-
                             paid_at:
-                                nowIso()
+                                paidAt
+                        })
+                        .eq(
+                            "id",
+                            order.id
+                        )
+                        .eq(
+                            "status",
+                            "pending"
+                        );
+
+
+                if (updateError) {
+                    await logSystemError(
+                        "contact_fulfillment",
+                        updateError,
+                        {
+                            order_id:order.id
                         }
-                    )
-                    .eq(
-                        "id",
-                        order.id
                     );
+
+
+                    try {
+                        await refundStars(
+                            payerId,
+                            chargeId
+                        );
+
+
+                        await v70MarkSourceOrderRefunded(
+                            {
+                                payment_type:"contact",
+                                telegram_payment_charge_id:
+                                    chargeId,
+                                paid_at:paidAt
+                            },
+                            {
+                                ...order,
+                                telegram_payment_charge_id:
+                                    chargeId
+                            }
+                        );
+                    } catch (refundError) {
+                        await logSystemError(
+                            "contact_refund_recovery",
+                            refundError,
+                            {
+                                order_id:order.id
+                            }
+                        );
+                    }
+                }
 
 
                 return;
@@ -29556,8 +30144,7 @@ app.post(
             ) {
 
                 const {
-                    data:
-                        order
+                    data:order
                 } =
                     await supabase
                         .from(
@@ -29580,7 +30167,6 @@ app.post(
                         order.status
                     )
                 ) {
-
                     return;
                 }
 
@@ -29611,75 +30197,172 @@ app.post(
                     order.id;
 
 
-                await supabase
-                    .from(
-                        "wanted_requests"
-                    )
-                    .insert(
+                const paidAt =
+                    order.paid_at ||
+                    nowIso();
+
+
+                try {
+                    const {
+                        error:paidError
+                    } =
+                        await supabase
+                            .from(
+                                "wanted_payment_orders"
+                            )
+                            .update({
+                                status:"paid",
+                                telegram_payment_charge_id:
+                                    chargeId,
+                                paid_at:paidAt
+                            })
+                            .eq(
+                                "id",
+                                order.id
+                            );
+
+
+                    if (paidError) {
+                        throw paidError;
+                    }
+
+
+                    const {
+                        data:existingWanted,
+                        error:existingError
+                    } =
+                        await supabase
+                            .from(
+                                "wanted_requests"
+                            )
+                            .select(
+                                "id"
+                            )
+                            .eq(
+                                "id",
+                                wantedId
+                            )
+                            .maybeSingle();
+
+
+                    if (existingError) {
+                        throw existingError;
+                    }
+
+
+                    if (!existingWanted) {
+                        const {
+                            error:insertError
+                        } =
+                            await supabase
+                                .from(
+                                    "wanted_requests"
+                                )
+                                .insert({
+                                    id:wantedId,
+                                    buyer_telegram_id:
+                                        order.buyer_telegram_id,
+                                    desired_username:
+                                        order.desired_username,
+                                    budget:
+                                        order.budget,
+                                    currency:"USD",
+                                    category:
+                                        normalizeCategory(
+                                            order.category
+                                        ),
+                                    description:
+                                        order.description,
+                                    status:"active"
+                                });
+
+
+                        if (insertError) {
+                            throw insertError;
+                        }
+                    }
+
+
+                    const {
+                        error:completedError
+                    } =
+                        await supabase
+                            .from(
+                                "wanted_payment_orders"
+                            )
+                            .update({
+                                status:"completed",
+                                wanted_post_id:wantedId,
+                                telegram_payment_charge_id:
+                                    chargeId,
+                                paid_at:paidAt,
+                                completed_at:nowIso()
+                            })
+                            .eq(
+                                "id",
+                                order.id
+                            );
+
+
+                    if (completedError) {
+                        throw completedError;
+                    }
+
+
+                    await safeSendMessage(
+                        order.buyer_telegram_id,
+                        `✅ Wanted request for @${order.desired_username} is now live.`
+                    );
+
+                } catch (error) {
+                    console.error(
+                        "Wanted fulfillment failed:",
+                        error
+                    );
+
+
+                    await logSystemError(
+                        "wanted_fulfillment",
+                        error,
                         {
-                            id:
-                                wantedId,
-
-                            buyer_telegram_id:
-                                order.buyer_telegram_id,
-
-                            desired_username:
-                                order.desired_username,
-
-                            budget:
-                                order.budget,
-
-                            currency:
-                                "USD",
-
-                            category:
-                                normalizeCategory(
-                                    order.category
-                                ),
-
-                            description:
-                                order.description,
-
-                            status:
-                                "active"
+                            order_id:order.id
                         }
                     );
 
 
-                await supabase
-                    .from(
-                        "wanted_payment_orders"
-                    )
-                    .update(
-                        {
-                            status:
-                                "completed",
-
-                            wanted_post_id:
-                                wantedId,
-
-                            telegram_payment_charge_id:
-                                chargeId,
-
-                            paid_at:
-                                nowIso(),
-
-                            completed_at:
-                                nowIso()
-                        }
-                    )
-                    .eq(
-                        "id",
-                        order.id
-                    );
+                    try {
+                        await refundStars(
+                            payerId,
+                            chargeId
+                        );
 
 
-                await safeSendMessage(
+                        await v70RollbackStarsService(
+                            {
+                                payment_type:"wanted",
+                                telegram_payment_charge_id:
+                                    chargeId,
+                                paid_at:paidAt
+                            },
+                            {
+                                ...order,
+                                telegram_payment_charge_id:
+                                    chargeId,
+                                wanted_post_id:
+                                    wantedId
+                            }
+                        );
 
-                    order.buyer_telegram_id,
-
-                    `✅ Wanted request for @${order.desired_username} is now live.`
-                );
+                    } catch (refundError) {
+                        await logSystemError(
+                            "wanted_refund_recovery",
+                            refundError,
+                            {
+                                order_id:order.id
+                            }
+                        );
+                    }
+                }
 
 
                 return;
@@ -29697,8 +30380,7 @@ app.post(
             ) {
 
                 const {
-                    data:
-                        order
+                    data:order
                 } =
                     await supabase
                         .from(
@@ -29721,7 +30403,6 @@ app.post(
                         order.status
                     )
                 ) {
-
                     return;
                 }
 
@@ -29748,159 +30429,253 @@ app.post(
                 }
 
 
-                const {
-                    data:
-                        listing
-                } =
-                    await supabase
-                        .from("listings")
-                        .select(
-                            "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,bump_expiry_1h_notified_at,hot_expiry_1h_notified_at,vip_expiry_1h_notified_at,bump_expired_notified_at,hot_expired_notified_at,vip_expired_notified_at"
-                        )
-                        .eq(
-                            "id",
-                            order.listing_id
-                        )
-                        .maybeSingle();
+                const paidAt =
+                    order.paid_at ||
+                    nowIso();
 
 
-                if (!listing) {
-
-                    return;
-                }
+                let promotionUpdated =
+                    false;
 
 
-                const eligibility =
-                    calculatePromotionUntil(
-                        listing,
-                        order.promotion_type,
-                        Number(
-                            order.duration_hours
-                        )
-                    );
+                try {
+                    const {
+                        error:paidError
+                    } =
+                        await supabase
+                            .from(
+                                "promotion_payment_orders"
+                            )
+                            .update({
+                                status:"paid",
+                                telegram_payment_charge_id:
+                                    chargeId,
+                                paid_at:paidAt
+                            })
+                            .eq(
+                                "id",
+                                order.id
+                            );
 
 
-                if (
-                    !eligibility.ok
-                ) {
-
-                    return;
-                }
-
-
-                const type =
-                    order.promotion_type;
-
-
-                const untilField =
-                    `${type}_until`;
-
-
-                const promotedAtField =
-                    `${type}_promoted_at`;
-
-
-                const hourField =
-                    `${type}_expiry_1h_notified_at`;
-
-
-                const expiredField =
-                    `${type}_expired_notified_at`;
-
-
-                const appliedUntil =
-                    eligibility.applied_until;
-
-
-                await v70SaveServiceSnapshot(
-                    "promotion",
-                    order.id,
-                    chargeId,
-                    listing.id,
-                    {
-                        promotion_type:type,
-                        until:
-                            listing[untilField] ?? null,
-                        promoted_at:
-                            listing[promotedAtField] ?? null,
-                        expiry_1h_notified_at:
-                            listing[hourField] ?? null,
-                        expired_notified_at:
-                            listing[expiredField] ?? null
+                    if (paidError) {
+                        throw paidError;
                     }
-                );
 
 
-                await supabase
-                    .from("listings")
-                    .update(
+                    const {
+                        data:listing,
+                        error:listingError
+                    } =
+                        await supabase
+                            .from("listings")
+                            .select(
+                                "id,seller_telegram_id,listing_number,whatsapp_username,status,is_paused,is_frozen,listing_plan,listing_expires_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,bump_expiry_1h_notified_at,hot_expiry_1h_notified_at,vip_expiry_1h_notified_at,bump_expired_notified_at,hot_expired_notified_at,vip_expired_notified_at"
+                            )
+                            .eq(
+                                "id",
+                                order.listing_id
+                            )
+                            .maybeSingle();
+
+
+                    if (listingError) {
+                        throw listingError;
+                    }
+
+
+                    if (!listing) {
+                        throw new Error(
+                            "listing_not_found"
+                        );
+                    }
+
+
+                    const eligibility =
+                        calculatePromotionUntil(
+                            listing,
+                            order.promotion_type,
+                            Number(
+                                order.duration_hours
+                            )
+                        );
+
+
+                    if (!eligibility.ok) {
+                        throw new Error(
+                            "promotion_not_eligible"
+                        );
+                    }
+
+
+                    const type =
+                        order.promotion_type;
+
+                    const untilField =
+                        `${type}_until`;
+
+                    const promotedAtField =
+                        `${type}_promoted_at`;
+
+                    const hourField =
+                        `${type}_expiry_1h_notified_at`;
+
+                    const expiredField =
+                        `${type}_expired_notified_at`;
+
+                    const appliedUntil =
+                        eligibility.applied_until;
+
+
+                    await v70SaveServiceSnapshot(
+                        "promotion",
+                        order.id,
+                        chargeId,
+                        listing.id,
                         {
-                            [untilField]:
-                                appliedUntil,
-
-                            [promotedAtField]:
-                                nowIso(),
-
-                            [hourField]:
-                                null,
-
-                            [expiredField]:
-                                null,
-
-                            updated_at:
-                                nowIso()
+                            promotion_type:type,
+                            until:
+                                listing[untilField] ?? null,
+                            promoted_at:
+                                listing[promotedAtField] ?? null,
+                            expiry_1h_notified_at:
+                                listing[hourField] ?? null,
+                            expired_notified_at:
+                                listing[expiredField] ?? null
                         }
-                    )
-                    .eq(
-                        "id",
-                        order.listing_id
                     );
 
 
-                await supabase
-                    .from(
-                        "promotion_payment_orders"
-                    )
-                    .update(
-                        {
-                            status:
-                                "completed",
+                    const {
+                        error:updateError
+                    } =
+                        await supabase
+                            .from("listings")
+                            .update({
+                                [untilField]:
+                                    appliedUntil,
+                                [promotedAtField]:
+                                    nowIso(),
+                                [hourField]:null,
+                                [expiredField]:null,
+                                updated_at:nowIso()
+                            })
+                            .eq(
+                                "id",
+                                order.listing_id
+                            );
 
+
+                    if (updateError) {
+                        throw updateError;
+                    }
+
+
+                    promotionUpdated =
+                        true;
+
+
+                    const {
+                        error:completedError
+                    } =
+                        await supabase
+                            .from(
+                                "promotion_payment_orders"
+                            )
+                            .update({
+                                status:"completed",
+                                telegram_payment_charge_id:
+                                    chargeId,
+                                paid_at:paidAt,
+                                applied_until:
+                                    appliedUntil,
+                                completed_at:nowIso()
+                            })
+                            .eq(
+                                "id",
+                                order.id
+                            );
+
+
+                    if (completedError) {
+                        throw completedError;
+                    }
+
+
+                    const label =
+                        type === "vip"
+                            ? "💎 VIP"
+                            : type === "hot"
+                                ? "🔥 HOT"
+                                : "⬆️ Bump";
+
+
+                    await safeSendMessage(
+                        order.seller_telegram_id,
+                        `${label} promotion activated for @${listing.whatsapp_username}.\n\nActive until: ${new Date(appliedUntil).toUTCString()}`
+                    );
+
+                } catch (error) {
+                    console.error(
+                        "Promotion fulfillment failed:",
+                        error
+                    );
+
+
+                    await logSystemError(
+                        "promotion_fulfillment",
+                        error,
+                        {
+                            order_id:order.id
+                        }
+                    );
+
+
+                    try {
+                        await refundStars(
+                            payerId,
+                            chargeId
+                        );
+
+
+                        const rollbackPayment = {
+                            payment_type:"promotion",
                             telegram_payment_charge_id:
                                 chargeId,
+                            paid_at:paidAt
+                        };
 
-                            paid_at:
-                                nowIso(),
 
-                            applied_until:
-                                appliedUntil,
-
-                            completed_at:
-                                nowIso()
+                        if (promotionUpdated) {
+                            await v70RollbackStarsService(
+                                rollbackPayment,
+                                {
+                                    ...order,
+                                    telegram_payment_charge_id:
+                                        chargeId
+                                }
+                            );
+                        } else {
+                            await v70MarkSourceOrderRefunded(
+                                rollbackPayment,
+                                {
+                                    ...order,
+                                    telegram_payment_charge_id:
+                                        chargeId
+                                }
+                            );
                         }
-                    )
-                    .eq(
-                        "id",
-                        order.id
-                    );
 
-
-                const label =
-                    type ===
-                    "vip"
-                        ? "💎 VIP"
-                        : type ===
-                        "hot"
-                            ? "🔥 HOT"
-                            : "⬆️ Bump";
-
-
-                await safeSendMessage(
-
-                    order.seller_telegram_id,
-
-                    `${label} promotion activated for @${listing.whatsapp_username}.\n\nActive until: ${new Date(appliedUntil).toUTCString()}`
-                );
+                    } catch (refundError) {
+                        await logSystemError(
+                            "promotion_refund_recovery",
+                            refundError,
+                            {
+                                order_id:order.id
+                            }
+                        );
+                    }
+                }
 
 
                 return;
@@ -34078,7 +34853,9 @@ async function v70SaveServiceSnapshot(
             paymentType
         )
     ) {
-        return;
+        throw new Error(
+            "invalid_payment_snapshot"
+        );
     }
 
     try {
@@ -34125,7 +34902,12 @@ async function v70SaveServiceSnapshot(
                     orderId || null
             }
         );
+
+        throw error;
     }
+
+
+    return true;
 }
 
 
@@ -34629,6 +35411,114 @@ async function v70RefundPreflight(
                 "refund_payment_not_current"
         };
     }
+
+    if (
+        payment.payment_type ===
+        "listing"
+    ) {
+        const listingId =
+            order.listing_id ||
+            order.id;
+
+
+        const [
+            renewalsResult,
+            promotionsResult,
+            unlocksResult
+        ] =
+            await Promise.all([
+                supabase
+                    .from(
+                        "listing_renewal_orders"
+                    )
+                    .select(
+                        "id"
+                    )
+                    .eq(
+                        "listing_id",
+                        listingId
+                    )
+                    .in(
+                        "status",
+                        ["paid","completed"]
+                    )
+                    .not(
+                        "telegram_payment_charge_id",
+                        "is",
+                        null
+                    )
+                    .limit(1),
+
+                supabase
+                    .from(
+                        "promotion_payment_orders"
+                    )
+                    .select(
+                        "id"
+                    )
+                    .eq(
+                        "listing_id",
+                        listingId
+                    )
+                    .in(
+                        "status",
+                        ["paid","completed"]
+                    )
+                    .not(
+                        "telegram_payment_charge_id",
+                        "is",
+                        null
+                    )
+                    .limit(1),
+
+                supabase
+                    .from(
+                        "contact_unlocks"
+                    )
+                    .select(
+                        "id"
+                    )
+                    .eq(
+                        "listing_id",
+                        listingId
+                    )
+                    .eq(
+                        "status",
+                        "paid"
+                    )
+                    .not(
+                        "telegram_payment_charge_id",
+                        "is",
+                        null
+                    )
+                    .limit(1)
+            ]);
+
+
+        const dependencyError =
+            renewalsResult.error ||
+            promotionsResult.error ||
+            unlocksResult.error;
+
+
+        if (dependencyError) {
+            throw dependencyError;
+        }
+
+
+        if (
+            renewalsResult.data?.length ||
+            promotionsResult.data?.length ||
+            unlocksResult.data?.length
+        ) {
+            return {
+                ok:false,
+                error:
+                    "refund_dependent_payments_first"
+            };
+        }
+    }
+
 
     if (
         payment.payment_type ===

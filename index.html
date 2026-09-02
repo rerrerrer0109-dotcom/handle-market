@@ -1,3 +1,4 @@
+<!-- Handle Market v72 — Final Payment, Privacy & Performance Hardening -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15155,52 +15156,76 @@ async function checkUnlockedContacts(
         !authenticatedUser ||
         !Array.isArray(
             listings
-        )
+        ) ||
+        !listings.length
     ) {
-
         return;
     }
 
 
-    await Promise.all(
-
-        listings.map(
-
-            async listing => {
-
-                try {
-
-                    const data =
-                        await api(
-                            "/listing-contact",
-                            {
-                                initData:
-                                    tg.initData,
-
-                                listing_id:
-                                    listing.id
-                            }
-                        );
-
-
-                    if (
-                        data.unlocked &&
-                        data.contact
-                    ) {
-
-                        showSellerContact(
-                            listing.id,
-                            data.contacts || data.contact,
-                            Boolean(
-                                data.owner
-                            )
-                        );
-                    }
-
-                } catch {}
-            }
+    const listingIds = [
+        ...new Set(
+            listings
+                .map(
+                    listing =>
+                        String(
+                            listing?.id ||
+                            ""
+                        ).trim()
+                )
+                .filter(Boolean)
         )
+    ].slice(
+        0,
+        48
     );
+
+
+    if (!listingIds.length) {
+        return;
+    }
+
+
+    try {
+        const data =
+            await api(
+                "/listing-contacts/state",
+                {
+                    initData:
+                        tg.initData,
+                    listing_ids:
+                        listingIds
+                }
+            );
+
+
+        for (
+            const state of
+            data.states ||
+            []
+        ) {
+            if (
+                state.unlocked &&
+                state.contact
+            ) {
+                showSellerContact(
+                    state.listing_id,
+                    state.contacts ||
+                        state.contact,
+                    Boolean(
+                        state.owner
+                    )
+                );
+            }
+        }
+
+    } catch (error) {
+        console.warn(
+            "Batch contact state unavailable:",
+            error?.message ||
+            error
+        );
+    }
 }
 
 
@@ -38572,6 +38597,8 @@ function v70StarsFriendlyError(
             "A newer renewal exists. Refund the newer renewal first.",
         refund_newer_promotion_first:
             "A newer promotion of the same type exists. Refund the newer promotion first.",
+        refund_dependent_payments_first:
+            "This listing has newer paid services. Refund its Renewals, Promotions and paid Contact Unlocks first.",
         refund_telegram_failed:
             "Telegram did not complete the Stars refund. No service was revoked.",
         refund_service_rollback_failed:
