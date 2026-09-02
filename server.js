@@ -1112,6 +1112,308 @@ async function v78ClaimProvisionalSellerForUser(
 }
 
 
+function v781NormalizeTelegramUsername(
+    value
+) {
+
+    return String(
+        value ||
+        ""
+    )
+        .trim()
+        .replace(
+            /^@+/,
+            ""
+        );
+}
+
+
+function v781EscapeIlikePattern(
+    value
+) {
+
+    return String(
+        value ||
+        ""
+    ).replace(
+        /[\\%_]/g,
+        "\\$&"
+    );
+}
+
+
+async function v781FindSellerRowsByUsername(
+    username
+) {
+
+    const normalized =
+        v781NormalizeTelegramUsername(
+            username
+        );
+
+
+    if (
+        !/^[A-Za-z0-9_]{1,64}$/.test(
+            normalized
+        )
+    ) {
+
+        const error =
+            new Error(
+                "invalid_seller_telegram_username"
+            );
+
+        error.code =
+            "invalid_seller_telegram_username";
+
+        throw error;
+    }
+
+
+    const {
+        data,
+        error
+    } =
+        await supabase
+            .from("users")
+            .select(
+                "telegram_id,first_name,last_name,telegram_username,free_listing_used,free_listing_used_at,is_provisional"
+            )
+            .ilike(
+                "telegram_username",
+                v781EscapeIlikePattern(
+                    normalized
+                )
+            )
+            .limit(25);
+
+
+    if (error) {
+        throw error;
+    }
+
+
+    const exact =
+        (
+            data ||
+            []
+        ).filter(
+            row =>
+                String(
+                    row.telegram_username ||
+                    ""
+                ).toLowerCase() ===
+                normalized.toLowerCase()
+        );
+
+
+    const real =
+        exact.filter(
+            row =>
+                !Boolean(
+                    row.is_provisional
+                )
+        );
+
+
+    const provisional =
+        exact.filter(
+            row =>
+                Boolean(
+                    row.is_provisional
+                )
+        );
+
+
+    if (
+        real.length > 1
+    ) {
+
+        const error =
+            new Error(
+                "seller_username_ambiguous"
+            );
+
+        error.code =
+            "seller_username_ambiguous";
+
+        throw error;
+    }
+
+
+    return {
+        username:
+            normalized,
+        real,
+        provisional
+    };
+}
+
+
+async function v781ResolveOrCreateAdminSellerByUsername(
+    username
+) {
+
+    let found =
+        await v781FindSellerRowsByUsername(
+            username
+        );
+
+
+    if (
+        found.real.length === 1
+    ) {
+
+        return {
+            seller:
+                found.real[0],
+            is_provisional:
+                false
+        };
+    }
+
+
+    if (
+        found.provisional.length
+    ) {
+
+        return {
+            seller:
+                found.provisional[0],
+            is_provisional:
+                true
+        };
+    }
+
+
+    for (
+        let attempt = 0;
+        attempt < 8;
+        attempt += 1
+    ) {
+
+        /*
+         * Telegram documents user/chat identifiers as fitting within 52 bits.
+         * This synthetic positive range stays above that while remaining below
+         * Number.MAX_SAFE_INTEGER, so existing bigint/JS code can handle it.
+         */
+        const provisionalTelegramId =
+            7000000000000000 +
+            crypto.randomInt(
+                0,
+                250000000000000
+            );
+
+
+        const {
+            data:
+                created,
+            error:
+                createError
+        } =
+            await supabase
+                .from("users")
+                .insert(
+                    {
+                        telegram_id:
+                            provisionalTelegramId,
+                        first_name:
+                            "Pending seller",
+                        last_name:
+                            "",
+                        telegram_username:
+                            found.username,
+                        language_code:
+                            null,
+                        photo_url:
+                            null,
+                        last_seen_at:
+                            nowIso(),
+                        is_provisional:
+                            true
+                    }
+                )
+                .select(
+                    "telegram_id,first_name,last_name,telegram_username,free_listing_used,free_listing_used_at,is_provisional"
+                )
+                .single();
+
+
+        if (
+            !createError &&
+            created
+        ) {
+
+            return {
+                seller:
+                    created,
+                is_provisional:
+                    true
+            };
+        }
+
+
+        if (
+            createError?.code !==
+            "23505"
+        ) {
+
+            throw createError ||
+                new Error(
+                    "provisional_seller_create_failed"
+                );
+        }
+
+
+        /*
+         * A parallel admin request may have created this username first.
+         * Re-read before trying another synthetic ID.
+         */
+        found =
+            await v781FindSellerRowsByUsername(
+                found.username
+            );
+
+
+        if (
+            found.real.length === 1
+        ) {
+
+            return {
+                seller:
+                    found.real[0],
+                is_provisional:
+                    false
+            };
+        }
+
+
+        if (
+            found.provisional.length
+        ) {
+
+            return {
+                seller:
+                    found.provisional[0],
+                is_provisional:
+                    true
+            };
+        }
+    }
+
+
+    const error =
+        new Error(
+            "provisional_seller_create_failed"
+        );
+
+    error.code =
+        "provisional_seller_create_failed";
+
+    throw error;
+}
+
+
 async function getDatabaseUser(
     initData
 ) {
@@ -1436,7 +1738,7 @@ async function getDatabaseUser(
     } catch (error) {
 
         await logSystemError(
-            "v78_provisional_seller_claim",
+            "v78_1_provisional_seller_claim",
             error,
             {
                 telegram_id:
@@ -8223,7 +8525,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v78-unregistered-seller-username"
+                    "v78.1-admin-username-fix"
             }
         );
     }
@@ -24958,15 +25260,9 @@ app.post(
         } else {
 
             sellerLookupUsername =
-                String(
-                    req.body.seller_telegram_username ||
-                    ""
-                )
-                    .trim()
-                    .replace(
-                        /^@+/,
-                        ""
-                    );
+                v781NormalizeTelegramUsername(
+                    req.body.seller_telegram_username
+                );
 
 
             if (
@@ -24987,124 +25283,71 @@ app.post(
             }
 
 
-            const {
-                data:
-                    resolvedSeller,
-                error:
-                    resolvedSellerError
-            } =
-                await supabase.rpc(
-                    "hm_get_or_create_provisional_seller_v78",
-                    {
-                        p_username:
-                            sellerLookupUsername
-                    }
-                );
+            try {
+
+                const resolvedSeller =
+                    await v781ResolveOrCreateAdminSellerByUsername(
+                        sellerLookupUsername
+                    );
 
 
-            if (
-                resolvedSellerError
-            ) {
+                seller =
+                    resolvedSeller.seller ||
+                    null;
+
+
+                sellerTelegramId =
+                    Number(
+                        seller?.telegram_id ||
+                        0
+                    );
+
+
+                sellerIsProvisional =
+                    Boolean(
+                        resolvedSeller.is_provisional ||
+                        seller?.is_provisional
+                    );
+
+            } catch (error) {
+
+                const code =
+                    error?.code ||
+                    error?.message ||
+                    "provisional_seller_create_failed";
+
 
                 console.error(
-                    "Admin seller resolve by username:",
-                    resolvedSellerError
+                    "Admin seller resolve/create by username:",
+                    error
                 );
-
-
-                return res
-                    .status(500)
-                    .json(
-                        {
-                            ok:false,
-                            error:
-                                "seller_lookup_failed"
-                        }
-                    );
-            }
-
-
-            if (
-                !resolvedSeller?.ok
-            ) {
-
-                const resolveError =
-                    resolvedSeller?.error ||
-                    "seller_lookup_failed";
 
 
                 return res
                     .status(
-                        resolveError ===
+                        code ===
                         "seller_username_ambiguous"
                             ? 409
-                            : 400
+                            : code ===
+                                "invalid_seller_telegram_username"
+                                ? 400
+                                : 500
                     )
                     .json(
                         {
                             ok:false,
                             error:
-                                resolveError
+                                [
+                                    "seller_username_ambiguous",
+                                    "invalid_seller_telegram_username"
+                                ].includes(
+                                    code
+                                )
+                                    ? code
+                                    : "provisional_seller_create_failed"
                         }
                     );
             }
-
-
-            sellerTelegramId =
-                Number(
-                    resolvedSeller.telegram_id ||
-                    0
-                );
-
-
-            sellerIsProvisional =
-                Boolean(
-                    resolvedSeller.is_provisional
-                );
-
-
-            const {
-                data:
-                    sellerByUsername,
-                error:
-                    sellerByUsernameError
-            } =
-                await supabase
-                    .from("users")
-                    .select(
-                        "telegram_id,first_name,last_name,telegram_username,free_listing_used,free_listing_used_at,is_provisional"
-                    )
-                    .eq(
-                        "telegram_id",
-                        sellerTelegramId
-                    )
-                    .maybeSingle();
-
-
-            if (
-                sellerByUsernameError
-            ) {
-
-                console.error(
-                    "Admin resolved seller load:",
-                    sellerByUsernameError
-                );
-
-
-                return res
-                    .status(500)
-                    .json(
-                        {
-                            ok:false,
-                            error:
-                                "seller_lookup_failed"
-                        }
-                    );
-            }
-
-
-            seller =
-                sellerByUsername;
         }
 
 
