@@ -3589,6 +3589,23 @@ button {
     font-weight:900;
 }
 
+.seller-mini-masked-name {
+    margin-top:1px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    color:var(--muted);
+    font-size:8px;
+    font-weight:700;
+}
+
+.seller-masked-name {
+    margin-top:2px;
+    color:var(--muted);
+    font-size:10px;
+    font-weight:700;
+}
+
 .seller-mini-status {
     margin-top:2px;
     color:var(--muted);
@@ -14020,6 +14037,20 @@ function renderListingCard(
                             )}
                         </div>
 
+                        ${
+                            sellerSummary?.masked_name
+
+                                ? `
+                                    <div class="seller-mini-masked-name">
+                                        ${escapeHtml(
+                                            sellerSummary.masked_name
+                                        )}
+                                    </div>
+                                `
+
+                                : ""
+                        }
+
                         <div
                             class="seller-mini-status ${
                                 sellerPresenceIsOnline(
@@ -14821,6 +14852,20 @@ async function openListingPage(
                                         "Seller"
                                     )}
                                 </div>
+
+                                ${
+                                    sellerSummary?.masked_name
+
+                                        ? `
+                                            <div class="seller-mini-masked-name">
+                                                ${escapeHtml(
+                                                    sellerSummary.masked_name
+                                                )}
+                                            </div>
+                                        `
+
+                                        : ""
+                                }
 
                                 <div
                                     class="seller-mini-status ${
@@ -23106,6 +23151,20 @@ function renderSellerProfile(
 
                     </div>
 
+                    ${
+                        profile.masked_name
+
+                            ? `
+                                <div class="seller-masked-name">
+                                    ${escapeHtml(
+                                        profile.masked_name
+                                    )}
+                                </div>
+                            `
+
+                            : ""
+                    }
+
                     <div class="seller-member">
 
                         Member since
@@ -23522,6 +23581,20 @@ async function loadFollowingSellers() {
                                                 "Seller"
                                             )}
                                         </div>
+
+                                        ${
+                                            seller.masked_name
+
+                                                ? `
+                                                    <div class="v42-following-meta">
+                                                        ${escapeHtml(
+                                                            seller.masked_name
+                                                        )}
+                                                    </div>
+                                                `
+
+                                                : ""
+                                        }
 
                                         <div class="v42-following-meta">
                                             ${escapeHtml(presence)}

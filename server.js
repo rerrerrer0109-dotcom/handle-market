@@ -4353,6 +4353,11 @@ async function attachPublicSellerProfiles(
                                         user
                                     ),
 
+                                masked_name:
+                                    maskedSellerTelegramName(
+                                        user
+                                    ),
+
                                 avatar_url:
                                     user?.photo_url ||
                                     null,
@@ -4428,6 +4433,10 @@ async function attachPublicSellerProfiles(
                         display_name:
                             sellerSummary.display_name,
 
+                        masked_name:
+                            sellerSummary.masked_name ||
+                            null,
+
                         avatar_url:
                             sellerSummary.avatar_url,
 
@@ -4462,7 +4471,7 @@ function provisionalSellerAlias(
 
 
     if (!raw) {
-        return "Seller";
+        return "SEL***";
     }
 
 
@@ -4485,11 +4494,14 @@ function provisionalSellerAlias(
             .filter(Boolean);
 
 
+    let base = "";
+
+
     if (
         parts.length >= 2
     ) {
 
-        const initials =
+        base =
             parts
                 .map(
                     part =>
@@ -4499,16 +4511,6 @@ function provisionalSellerAlias(
                 .join("")
                 .slice(0,3)
                 .toUpperCase();
-
-
-        if (
-            initials &&
-            initials.toLowerCase() !==
-                raw.toLowerCase()
-        ) {
-
-            return initials;
-        }
     }
 
 
@@ -4519,30 +4521,130 @@ function provisionalSellerAlias(
         );
 
 
+    if (!base) {
+
+        if (
+            letters.length <= 3
+        ) {
+
+            base =
+                (
+                    letters.charAt(0) ||
+                    "S"
+                ).toUpperCase();
+
+        } else if (
+            letters.length === 4
+        ) {
+
+            base =
+                letters
+                    .slice(0,2)
+                    .toUpperCase();
+
+        } else {
+
+            base =
+                letters
+                    .slice(0,3)
+                    .toUpperCase();
+        }
+    }
+
+
+    return `${base || "S"}***`;
+}
+
+
+function maskSellerNamePart(
+    value
+) {
+
+    const raw =
+        String(
+            value ||
+            ""
+        ).trim();
+
+
+    if (!raw) {
+        return "";
+    }
+
+
+    const chars =
+        Array.from(raw);
+
+
     if (
-        letters.length <= 3
+        chars.length <= 1
     ) {
 
-        return `${(
-            letters.charAt(0) ||
-            "S"
-        ).toUpperCase()}••`;
+        return `${chars[0] || ""}*`;
     }
 
 
     if (
-        letters.length === 4
+        chars.length === 2
     ) {
 
-        return letters
-            .slice(0,2)
-            .toUpperCase();
+        return `${chars[0]}*`;
     }
 
 
-    return letters
-        .slice(0,3)
-        .toUpperCase();
+    if (
+        chars.length === 3
+    ) {
+
+        return `${chars.slice(0,2).join("")}*`;
+    }
+
+
+    if (
+        chars.length === 4
+    ) {
+
+        return `${chars.slice(0,2).join("")}**`;
+    }
+
+
+    return `${chars.slice(0,3).join("")}**`;
+}
+
+
+function maskedSellerTelegramName(
+    user
+) {
+
+    if (
+        !user ||
+        user.is_provisional
+    ) {
+        return null;
+    }
+
+
+    const first =
+        maskSellerNamePart(
+            user.first_name
+        );
+
+
+    const last =
+        maskSellerNamePart(
+            user.last_name
+        );
+
+
+    const value =
+        [first,last]
+            .filter(Boolean)
+            .join(" ")
+            .trim();
+
+
+    return value ||
+        null;
 }
 
 
@@ -4551,7 +4653,6 @@ function safeSellerDisplayName(
 ) {
 
     if (
-        user?.is_provisional &&
         user?.telegram_username
     ) {
 
@@ -4561,26 +4662,12 @@ function safeSellerDisplayName(
     }
 
 
-    const first =
-        String(
-            user?.first_name ||
-            "Seller"
-        ).trim() ||
-        "Seller";
-
-
-    const last =
-        String(
-            user?.last_name ||
-            ""
-        ).trim();
-
-
-    return last
-
-        ? `${first} ${last.charAt(0).toUpperCase()}.`
-
-        : first;
+    return (
+        maskedSellerTelegramName(
+            user
+        ) ||
+        "Seller"
+    );
 }
 
 
@@ -5106,6 +5193,11 @@ async function buildSellerProfilePayload(
 
         display_name:
             safeSellerDisplayName(
+                user
+            ),
+
+        masked_name:
+            maskedSellerTelegramName(
                 user
             ),
 
@@ -8677,7 +8769,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v78.4-seller-alias-activity"
+                    "v78.5-seller-mask-privacy"
             }
         );
     }
@@ -16455,6 +16547,9 @@ app.post(
                 id:payload.id,
                 display_name:
                     payload.display_name,
+                masked_name:
+                    payload.masked_name ||
+                    null,
                 avatar_url:
                     payload.avatar_url,
                 seller_since:
