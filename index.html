@@ -37578,6 +37578,57 @@ v68InjectTestEngagementSection();
 }
 </style>
 
+<style>
+/* =========================================================
+   V70.1 REFUND CONFIRMATION UX
+   ========================================================= */
+.v701-confirm-summary {
+    display:grid;
+    gap:10px;
+}
+
+.v701-confirm-warning {
+    display:grid;
+    gap:5px;
+    padding:11px 12px;
+    border:1px solid rgba(245,158,11,.28);
+    border-radius:13px;
+    background:rgba(245,158,11,.08);
+    font-size:11px;
+    line-height:1.45;
+}
+
+.v701-confirm-warning strong {
+    font-size:11.5px;
+}
+
+.v701-confirm-warning span {
+    opacity:.78;
+}
+
+.v701-confirm-reason {
+    display:grid;
+    gap:3px;
+    padding:9px 11px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--card-soft, rgba(127,127,127,.04));
+}
+
+.v701-confirm-reason span {
+    font-size:9px;
+    opacity:.62;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+}
+
+.v701-confirm-reason strong {
+    font-size:11px;
+    font-weight:600;
+    overflow-wrap:anywhere;
+}
+</style>
+
 <script>
 /* =========================================================
    V70 OWNER STARS PAYMENTS & REFUNDS
@@ -38126,132 +38177,173 @@ function v70OpenRefundModal(
         return;
     }
 
-    title.textContent =
-        retryRollback
-            ? "Complete Service Rollback"
-            : "Refund Telegram Stars";
+    const amountLabel =
+        Number(
+            payment.amount_stars ||
+            0
+        ).toLocaleString(
+            "en-US"
+        );
 
-    subtitle.textContent =
-        retryRollback
-            ? "Stars are already refunded. This action retries only the service rollback."
-            : "Refunding returns the Stars to the payer and revokes the purchased service.";
+    let refundReason =
+        String(
+            payment.refund_reason ||
+            ""
+        ).trim();
 
-    fields.innerHTML = `
-        <div class="v70-refund-modal-summary">
-            <div class="v70-refund-modal-amount">${Number(payment.amount_stars || 0).toLocaleString("en-US")} ⭐</div>
-            <div class="v70-refund-modal-service">${escapeHtml(payment.service_label || "Stars payment")} · ${escapeHtml(payment.target_label || "")}</div>
-            <div class="v70-refund-modal-warning">
-                ${retryRollback
-                    ? "Telegram will not be charged/refunded again. Only the matching Handle Market service will be revoked."
-                    : "Listing refund removes the listing; Wanted refund closes the request; Unlock refund revokes contact access; promotion is removed; renewal is rolled back."}
+    const renderFirstStep = () => {
+        title.textContent =
+            retryRollback
+                ? "Complete Service Rollback"
+                : "Refund Telegram Stars";
+
+        subtitle.textContent =
+            retryRollback
+                ? "Stars are already refunded. Continue to retry only the service rollback."
+                : "Review the payment and refund reason before continuing.";
+
+        fields.innerHTML = `
+            <div class="v70-refund-modal-summary">
+                <div class="v70-refund-modal-amount">${amountLabel} ⭐</div>
+                <div class="v70-refund-modal-service">${escapeHtml(payment.service_label || "Stars payment")} · ${escapeHtml(payment.target_label || "")}</div>
+                <div class="v70-refund-modal-warning">
+                    ${retryRollback
+                        ? "Telegram will not be refunded again. Only the matching Handle Market service will be revoked."
+                        : "The Stars will be returned to the payer and the matching purchased service will be revoked automatically."}
+                </div>
             </div>
-        </div>
 
-        <div class="field">
-            <label>Refund reason</label>
-            <textarea
-                id="v70RefundReason"
-                maxlength="300"
-                rows="2"
-                placeholder="Admin refund"
-            >${escapeHtml(payment.refund_reason || "")}</textarea>
-        </div>
+            <div class="field">
+                <label>${retryRollback ? "Rollback reason" : "Refund reason"}</label>
+                <textarea
+                    id="v70RefundReason"
+                    maxlength="300"
+                    rows="2"
+                    placeholder="${retryRollback ? "Complete service rollback" : "Admin refund"}"
+                >${escapeHtml(refundReason)}</textarea>
+                <div class="field-hint">Optional internal note. This is saved with the refund record.</div>
+            </div>
+        `;
 
-        <div class="field">
-            <label>Confirm</label>
-            <input
-                id="v70RefundConfirm"
-                type="text"
-                autocomplete="off"
-                placeholder="Type REFUND"
-            >
-            <div class="field-hint">Type REFUND to confirm this action.</div>
-        </div>
-    `;
+        action.disabled = false;
+        action.textContent =
+            retryRollback
+                ? "Continue"
+                : `Refund ${amountLabel} Stars`;
 
-    action.textContent =
-        retryRollback
-            ? "Complete Rollback"
-            : `Refund ${Number(payment.amount_stars || 0).toLocaleString("en-US")} Stars`;
-
-    action.onclick =
-        async () => {
-            const confirmText =
+        action.onclick = () => {
+            refundReason =
                 String(
                     document.getElementById(
-                        "v70RefundConfirm"
+                        "v70RefundReason"
                     )?.value ||
-                    ""
+                    (retryRollback
+                        ? "Complete service rollback"
+                        : "Admin refund")
                 )
                     .trim()
-                    .toUpperCase();
+                    .slice(
+                        0,
+                        300
+                    ) ||
+                (retryRollback
+                    ? "Complete service rollback"
+                    : "Admin refund");
 
-            if (
-                confirmText !==
-                "REFUND"
-            ) {
-                hmToast(
-                    "Type REFUND to confirm.",
-                    "warning"
-                );
-                return;
-            }
+            renderConfirmationStep();
+        };
+    };
 
-            action.disabled = true;
+    const renderConfirmationStep = () => {
+        title.textContent =
+            retryRollback
+                ? "Confirm Service Rollback"
+                : "Confirm Refund";
 
-            try {
-                const result =
-                    await api(
-                        "/admin/stars-refund",
-                        {
-                            initData:tg.initData,
-                            payment_id:
-                                payment.id,
-                            reason:
-                                document.getElementById(
-                                    "v70RefundReason"
-                                )?.value ||
-                                "Admin refund"
-                        }
+        subtitle.textContent =
+            retryRollback
+                ? "Stars have already been returned. Confirm only the service rollback."
+                : `This will return ${amountLabel} Stars and revoke the purchased service.`;
+
+        fields.innerHTML = `
+            <div class="v70-refund-modal-summary v701-confirm-summary">
+                <div class="v70-refund-modal-amount">${amountLabel} ⭐</div>
+                <div class="v70-refund-modal-service">${escapeHtml(payment.service_label || "Stars payment")} · ${escapeHtml(payment.target_label || "")}</div>
+                <div class="v701-confirm-warning">
+                    <strong>${retryRollback ? "Service rollback will be applied." : "This action cannot be undone from this screen."}</strong>
+                    <span>${retryRollback
+                        ? "Only the Handle Market service linked to this payment will be revoked. No second Stars refund will be sent."
+                        : "Telegram Stars will be returned to the payer. The Listing, Wanted, Unlock, Promotion or Renewal linked to this exact payment will be rolled back automatically."}</span>
+                </div>
+                <div class="v701-confirm-reason">
+                    <span>${retryRollback ? "Reason" : "Refund reason"}</span>
+                    <strong>${escapeHtml(refundReason)}</strong>
+                </div>
+            </div>
+        `;
+
+        action.disabled = false;
+        action.textContent =
+            retryRollback
+                ? "Confirm Rollback"
+                : "Confirm Refund";
+
+        action.onclick =
+            async () => {
+                action.disabled = true;
+
+                try {
+                    const result =
+                        await api(
+                            "/admin/stars-refund",
+                            {
+                                initData:tg.initData,
+                                payment_id:
+                                    payment.id,
+                                reason:
+                                    refundReason
+                            }
+                        );
+
+                    closeModal(
+                        "inputModal"
                     );
 
-                closeModal(
-                    "inputModal"
-                );
+                    hmToast(
+                        result.already_refunded
+                            ? "Payment was already refunded."
+                            : retryRollback
+                                ? "Service rollback completed."
+                                : "Stars refunded and service revoked.",
+                        "success"
+                    );
 
-                hmToast(
-                    result.already_refunded
-                        ? "Payment was already refunded."
-                        : retryRollback
-                            ? "Service rollback completed."
-                            : "Stars refunded and service revoked.",
-                    "success"
-                );
+                    await Promise.all([
+                        v70LoadStarsPayments(),
+                        typeof loadAdminDashboard === "function"
+                            ? loadAdminDashboard()
+                            : Promise.resolve()
+                    ]);
 
-                await Promise.all([
-                    v70LoadStarsPayments(),
-                    typeof loadAdminDashboard === "function"
-                        ? loadAdminDashboard()
-                        : Promise.resolve()
-                ]);
+                } catch (error) {
+                    hmToast(
+                        v70StarsFriendlyError(
+                            error.message
+                        ),
+                        error.message ===
+                        "refund_service_rollback_failed"
+                            ? "warning"
+                            : "error"
+                    );
 
-            } catch (error) {
-                hmToast(
-                    v70StarsFriendlyError(
-                        error.message
-                    ),
-                    error.message ===
-                    "refund_service_rollback_failed"
-                        ? "warning"
-                        : "error"
-                );
+                    await v70LoadStarsPayments();
 
-                await v70LoadStarsPayments();
+                    action.disabled = false;
+                }
+            };
+    };
 
-            } finally {
-                action.disabled = false;
-            }
-        };
+    renderFirstStep();
 
     showModal(
         "inputModal"
