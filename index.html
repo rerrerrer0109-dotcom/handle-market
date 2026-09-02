@@ -4525,6 +4525,139 @@ button {
     .hm-contact-mini-button { min-width:70px; }
 }
 
+
+
+/* =========================================================
+   V65 CHAT SAFETY / OWNER MODERATION
+   ========================================================= */
+.v65-chat-safety-notice {
+    display:flex;
+    align-items:flex-start;
+    gap:8px;
+    margin:10px 0 0;
+    padding:9px 10px;
+    border:1px solid rgba(34,124,255,.16);
+    border-radius:12px;
+    background:rgba(34,124,255,.07);
+    color:var(--text-2);
+    font-size:9px;
+    line-height:1.45;
+}
+.v65-chat-safety-notice .hm-ui-icon {
+    width:16px;
+    height:16px;
+    flex:0 0 auto;
+    color:var(--blue);
+    stroke-width:1.9;
+}
+.v65-chat-safety-toolbar {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto auto;
+    gap:7px;
+    align-items:center;
+    margin-top:10px;
+}
+.v65-chat-safety-toolbar input[type="text"] {
+    min-width:0;
+}
+.v65-risk-toggle {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    min-height:40px;
+    padding:0 10px;
+    border:1px solid var(--border);
+    border-radius:11px;
+    background:var(--surface);
+    font-size:9px;
+    font-weight:800;
+    white-space:nowrap;
+}
+.v65-risk-toggle input { margin:0; }
+.v65-safety-card {
+    margin-top:9px;
+    padding:11px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--surface);
+}
+.v65-safety-card-top {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+}
+.v65-safety-meta {
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    margin-top:7px;
+}
+.v65-risk-badge {
+    display:inline-flex;
+    align-items:center;
+    min-height:24px;
+    padding:4px 7px;
+    border-radius:8px;
+    font-size:8.5px;
+    font-weight:900;
+    border:1px solid transparent;
+}
+.v65-risk-none { color:var(--muted); background:var(--surface-2); border-color:var(--border); }
+.v65-risk-low { color:var(--blue); background:var(--blue-soft); border-color:rgba(34,124,255,.16); }
+.v65-risk-medium { color:var(--yellow); background:var(--yellow-soft); border-color:rgba(255,176,32,.18); }
+.v65-risk-high { color:var(--red); background:var(--red-soft); border-color:rgba(255,75,75,.18); }
+.v65-admin-chat-messages {
+    max-height:430px;
+    overflow:auto;
+    margin-top:10px;
+    padding:9px;
+    border:1px solid var(--border);
+    border-radius:13px;
+    background:var(--surface-2);
+}
+.v65-admin-message {
+    margin-bottom:8px;
+    padding:8px 9px;
+    border:1px solid var(--border);
+    border-radius:11px;
+    background:var(--surface);
+}
+.v65-admin-message.flagged {
+    border-color:rgba(255,176,32,.28);
+}
+.v65-admin-message-head {
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    font-size:8.5px;
+    color:var(--muted);
+}
+.v65-admin-message-text {
+    margin-top:5px;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+    font-size:10px;
+    line-height:1.45;
+}
+.v65-flag-row {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:7px;
+    margin-top:6px;
+    padding:6px 7px;
+    border-radius:9px;
+    background:rgba(255,176,32,.08);
+    font-size:8.5px;
+}
+.v65-flag-actions { display:flex; gap:5px; flex-wrap:wrap; }
+.v65-flag-actions button { min-height:28px; padding:0 8px; font-size:8px; }
+@media (max-width:430px) {
+    .v65-chat-safety-toolbar { grid-template-columns:1fr 1fr; }
+    .v65-chat-safety-toolbar input[type="text"] { grid-column:1 / -1; }
+}
+
 </style>
 
 <style>
@@ -8133,7 +8266,7 @@ Loading...
 </div>
 
 <div class="page-description">
-Private conversations about listings.
+Internal conversations about listings and Wanted requests. Messages may be reviewed by Handle Market administrators for fraud prevention and platform safety.
 </div>
 
 </div>
@@ -8186,9 +8319,17 @@ Loading conversation...
 <div class="empty">Loading messages...</div>
 </div>
 
+<div class="v65-chat-safety-notice">
+    <svg class="hm-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3 4.5 6v5.5c0 4.7 3 7.7 7.5 9.5 4.5-1.8 7.5-4.8 7.5-9.5V6L12 3Z"></path>
+        <path d="m9.3 12 1.7 1.7 3.8-4"></path>
+    </svg>
+    <span>Safety notice: Handle Market administrators may review internal chats to investigate fraud, suspicious links and platform abuse. Never share passwords, recovery codes or seed phrases.</span>
+</div>
+
 <form
     id="chatComposer"
-    style="margin-top:12px"
+    style="margin-top:10px"
     onsubmit="sendChatMessage(event)"
 >
 
@@ -8843,6 +8984,39 @@ Loading support tickets...
 </div>
 
 </div>
+
+</div>
+
+
+<div class="admin-section" id="v65ChatSafetySection" data-v39-section="chat_safety">
+
+<div class="admin-section-title">
+🛡 Chat Safety &amp; Anti-Scam
+</div>
+
+<div class="section-subtitle">
+Owner-only moderation view for internal listing and Wanted chats. Automatic flags are warnings for manual review, not proof of fraud. Every opened conversation is recorded in Admin Activity.
+</div>
+
+<div class="v65-chat-safety-toolbar">
+    <input
+        id="v65ChatSafetySearch"
+        type="text"
+        placeholder="Username / Telegram ID / message"
+        onkeydown="if(event.key==='Enter'){loadAdminChatSafety()}"
+    >
+    <label class="v65-risk-toggle">
+        <input id="v65ChatSafetyRiskOnly" type="checkbox" onchange="loadAdminChatSafety()">
+        <span>Risk only</span>
+    </label>
+    <button class="secondary" onclick="loadAdminChatSafety()">Refresh</button>
+</div>
+
+<div id="v65AdminChatSafetyList">
+<div class="empty">Loading chats...</div>
+</div>
+
+<div id="v65AdminChatReview" style="margin-top:12px"></div>
 
 </div>
 
@@ -28101,7 +28275,7 @@ function v39ApplyAdminRoleVisibility() {
 
     const allowed = {
         owner:new Set([
-            "dashboard","create","pending","management","blocked","support","risk","history","activity","reports","frozen","team"
+            "dashboard","create","pending","management","blocked","support","chat_safety","risk","history","activity","reports","frozen","team"
         ]),
         moderator:new Set([
             "dashboard","pending","management","blocked","support","risk","history","reports","frozen"
@@ -35215,6 +35389,173 @@ A quick guide to buying, selling and discovering WhatsApp usernames.
 
     window.v56RefreshProfileDesign = queueDecorate;
 })();
+
+
+/* =========================================================
+   V65 OWNER CHAT SAFETY & ANTI-SCAM MODERATION
+   ========================================================= */
+let v65AdminChatSafetyBusy = false;
+let v65CurrentAdminChat = null;
+
+function v65RiskLabel(severity, count) {
+    const level = String(severity || "none").toLowerCase();
+    const safe = ["low","medium","high"].includes(level) ? level : "none";
+    const label = safe === "none" ? "No open flags" : `${safe.toUpperCase()} · ${Number(count || 0)} flag${Number(count || 0) === 1 ? "" : "s"}`;
+    return `<span class="v65-risk-badge v65-risk-${safe}">${escapeHtml(label)}</span>`;
+}
+
+function v65AdminUserLabel(user, fallbackId) {
+    const name = [user?.first_name,user?.last_name].filter(Boolean).join(" ").trim();
+    const handle = user?.telegram_username ? `@${user.telegram_username}` : "";
+    return `${name || handle || "Telegram User"} · ID ${Number(user?.telegram_id || fallbackId || 0)}`;
+}
+
+async function loadAdminChatSafety() {
+    const container = document.getElementById("v65AdminChatSafetyList");
+    if (!container || v65AdminChatSafetyBusy || (typeof v39Role === "function" && v39Role() !== "owner")) return;
+
+    v65AdminChatSafetyBusy = true;
+    container.innerHTML = '<div class="empty">Loading chats...</div>';
+
+    try {
+        const query = String(document.getElementById("v65ChatSafetySearch")?.value || "").trim();
+        const riskOnly = Boolean(document.getElementById("v65ChatSafetyRiskOnly")?.checked);
+        const data = await api("/admin/chat-safety", {
+            initData:tg.initData,
+            query,
+            risk_only:riskOnly
+        });
+
+        const chats = data.chats || [];
+        if (!chats.length) {
+            container.innerHTML = '<div class="empty">No chats match these filters.</div>';
+            return;
+        }
+
+        container.innerHTML = chats.map(chat => {
+            const type = chat.chat_type === "wanted" ? "wanted" : "listing";
+            const title = `${type === "wanted" ? "WANTED · " : ""}@${escapeHtml(chat.target_username || "username")}`;
+            const last = chat.last_message?.message ? escapeHtml(String(chat.last_message.message).slice(0,160)) : "No messages yet";
+            return `
+                <div class="v65-safety-card">
+                    <div class="v65-safety-card-top">
+                        <div>
+                            <div class="username">${title}</div>
+                            ${type === "listing" ? listingNumberHtml({listing_number:chat.target_number}) : ""}
+                        </div>
+                        ${v65RiskLabel(chat.risk_severity,chat.open_flags)}
+                    </div>
+                    <div class="v65-safety-meta">
+                        <span class="category-badge">${type === "wanted" ? "Wanted chat" : "Listing chat"}</span>
+                        <span class="category-badge">${escapeHtml(v65AdminUserLabel(chat.buyer,chat.buyer_telegram_id))}</span>
+                        <span class="category-badge">${escapeHtml(v65AdminUserLabel(chat.seller,chat.seller_telegram_id))}</span>
+                    </div>
+                    <div class="section-subtitle" style="margin-top:8px">${last}</div>
+                    <div class="field-hint" style="margin-top:7px">Updated ${escapeHtml(chatTimeLabel(chat.updated_at))}</div>
+                    <button class="secondary" style="width:100%;margin-top:8px" onclick="v65ReviewAdminChat('${escapeJs(chat.id)}','${type}')">Review conversation</button>
+                </div>
+            `;
+        }).join("");
+    } catch (error) {
+        container.innerHTML = `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+    } finally {
+        v65AdminChatSafetyBusy = false;
+    }
+}
+
+async function v65ReviewAdminChat(chatId, chatType) {
+    const container = document.getElementById("v65AdminChatReview");
+    if (!container) return;
+    container.innerHTML = '<div class="empty">Loading conversation...</div>';
+
+    try {
+        const data = await api("/admin/chat-safety/messages", {
+            initData:tg.initData,
+            chat_id:String(chatId),
+            chat_type:chatType === "wanted" ? "wanted" : "listing"
+        });
+        v65CurrentAdminChat = { chat_id:String(chatId), chat_type:chatType };
+        const chat = data.chat || {};
+        const messages = data.messages || [];
+
+        container.innerHTML = `
+            <div class="card">
+                <div class="v65-safety-card-top">
+                    <div>
+                        <div class="username">${chatType === "wanted" ? "WANTED · " : ""}@${escapeHtml(chat.target_username || "username")}</div>
+                        ${chatType === "listing" ? listingNumberHtml({listing_number:chat.target_number}) : ""}
+                    </div>
+                    ${v65RiskLabel(chat.risk_severity,chat.open_flags)}
+                </div>
+                <div class="section-subtitle" style="margin-top:8px">
+                    Buyer: ${escapeHtml(v65AdminUserLabel(chat.buyer,chat.buyer_telegram_id))}<br>
+                    Seller/respondent: ${escapeHtml(v65AdminUserLabel(chat.seller,chat.seller_telegram_id))}
+                </div>
+                <div class="field-hint" style="margin-top:8px">Owner moderation access is logged. Flags below are automated warnings and require manual judgment.</div>
+                <div class="v65-admin-chat-messages">
+                    ${messages.length ? messages.map(item => {
+                        const flags = item.safety_flags || [];
+                        const sender = Number(item.sender_telegram_id) === Number(chat.buyer_telegram_id) ? chat.buyer : chat.seller;
+                        return `
+                            <div class="v65-admin-message ${flags.some(f => f.status === "open") ? "flagged" : ""}">
+                                <div class="v65-admin-message-head">
+                                    <strong>${escapeHtml(v65AdminUserLabel(sender,item.sender_telegram_id))}</strong>
+                                    <span>${escapeHtml(chatTimeLabel(item.created_at))}</span>
+                                </div>
+                                <div class="v65-admin-message-text">${escapeHtml(String(item.message || ""))}</div>
+                                ${flags.map(flag => `
+                                    <div class="v65-flag-row">
+                                        <div>
+                                            ${v65RiskLabel(flag.severity,1)}
+                                            <span style="margin-left:5px">${escapeHtml(String(flag.risk_type || "risk").replaceAll("_"," "))}</span>
+                                            ${flag.status !== "open" ? `<span class="field-hint"> · ${escapeHtml(flag.status)}</span>` : ""}
+                                        </div>
+                                        ${flag.status === "open" ? `
+                                            <div class="v65-flag-actions">
+                                                <button class="secondary" onclick="v65SetChatSafetyFlag('${escapeJs(flag.id)}','resolved')">Resolve</button>
+                                                <button class="secondary" onclick="v65SetChatSafetyFlag('${escapeJs(flag.id)}','dismissed')">Dismiss</button>
+                                            </div>
+                                        ` : ""}
+                                    </div>
+                                `).join("")}
+                            </div>
+                        `;
+                    }).join("") : '<div class="empty">No messages in this conversation.</div>'}
+                </div>
+            </div>
+        `;
+        container.scrollIntoView({behavior:"smooth",block:"start"});
+    } catch (error) {
+        container.innerHTML = `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+    }
+}
+
+async function v65SetChatSafetyFlag(flagId,status) {
+    try {
+        await api("/admin/chat-safety/action", {
+            initData:tg.initData,
+            flag_id:String(flagId),
+            status
+        });
+        await Promise.all([
+            loadAdminChatSafety(),
+            v65CurrentAdminChat ? v65ReviewAdminChat(v65CurrentAdminChat.chat_id,v65CurrentAdminChat.chat_type) : Promise.resolve()
+        ]);
+    } catch (error) {
+        tg?.showAlert(friendlyError(error.message));
+    }
+}
+
+if (typeof loadAdminPanel === "function") {
+    const v65BaseLoadAdminPanel = loadAdminPanel;
+    loadAdminPanel = async function loadAdminPanelV65() {
+        await v65BaseLoadAdminPanel();
+        if (typeof v39Role !== "function" || v39Role() === "owner") {
+            await loadAdminChatSafety();
+        }
+    };
+}
+
 </script>
 
 </body>

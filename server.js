@@ -13920,6 +13920,12 @@ app.post(
             return res.status(500).json({ ok:false,error:"chat_send_failed" });
         }
 
+        await recordChatSafetyFlags(
+            "wanted",
+            chatId,
+            created
+        );
+
         await supabase
             .from("wanted_chats")
             .update({ updated_at:nowIso() })
@@ -16089,6 +16095,13 @@ app.post(
         }
 
 
+        await recordChatSafetyFlags(
+            "listing",
+            chatId,
+            created
+        );
+
+
         await supabase
             .from(
                 "listing_chats"
@@ -17844,6 +17857,18 @@ const ADMIN_ROUTE_ROLES = {
     ],
 
     "/admin/team-set": [
+        "owner"
+    ],
+
+    "/admin/chat-safety": [
+        "owner"
+    ],
+
+    "/admin/chat-safety/messages": [
+        "owner"
+    ],
+
+    "/admin/chat-safety/action": [
         "owner"
     ]
 };
@@ -30518,6 +30543,1708 @@ app.post(
                         "referral_claim_failed"
                 });
         }
+    }
+);
+
+
+/* =========================================================
+   V65 OWNER CHAT SAFETY / ANTI-SCAM MODERATION
+   Automated flags are warnings for manual review only.
+   Owner-only access. Every reviewed chat is logged.
+   ========================================================= */
+
+let lastChatSafetyRescanAt = 0;
+
+
+function analyzeChatSafetyMessage(
+    rawMessage
+) {
+
+    const message =
+        String(
+            rawMessage ||
+            ""
+        ).trim();
+
+
+    if (!message) {
+        return [];
+    }
+
+
+    const flags = [];
+    const seen = new Set();
+
+
+    function add(
+        riskType,
+        severity,
+        details = null
+    ) {
+
+        if (
+            seen.has(
+                riskType
+            )
+        ) {
+            return;
+        }
+
+
+        seen.add(
+            riskType
+        );
+
+
+        flags.push(
+            {
+                risk_type:
+                    riskType,
+                severity,
+                details:
+                    {
+                        detector_version:
+                            "v65",
+                        ...(details || {})
+                    }
+            }
+        );
+    }
+
+
+    if (
+        /(?:https?:\/\/|www\.|(?:[a-z0-9-]+\.)+(?:com|net|org|io|co|me|app|site|shop|xyz|info|biz|dev|ai|ru|kg)(?:\/|\b))/i
+            .test(
+                message
+            )
+    ) {
+        add(
+            "external_link",
+            "medium"
+        );
+    }
+
+
+    if (
+        /\b(?:seed\s*phrase|recovery\s*phrase|mnemonic|private\s*key|password|passcode|2fa\s*code|verification\s*code|recovery\s*code|api\s*key)\b/i
+            .test(
+                message
+            )
+    ) {
+        add(
+            "credential_or_secret_request",
+            "high"
+        );
+    }
+
+
+    if (
+        /\b0x[a-fA-F0-9]{40}\b/.test(message) ||
+        /\b(?:bc1|[13])[a-zA-HJ-NP-Z0-9]{25,62}\b/.test(message) ||
+        /\bT[A-Za-z0-9]{33}\b/.test(message)
+    ) {
+        add(
+            "crypto_payment_identifier",
+            "medium"
+        );
+    }
+
+
+    if (
+        /\b(?:pay|payment|send|transfer)\b.{0,35}\b(?:direct|directly|outside|off\s*platform|crypto|usdt|btc|eth|wallet)\b/i
+            .test(
+                message
+            ) ||
+        /\b(?:avoid|skip|bypass)\b.{0,25}\b(?:fee|fees|platform|handle\s*market)\b/i
+            .test(
+                message
+            )
+    ) {
+        add(
+            "off_platform_payment_language",
+            "medium"
+        );
+    }
+
+
+    if (
+        /\b(?:message|dm|contact|write|text)\s+(?:me\s+)?(?:on|via)\s+(?:telegram|whatsapp|discord|signal)\b/i
+            .test(
+                message
+            ) ||
+        /\b(?:move|continue)\s+(?:this\s+)?(?:chat|conversation)\s+(?:to|on)\b/i
+            .test(
+                message
+            )
+    ) {
+        add(
+            "move_conversation_off_platform",
+            "low"
+        );
+    }
+
+
+    if (
+        /\b(?:pay\s+now|send\s+now|hurry|urgent|right\s+now|only\s+today|last\s+chance)\b/i
+            .test(
+                message
+            )
+    ) {
+        add(
+            "payment_pressure_language",
+            "low"
+        );
+    }
+
+
+    return flags;
+}
+
+
+function buildChatSafetyFlagRows(
+    chatType,
+    chatId,
+    message
+) {
+
+    const type =
+        chatType ===
+        "wanted"
+            ? "wanted"
+            : "listing";
+
+
+    return analyzeChatSafetyMessage(
+        message?.message
+    ).map(
+        flag => ({
+            chat_type:
+                type,
+            chat_id:
+                String(
+                    chatId
+                ),
+            message_id:
+                String(
+                    message.id
+                ),
+            sender_telegram_id:
+                Number(
+                    message.sender_telegram_id
+                ),
+            risk_type:
+                flag.risk_type,
+            severity:
+                flag.severity,
+            status:
+                "open",
+            details:
+                flag.details
+        })
+    );
+}
+
+
+async function recordChatSafetyFlags(
+    chatType,
+    chatId,
+    message
+) {
+
+    try {
+
+        const rows =
+            buildChatSafetyFlagRows(
+                chatType,
+                chatId,
+                message
+            );
+
+
+        if (!rows.length) {
+            return;
+        }
+
+
+        const {
+            error
+        } =
+            await supabase
+                .from(
+                    "chat_safety_flags"
+                )
+                .upsert(
+                    rows,
+                    {
+                        onConflict:
+                            "chat_type,message_id,risk_type",
+                        ignoreDuplicates:
+                            true
+                    }
+                );
+
+
+        if (error) {
+            console.error(
+                "Chat safety flag save:",
+                error
+            );
+        }
+
+    } catch (error) {
+        console.error(
+            "Chat safety scan:",
+            error
+        );
+    }
+}
+
+
+async function scanRecentChatMessagesForSafety() {
+
+    const now = Date.now();
+
+
+    if (
+        now -
+        lastChatSafetyRescanAt <
+        5 * 60 * 1000
+    ) {
+        return;
+    }
+
+
+    lastChatSafetyRescanAt = now;
+
+
+    try {
+
+        const [
+            listingResult,
+            wantedResult
+        ] =
+            await Promise.all(
+                [
+                    supabase
+                        .from(
+                            "chat_messages"
+                        )
+                        .select(
+                            "id,chat_id,sender_telegram_id,message,created_at"
+                        )
+                        .order(
+                            "created_at",
+                            {
+                                ascending:false
+                            }
+                        )
+                        .limit(300),
+
+                    supabase
+                        .from(
+                            "wanted_chat_messages"
+                        )
+                        .select(
+                            "id,chat_id,sender_telegram_id,message,created_at"
+                        )
+                        .order(
+                            "created_at",
+                            {
+                                ascending:false
+                            }
+                        )
+                        .limit(300)
+                ]
+            );
+
+
+        const rows = [];
+
+
+        for (
+            const message of
+            listingResult.data || []
+        ) {
+            rows.push(
+                ...buildChatSafetyFlagRows(
+                    "listing",
+                    message.chat_id,
+                    message
+                )
+            );
+        }
+
+
+        for (
+            const message of
+            wantedResult.data || []
+        ) {
+            rows.push(
+                ...buildChatSafetyFlagRows(
+                    "wanted",
+                    message.chat_id,
+                    message
+                )
+            );
+        }
+
+
+        if (rows.length) {
+
+            const {
+                error
+            } =
+                await supabase
+                    .from(
+                        "chat_safety_flags"
+                    )
+                    .upsert(
+                        rows,
+                        {
+                            onConflict:
+                                "chat_type,message_id,risk_type",
+                            ignoreDuplicates:
+                                true
+                        }
+                    );
+
+
+            if (error) {
+                console.error(
+                    "Chat safety rescan save:",
+                    error
+                );
+            }
+        }
+
+    } catch (error) {
+        console.error(
+            "Chat safety rescan:",
+            error
+        );
+    }
+}
+
+
+function chatSafetySeverityRank(
+    severity
+) {
+
+    return {
+        low:1,
+        medium:2,
+        high:3
+    }[
+        String(
+            severity ||
+            ""
+        ).toLowerCase()
+    ] || 0;
+}
+
+
+function chatSafetyAggregateMap(
+    flags
+) {
+
+    const map =
+        new Map();
+
+
+    for (
+        const flag of
+        flags || []
+    ) {
+
+        if (
+            flag.status !==
+            "open"
+        ) {
+            continue;
+        }
+
+
+        const key =
+            `${flag.chat_type}:${flag.chat_id}`;
+
+
+        const current =
+            map.get(
+                key
+            ) ||
+            {
+                count:0,
+                severity:null
+            };
+
+
+        current.count += 1;
+
+
+        if (
+            chatSafetySeverityRank(
+                flag.severity
+            ) >
+            chatSafetySeverityRank(
+                current.severity
+            )
+        ) {
+            current.severity =
+                flag.severity;
+        }
+
+
+        map.set(
+            key,
+            current
+        );
+    }
+
+
+    return map;
+}
+
+
+app.post(
+    "/admin/chat-safety",
+    async (req, res) => {
+
+        const admin =
+            req.adminAuth ||
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (
+            !admin.ok ||
+            normalizedAdminRole(
+                admin.user
+            ) !==
+            "owner"
+        ) {
+            return res
+                .status(403)
+                .json({
+                    ok:false,
+                    error:
+                        "admin_role_forbidden"
+                });
+        }
+
+
+        await scanRecentChatMessagesForSafety();
+
+
+        const query =
+            String(
+                req.body.query ||
+                ""
+            )
+                .trim()
+                .toLowerCase()
+                .slice(0,120);
+
+
+        const riskOnly =
+            Boolean(
+                req.body.risk_only
+            );
+
+
+        try {
+
+            const [
+                listingChatsResult,
+                wantedChatsResult
+            ] =
+                await Promise.all(
+                    [
+                        supabase
+                            .from(
+                                "listing_chats"
+                            )
+                            .select(
+                                "id,listing_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at"
+                            )
+                            .order(
+                                "updated_at",
+                                {
+                                    ascending:false
+                                }
+                            )
+                            .limit(150),
+
+                        supabase
+                            .from(
+                                "wanted_chats"
+                            )
+                            .select(
+                                "id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at"
+                            )
+                            .order(
+                                "updated_at",
+                                {
+                                    ascending:false
+                                }
+                            )
+                            .limit(150)
+                    ]
+                );
+
+
+            if (
+                listingChatsResult.error ||
+                wantedChatsResult.error
+            ) {
+                return res
+                    .status(500)
+                    .json({
+                        ok:false,
+                        error:
+                            "chat_safety_load_failed"
+                    });
+            }
+
+
+            const listingChats =
+                listingChatsResult.data || [];
+
+            const wantedChats =
+                wantedChatsResult.data || [];
+
+
+            const listingChatIds =
+                listingChats.map(
+                    row => row.id
+                );
+
+            const wantedChatIds =
+                wantedChats.map(
+                    row => row.id
+                );
+
+
+            const [
+                listingMessagesResult,
+                wantedMessagesResult,
+                flagsResult
+            ] =
+                await Promise.all(
+                    [
+                        listingChatIds.length
+                            ? supabase
+                                .from(
+                                    "chat_messages"
+                                )
+                                .select(
+                                    "id,chat_id,sender_telegram_id,message,created_at"
+                                )
+                                .in(
+                                    "chat_id",
+                                    listingChatIds
+                                )
+                                .order(
+                                    "created_at",
+                                    {
+                                        ascending:false
+                                    }
+                                )
+                                .limit(1200)
+                            : Promise.resolve(
+                                {
+                                    data:[],
+                                    error:null
+                                }
+                            ),
+
+                        wantedChatIds.length
+                            ? supabase
+                                .from(
+                                    "wanted_chat_messages"
+                                )
+                                .select(
+                                    "id,chat_id,sender_telegram_id,message,created_at"
+                                )
+                                .in(
+                                    "chat_id",
+                                    wantedChatIds
+                                )
+                                .order(
+                                    "created_at",
+                                    {
+                                        ascending:false
+                                    }
+                                )
+                                .limit(1200)
+                            : Promise.resolve(
+                                {
+                                    data:[],
+                                    error:null
+                                }
+                            ),
+
+                        supabase
+                            .from(
+                                "chat_safety_flags"
+                            )
+                            .select(
+                                "id,chat_type,chat_id,message_id,sender_telegram_id,risk_type,severity,status,created_at"
+                            )
+                            .in(
+                                "status",
+                                [
+                                    "open",
+                                    "resolved",
+                                    "dismissed"
+                                ]
+                            )
+                            .order(
+                                "created_at",
+                                {
+                                    ascending:false
+                                }
+                            )
+                            .limit(2500)
+                    ]
+                );
+
+
+            if (
+                listingMessagesResult.error ||
+                wantedMessagesResult.error ||
+                flagsResult.error
+            ) {
+                return res
+                    .status(500)
+                    .json({
+                        ok:false,
+                        error:
+                            "chat_safety_load_failed"
+                    });
+            }
+
+
+            const listingLastMap =
+                new Map();
+
+            for (
+                const message of
+                listingMessagesResult.data || []
+            ) {
+                const key =
+                    String(
+                        message.chat_id
+                    );
+
+                if (
+                    !listingLastMap.has(
+                        key
+                    )
+                ) {
+                    listingLastMap.set(
+                        key,
+                        message
+                    );
+                }
+            }
+
+
+            const wantedLastMap =
+                new Map();
+
+            for (
+                const message of
+                wantedMessagesResult.data || []
+            ) {
+                const key =
+                    String(
+                        message.chat_id
+                    );
+
+                if (
+                    !wantedLastMap.has(
+                        key
+                    )
+                ) {
+                    wantedLastMap.set(
+                        key,
+                        message
+                    );
+                }
+            }
+
+
+            const riskMap =
+                chatSafetyAggregateMap(
+                    flagsResult.data || []
+                );
+
+
+            const userIds =
+                [
+                    ...listingChats,
+                    ...wantedChats
+                ]
+                    .flatMap(
+                        row => [
+                            Number(
+                                row.buyer_telegram_id
+                            ),
+                            Number(
+                                row.seller_telegram_id
+                            )
+                        ]
+                    )
+                    .filter(
+                        value =>
+                            Number.isFinite(
+                                value
+                            )
+                    );
+
+
+            const listingIds =
+                listingChats.map(
+                    row =>
+                        row.listing_id
+                );
+
+            const wantedIds =
+                wantedChats.map(
+                    row =>
+                        row.wanted_id
+                );
+
+
+            const [
+                usersResult,
+                listingsResult,
+                wantedResult
+            ] =
+                await Promise.all(
+                    [
+                        userIds.length
+                            ? supabase
+                                .from(
+                                    "users"
+                                )
+                                .select(
+                                    "telegram_id,first_name,last_name,telegram_username,is_blocked"
+                                )
+                                .in(
+                                    "telegram_id",
+                                    [
+                                        ...new Set(
+                                            userIds
+                                        )
+                                    ]
+                                )
+                            : Promise.resolve(
+                                {
+                                    data:[]
+                                }
+                            ),
+
+                        listingIds.length
+                            ? supabase
+                                .from(
+                                    "listings"
+                                )
+                                .select(
+                                    "id,listing_number,whatsapp_username,status"
+                                )
+                                .in(
+                                    "id",
+                                    listingIds
+                                )
+                            : Promise.resolve(
+                                {
+                                    data:[]
+                                }
+                            ),
+
+                        wantedIds.length
+                            ? supabase
+                                .from(
+                                    "wanted_requests"
+                                )
+                                .select(
+                                    "id,desired_username,status"
+                                )
+                                .in(
+                                    "id",
+                                    wantedIds
+                                )
+                            : Promise.resolve(
+                                {
+                                    data:[]
+                                }
+                            )
+                    ]
+                );
+
+
+            const userMap =
+                new Map(
+                    (usersResult.data || [])
+                        .map(
+                            user => [
+                                Number(
+                                    user.telegram_id
+                                ),
+                                user
+                            ]
+                        )
+                );
+
+
+            const listingMap =
+                new Map(
+                    (listingsResult.data || [])
+                        .map(
+                            row => [
+                                String(
+                                    row.id
+                                ),
+                                row
+                            ]
+                        )
+                );
+
+
+            const wantedMap =
+                new Map(
+                    (wantedResult.data || [])
+                        .map(
+                            row => [
+                                String(
+                                    row.id
+                                ),
+                                row
+                            ]
+                        )
+                );
+
+
+            const chats = [];
+
+
+            for (
+                const chat of
+                listingChats
+            ) {
+
+                const risk =
+                    riskMap.get(
+                        `listing:${chat.id}`
+                    ) ||
+                    {
+                        count:0,
+                        severity:null
+                    };
+
+                const listing =
+                    listingMap.get(
+                        String(
+                            chat.listing_id
+                        )
+                    ) ||
+                    null;
+
+                chats.push(
+                    {
+                        ...chat,
+                        chat_type:
+                            "listing",
+                        target_username:
+                            listing?.whatsapp_username ||
+                            "username",
+                        target_number:
+                            listing?.listing_number ||
+                            null,
+                        target_status:
+                            listing?.status ||
+                            null,
+                        buyer:
+                            userMap.get(
+                                Number(
+                                    chat.buyer_telegram_id
+                                )
+                            ) ||
+                            null,
+                        seller:
+                            userMap.get(
+                                Number(
+                                    chat.seller_telegram_id
+                                )
+                            ) ||
+                            null,
+                        last_message:
+                            listingLastMap.get(
+                                String(
+                                    chat.id
+                                )
+                            ) ||
+                            null,
+                        open_flags:
+                            risk.count,
+                        risk_severity:
+                            risk.severity
+                    }
+                );
+            }
+
+
+            for (
+                const chat of
+                wantedChats
+            ) {
+
+                const risk =
+                    riskMap.get(
+                        `wanted:${chat.id}`
+                    ) ||
+                    {
+                        count:0,
+                        severity:null
+                    };
+
+                const wanted =
+                    wantedMap.get(
+                        String(
+                            chat.wanted_id
+                        )
+                    ) ||
+                    null;
+
+                chats.push(
+                    {
+                        ...chat,
+                        chat_type:
+                            "wanted",
+                        target_username:
+                            wanted?.desired_username ||
+                            "username",
+                        target_number:
+                            null,
+                        target_status:
+                            wanted?.status ||
+                            null,
+                        buyer:
+                            userMap.get(
+                                Number(
+                                    chat.buyer_telegram_id
+                                )
+                            ) ||
+                            null,
+                        seller:
+                            userMap.get(
+                                Number(
+                                    chat.seller_telegram_id
+                                )
+                            ) ||
+                            null,
+                        last_message:
+                            wantedLastMap.get(
+                                String(
+                                    chat.id
+                                )
+                            ) ||
+                            null,
+                        open_flags:
+                            risk.count,
+                        risk_severity:
+                            risk.severity
+                    }
+                );
+            }
+
+
+            let filtered =
+                chats.sort(
+                    (a,b) =>
+                        new Date(
+                            b.updated_at || 0
+                        ).getTime() -
+                        new Date(
+                            a.updated_at || 0
+                        ).getTime()
+                );
+
+
+            if (riskOnly) {
+                filtered =
+                    filtered.filter(
+                        chat =>
+                            Number(
+                                chat.open_flags ||
+                                0
+                            ) > 0
+                    );
+            }
+
+
+            if (query) {
+                filtered =
+                    filtered.filter(
+                        chat => {
+
+                            const text =
+                                [
+                                    chat.target_username,
+                                    chat.target_number,
+                                    chat.buyer_telegram_id,
+                                    chat.seller_telegram_id,
+                                    chat.buyer?.first_name,
+                                    chat.buyer?.last_name,
+                                    chat.buyer?.telegram_username,
+                                    chat.seller?.first_name,
+                                    chat.seller?.last_name,
+                                    chat.seller?.telegram_username,
+                                    chat.last_message?.message
+                                ]
+                                    .filter(
+                                        value =>
+                                            value !== null &&
+                                            value !== undefined
+                                    )
+                                    .join(
+                                        " "
+                                    )
+                                    .toLowerCase();
+
+
+                            return text.includes(
+                                query
+                            );
+                        }
+                    );
+            }
+
+
+            return res.json(
+                {
+                    ok:true,
+                    chats:
+                        filtered.slice(
+                            0,
+                            200
+                        )
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Admin chat safety:",
+                error
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "chat_safety_load_failed"
+                });
+        }
+    }
+);
+
+
+app.post(
+    "/admin/chat-safety/messages",
+    async (req, res) => {
+
+        const admin =
+            req.adminAuth ||
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (
+            !admin.ok ||
+            normalizedAdminRole(
+                admin.user
+            ) !==
+            "owner"
+        ) {
+            return res
+                .status(403)
+                .json({
+                    ok:false,
+                    error:
+                        "admin_role_forbidden"
+                });
+        }
+
+
+        const chatType =
+            req.body.chat_type ===
+            "wanted"
+                ? "wanted"
+                : "listing";
+
+        const chatId =
+            String(
+                req.body.chat_id ||
+                ""
+            ).trim();
+
+
+        if (!chatId) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:
+                        "chat_id_required"
+                });
+        }
+
+
+        try {
+
+            const chatTable =
+                chatType ===
+                "wanted"
+                    ? "wanted_chats"
+                    : "listing_chats";
+
+            const messageTable =
+                chatType ===
+                "wanted"
+                    ? "wanted_chat_messages"
+                    : "chat_messages";
+
+            const chatSelect =
+                chatType ===
+                "wanted"
+                    ? "id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at"
+                    : "id,listing_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at";
+
+
+            const {
+                data:chat,
+                error:chatError
+            } =
+                await supabase
+                    .from(
+                        chatTable
+                    )
+                    .select(
+                        chatSelect
+                    )
+                    .eq(
+                        "id",
+                        chatId
+                    )
+                    .maybeSingle();
+
+
+            if (
+                chatError ||
+                !chat
+            ) {
+                return res
+                    .status(404)
+                    .json({
+                        ok:false,
+                        error:
+                            "chat_not_found"
+                    });
+            }
+
+
+            const {
+                data:messages,
+                error:messagesError
+            } =
+                await supabase
+                    .from(
+                        messageTable
+                    )
+                    .select(
+                        "id,chat_id,sender_telegram_id,message,read_at,created_at"
+                    )
+                    .eq(
+                        "chat_id",
+                        chatId
+                    )
+                    .order(
+                        "created_at",
+                        {
+                            ascending:false
+                        }
+                    )
+                    .limit(250);
+
+
+            if (messagesError) {
+                return res
+                    .status(500)
+                    .json({
+                        ok:false,
+                        error:
+                            "chat_messages_load_failed"
+                    });
+            }
+
+
+            const orderedMessages =
+                (messages || [])
+                    .reverse();
+
+
+            const messageIds =
+                orderedMessages.map(
+                    message =>
+                        message.id
+                );
+
+
+            const {
+                data:flags
+            } =
+                messageIds.length
+                    ? await supabase
+                        .from(
+                            "chat_safety_flags"
+                        )
+                        .select(
+                            "id,chat_type,chat_id,message_id,sender_telegram_id,risk_type,severity,status,details,created_at,reviewed_at,reviewed_by"
+                        )
+                        .eq(
+                            "chat_type",
+                            chatType
+                        )
+                        .eq(
+                            "chat_id",
+                            chatId
+                        )
+                        .in(
+                            "message_id",
+                            messageIds
+                        )
+                        .order(
+                            "created_at",
+                            {
+                                ascending:true
+                            }
+                        )
+                    : {
+                        data:[]
+                    };
+
+
+            const flagsByMessage =
+                new Map();
+
+
+            for (
+                const flag of
+                flags || []
+            ) {
+                const key =
+                    String(
+                        flag.message_id
+                    );
+
+                const list =
+                    flagsByMessage.get(
+                        key
+                    ) || [];
+
+                list.push(
+                    flag
+                );
+
+                flagsByMessage.set(
+                    key,
+                    list
+                );
+            }
+
+
+            const userIds =
+                [
+                    Number(
+                        chat.buyer_telegram_id
+                    ),
+                    Number(
+                        chat.seller_telegram_id
+                    )
+                ];
+
+
+            const {
+                data:users
+            } =
+                await supabase
+                    .from(
+                        "users"
+                    )
+                    .select(
+                        "telegram_id,first_name,last_name,telegram_username,is_blocked"
+                    )
+                    .in(
+                        "telegram_id",
+                        userIds
+                    );
+
+
+            const userMap =
+                new Map(
+                    (users || [])
+                        .map(
+                            user => [
+                                Number(
+                                    user.telegram_id
+                                ),
+                                user
+                            ]
+                        )
+                );
+
+
+            let targetUsername =
+                "username";
+
+            let targetNumber =
+                null;
+
+
+            if (
+                chatType ===
+                "wanted"
+            ) {
+
+                const {
+                    data:wanted
+                } =
+                    await supabase
+                        .from(
+                            "wanted_requests"
+                        )
+                        .select(
+                            "desired_username"
+                        )
+                        .eq(
+                            "id",
+                            chat.wanted_id
+                        )
+                        .maybeSingle();
+
+                targetUsername =
+                    wanted?.desired_username ||
+                    "username";
+
+            } else {
+
+                const {
+                    data:listing
+                } =
+                    await supabase
+                        .from(
+                            "listings"
+                        )
+                        .select(
+                            "listing_number,whatsapp_username"
+                        )
+                        .eq(
+                            "id",
+                            chat.listing_id
+                        )
+                        .maybeSingle();
+
+                targetUsername =
+                    listing?.whatsapp_username ||
+                    "username";
+
+                targetNumber =
+                    listing?.listing_number ||
+                    null;
+            }
+
+
+            const openFlags =
+                (flags || [])
+                    .filter(
+                        flag =>
+                            flag.status ===
+                            "open"
+                    );
+
+            let highestSeverity =
+                null;
+
+
+            for (
+                const flag of
+                openFlags
+            ) {
+                if (
+                    chatSafetySeverityRank(
+                        flag.severity
+                    ) >
+                    chatSafetySeverityRank(
+                        highestSeverity
+                    )
+                ) {
+                    highestSeverity =
+                        flag.severity;
+                }
+            }
+
+
+            await logAdminActivity(
+                admin.user.telegram_id,
+                "chat_safety_view",
+                chatType ===
+                    "wanted"
+                        ? "wanted_chat"
+                        : "listing_chat",
+                chatId,
+                {
+                    chat_type:
+                        chatType,
+                    buyer_telegram_id:
+                        Number(
+                            chat.buyer_telegram_id
+                        ),
+                    seller_telegram_id:
+                        Number(
+                            chat.seller_telegram_id
+                        )
+                }
+            );
+
+
+            return res.json(
+                {
+                    ok:true,
+                    chat:{
+                        ...chat,
+                        chat_type:
+                            chatType,
+                        target_username:
+                            targetUsername,
+                        target_number:
+                            targetNumber,
+                        buyer:
+                            userMap.get(
+                                Number(
+                                    chat.buyer_telegram_id
+                                )
+                            ) ||
+                            null,
+                        seller:
+                            userMap.get(
+                                Number(
+                                    chat.seller_telegram_id
+                                )
+                            ) ||
+                            null,
+                        open_flags:
+                            openFlags.length,
+                        risk_severity:
+                            highestSeverity
+                    },
+                    messages:
+                        orderedMessages.map(
+                            message => ({
+                                ...message,
+                                safety_flags:
+                                    flagsByMessage.get(
+                                        String(
+                                            message.id
+                                        )
+                                    ) || []
+                            })
+                        )
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Admin chat review:",
+                error
+            );
+
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "chat_safety_review_failed"
+                });
+        }
+    }
+);
+
+
+app.post(
+    "/admin/chat-safety/action",
+    async (req, res) => {
+
+        const admin =
+            req.adminAuth ||
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (
+            !admin.ok ||
+            normalizedAdminRole(
+                admin.user
+            ) !==
+            "owner"
+        ) {
+            return res
+                .status(403)
+                .json({
+                    ok:false,
+                    error:
+                        "admin_role_forbidden"
+                });
+        }
+
+
+        const flagId =
+            String(
+                req.body.flag_id ||
+                ""
+            ).trim();
+
+        const status =
+            String(
+                req.body.status ||
+                ""
+            ).trim();
+
+
+        if (
+            !flagId ||
+            ![
+                "resolved",
+                "dismissed"
+            ].includes(
+                status
+            )
+        ) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:
+                        "invalid_chat_safety_action"
+                });
+        }
+
+
+        const {
+            data:flag,
+            error:loadError
+        } =
+            await supabase
+                .from(
+                    "chat_safety_flags"
+                )
+                .select(
+                    "id,chat_type,chat_id,message_id,risk_type,severity,status"
+                )
+                .eq(
+                    "id",
+                    flagId
+                )
+                .maybeSingle();
+
+
+        if (
+            loadError ||
+            !flag
+        ) {
+            return res
+                .status(404)
+                .json({
+                    ok:false,
+                    error:
+                        "chat_safety_flag_not_found"
+                });
+        }
+
+
+        const {
+            data:updated,
+            error:updateError
+        } =
+            await supabase
+                .from(
+                    "chat_safety_flags"
+                )
+                .update(
+                    {
+                        status,
+                        reviewed_at:
+                            nowIso(),
+                        reviewed_by:
+                            Number(
+                                admin.user.telegram_id
+                            )
+                    }
+                )
+                .eq(
+                    "id",
+                    flagId
+                )
+                .select(
+                    "id,chat_type,chat_id,message_id,risk_type,severity,status,reviewed_at,reviewed_by"
+                )
+                .single();
+
+
+        if (updateError) {
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:
+                        "chat_safety_action_failed"
+                });
+        }
+
+
+        await logAdminActivity(
+            admin.user.telegram_id,
+            `chat_safety_${status}`,
+            "chat_safety_flag",
+            flagId,
+            {
+                chat_type:
+                    flag.chat_type,
+                chat_id:
+                    flag.chat_id,
+                risk_type:
+                    flag.risk_type,
+                severity:
+                    flag.severity
+            }
+        );
+
+
+        return res.json(
+            {
+                ok:true,
+                flag:
+                    updated
+            }
+        );
     }
 );
 
