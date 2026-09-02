@@ -1318,7 +1318,7 @@ async function v781ResolveOrCreateAdminSellerByUsername(
                         telegram_id:
                             provisionalTelegramId,
                         first_name:
-                            "Pending seller",
+                            `@${found.username}`,
                         last_name:
                             "",
                         telegram_username:
@@ -4287,7 +4287,7 @@ async function attachPublicSellerProfiles(
                 supabase
                     .from("users")
                     .select(
-                        "telegram_id,first_name,last_name,photo_url,last_seen_at"
+                        "telegram_id,first_name,last_name,telegram_username,photo_url,last_seen_at,is_provisional"
                     )
                     .in(
                         "telegram_id",
@@ -4357,14 +4357,14 @@ async function attachPublicSellerProfiles(
                                     user?.photo_url ||
                                     null,
 
-                                last_seen_at:
-                                    user?.last_seen_at ||
-                                    null,
+                                is_provisional:
+                                    Boolean(
+                                        user?.is_provisional
+                                    ),
 
-                                is_online:
-                                    sellerIsOnline(
-                                        user?.last_seen_at
-                                    )
+                                user_last_seen_at:
+                                    user?.last_seen_at ||
+                                    null
                             }
                         ];
                     }
@@ -4394,6 +4394,25 @@ async function attachPublicSellerProfiles(
                 null;
 
 
+            const sellerActivityAt =
+                sellerSummary
+                    ? (
+                        sellerSummary.is_provisional
+
+                            ? (
+                                copy.created_at ||
+                                sellerSummary.user_last_seen_at ||
+                                null
+                            )
+
+                            : (
+                                sellerSummary.user_last_seen_at ||
+                                null
+                            )
+                    )
+                    : null;
+
+
             delete copy
                 .seller_telegram_id;
 
@@ -4413,10 +4432,12 @@ async function attachPublicSellerProfiles(
                             sellerSummary.avatar_url,
 
                         last_seen_at:
-                            sellerSummary.last_seen_at,
+                            sellerActivityAt,
 
                         is_online:
-                            sellerSummary.is_online
+                            sellerIsOnline(
+                                sellerActivityAt
+                            )
                     }
                     : null;
 
@@ -4427,9 +4448,118 @@ async function attachPublicSellerProfiles(
 }
 
 
+function provisionalSellerAlias(
+    username
+) {
+
+    const raw =
+        String(
+            username ||
+            ""
+        )
+            .replace(/^@+/, "")
+            .trim();
+
+
+    if (!raw) {
+        return "Seller";
+    }
+
+
+    const separated =
+        raw
+            .replace(
+                /([a-z0-9])([A-Z])/g,
+                "$1 $2"
+            )
+            .replace(
+                /[_\-.]+/g,
+                " "
+            )
+            .trim();
+
+
+    const parts =
+        separated
+            .split(/\s+/)
+            .filter(Boolean);
+
+
+    if (
+        parts.length >= 2
+    ) {
+
+        const initials =
+            parts
+                .map(
+                    part =>
+                        String(part)
+                            .charAt(0)
+                )
+                .join("")
+                .slice(0,3)
+                .toUpperCase();
+
+
+        if (
+            initials &&
+            initials.toLowerCase() !==
+                raw.toLowerCase()
+        ) {
+
+            return initials;
+        }
+    }
+
+
+    const letters =
+        raw.replace(
+            /[^A-Za-z0-9]/g,
+            ""
+        );
+
+
+    if (
+        letters.length <= 3
+    ) {
+
+        return `${(
+            letters.charAt(0) ||
+            "S"
+        ).toUpperCase()}••`;
+    }
+
+
+    if (
+        letters.length === 4
+    ) {
+
+        return letters
+            .slice(0,2)
+            .toUpperCase();
+    }
+
+
+    return letters
+        .slice(0,3)
+        .toUpperCase();
+}
+
+
 function safeSellerDisplayName(
     user
 ) {
+
+    if (
+        user?.is_provisional &&
+        user?.telegram_username
+    ) {
+
+        return provisionalSellerAlias(
+            user.telegram_username
+        );
+    }
+
 
     const first =
         String(
@@ -4730,7 +4860,7 @@ async function buildSellerProfilePayload(
         await supabase
             .from("users")
             .select(
-                "telegram_id,first_name,last_name,photo_url,last_seen_at"
+                "telegram_id,first_name,last_name,telegram_username,photo_url,last_seen_at,is_provisional"
             )
             .eq(
                 "telegram_id",
@@ -4751,7 +4881,7 @@ async function buildSellerProfilePayload(
     } =
         await supabase
             .from("listings")
-            .select("id")
+            .select("id,created_at")
             .eq(
                 "seller_telegram_id",
                 profile.telegram_id
@@ -4766,6 +4896,45 @@ async function buildSellerProfilePayload(
             row =>
                 row.id
         );
+
+
+    const provisionalActivityAt =
+        user.is_provisional
+
+            ? (
+                (
+                    allSellerListings ||
+                    []
+                )
+                    .map(
+                        row =>
+                            row.created_at
+                    )
+                    .filter(Boolean)
+                    .sort(
+                        (
+                            a,
+                            b
+                        ) =>
+                            new Date(b).getTime() -
+                            new Date(a).getTime()
+                    )[0] ||
+                user.last_seen_at ||
+                null
+            )
+
+            : null;
+
+
+    const sellerActivityAt =
+        user.is_provisional
+
+            ? provisionalActivityAt
+
+            : (
+                user.last_seen_at ||
+                null
+            );
 
 
     let acceptedAgreements =
@@ -4837,43 +5006,36 @@ async function buildSellerProfilePayload(
             );
 
 
-    const [
-        activeListingsResult,
-        responseStats
-    ] =
-        await Promise.all([
-
-            supabase
-                .from("listings")
-                .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
-                )
-                .eq(
-                    "seller_telegram_id",
-                    profile.telegram_id
-                )
-                .eq(
-                    "status",
-                    "active"
-                )
-                .eq(
-                    "is_paused",
-                    false
-                )
-                .eq(
-                    "is_frozen",
-                    false
-                )
-                .limit(200),
-
-            calculateSellerResponseStats(
+    const {
+        data:
+            activeListingsData
+    } =
+        await supabase
+            .from("listings")
+            .select(
+                "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
+            )
+            .eq(
+                "seller_telegram_id",
                 profile.telegram_id
             )
-        ]);
+            .eq(
+                "status",
+                "active"
+            )
+            .eq(
+                "is_paused",
+                false
+            )
+            .eq(
+                "is_frozen",
+                false
+            )
+            .limit(200);
 
 
     const activeListings =
-        activeListingsResult.data ||
+        activeListingsData ||
         [];
 
 
@@ -4962,21 +5124,11 @@ async function buildSellerProfilePayload(
 
             is_online:
                 sellerIsOnline(
-                    user.last_seen_at
+                    sellerActivityAt
                 ),
 
             last_seen_at:
-                user.last_seen_at ||
-                null
-        },
-
-        response_time: {
-
-            average_seconds:
-                responseStats.average_seconds,
-
-            samples:
-                responseStats.samples
+                sellerActivityAt
         },
 
         stats: {
@@ -8525,7 +8677,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v78.1-admin-username-fix"
+                    "v78.4-seller-alias-activity"
             }
         );
     }
@@ -16309,8 +16461,6 @@ app.post(
                     payload.seller_since,
                 presence:
                     payload.presence,
-                response_time:
-                    payload.response_time,
                 stats:
                     payload.stats,
                 latest_listings:

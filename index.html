@@ -14022,7 +14022,9 @@ function renderListingCard(
 
                         <div
                             class="seller-mini-status ${
-                                sellerSummary?.is_online
+                                sellerPresenceIsOnline(
+                                        sellerSummary
+                                    )
                                     ? "online"
                                     : ""
                             }"
@@ -22862,7 +22864,7 @@ function sellerLastSeenText(
         time <= 0
     ) {
 
-        return "Last active unavailable";
+        return "Activity status unavailable";
     }
 
 
@@ -22880,10 +22882,11 @@ function sellerLastSeenText(
 
 
     if (
-        seconds < 60
+        seconds <=
+        5 * 60
     ) {
 
-        return "Active just now";
+        return "🟢 Online";
     }
 
 
@@ -22897,7 +22900,7 @@ function sellerLastSeenText(
         minutes < 60
     ) {
 
-        return `Last active ${minutes}m ago`;
+        return `Last seen ${minutes} min ago`;
     }
 
 
@@ -22911,7 +22914,11 @@ function sellerLastSeenText(
         hours < 24
     ) {
 
-        return `Last active ${hours}h ago`;
+        return `Last seen ${hours} ${
+            hours === 1
+                ? "hour"
+                : "hours"
+        } ago`;
     }
 
 
@@ -22922,20 +22929,42 @@ function sellerLastSeenText(
 
 
     if (
-        days <= 30
+        days < 3
     ) {
 
-        return `Last active ${days}d ago`;
+        return "Active recently";
     }
 
 
-    return "Last active over 30d ago";
+    if (
+        days < 7
+    ) {
+
+        return "Active this week";
+    }
+
+
+    return "Activity status unavailable";
 }
 
 
 function sellerPresenceText(
     seller
 ) {
+
+    const lastSeenAt =
+        seller?.last_seen_at ||
+        seller?.presence?.last_seen_at ||
+        null;
+
+
+    if (lastSeenAt) {
+
+        return sellerLastSeenText(
+            lastSeenAt
+        );
+    }
+
 
     if (
         seller?.is_online ||
@@ -22946,94 +22975,44 @@ function sellerPresenceText(
     }
 
 
-    return sellerLastSeenText(
-        seller?.last_seen_at ||
-        seller?.presence?.last_seen_at
-    );
+    return "Activity status unavailable";
 }
 
 
-function sellerResponseTimeText(
-    responseTime
+function sellerPresenceIsOnline(
+    seller
 ) {
 
-    const seconds =
-        Number(
-            responseTime?.average_seconds
-        );
+    const lastSeenAt =
+        seller?.last_seen_at ||
+        seller?.presence?.last_seen_at ||
+        null;
 
 
-    const samples =
-        Number(
-            responseTime?.samples ||
+    const time =
+        new Date(
+            lastSeenAt ||
             0
-        );
+        ).getTime();
 
 
     if (
-        !Number.isFinite(
-            seconds
-        ) ||
-        seconds < 0 ||
-        samples < 1
+        Number.isFinite(time) &&
+        time > 0
     ) {
 
-        return "Response time not enough data";
+        return (
+            Date.now() -
+            time
+        ) <=
+            5 * 60 * 1000;
     }
 
 
-    if (
-        seconds < 60
-    ) {
-
-        return "Usually replies within a minute";
-    }
-
-
-    const minutes =
-        Math.max(
-            1,
-            Math.round(
-                seconds / 60
-            )
-        );
-
-
-    if (
-        minutes < 60
-    ) {
-
-        return `Usually replies within ${minutes} min`;
-    }
-
-
-    const hours =
-        Math.max(
-            1,
-            Math.round(
-                minutes / 60
-            )
-        );
-
-
-    if (
-        hours < 24
-    ) {
-
-        return `Usually replies within ${hours}h`;
-    }
-
-
-    const days =
-        Math.max(
-            1,
-            Math.round(
-                hours / 24
-            )
-        );
-
-
-    return `Usually replies within ${days}d`;
+    return Boolean(
+        seller?.is_online ||
+        seller?.presence?.is_online
+    );
 }
 
 
@@ -23100,12 +23079,6 @@ function renderSellerProfile(
         );
 
 
-    const responseText =
-        sellerResponseTimeText(
-            profile.response_time
-        );
-
-
     document.getElementById(
         "sellerProfileContent"
     ).innerHTML = `
@@ -23147,19 +23120,15 @@ function renderSellerProfile(
 
                         <div
                             class="seller-presence-chip ${
-                                profile.presence?.is_online
+                                sellerPresenceIsOnline(
+                                    profile
+                                )
                                     ? "online"
                                     : ""
                             }"
                         >
                             ${escapeHtml(
                                 presenceText
-                            )}
-                        </div>
-
-                        <div class="seller-presence-chip">
-                            ⚡ ${escapeHtml(
-                                responseText
                             )}
                         </div>
 
@@ -23535,12 +23504,6 @@ async function loadFollowingSellers() {
                                 seller
                             );
 
-                        const response =
-                            sellerResponseTimeText(
-                                seller.response_time
-                            );
-
-
                         return `
                             <div class="v42-following-card">
                                 <div class="v42-following-top">
@@ -23561,7 +23524,7 @@ async function loadFollowingSellers() {
                                         </div>
 
                                         <div class="v42-following-meta">
-                                            ${escapeHtml(presence)} · ⚡ ${escapeHtml(response)}
+                                            ${escapeHtml(presence)}
                                         </div>
 
                                         <div class="v42-following-meta">
