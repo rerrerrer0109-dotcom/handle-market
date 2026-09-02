@@ -4658,6 +4658,109 @@ button {
     .v65-chat-safety-toolbar input[type="text"] { grid-column:1 / -1; }
 }
 
+
+
+/* =========================================================
+   V66 ADMIN WANTED MODERATION
+   ========================================================= */
+
+.v66-admin-wanted-toolbar {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 130px auto;
+    gap:7px;
+    margin-top:10px;
+}
+
+.v66-admin-wanted-toolbar input,
+.v66-admin-wanted-toolbar select,
+.v66-admin-wanted-toolbar button {
+    min-height:38px;
+}
+
+.v66-admin-wanted-card {
+    margin-top:10px;
+}
+
+.v66-admin-wanted-head {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+}
+
+.v66-admin-wanted-buyer {
+    margin-top:5px;
+    color:var(--text-2);
+    font-size:9px;
+    font-weight:800;
+}
+
+.v66-admin-wanted-id,
+.v66-admin-wanted-meta {
+    margin-top:4px;
+    color:var(--muted);
+    font-size:8px;
+    font-weight:750;
+}
+
+.v66-admin-wanted-budget {
+    text-align:right;
+    flex:0 0 auto;
+}
+
+.v66-admin-chat-count {
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    min-height:27px;
+    padding:5px 8px;
+    border:1px solid var(--border);
+    border-radius:9px;
+    color:var(--blue);
+    background:var(--blue-soft);
+    font-size:9px;
+    font-weight:850;
+}
+
+.v66-admin-chat-count .hm-ui-icon {
+    width:14px;
+    height:14px;
+}
+
+.v66-admin-contact-title {
+    margin:12px 0 6px;
+    color:var(--muted);
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+}
+
+.v66-admin-wanted-actions {
+    display:flex;
+    justify-content:flex-end;
+    margin-top:10px;
+}
+
+.v66-admin-wanted-actions button {
+    min-width:130px;
+}
+
+@media (max-width:430px) {
+    .v66-admin-wanted-toolbar {
+        grid-template-columns:minmax(0,1fr) 112px;
+    }
+
+    .v66-admin-wanted-toolbar button {
+        grid-column:1 / -1;
+        width:100%;
+    }
+
+    .v66-admin-wanted-head {
+        gap:8px;
+    }
+}
+
 </style>
 
 <style>
@@ -8920,6 +9023,42 @@ Add Listing Without Payment
 Loading...
 </div>
 
+</div>
+
+</div>
+
+
+<div class="admin-section" id="v66AdminWantedSection" data-v39-section="wanted">
+
+<div class="admin-section-title">
+🎯 Wanted Management
+</div>
+
+<div class="section-subtitle">
+Review active and closed Wanted requests, buyer contact details and conversation activity. Moderators can close or reopen requests when needed.
+</div>
+
+<div class="v66-admin-wanted-toolbar">
+    <input
+        id="v66AdminWantedSearch"
+        type="text"
+        placeholder="Username / buyer / Telegram ID"
+        oninput="renderAdminWanted()"
+    >
+
+    <select id="v66AdminWantedStatus" onchange="renderAdminWanted()">
+        <option value="all">All statuses</option>
+        <option value="active">Active</option>
+        <option value="closed">Closed</option>
+    </select>
+
+    <button class="secondary" type="button" onclick="loadAdminWanted()">
+        Refresh
+    </button>
+</div>
+
+<div id="v66AdminWantedList">
+    <div class="empty">Loading Wanted requests...</div>
 </div>
 
 </div>
@@ -22619,10 +22758,286 @@ async function loadAdminPanel() {
             loadFrozenListings(),
             loadBlockedSellers(),
             loadAdminSupportTickets(),
+            loadAdminWanted(),
             loadAdminRiskFlags(),
             loadAdminActivityLog()
         ]
     );
+}
+
+
+
+let v66AdminWantedCache = [];
+
+
+function v66AdminWantedBuyerLabel(
+    post
+) {
+
+    const buyer =
+        post?.buyer ||
+        {};
+
+    const name =
+        [
+            buyer.first_name,
+            buyer.last_name
+        ]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+
+    const username =
+        String(
+            buyer.telegram_username ||
+            ""
+        )
+        .replace(/^@/,"")
+        .trim();
+
+    if (name && username) {
+        return `${name} · @${username}`;
+    }
+
+    if (name) {
+        return name;
+    }
+
+    if (username) {
+        return `@${username}`;
+    }
+
+    return `Telegram ID ${post?.buyer_telegram_id || "—"}`;
+}
+
+
+function renderAdminWanted() {
+
+    const container =
+        document.getElementById(
+            "v66AdminWantedList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const search =
+        String(
+            document.getElementById(
+                "v66AdminWantedSearch"
+            )?.value ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+    const status =
+        String(
+            document.getElementById(
+                "v66AdminWantedStatus"
+            )?.value ||
+            "all"
+        );
+
+    const posts =
+        (v66AdminWantedCache || [])
+        .filter(
+            post => {
+
+                if (
+                    status !== "all" &&
+                    String(post.status) !== status
+                ) {
+                    return false;
+                }
+
+                if (!search) {
+                    return true;
+                }
+
+                const buyer =
+                    post.buyer ||
+                    {};
+
+                const haystack =
+                    [
+                        post.desired_username,
+                        post.buyer_telegram_id,
+                        buyer.first_name,
+                        buyer.last_name,
+                        buyer.telegram_username,
+                        post.category,
+                        post.description
+                    ]
+                    .filter(
+                        value =>
+                            value !== null &&
+                            value !== undefined
+                    )
+                    .join(" ")
+                    .toLowerCase();
+
+                return haystack.includes(search);
+            }
+        );
+
+    if (!posts.length) {
+        container.innerHTML =
+            '<div class="empty">No Wanted requests match these filters.</div>';
+        return;
+    }
+
+    container.innerHTML =
+        posts.map(
+            post => {
+
+                const active =
+                    String(post.status) ===
+                    "active";
+
+                const created =
+                    formatDateTime(
+                        post.created_at
+                    );
+
+                return `
+                    <div class="card v66-admin-wanted-card">
+
+                        <div class="v66-admin-wanted-head">
+                            <div>
+                                <div class="username">@${escapeHtml(post.desired_username || "username")}</div>
+                                <div class="v66-admin-wanted-buyer">${escapeHtml(v66AdminWantedBuyerLabel(post))}</div>
+                                <div class="v66-admin-wanted-id">Buyer ID: ${escapeHtml(post.buyer_telegram_id ?? "—")}</div>
+                            </div>
+
+                            <div class="v66-admin-wanted-budget">
+                                <div class="listing-price">$${formatPrice(post.budget)}</div>
+                                <div class="listing-price-label">BUDGET</div>
+                            </div>
+                        </div>
+
+                        <div class="listing-info-row">
+                            <span class="badge ${active ? "badge-active" : "badge-closed"}">${escapeHtml(String(post.status || "unknown").toUpperCase())}</span>
+                            <span class="category-badge">${escapeHtml(post.category || "Other")}</span>
+                            <span class="v66-admin-chat-count">${hmContactIconSvg("message")} ${Number(post.chat_count || 0)} chats</span>
+                        </div>
+
+                        ${
+                            post.description
+                                ? `<div class="description">${escapeHtml(post.description)}</div>`
+                                : ""
+                        }
+
+                        <div class="v66-admin-wanted-meta">Created ${escapeHtml(created)}</div>
+
+                        <div class="v66-admin-contact-title">Buyer contacts</div>
+                        ${contactRowsHtml(post.contacts || {}, { showActions:true })}
+
+                        <div class="v66-admin-wanted-actions">
+                            <button
+                                class="${active ? "secondary" : "primary"}"
+                                type="button"
+                                onclick="adminSetWantedStatus('${escapeJs(post.id)}','${active ? "closed" : "active"}')"
+                            >
+                                ${active ? "Close Wanted" : "Reopen Wanted"}
+                            </button>
+                        </div>
+
+                    </div>
+                `;
+            }
+        ).join("");
+}
+
+
+async function loadAdminWanted() {
+
+    const container =
+        document.getElementById(
+            "v66AdminWantedList"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    try {
+
+        const data =
+            await api(
+                "/admin/wanted",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
+
+        v66AdminWantedCache =
+            data.posts ||
+            [];
+
+        renderAdminWanted();
+
+    } catch (error) {
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(friendlyError(error.message))}</div>`;
+    }
+}
+
+
+async function adminSetWantedStatus(
+    wantedId,
+    status
+) {
+
+    const action =
+        status === "active"
+            ? "reopen"
+            : "close";
+
+    const confirmed =
+        window.confirm(
+            `Are you sure you want to ${action} this Wanted request?`
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+
+        await api(
+            "/admin/wanted/status",
+            {
+                initData:
+                    tg.initData,
+                wanted_id:
+                    wantedId,
+                status
+            }
+        );
+
+        await Promise.all([
+            loadAdminWanted(),
+            loadAdminDashboard()
+        ]);
+
+        tg?.showAlert(
+            status === "active"
+                ? "Wanted request reopened."
+                : "Wanted request closed."
+        );
+
+    } catch (error) {
+
+        tg?.showAlert(
+            friendlyError(
+                error.message
+            )
+        );
+    }
 }
 
 
@@ -28208,6 +28623,7 @@ function v39InjectAdminSections() {
     const titleMap = {
         "➕ Add Listing Without Payment":"create",
         "⏳ Pending Listings":"pending",
+        "🎯 Wanted Management":"wanted",
         "🛠 Listing Management":"management",
         "🚫 Blocked Sellers":"blocked",
         "🎧 Support Tickets":"support",
@@ -28275,10 +28691,10 @@ function v39ApplyAdminRoleVisibility() {
 
     const allowed = {
         owner:new Set([
-            "dashboard","create","pending","management","blocked","support","chat_safety","risk","history","activity","reports","frozen","team"
+            "dashboard","create","pending","wanted","management","blocked","support","chat_safety","risk","history","activity","reports","frozen","team"
         ]),
         moderator:new Set([
-            "dashboard","pending","management","blocked","support","risk","history","reports","frozen"
+            "dashboard","pending","wanted","management","blocked","support","risk","history","reports","frozen"
         ]),
         support:new Set([
             "dashboard","support"
@@ -28344,6 +28760,10 @@ async function loadAdminDashboard() {
             ["🟢",s.users_active_24h,v39T("Active 24h","Активны за 24ч")],
             ["📦",s.listings_active,v39T("Active Listings","Активные лоты")],
             ["⏳",s.listings_pending,v39T("Pending","На модерации")],
+            ["🎯",s.wanted_active,v39T("Active Wanted","Активные Wanted")],
+            ["✅",s.wanted_closed,v39T("Closed Wanted","Закрытые Wanted")],
+            ["💬",s.internal_chats_total,v39T("Internal Chats","Внутренние чаты")],
+            ["⚠️",s.suspicious_chats_open,v39T("Suspicious Chats","Подозрительные чаты")],
             ["🧊",s.listings_frozen,v39T("Frozen","Заморожено")],
             ["🚫",s.blocked_sellers,v39T("Blocked Sellers","Заблокировано продавцов")],
             ["🚩",s.reports_open,v39T("Open Reports","Открытые жалобы")],

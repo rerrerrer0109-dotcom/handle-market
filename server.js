@@ -17791,6 +17791,16 @@ const ADMIN_ROUTE_ROLES = {
         "moderator"
     ],
 
+    "/admin/wanted": [
+        "owner",
+        "moderator"
+    ],
+
+    "/admin/wanted/status": [
+        "owner",
+        "moderator"
+    ],
+
     "/admin/listing-status": [
         "owner",
         "moderator"
@@ -22172,6 +22182,7 @@ const ADMIN_AUDIT_MUTATION_PATHS =
         "/admin/listing-remove",
         "/admin/support-status",
         "/admin/risk-flag-action",
+        "/admin/wanted/status",
         "/admin/team-set"
     ]);
 
@@ -22267,6 +22278,7 @@ app.use(
                         body.report_id ||
                         body.ticket_id ||
                         body.flag_id ||
+                        body.wanted_id ||
                         null;
 
 
@@ -22281,7 +22293,9 @@ app.use(
                                     ? "support_ticket"
                                     : body.flag_id
                                         ? "risk_flag"
-                                        : "admin",
+                                        : body.wanted_id
+                                            ? "wanted"
+                                            : "admin",
                         targetId,
                         details
                     );
@@ -22360,7 +22374,11 @@ app.post(
                 listingOrdersResult,
                 renewalOrdersResult,
                 promotionOrdersResult,
-                wantedOrdersResult
+                wantedOrdersResult,
+                wantedRequestsResult,
+                listingChatsResult,
+                wantedChatsResult,
+                chatSafetyFlagsResult
             ] =
                 await Promise.all([
 
@@ -22406,7 +22424,23 @@ app.post(
 
                     supabase
                         .from("wanted_payment_orders")
-                        .select("amount_stars,status")
+                        .select("amount_stars,status"),
+
+                    supabase
+                        .from("wanted_requests")
+                        .select("id,status,created_at"),
+
+                    supabase
+                        .from("listing_chats")
+                        .select("id"),
+
+                    supabase
+                        .from("wanted_chats")
+                        .select("id"),
+
+                    supabase
+                        .from("chat_safety_flags")
+                        .select("chat_type,chat_id,status")
                 ]);
 
 
@@ -22420,7 +22454,11 @@ app.post(
                 listingOrdersResult,
                 renewalOrdersResult,
                 promotionOrdersResult,
-                wantedOrdersResult
+                wantedOrdersResult,
+                wantedRequestsResult,
+                listingChatsResult,
+                wantedChatsResult,
+                chatSafetyFlagsResult
             ];
 
 
@@ -22456,6 +22494,36 @@ app.post(
             const support =
                 supportResult.data ||
                 [];
+
+            const wantedRequests =
+                wantedRequestsResult.data ||
+                [];
+
+            const listingChats =
+                listingChatsResult.data ||
+                [];
+
+            const wantedChats =
+                wantedChatsResult.data ||
+                [];
+
+            const chatSafetyFlags =
+                chatSafetyFlagsResult.data ||
+                [];
+
+            const suspiciousChatKeys =
+                new Set(
+                    chatSafetyFlags
+                        .filter(
+                            row =>
+                                row.status ===
+                                "open"
+                        )
+                        .map(
+                            row =>
+                                `${row.chat_type}:${row.chat_id}`
+                        )
+                );
 
 
             const totalStars =
@@ -22526,6 +22594,23 @@ app.post(
                                 listing.status ===
                                 "pending"
                         ).length,
+                    wanted_active:
+                        wantedRequests.filter(
+                            row =>
+                                row.status ===
+                                "active"
+                        ).length,
+                    wanted_closed:
+                        wantedRequests.filter(
+                            row =>
+                                row.status ===
+                                "closed"
+                        ).length,
+                    internal_chats_total:
+                        listingChats.length +
+                        wantedChats.length,
+                    suspicious_chats_open:
+                        suspiciousChatKeys.size,
                     listings_frozen:
                         listings.filter(
                             listing =>
@@ -22585,6 +22670,354 @@ app.post(
                     error:"admin_dashboard_failed"
                 });
         }
+    }
+);
+
+
+
+/* =========================================================
+   V66 ADMIN WANTED MODERATION
+   Owner / Moderator
+   ========================================================= */
+
+app.post(
+    "/admin/wanted",
+    async (req, res) => {
+
+        const admin =
+            req.adminAuth ||
+            await requireAdmin(
+                req.body.initData
+            );
+
+        if (!admin.ok) {
+            return res
+                .status(admin.status)
+                .json({
+                    ok:false,
+                    error:admin.error
+                });
+        }
+
+        try {
+
+            const {
+                data:posts,
+                error:wantedError
+            } =
+                await supabase
+                    .from("wanted_requests")
+                    .select(
+                        "id,buyer_telegram_id,desired_username,budget,currency,category,description,status,created_at,updated_at"
+                    )
+                    .order(
+                        "created_at",
+                        { ascending:false }
+                    )
+                    .limit(250);
+
+            if (wantedError) {
+                throw wantedError;
+            }
+
+            const rows =
+                posts ||
+                [];
+
+            const wantedIds =
+                rows.map(
+                    row => row.id
+                );
+
+            const buyerIds =
+                [
+                    ...new Set(
+                        rows.map(
+                            row =>
+                                Number(
+                                    row.buyer_telegram_id
+                                )
+                        )
+                    )
+                ];
+
+            const [
+                buyersResult,
+                contactsResult,
+                chatsResult
+            ] =
+                await Promise.all([
+
+                    buyerIds.length
+                        ? supabase
+                            .from("users")
+                            .select(
+                                "telegram_id,first_name,last_name,telegram_username,is_blocked,last_seen_at"
+                            )
+                            .in(
+                                "telegram_id",
+                                buyerIds
+                            )
+                        : Promise.resolve({
+                            data:[],
+                            error:null
+                        }),
+
+                    wantedIds.length
+                        ? supabase
+                            .from("wanted_contacts")
+                            .select(
+                                "wanted_id,telegram,whatsapp,email,other"
+                            )
+                            .in(
+                                "wanted_id",
+                                wantedIds
+                            )
+                        : Promise.resolve({
+                            data:[],
+                            error:null
+                        }),
+
+                    wantedIds.length
+                        ? supabase
+                            .from("wanted_chats")
+                            .select(
+                                "id,wanted_id"
+                            )
+                            .in(
+                                "wanted_id",
+                                wantedIds
+                            )
+                        : Promise.resolve({
+                            data:[],
+                            error:null
+                        })
+                ]);
+
+            const failed =
+                [
+                    buyersResult,
+                    contactsResult,
+                    chatsResult
+                ].find(
+                    result =>
+                        result.error
+                );
+
+            if (failed) {
+                throw failed.error;
+            }
+
+            const buyerMap =
+                new Map(
+                    (buyersResult.data || [])
+                        .map(
+                            row => [
+                                String(
+                                    row.telegram_id
+                                ),
+                                row
+                            ]
+                        )
+                );
+
+            const contactMap =
+                new Map(
+                    (contactsResult.data || [])
+                        .map(
+                            row => [
+                                String(
+                                    row.wanted_id
+                                ),
+                                {
+                                    telegram:
+                                        row.telegram ||
+                                        "",
+                                    whatsapp:
+                                        row.whatsapp ||
+                                        "",
+                                    email:
+                                        row.email ||
+                                        "",
+                                    other:
+                                        row.other ||
+                                        ""
+                                }
+                            ]
+                        )
+                );
+
+            const chatCountMap =
+                new Map();
+
+            for (
+                const chat of
+                chatsResult.data || []
+            ) {
+
+                const key =
+                    String(
+                        chat.wanted_id
+                    );
+
+                chatCountMap.set(
+                    key,
+                    (
+                        chatCountMap.get(key) ||
+                        0
+                    ) + 1
+                );
+            }
+
+            return res.json({
+                ok:true,
+                posts:
+                    rows.map(
+                        row => ({
+                            ...row,
+                            buyer:
+                                buyerMap.get(
+                                    String(
+                                        row.buyer_telegram_id
+                                    )
+                                ) ||
+                                null,
+                            contacts:
+                                contactMap.get(
+                                    String(row.id)
+                                ) ||
+                                {
+                                    telegram:"",
+                                    whatsapp:"",
+                                    email:"",
+                                    other:""
+                                },
+                            chat_count:
+                                chatCountMap.get(
+                                    String(row.id)
+                                ) ||
+                                0
+                        })
+                    )
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Admin Wanted load:",
+                error
+            );
+
+            return res
+                .status(500)
+                .json({
+                    ok:false,
+                    error:"admin_wanted_load_failed"
+                });
+        }
+    }
+);
+
+
+app.post(
+    "/admin/wanted/status",
+    async (req, res) => {
+
+        const admin =
+            req.adminAuth ||
+            await requireAdmin(
+                req.body.initData
+            );
+
+        if (!admin.ok) {
+            return res
+                .status(admin.status)
+                .json({
+                    ok:false,
+                    error:admin.error
+                });
+        }
+
+        const wantedId =
+            String(
+                req.body.wanted_id ||
+                ""
+            ).trim();
+
+        const status =
+            String(
+                req.body.status ||
+                ""
+            )
+            .trim()
+            .toLowerCase();
+
+        if (!wantedId) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:"wanted_id_required"
+                });
+        }
+
+        if (
+            ![
+                "active",
+                "closed"
+            ].includes(status)
+        ) {
+            return res
+                .status(400)
+                .json({
+                    ok:false,
+                    error:"invalid_wanted_status"
+                });
+        }
+
+        const {
+            data:post,
+            error:updateError
+        } =
+            await supabase
+                .from("wanted_requests")
+                .update({
+                    status,
+                    updated_at:
+                        nowIso()
+                })
+                .eq(
+                    "id",
+                    wantedId
+                )
+                .select(
+                    "id,buyer_telegram_id,desired_username,status"
+                )
+                .maybeSingle();
+
+        if (
+            updateError ||
+            !post
+        ) {
+            return res
+                .status(404)
+                .json({
+                    ok:false,
+                    error:"wanted_not_found"
+                });
+        }
+
+        await safeSendMessage(
+            post.buyer_telegram_id,
+            status === "active"
+                ? `🎯 Your Wanted request @${post.desired_username} was reopened by Handle Market moderation.`
+                : `🎯 Your Wanted request @${post.desired_username} was closed by Handle Market moderation.`
+        );
+
+        return res.json({
+            ok:true,
+            post
+        });
     }
 );
 
