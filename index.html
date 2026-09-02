@@ -7360,6 +7360,292 @@ body {
 
 </style>
 
+
+<style>
+/* =========================================================
+   V71 HOME REFERRAL REWARDS
+   ========================================================= */
+.v71-home-referral {
+    margin:14px 16px 4px;
+    border:1px solid color-mix(in srgb, var(--blue) 22%, var(--border));
+    border-radius:20px;
+    background:
+        radial-gradient(circle at 92% 12%, color-mix(in srgb, #f5b942 20%, transparent), transparent 34%),
+        linear-gradient(145deg, color-mix(in srgb, var(--blue-soft) 82%, var(--card)), var(--card));
+    box-shadow:0 12px 28px rgba(17,20,26,.07);
+    overflow:hidden;
+    position:relative;
+}
+
+.v71-home-referral::after {
+    content:"";
+    position:absolute;
+    width:118px;
+    height:118px;
+    border-radius:50%;
+    right:-44px;
+    bottom:-60px;
+    background:color-mix(in srgb, var(--blue) 9%, transparent);
+    pointer-events:none;
+}
+
+.v71-referral-inner {
+    padding:14px;
+    position:relative;
+    z-index:1;
+}
+
+.v71-referral-head {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.v71-referral-brand {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+}
+
+.v71-gift-icon {
+    width:42px;
+    height:42px;
+    flex:0 0 42px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    color:var(--blue);
+    background:color-mix(in srgb, var(--blue-soft) 82%, var(--card));
+    border:1px solid color-mix(in srgb, var(--blue) 22%, var(--border));
+    box-shadow:inset 0 0 0 1px color-mix(in srgb, #fff 45%, transparent);
+}
+
+.v71-gift-icon svg {
+    width:22px;
+    height:22px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.85;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.v71-referral-title {
+    font-size:15px;
+    line-height:1.15;
+    font-weight:800;
+    color:var(--text);
+    margin-top:1px;
+}
+
+.v71-referral-subtitle {
+    margin-top:4px;
+    font-size:10.5px;
+    line-height:1.35;
+    color:var(--text-2);
+}
+
+.v71-ready-badge {
+    flex:0 0 auto;
+    border-radius:999px;
+    padding:5px 8px;
+    font-size:9px;
+    font-weight:800;
+    color:var(--blue-dark);
+    background:var(--blue-soft);
+    border:1px solid color-mix(in srgb, var(--blue) 20%, var(--border));
+    white-space:nowrap;
+}
+
+.v71-referral-stats {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+    margin-top:12px;
+}
+
+.v71-referral-stat {
+    padding:9px 10px;
+    border-radius:13px;
+    background:color-mix(in srgb, var(--card) 86%, transparent);
+    border:1px solid var(--border);
+}
+
+.v71-referral-stat strong {
+    display:block;
+    color:var(--text);
+    font-size:17px;
+    line-height:1;
+    font-weight:850;
+}
+
+.v71-referral-stat span {
+    display:block;
+    margin-top:4px;
+    color:var(--text-2);
+    font-size:9px;
+    line-height:1.2;
+}
+
+.v71-progress-row {
+    margin-top:10px;
+}
+
+.v71-progress-copy {
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    align-items:center;
+    color:var(--text-2);
+    font-size:9.5px;
+    line-height:1.2;
+}
+
+.v71-progress-copy strong {
+    color:var(--text);
+    font-weight:750;
+}
+
+.v71-progress-track {
+    height:6px;
+    border-radius:999px;
+    overflow:hidden;
+    margin-top:6px;
+    background:color-mix(in srgb, var(--border) 72%, transparent);
+}
+
+.v71-progress-track > span {
+    display:block;
+    height:100%;
+    border-radius:inherit;
+    background:linear-gradient(90deg, var(--blue), color-mix(in srgb, var(--blue) 62%, #f5b942));
+    transition:width .28s ease;
+}
+
+.v71-link-mini {
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin-top:10px;
+    padding:8px 9px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:color-mix(in srgb, var(--card) 92%, transparent);
+}
+
+.v71-link-mini svg {
+    width:15px;
+    height:15px;
+    flex:0 0 15px;
+    fill:none;
+    stroke:var(--blue);
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.v71-link-value {
+    min-width:0;
+    flex:1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    color:var(--text-2);
+    font-size:9.5px;
+}
+
+.v71-referral-actions {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) 36px;
+    gap:7px;
+    margin-top:9px;
+}
+
+.v71-referral-actions button {
+    min-height:36px;
+    height:36px;
+    border-radius:11px;
+    font-size:10px;
+    font-weight:750;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    padding:0 9px;
+}
+
+.v71-referral-actions svg {
+    width:15px;
+    height:15px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.v71-referral-actions .v71-share {
+    color:white;
+    border:1px solid var(--blue);
+    background:var(--blue);
+}
+
+.v71-referral-actions .v71-copy,
+.v71-referral-actions .v71-open {
+    color:var(--text);
+    border:1px solid var(--border);
+    background:var(--card);
+}
+
+.v71-referral-actions .v71-open {
+    padding:0;
+}
+
+.v71-referral-loading {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px;
+    color:var(--text-2);
+    font-size:10px;
+}
+
+.v71-referral-loading .v71-loading-dot {
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:var(--blue);
+    box-shadow:0 0 0 5px color-mix(in srgb, var(--blue) 12%, transparent);
+}
+
+@media (max-width:390px) {
+    .v71-home-referral {
+        margin-left:12px;
+        margin-right:12px;
+    }
+
+    .v71-referral-inner {
+        padding:12px;
+    }
+
+    .v71-referral-title {
+        font-size:14px;
+    }
+
+    .v71-referral-actions {
+        grid-template-columns:minmax(0,1fr) minmax(0,1fr) 34px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .v71-progress-track > span {
+        transition:none;
+    }
+}
+</style>
+
 </head>
 
 <body>
@@ -7443,6 +7729,13 @@ New sellers can publish their first listing free. The 24-hour timer begins only 
 <span>How it works</span>
 </button>
 
+</div>
+
+<div id="v71HomeReferral" class="v71-home-referral" aria-label="Referral rewards">
+    <div class="v71-referral-loading">
+        <span class="v71-loading-dot" aria-hidden="true"></span>
+        <span>Loading referral rewards...</span>
+    </div>
 </div>
 
 
@@ -38382,6 +38675,448 @@ if (
 
 
 v70InjectStarsPaymentsSection();
+</script>
+
+
+<script>
+/* =========================================================
+   V71 HOME REFERRAL REWARDS
+   Prominent referral reward card on the Home screen.
+   Uses the existing v46 referral backend/status and does not
+   change reward rules or claim logic.
+   ========================================================= */
+
+function v71GiftIcon() {
+    return `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3.5" y="9" width="17" height="11" rx="2.2"></rect>
+            <path d="M12 9v11M3.5 13h17M12 9H8.2a2.2 2.2 0 1 1 0-4.4C10.8 4.6 12 9 12 9ZM12 9h3.8a2.2 2.2 0 1 0 0-4.4C13.2 4.6 12 9 12 9Z"></path>
+        </svg>
+    `;
+}
+
+
+function v71ShareIcon() {
+    return `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 12 18.5 5.5"></path>
+            <path d="m13.5 5.5 5 0 0 5"></path>
+            <path d="M18.5 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2h4.5"></path>
+        </svg>
+    `;
+}
+
+
+function v71CopyIcon() {
+    return `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="8" y="8" width="11" height="11" rx="2"></rect>
+            <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
+        </svg>
+    `;
+}
+
+
+function v71ArrowIcon() {
+    return `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m9 18 6-6-6-6"></path>
+        </svg>
+    `;
+}
+
+
+function v71LinkIcon() {
+    return `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10.5 13.5 13.5 10.5"></path>
+            <path d="M7.5 15.5 5.8 17.2a3.5 3.5 0 0 0 5 5l2.7-2.7a3.5 3.5 0 0 0 0-5"></path>
+            <path d="m16.5 8.5 1.7-1.7a3.5 3.5 0 0 0-5-5l-2.7 2.7a3.5 3.5 0 0 0 0 5"></path>
+        </svg>
+    `;
+}
+
+
+function v71ReferralProgress(
+    count,
+    nextThreshold
+) {
+    const thresholds = [3,10,25];
+
+    if (!nextThreshold) {
+        return {
+            percent:100,
+            start:25,
+            end:25,
+            remaining:0
+        };
+    }
+
+    const end =
+        Number(nextThreshold);
+
+    const start =
+        thresholds
+            .filter(
+                value => value < end
+            )
+            .pop() || 0;
+
+    const width =
+        end > start
+            ? Math.max(
+                0,
+                Math.min(
+                    100,
+                    Math.round(
+                        (count - start) /
+                        (end - start) *
+                        100
+                    )
+                )
+            )
+            : 100;
+
+    return {
+        percent:width,
+        start,
+        end,
+        remaining:
+            Math.max(
+                0,
+                end - count
+            )
+    };
+}
+
+
+function v71RenderHomepageReferral() {
+    const root =
+        document.getElementById(
+            "v71HomeReferral"
+        );
+
+    if (!root) {
+        return;
+    }
+
+    const status =
+        typeof v46ReferralStatusData !==
+            "undefined"
+            ? v46ReferralStatusData
+            : null;
+
+    if (!authenticatedUser) {
+        root.innerHTML = `
+            <div class="v71-referral-loading">
+                <span class="v71-loading-dot" aria-hidden="true"></span>
+                <span>${v39T("Loading referral rewards...","Загружаем реферальные награды...")}</span>
+            </div>
+        `;
+        return;
+    }
+
+    if (!status) {
+        root.innerHTML = `
+            <div class="v71-referral-inner">
+                <div class="v71-referral-head">
+                    <div class="v71-referral-brand">
+                        <div class="v71-gift-icon">${v71GiftIcon()}</div>
+                        <div>
+                            <div class="v71-referral-title">${v39T("Referral Rewards","Реферальные награды")}</div>
+                            <div class="v71-referral-subtitle">${v39T("Invite friends and unlock free listings & boosts.","Приглашайте друзей и получайте бесплатные лоты и продвижения.")}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="v71-referral-actions">
+                    <button class="v71-share" type="button" onclick="v71RefreshReferralFromHome()">${v39T("Load rewards","Загрузить награды")}</button>
+                    <button class="v71-copy" type="button" onclick="openInviteEarn()">${v39T("Open","Открыть")}</button>
+                    <button class="v71-open" type="button" aria-label="Open referral rewards" onclick="openInviteEarn()">${v71ArrowIcon()}</button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const count =
+        Math.max(
+            0,
+            Number(
+                status.qualified_count ||
+                0
+            )
+        );
+
+    const rewards =
+        Array.isArray(status.rewards)
+            ? status.rewards
+            : [];
+
+    const readyRewards =
+        rewards.filter(
+            reward =>
+                String(
+                    reward.status ||
+                    ""
+                ) === "available"
+        );
+
+    const readyCount =
+        readyRewards.length;
+
+    const listingCredits =
+        Math.max(
+            0,
+            Number(
+                status.available_listing_credits ||
+                0
+            )
+        );
+
+    const promoReady =
+        readyRewards.filter(
+            reward =>
+                reward.kind ===
+                "promotion"
+        ).length;
+
+    const progress =
+        v71ReferralProgress(
+            count,
+            status.next_threshold
+        );
+
+    const link =
+        String(
+            status.link ||
+            (status.code
+                ? `ref_${status.code}`
+                : "")
+        );
+
+    const progressText =
+        status.next_threshold
+            ? v39T(
+                `${progress.remaining} more to next reward`,
+                `Ещё ${progress.remaining} до следующей награды`
+            )
+            : v39T(
+                "All reward levels unlocked",
+                "Все уровни наград открыты"
+            );
+
+    const readyLabel =
+        readyCount > 0
+            ? v39T(
+                `${readyCount} ready`,
+                `${readyCount} готово`
+            )
+            : v39T(
+                "Invite & Earn",
+                "Приглашай и получай"
+            );
+
+    const rewardDetail =
+        listingCredits > 0 ||
+        promoReady > 0
+            ? [
+                listingCredits > 0
+                    ? `${listingCredits} ${v39T("listing","лот")}`
+                    : "",
+                promoReady > 0
+                    ? `${promoReady} ${v39T("boost","продвижение")}`
+                    : ""
+            ]
+                .filter(Boolean)
+                .join(" · ")
+            : v39T(
+                "Unlock at 3, 10 and 25 invites",
+                "Награды за 3, 10 и 25 приглашений"
+            );
+
+    root.innerHTML = `
+        <div class="v71-referral-inner">
+            <div class="v71-referral-head">
+                <div class="v71-referral-brand">
+                    <div class="v71-gift-icon">${v71GiftIcon()}</div>
+                    <div>
+                        <div class="v71-referral-title">${v39T("Referral Rewards","Реферальные награды")}</div>
+                        <div class="v71-referral-subtitle">${v39T("Invite friends and collect free Handle Market rewards.","Приглашайте друзей и накапливайте бесплатные награды Handle Market.")}</div>
+                    </div>
+                </div>
+                <div class="v71-ready-badge">${escapeHtml(readyLabel)}</div>
+            </div>
+
+            <div class="v71-referral-stats">
+                <div class="v71-referral-stat">
+                    <strong>${count}</strong>
+                    <span>${v39T("qualified invites","засчитанных приглашений")}</span>
+                </div>
+                <div class="v71-referral-stat">
+                    <strong>${readyCount}</strong>
+                    <span>${readyCount > 0 ? escapeHtml(rewardDetail) : v39T("rewards ready","готовых наград")}</span>
+                </div>
+            </div>
+
+            <div class="v71-progress-row">
+                <div class="v71-progress-copy">
+                    <strong>${escapeHtml(progressText)}</strong>
+                    <span>${status.next_threshold ? `${count}/${Number(status.next_threshold)}` : "25/25"}</span>
+                </div>
+                <div class="v71-progress-track" aria-label="Referral progress">
+                    <span style="width:${progress.percent}%"></span>
+                </div>
+            </div>
+
+            <div class="v71-link-mini">
+                ${v71LinkIcon()}
+                <div class="v71-link-value">${escapeHtml(link || v39T("Your referral link","Ваша реферальная ссылка"))}</div>
+            </div>
+
+            <div class="v71-referral-actions">
+                <button class="v71-share" type="button" onclick="v71ShareReferralFromHome()">
+                    ${v71ShareIcon()}
+                    <span>${v39T("Share Invite","Поделиться")}</span>
+                </button>
+                <button class="v71-copy" type="button" onclick="v71CopyReferralFromHome()">
+                    ${v71CopyIcon()}
+                    <span>${v39T("Copy Link","Копировать")}</span>
+                </button>
+                <button class="v71-open" type="button" aria-label="Open all referral rewards" onclick="openInviteEarn()">
+                    ${v71ArrowIcon()}
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+
+async function v71CopyReferralFromHome() {
+    const link =
+        String(
+            typeof v46ReferralStatusData !==
+                "undefined"
+                ? v46ReferralStatusData?.link || ""
+                : ""
+        );
+
+    if (!link) {
+        await v71RefreshReferralFromHome();
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(
+            link
+        );
+
+        hmToast(
+            v39T(
+                "Referral link copied ✓",
+                "Реферальная ссылка скопирована ✓"
+            ),
+            "success"
+        );
+
+    } catch {
+        const input =
+            document.createElement(
+                "textarea"
+            );
+
+        input.value = link;
+        input.style.position =
+            "fixed";
+        input.style.opacity =
+            "0";
+
+        document.body.appendChild(
+            input
+        );
+        input.select();
+        document.execCommand(
+            "copy"
+        );
+        input.remove();
+
+        hmToast(
+            v39T(
+                "Referral link copied ✓",
+                "Реферальная ссылка скопирована ✓"
+            ),
+            "success"
+        );
+    }
+}
+
+
+async function v71ShareReferralFromHome() {
+    if (
+        typeof v46ReferralStatusData ===
+            "undefined" ||
+        !v46ReferralStatusData?.link
+    ) {
+        await v71RefreshReferralFromHome();
+
+        if (!v46ReferralStatusData?.link) {
+            return;
+        }
+    }
+
+    v46ShareReferral();
+}
+
+
+async function v71RefreshReferralFromHome() {
+    try {
+        await v46LoadReferralStatus(
+            false
+        );
+        v71RenderHomepageReferral();
+    } catch (error) {
+        hmToast(
+            friendlyError(
+                error.message
+            ),
+            "error"
+        );
+    }
+}
+
+
+if (
+    typeof v46ApplyReferralStatus ===
+    "function"
+) {
+    const v71BaseApplyReferralStatus =
+        v46ApplyReferralStatus;
+
+    v46ApplyReferralStatus =
+    function v46ApplyReferralStatusV71(
+        status
+    ) {
+        v71BaseApplyReferralStatus(
+            status
+        );
+        v71RenderHomepageReferral();
+    };
+}
+
+
+/* Catch both fast and slow initial Telegram authentication. */
+v71RenderHomepageReferral();
+setTimeout(
+    v71RenderHomepageReferral,
+    250
+);
+setTimeout(
+    v71RenderHomepageReferral,
+    1000
+);
+setTimeout(
+    v71RenderHomepageReferral,
+    2500
+);
 </script>
 
 </body>
