@@ -29392,19 +29392,23 @@ function v39RenderHelpPages() {
         faq.innerHTML =
             v39CurrentLanguage === "ru"
                 ? `
-                    <div class="v39-help-card"><h3>Что такое Handle Market?</h3><p>Handle Market — площадка для поиска WhatsApp-юзернеймов, публикации лотов, связи с продавцами и переговоров.</p></div>
-                    <div class="v39-help-card"><h3>Как открыть контакт продавца?</h3><p>На странице лота нажмите Unlock Seller Contact. После успешной оплаты Stars доступ к контакту сохраняется для вашего аккаунта.</p></div>
-                    <div class="v39-help-card"><h3>Что означает ⭐ Premium?</h3><p>Premium выдаётся Handle Market выбранным уникальным и качественным именам. Его нельзя купить. VIP, HOT и Bump — отдельные виды платного продвижения.</p></div>
+                    <div class="v39-help-card"><h3>Что такое Handle Market?</h3><p>Handle Market — площадка для поиска WhatsApp-юзернеймов, публикации лотов и Wanted-запросов, связи между пользователями и переговоров. Handle Market не является WhatsApp и не управляет системой WhatsApp usernames.</p></div>
+                    <div class="v39-help-card"><h3>Как открыть контакт продавца?</h3><p>На странице лота нажмите Unlock Seller Contact. После успешной оплаты Telegram Stars доступ сохраняется для вашего аккаунта в соответствии с правилами площадки и условиями работы сервиса.</p></div>
+                    <div class="v39-help-card"><h3>Кто видит контакты в Wanted?</h3><p>Публичный API не раскрывает сами контактные значения автора Wanted. Заполненные Telegram, WhatsApp, Email или Other контакты доступны только аутентифицированным пользователям Handle Market внутри Telegram Mini App.</p></div>
+                    <div class="v39-help-card"><h3>Может ли администрация читать внутренний чат?</h3><p>Да. Внутренние Listing и Wanted-чаты могут проверяться уполномоченными администраторами для расследования мошенничества, подозрительных ссылок, жалоб и злоупотреблений. Не отправляйте пароли, recovery-коды, seed-фразы и другие секреты.</p></div>
+                                        <div class="v39-help-card"><h3>Что означает ⭐ Premium?</h3><p>Premium присваивается Handle Market выбранным уникальным и качественным именам и не продаётся. VIP, HOT и Bump — отдельные платные способы продвижения и не означают гарантию продажи, владения или передачи username.</p></div>
                     <div class="v39-help-card"><h3>Сколько действует лот?</h3><p>Первый бесплатный лот действует 24 часа. Платный или продлённый лот действует 30 дней. Legacy-лоты могут не иметь автоматического срока окончания.</p></div>
-                    <div class="v39-help-card"><h3>Как работают предложения?</h3><p>Если лот допускает торг, покупатель может отправить предложение с установленным сроком действия. Продавец может принять, отклонить или отправить встречную цену.</p></div>
-                    <div class="v39-help-card"><h3>Куда писать при проблеме?</h3><p>Откройте Profile → Help & Support и создайте тикет. Вся переписка с поддержкой сохранится внутри Handle Market.</p></div>
+                    <div class="v39-help-card"><h3>Гарантирует ли Handle Market передачу username?</h3><p><strong>Нет.</strong> Handle Market помогает находить предложения и вести переговоры, но не контролирует WhatsApp, владение username или технический процесс передачи и не является escrow-сервисом.</p></div>
+                    <div class="v39-help-card"><h3>Куда писать при проблеме?</h3><p>Откройте Profile → Help & Support и создайте тикет. Вся переписка с поддержкой сохраняется внутри Handle Market.</p></div>
                 `
                 : `
-                    <div class="v39-help-card"><h3>What is Handle Market?</h3><p>Handle Market is a marketplace for discovering WhatsApp usernames, publishing listings, contacting sellers and negotiating.</p></div>
-                    <div class="v39-help-card"><h3>How do I unlock a seller contact?</h3><p>Open a listing and tap Unlock Seller Contact. After a successful Stars payment, contact access stays available for your account.</p></div>
-                    <div class="v39-help-card"><h3>What does ⭐ Premium mean?</h3><p>Premium is awarded by Handle Market to selected unique, high-quality names and cannot be purchased. VIP, HOT and Bump are separate promotion products.</p></div>
+                    <div class="v39-help-card"><h3>What is Handle Market?</h3><p>Handle Market is a marketplace for discovering WhatsApp usernames, publishing listings and Wanted requests, contacting other users and negotiating. Handle Market is not WhatsApp and does not operate the WhatsApp username system.</p></div>
+                    <div class="v39-help-card"><h3>How do I unlock a seller contact?</h3><p>Open a listing and tap Unlock Seller Contact. After a successful Telegram Stars payment, access stays available for your account subject to marketplace rules and service integrity.</p></div>
+                    <div class="v39-help-card"><h3>Who can see Wanted contacts?</h3><p>The public API does not expose the actual Wanted contact values. Telegram, WhatsApp, Email or Other contact values supplied by the buyer are available only to authenticated Handle Market users inside the Telegram Mini App.</p></div>
+                    <div class="v39-help-card"><h3>Can administrators review internal chats?</h3><p>Yes. Authorized administrators may review internal Listing and Wanted chats to investigate fraud, suspicious links, reports and platform abuse. Never send passwords, recovery codes, seed phrases or other secrets.</p></div>
+                                        <div class="v39-help-card"><h3>What does ⭐ Premium mean?</h3><p>Premium is awarded by Handle Market to selected unique, high-quality names and cannot be purchased. VIP, HOT and Bump are separate paid promotion products and do not guarantee a sale, ownership or transfer.</p></div>
                     <div class="v39-help-card"><h3>How long does a listing stay active?</h3><p>The first free listing lasts 24 hours. A paid or renewed listing lasts 30 days. Legacy listings may have no automatic expiration.</p></div>
-                    <div class="v39-help-card"><h3>How do offers work?</h3><p>For negotiable listings, a buyer can send an offer with an expiration period. The seller can accept, decline or send a counter offer.</p></div>
+                    <div class="v39-help-card"><h3>Does Handle Market guarantee username transfer?</h3><p><strong>No.</strong> Handle Market helps users discover opportunities and negotiate, but it does not control WhatsApp, username ownership or the technical transfer process and is not an escrow service.</p></div>
                     <div class="v39-help-card"><h3>Where can I get help?</h3><p>Open Profile → Help & Support and create a ticket. Your support conversation remains inside Handle Market.</p></div>
                 `;
     }
@@ -29415,24 +29419,31 @@ function v39RenderHelpPages() {
         rules.innerHTML =
             v39CurrentLanguage === "ru"
                 ? `
-                    <div class="v39-help-card"><h3>1. Честные объявления</h3><p>Не публикуйте вводящие в заблуждение описания, ложные гарантии, фишинговые ссылки, вредоносные сайты или контакты, созданные для обмана.</p></div>
-                    <div class="v39-help-card"><h3>2. Контакты продавца</h3><p>Контакт продавца хранится приватно и раскрывается покупателю только по действующим правилам Handle Market. Изменение контакта активного лота может отправить лот на повторную модерацию.</p></div>
-                    <div class="v39-help-card"><h3>3. Переговоры</h3><p>Используйте внутренний чат и систему предложений для переговоров. Не отправляйте пароли, recovery-коды, seed-фразы или другие секреты.</p></div>
-                    <div class="v39-help-card"><h3>4. Передача username</h3><p><strong>Handle Market не контролирует и не гарантирует передачу WhatsApp username и не является escrow-сервисом.</strong> Площадка помогает сторонам найти друг друга и вести переговоры.</p></div>
-                    <div class="v39-help-card"><h3>5. Модерация</h3><p>Handle Market может отправить лот на проверку, заморозить или удалить его, а также ограничить аккаунт при нарушении правил. Risk Flag является предупреждением для модератора, а не автоматическим доказательством мошенничества.</p></div>
-                    <div class="v39-help-card"><h3>6. Безопасность</h3><ul><li>Проверяйте внешние ссылки самостоятельно.</li><li>Не передавайте коды входа и данные восстановления.</li><li>При подозрительном поведении используйте Report или Support.</li></ul></div>
+                    <div class="v39-help-card"><h3>1. Честные объявления и право на публикацию</h3><p>Публикуйте только информацию, которую вы вправе размещать. Не используйте вводящие в заблуждение описания, ложные гарантии владения или передачи, фишинговые ссылки, вредоносные сайты, поддельные контакты или другие способы обмана.</p></div>
+                    <div class="v39-help-card"><h3>2. Контакты продавца и Unlock Contact</h3><p>Контакт продавца не показывается публично и раскрывается покупателю через действующий механизм доступа. Не пытайтесь обходить Unlock Contact, получать закрытые контакты несанкционированно или распространять полученные контактные данные вне целей конкретного взаимодействия.</p></div>
+                    <div class="v39-help-card"><h3>3. Wanted-контакты</h3><p>Автор Wanted обязан указать минимум один внешний способ связи. Фактические значения контактов доступны аутентифицированным пользователям Handle Market. Не используйте их для массового сбора данных, спама, нежелательной рекламы или иных злоупотреблений.</p></div>
+                    <div class="v39-help-card"><h3>4. Переговоры и внутренние чаты</h3><p>Используйте чат и предложения добросовестно. Не отправляйте вредоносные ссылки, угрозы, спам, запросы паролей, recovery-кодов, seed-фраз или других секретов. Уполномоченные администраторы могут проверять внутренние сообщения для безопасности, расследования жалоб и предотвращения мошенничества.</p></div>
+                    <div class="v39-help-card"><h3>5. Telegram Stars и платные услуги</h3><p>Stars оплачивают конкретную услугу Handle Market: публикацию или продление лота, Wanted, Unlock Contact или promotion. Оплата услуги не является оплатой самого username и не гарантирует продажу, владение или передачу username. Перед оплатой пользователь должен проверить выбранную услугу и её условия.</p></div>
+                    <div class="v39-help-card"><h3>6. Premium и платное продвижение</h3><p>Premium присваивается площадкой и не продаётся. VIP, HOT и Bump являются временным продвижением. Любой badge или promotion влияет только на отображение внутри Handle Market и не является проверкой права собственности, гарантией качества сделки или гарантией продажи.</p></div>
+                    <div class="v39-help-card"><h3>7. Referral Rewards</h3><p>Реферальные награды предназначены для реальных приглашённых пользователей. Саморефералы, массовые искусственные регистрации, автоматизация, мультиаккаунты и другие попытки искусственно получить награды могут привести к отмене наград или ограничению аккаунта.</p></div>
+                    <div class="v39-help-card"><h3>8. Передача WhatsApp username</h3><p><strong>Handle Market не контролирует и не гарантирует передачу WhatsApp username и не является escrow-сервисом.</strong> Стороны самостоятельно проверяют друг друга, право распоряжаться username, условия сделки и соблюдение правил WhatsApp и применимого законодательства.</p></div>
+                    <div class="v39-help-card"><h3>9. Модерация и меры безопасности</h3><p>Handle Market может отправлять материалы на проверку, замораживать, приостанавливать или удалять лоты и Wanted, закрывать подозрительные действия, отзывать продвижение и ограничивать аккаунты при нарушениях или риске злоупотребления. Risk Flag является сигналом для проверки, а не автоматическим доказательством мошенничества.</p></div>
+                    <div class="v39-help-card"><h3>10. Жалобы и поддержка</h3><ul><li>Проверяйте внешние ссылки и контрагентов самостоятельно.</li><li>Никому не сообщайте коды входа и данные восстановления.</li><li>При подозрительной активности используйте Report или Help & Support.</li></ul></div>
                 `
                 : `
-                    <div class="v39-help-card"><h3>1. Honest listings</h3><p>Do not publish misleading descriptions, false guarantees, phishing links, malicious websites or contacts intended to deceive users.</p></div>
-                    <div class="v39-help-card"><h3>2. Seller contacts</h3><p>Seller contact information remains private and is revealed only under Handle Market's contact-access rules. Changing an active listing's contact may send the listing back to moderation.</p></div>
-                    <div class="v39-help-card"><h3>3. Negotiations</h3><p>Use internal chat and offers for negotiations. Never send passwords, recovery codes, seed phrases or other account secrets.</p></div>
-                    <div class="v39-help-card"><h3>4. Username transfer</h3><p><strong>Handle Market does not control or guarantee the transfer of a WhatsApp username and is not an escrow service.</strong> The marketplace helps parties discover each other and negotiate.</p></div>
-                    <div class="v39-help-card"><h3>5. Moderation</h3><p>Handle Market may send a listing for review, freeze or remove it, or restrict an account when rules are violated. A Risk Flag is a moderation warning, not automatic proof of fraud.</p></div>
-                    <div class="v39-help-card"><h3>6. Safety</h3><ul><li>Review external links independently.</li><li>Never share login or recovery secrets.</li><li>Use Report or Support if something looks suspicious.</li></ul></div>
+                    <div class="v39-help-card"><h3>1. Honest listings and authority to post</h3><p>Only publish information you are entitled to post. Do not use misleading descriptions, false ownership or transfer guarantees, phishing links, malicious websites, fake contact details or other deceptive methods.</p></div>
+                    <div class="v39-help-card"><h3>2. Seller contacts and Unlock Contact</h3><p>Seller contact information is not displayed publicly and is revealed through the applicable contact-access flow. Do not attempt to bypass Unlock Contact, obtain restricted contact data without authorization, or redistribute unlocked contact information beyond the purpose of the relevant interaction.</p></div>
+                    <div class="v39-help-card"><h3>3. Wanted contacts</h3><p>A Wanted author must provide at least one external contact method. Actual contact values are available to authenticated Handle Market users. Do not use them for bulk data collection, spam, unsolicited advertising or other abuse.</p></div>
+                    <div class="v39-help-card"><h3>4. Negotiations and internal chats</h3><p>Use chat and offers in good faith. Do not send malicious links, threats, spam, requests for passwords, recovery codes, seed phrases or other secrets. Authorized administrators may review internal messages for safety, complaint investigation and fraud prevention.</p></div>
+                    <div class="v39-help-card"><h3>5. Telegram Stars and paid services</h3><p>Stars pay for a specific Handle Market service: listing publication or renewal, Wanted, Unlock Contact or promotion. Paying for a service is not payment for the username itself and does not guarantee a sale, ownership or transfer. Users should review the selected service and its terms before payment.</p></div>
+                    <div class="v39-help-card"><h3>6. Premium and paid promotion</h3><p>Premium is assigned by the marketplace and cannot be purchased. VIP, HOT and Bump are temporary promotion products. Any badge or promotion affects presentation inside Handle Market only and is not proof of ownership, transaction quality or a guaranteed sale.</p></div>
+                    <div class="v39-help-card"><h3>7. Referral Rewards</h3><p>Referral rewards are intended for genuine invited users. Self-referrals, artificial registrations, automation, multi-account abuse or other attempts to manipulate rewards may result in reward cancellation or account restrictions.</p></div>
+                    <div class="v39-help-card"><h3>8. WhatsApp username transfer</h3><p><strong>Handle Market does not control or guarantee the transfer of a WhatsApp username and is not an escrow service.</strong> Users are responsible for verifying counterparties, authority to transfer a username, transaction terms, and compliance with WhatsApp rules and applicable law.</p></div>
+                    <div class="v39-help-card"><h3>9. Moderation and safety actions</h3><p>Handle Market may review, freeze, pause or remove listings and Wanted requests, stop suspicious activity, revoke promotion, or restrict accounts when rules are violated or abuse risk is identified. A Risk Flag is a review signal, not automatic proof of fraud.</p></div>
+                    <div class="v39-help-card"><h3>10. Reports and support</h3><ul><li>Review external links and counterparties independently.</li><li>Never share login or recovery secrets.</li><li>Use Report or Help & Support when activity appears suspicious.</li></ul></div>
                 `;
     }
 }
-
 
 function openFAQ() {
 
@@ -31296,41 +31307,97 @@ function v41InjectPrivacyPage() {
             <div id="v41PrivacyTerms" class="page">
                 <div class="page-heading">
                     <div class="page-title">🔐 ${v39T("Privacy & Terms","Конфиденциальность и условия")}</div>
-                    <div class="page-description">${v39T("How Handle Market handles marketplace data and platform use.","Как Handle Market обрабатывает данные маркетплейса и правила использования платформы.")}</div>
+                    <div class="page-description">${v39T("Data, marketplace use, Stars payments, moderation and user responsibilities.","Данные, использование площадки, платежи Stars, модерация и ответственность пользователей.")}</div>
                 </div>
 
                 <div class="section">
                     <div class="v39-help-card">
-                        <h3>${v39T("Privacy","Конфиденциальность")}</h3>
+                        <h3>${v39T("1. Account & marketplace data","1. Данные аккаунта и площадки")}</h3>
                         <p>${v39T(
-                            "Handle Market stores the information needed to operate your account, listings, offers, chats, support requests and moderation. Seller contact details are not displayed publicly and are revealed only through the existing contact-access flow or to authorized moderators for safety review.",
-                            "Handle Market хранит данные, необходимые для работы аккаунта, лотов, предложений, чатов, поддержки и модерации. Контакты продавца не показываются публично и раскрываются только через существующий механизм доступа к контакту или уполномоченным модераторам для проверки безопасности."
+                            "Handle Market stores information needed to operate accounts and marketplace features, including Telegram account data supplied through the Mini App, listings, Wanted requests, offers, referral activity, payment records, support requests, internal chats, moderation records and security events. Data is used to operate the service, prevent abuse, resolve support issues and maintain marketplace safety.",
+                            "Handle Market хранит информацию, необходимую для работы аккаунтов и функций площадки, включая данные Telegram, переданные через Mini App, лоты, Wanted-запросы, предложения, реферальную активность, записи о платежах, обращения в поддержку, внутренние чаты, данные модерации и события безопасности. Эти данные используются для работы сервиса, предотвращения злоупотреблений, решения обращений и обеспечения безопасности площадки."
                         )}</p>
                     </div>
 
                     <div class="v39-help-card">
-                        <h3>${v39T("Marketplace Terms","Условия маркетплейса")}</h3>
+                        <h3>${v39T("2. Seller & Wanted contacts","2. Контакты продавцов и Wanted")}</h3>
                         <p>${v39T(
-                            "Handle Market is a discovery and negotiation platform. It does not control WhatsApp username ownership or transfer, does not guarantee that a transfer will occur, and is not an escrow service. Users remain responsible for verifying counterparties and complying with applicable platform rules and law.",
-                            "Handle Market — площадка для поиска и переговоров. Она не контролирует владение или передачу WhatsApp username, не гарантирует передачу и не является escrow-сервисом. Пользователи самостоятельно проверяют контрагентов и обязаны соблюдать применимые правила платформ и законодательство."
+                            "Seller contact values are not displayed in the public marketplace feed and are revealed through the applicable contact-access flow or to authorized administrators for moderation and safety. Wanted contact values are not exposed through the public Wanted API; they are available to authenticated Handle Market users inside the Telegram Mini App. Contact information must not be harvested, spammed or misused.",
+                            "Контактные данные продавца не отображаются в публичной ленте и раскрываются через действующий механизм доступа к контакту либо уполномоченным администраторам для модерации и безопасности. Контактные значения автора Wanted не выдаются публичным Wanted API; они доступны аутентифицированным пользователям Handle Market внутри Telegram Mini App. Контакты нельзя массово собирать, использовать для спама или иных злоупотреблений."
                         )}</p>
                     </div>
 
                     <div class="v39-help-card">
-                        <h3>${v39T("Safety & Abuse Prevention","Безопасность и защита от злоупотреблений")}</h3>
+                        <h3>${v39T("3. Internal chats & moderation review","3. Внутренние чаты и проверка модерацией")}</h3>
                         <p>${v39T(
-                            "Automated limits may temporarily slow repeated offers, messages, reports, listing edits or other high-frequency actions. Risk flags help moderators review unusual activity; they are not automatic accusations of fraud.",
-                            "Автоматические ограничения могут временно замедлять частые предложения, сообщения, жалобы, редактирование лотов и другие массовые действия. Флаги риска помогают модераторам проверять необычную активность и не являются автоматическим обвинением в мошенничестве."
+                            "Messages sent through Handle Market's internal Listing and Wanted chats are stored to provide the chat service. Authorized administrators may review internal messages when investigating fraud, suspicious links, reports, abuse or other platform-safety issues. Automated risk signals may flag suspicious content for review; a flag is not automatic proof of wrongdoing.",
+                            "Сообщения, отправленные через внутренние Listing и Wanted-чаты Handle Market, хранятся для работы чата. Уполномоченные администраторы могут проверять внутренние сообщения при расследовании мошенничества, подозрительных ссылок, жалоб, злоупотреблений и других вопросов безопасности площадки. Автоматические сигналы риска могут отмечать подозрительный контент для проверки; такой флаг не является автоматическим доказательством нарушения."
                         )}</p>
                     </div>
 
-                    <button class="secondary" style="width:100%" onclick="openPage('profile',null)">← ${v39T("Back to Profile","Назад в профиль")}</button>
+                    <div class="v39-help-card">
+                        <h3>${v39T("4. Telegram Stars payments","4. Платежи Telegram Stars")}</h3>
+                        <p>${v39T(
+                            "Telegram Stars payments purchase specific Handle Market services such as listing publication or renewal, Wanted publication, Unlock Contact, Bump, HOT or VIP. They do not purchase the username itself and do not guarantee a transaction, sale, ownership or transfer. Payment records may be retained for accounting, support, abuse prevention, technical investigation and dispute handling. Users should review the selected service and its terms before payment.",
+                            "Платежи Telegram Stars оплачивают конкретные услуги Handle Market, такие как публикация или продление лота, публикация Wanted, Unlock Contact, Bump, HOT или VIP. Они не являются оплатой самого username и не гарантируют сделку, продажу, владение или передачу. Записи о платежах могут храниться для учёта, поддержки, предотвращения злоупотреблений, технических проверок и разбора спорных ситуаций. Перед оплатой пользователь должен проверить выбранную услугу и её условия."
+                        )}</p>
+                    </div>
+
+                    <div class="v39-help-card">
+                        <h3>${v39T("5. Username ownership, transfer & escrow","5. Владение username, передача и escrow")}</h3>
+                        <p>${v39T(
+                            "Handle Market is a discovery and negotiation platform. It is not WhatsApp, does not control WhatsApp username ownership or technical transfer, does not guarantee that a username can or will be transferred, and is not an escrow service. Users are responsible for verifying counterparties, authority to offer a username, transaction terms and compliance with applicable platform rules and law.",
+                            "Handle Market — площадка для поиска и переговоров. Она не является WhatsApp, не контролирует владение WhatsApp username или технический процесс передачи, не гарантирует возможность или факт передачи username и не является escrow-сервисом. Пользователи самостоятельно проверяют контрагентов, право предлагать username, условия сделки и соблюдение применимых правил платформ и законодательства."
+                        )}</p>
+                    </div>
+
+                    <div class="v39-help-card">
+                        <h3>${v39T("6. Premium, promotions & visibility","6. Premium, продвижение и видимость")}</h3>
+                        <p>${v39T(
+                            "Premium is a marketplace quality designation selected by Handle Market and cannot be purchased. VIP, HOT and Bump are paid visibility products with limited duration. These labels affect presentation and ranking inside Handle Market only; they are not verification of ownership, a guarantee of legitimacy, or a promise of sale or transfer.",
+                            "Premium — это отметка качества, выбираемая Handle Market, и её нельзя купить. VIP, HOT и Bump — платные инструменты повышения видимости с ограниченным сроком действия. Эти отметки влияют только на отображение и ранжирование внутри Handle Market; они не подтверждают право собственности, не гарантируют добросовестность и не обещают продажу или передачу."
+                        )}</p>
+                    </div>
+
+                    <div class="v39-help-card">
+                        <h3>${v39T("7. Referral Rewards & anti-abuse","7. Referral Rewards и защита от злоупотреблений")}</h3>
+                        <p>${v39T(
+                            "Referral rewards are intended for genuine invited users. Handle Market may reject, reverse or remove rewards associated with self-referrals, artificial registrations, automation, coordinated multi-account activity or other manipulation. Referral and security activity may be recorded to enforce these rules.",
+                            "Реферальные награды предназначены для реальных приглашённых пользователей. Handle Market может не засчитать, отменить или удалить награды, связанные с саморефералами, искусственными регистрациями, автоматизацией, согласованным использованием множества аккаунтов или иными манипуляциями. Для применения этих правил может сохраняться информация о реферальной и защитной активности."
+                        )}</p>
+                    </div>
+
+                    <div class="v39-help-card">
+                        <h3>${v39T("8. Moderation, restrictions & service integrity","8. Модерация, ограничения и целостность сервиса")}</h3>
+                        <p>${v39T(
+                            "Handle Market may review, pause, freeze, remove or close marketplace content, revoke promotions, limit features or restrict accounts when reasonably necessary to enforce marketplace rules, protect users, investigate abuse, respond to reports, correct verified technical issues or protect service integrity. Automated rate limits may temporarily slow repeated high-frequency actions.",
+                            "Handle Market может проверять, приостанавливать, замораживать, удалять или закрывать материалы площадки, отзывать продвижение, ограничивать функции или аккаунты, когда это обоснованно необходимо для соблюдения правил, защиты пользователей, расследования злоупотреблений, обработки жалоб, исправления подтверждённых технических проблем или защиты целостности сервиса. Автоматические лимиты могут временно замедлять частые повторяющиеся действия."
+                        )}</p>
+                    </div>
+
+                    <div class="v39-help-card">
+                        <h3>${v39T("9. User responsibility & safety","9. Ответственность пользователя и безопасность")}</h3>
+                        <p>${v39T(
+                            "Users remain responsible for their own negotiations, external communications and any transaction conducted outside Handle Market. Never share passwords, login codes, recovery codes, seed phrases or other account secrets. Review external links and counterparties independently and use Report or Help & Support when something appears suspicious.",
+                            "Пользователи самостоятельно отвечают за свои переговоры, внешнюю коммуникацию и любые сделки, проводимые вне Handle Market. Никогда не передавайте пароли, коды входа, recovery-коды, seed-фразы или другие секреты аккаунта. Самостоятельно проверяйте внешние ссылки и контрагентов и используйте Report или Help & Support при подозрительной активности."
+                        )}</p>
+                    </div>
+
+                    <div class="v39-help-card">
+                        <h3>${v39T("10. Marketplace rules","10. Правила площадки")}</h3>
+                        <p>${v39T(
+                            "Use of Handle Market is also subject to the Rules & Safety page. Continued use of marketplace features means you are expected to follow those rules and any applicable Telegram, WhatsApp and legal requirements.",
+                            "Использование Handle Market также регулируется разделом Rules & Safety. Продолжая использовать функции площадки, пользователь должен соблюдать эти правила, а также применимые требования Telegram, WhatsApp и законодательства."
+                        )}</p>
+                    </div>
+
+                    <button class="secondary" style="width:100%" onclick="openRules()">${v39T("Open Rules & Safety","Открыть Правила и безопасность")} →</button>
+                    <button class="secondary" style="width:100%;margin-top:8px" onclick="openPage('profile',null)">← ${v39T("Back to Profile","Назад в профиль")}</button>
                 </div>
             </div>
         `
     );
 }
-
 
 v41InjectPrivacyPage();
 
@@ -31372,7 +31439,7 @@ function renderMainProfileV41(
                 <div class="profile-tile-icon">🔐</div>
                 <div>
                     <div class="profile-tile-title">${v39T("Privacy & Terms","Конфиденциальность и условия")}</div>
-                    <div class="profile-tile-subtitle">${v39T("Data, terms & anti-abuse","Данные, условия и защита")}</div>
+                    <div class="profile-tile-subtitle">${v39T("Data, payments & marketplace terms","Данные, платежи и правила площадки")}</div>
                 </div>
             </button>
         `;
@@ -39506,5 +39573,7 @@ setTimeout(
 );
 </script>
 
+
+<!-- Handle Market v73 — Privacy, Terms & Marketplace Rules -->
 </body>
 </html>
