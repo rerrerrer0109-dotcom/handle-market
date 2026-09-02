@@ -10100,10 +10100,10 @@ let unreadCounts = {
 };
 
 let listingPriceStars =
-    750;
+    100;
 
 let listingRenewalPriceStars =
-    750;
+    100;
 
 let listingRenewalPriceUsd =
     15;
@@ -10121,7 +10121,7 @@ let contactUnlockPriceStars =
     50;
 
 let wantedPriceStars =
-    250;
+    50;
 
 let serverClockOffsetMs =
     0;
@@ -10136,21 +10136,21 @@ let lifecycleRefreshScheduled =
 let promotionPrices = {
 
     bump:{
-        24:50,
-        72:120,
-        168:250
+        24:20,
+        72:45,
+        168:80
     },
 
     hot:{
-        24:150,
-        72:350,
-        168:700
+        24:40,
+        72:90,
+        168:160
     },
 
     vip:{
-        24:300,
-        72:750,
-        168:1500
+        24:100,
+        72:240,
+        168:450
     }
 };
 
@@ -18991,14 +18991,14 @@ async function loadWanted() {
 
     try {
 
-        const response =
-            await fetch(
-                API_URL +
-                "/wanted"
-            );
-
         const data =
-            await response.json();
+            await api(
+                "/wanted-auth",
+                {
+                    initData:
+                        tg.initData
+                }
+            );
 
         const posts =
             data.posts ||
@@ -36764,7 +36764,7 @@ if (typeof loadAdminPanel === "function") {
 <script>
 /* =========================================================
    V68 OWNER TEST ENGAGEMENT
-   Temporary owner-only QA utility.
+   Permanent owner-only engagement control.
    ========================================================= */
 
 function v68TestEngagementIcon(
@@ -36830,11 +36830,11 @@ function v68InjectTestEngagementSection() {
         <div class="admin-section-title v68-test-engagement-title">
             ${v68TestEngagementIcon("eye")}
             Test Engagement
-            <span class="v68-test-badge">Owner · Test only</span>
+            <span class="v68-test-badge">Owner only</span>
         </div>
 
         <div class="section-subtitle">
-            Temporarily increase the public Views / Likes counters of one listing for QA. Use “Reset to real” when the test is finished.
+            Adjust the public Views / Likes counters of one listing. Real counters remain stored separately and can be restored at any time.
         </div>
 
         <div class="v68-test-engagement-card">

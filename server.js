@@ -63,7 +63,7 @@ const OLD_LISTING_PRICE_STARS =
         1,
         Number(
             process.env.LISTING_PRICE_STARS ||
-            "750"
+            "100"
         )
     );
 
@@ -74,7 +74,7 @@ const LISTING_RENEWAL_PRICE_STARS =
         Number(
             process.env.LISTING_RENEWAL_PRICE_STARS ||
             OLD_LISTING_PRICE_STARS ||
-            "750"
+            "100"
         )
     );
 
@@ -98,7 +98,7 @@ const WANTED_PRICE_STARS =
         1,
         Number(
             process.env.WANTED_PRICE_STARS ||
-            "250"
+            "50"
         )
     );
 
@@ -167,7 +167,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.BUMP_24H_STARS ||
-                "50"
+                "20"
             )
         ),
 
@@ -175,7 +175,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.BUMP_72H_STARS ||
-                "120"
+                "45"
             )
         ),
 
@@ -183,7 +183,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.BUMP_168H_STARS ||
-                "250"
+                "80"
             )
         )
     },
@@ -195,7 +195,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.HOT_24H_STARS ||
-                "150"
+                "40"
             )
         ),
 
@@ -203,7 +203,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.HOT_72H_STARS ||
-                "350"
+                "90"
             )
         ),
 
@@ -211,7 +211,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.HOT_168H_STARS ||
-                "700"
+                "160"
             )
         )
     },
@@ -223,7 +223,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.VIP_24H_STARS ||
-                "300"
+                "100"
             )
         ),
 
@@ -231,7 +231,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.VIP_72H_STARS ||
-                "750"
+                "240"
             )
         ),
 
@@ -239,7 +239,7 @@ const PROMOTION_PRICES = {
             1,
             Number(
                 process.env.VIP_168H_STARS ||
-                "1500"
+                "450"
             )
         )
     }
@@ -867,6 +867,63 @@ function validateInitData(
         valid: true,
         user
     };
+}
+
+
+/* =========================================================
+   V69 PAYMENT SAFETY
+   ========================================================= */
+
+function successfulStarsPaymentMatches(
+    payment,
+    payerId,
+    expectedPayerId,
+    expectedAmount
+) {
+    return Boolean(
+        payment &&
+        Number(payerId) === Number(expectedPayerId) &&
+        payment.currency === "XTR" &&
+        Number(payment.total_amount) === Number(expectedAmount)
+    );
+}
+
+
+async function claimPaymentFulfillment(
+    orderType,
+    orderId
+) {
+    const {
+        data,
+        error
+    } = await supabase.rpc(
+        "hm_claim_payment_fulfillment_v69",
+        {
+            p_order_type:String(orderType || ""),
+            p_order_id:String(orderId || ""),
+            p_lock_seconds:120
+        }
+    );
+
+    if (error) {
+        console.error(
+            "Payment fulfillment lock:",
+            error
+        );
+
+        await logSystemError(
+            "payment_fulfillment_lock",
+            error,
+            {
+                order_type:String(orderType || ""),
+                order_id:String(orderId || "")
+            }
+        );
+
+        return false;
+    }
+
+    return Boolean(data);
 }
 
 
@@ -8369,6 +8426,43 @@ app.post(
          * PAID 30 DAY LISTING
          */
 
+        const {
+            data:existingPaymentOrders
+        } =
+            await supabase
+                .from("listing_payment_orders")
+                .select("id,invoice_payload")
+                .eq("seller_telegram_id",seller.telegram_id)
+                .ilike("whatsapp_username",input.username)
+                .eq("amount_stars",PAID_LISTING_PRICE_STARS)
+                .eq("status","created")
+                .limit(1);
+
+
+        if (existingPaymentOrders?.length) {
+            const existingOrder =
+                existingPaymentOrders[0];
+
+            const invoiceLink =
+                await createStarsInvoice(
+                    "Handle Market Listing",
+                    `${PAID_LISTING_DURATION_DAYS}-day listing for @${input.username}`,
+                    existingOrder.invoice_payload,
+                    PAID_LISTING_PRICE_STARS
+                );
+
+            return res.json({
+                ok:true,
+                free:false,
+                reused_order:true,
+                order_id:existingOrder.id,
+                amount_stars:PAID_LISTING_PRICE_STARS,
+                duration_days:PAID_LISTING_DURATION_DAYS,
+                invoice_link:invoiceLink
+            });
+        }
+
+
         const orderId =
             crypto.randomUUID();
 
@@ -8793,6 +8887,41 @@ app.post(
                             "listing_has_agreement"
                     }
                 );
+        }
+
+
+        const {
+            data:existingRenewalOrders
+        } =
+            await supabase
+                .from("listing_renewal_orders")
+                .select("id,invoice_payload")
+                .eq("seller_telegram_id",auth.user.telegram_id)
+                .eq("listing_id",listingId)
+                .eq("amount_stars",LISTING_RENEWAL_PRICE_STARS)
+                .eq("status","created")
+                .limit(1);
+
+
+        if (existingRenewalOrders?.length) {
+            const existingOrder = existingRenewalOrders[0];
+            const invoiceLink =
+                await createStarsInvoice(
+                    "Renew Listing",
+                    `Renew @${listing.whatsapp_username} for ${PAID_LISTING_DURATION_DAYS} days`,
+                    existingOrder.invoice_payload,
+                    LISTING_RENEWAL_PRICE_STARS
+                );
+
+            return res.json({
+                ok:true,
+                reused_order:true,
+                order_id:existingOrder.id,
+                amount_usd:LISTING_RENEWAL_PRICE_USD,
+                amount_stars:LISTING_RENEWAL_PRICE_STARS,
+                duration_days:PAID_LISTING_DURATION_DAYS,
+                invoice_link:invoiceLink
+            });
         }
 
 
@@ -11631,6 +11760,50 @@ app.post(
         }
 
 
+        const {
+            data:existingPromotionOrders
+        } =
+            await supabase
+                .from("promotion_payment_orders")
+                .select("id,invoice_payload")
+                .eq("seller_telegram_id",auth.user.telegram_id)
+                .eq("listing_id",listingId)
+                .eq("promotion_type",type)
+                .eq("duration_hours",durationHours)
+                .eq("amount_stars",amountStars)
+                .eq("status","created")
+                .limit(1);
+
+
+        if (existingPromotionOrders?.length) {
+            const existingOrder = existingPromotionOrders[0];
+            const labels = { bump:"Bump", hot:"HOT", vip:"VIP" };
+            const durationLabel =
+                durationHours === 24 ? "24 hours" :
+                durationHours === 72 ? "3 days" : "7 days";
+            const freeText =
+                listing.listing_plan === "free"
+                    ? " Promotion cannot continue after the free listing expires."
+                    : "";
+            const invoiceLink =
+                await createStarsInvoice(
+                    `${labels[type]} Listing`,
+                    `${labels[type]} promotion for @${listing.whatsapp_username} · ${durationLabel}.${freeText}`,
+                    existingOrder.invoice_payload,
+                    amountStars
+                );
+
+            return res.json({
+                ok:true,
+                reused_order:true,
+                order_id:existingOrder.id,
+                amount_stars:amountStars,
+                invoice_link:invoiceLink,
+                applied_until:eligibility.applied_until
+            });
+        }
+
+
         const orderId =
             crypto.randomUUID();
 
@@ -12268,6 +12441,38 @@ app.post(
 
 
         let databaseError;
+
+
+        if (
+            existingUnlock &&
+            existingUnlock.status ===
+            "pending" &&
+            existingUnlock.invoice_payload
+        ) {
+
+            try {
+                const invoiceLink =
+                    await createStarsInvoice(
+                        "Unlock Seller Contact",
+                        `Unlock contact for @${listing.whatsapp_username}`,
+                        existingUnlock.invoice_payload,
+                        CONTACT_UNLOCK_PRICE_STARS
+                    );
+
+                return res.json({
+                    ok:true,
+                    reused_order:true,
+                    order_id:existingUnlock.id,
+                    amount_stars:CONTACT_UNLOCK_PRICE_STARS,
+                    invoice_link:invoiceLink
+                });
+            } catch {
+                return res.status(500).json({
+                    ok:false,
+                    error:"invoice_create_failed"
+                });
+            }
+        }
 
 
         if (
@@ -12955,6 +13160,194 @@ app.get(
                                 ) ||
                                 null,
 
+                            contact_methods:(() => {
+                                const c =
+                                    wantedContactMap.get(
+                                        String(row.id)
+                                    ) ||
+                                    { telegram:"",whatsapp:"",email:"",other:"" };
+                                return {
+                                    telegram:Boolean(c.telegram),
+                                    whatsapp:Boolean(c.whatsapp),
+                                    email:Boolean(c.email),
+                                    other:Boolean(c.other)
+                                };
+                            })()
+                        })
+                    )
+            }
+        );
+    }
+);
+
+
+/* V69 authenticated Wanted feed: includes actual external contact values. */
+app.post(
+    "/wanted-auth",
+    async (req, res) => {
+
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+        if (!auth.ok) {
+            return res
+                .status(auth.status)
+                .json({
+                    ok:false,
+                    error:auth.error
+                });
+        }
+
+        const {
+            data:
+                posts,
+            error
+        } =
+            await supabase
+                .from(
+                    "wanted_requests"
+                )
+                .select(
+                    "id,buyer_telegram_id,desired_username,budget,currency,category,description,status,created_at"
+                )
+                .eq(
+                    "status",
+                    "active"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                )
+                .limit(100);
+
+
+        if (error) {
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "wanted_load_failed"
+                    }
+                );
+        }
+
+
+        const buyerIds = [
+            ...new Set(
+                (
+                    posts ||
+                    []
+                ).map(
+                    row =>
+                        row.buyer_telegram_id
+                )
+            )
+        ];
+
+
+        let buyers = [];
+
+
+        if (
+            buyerIds.length
+        ) {
+
+            const {
+                data
+            } =
+                await supabase
+                    .from("users")
+                    .select(
+                        "telegram_id,first_name,telegram_username"
+                    )
+                    .in(
+                        "telegram_id",
+                        buyerIds
+                    );
+
+
+            buyers =
+                data ||
+                [];
+        }
+
+
+        const map =
+            new Map(
+
+                buyers.map(
+                    row => [
+                        String(
+                            row.telegram_id
+                        ),
+                        row
+                    ]
+                )
+            );
+
+
+        const wantedIds =
+            (posts || []).map(
+                row => row.id
+            );
+
+        let wantedContacts = [];
+
+        if (wantedIds.length) {
+            const { data } =
+                await supabase
+                    .from("wanted_contacts")
+                    .select("wanted_id,telegram,whatsapp,email,other")
+                    .in("wanted_id",wantedIds);
+
+            wantedContacts =
+                data || [];
+        }
+
+        const wantedContactMap =
+            new Map(
+                wantedContacts.map(
+                    row => [
+                        String(row.wanted_id),
+                        {
+                            telegram:row.telegram || "",
+                            whatsapp:row.whatsapp || "",
+                            email:row.email || "",
+                            other:row.other || ""
+                        }
+                    ]
+                )
+            );
+
+
+        res.json(
+            {
+                ok: true,
+
+                posts:
+                    (
+                        posts ||
+                        []
+                    ).map(
+                        row => ({
+
+                            ...row,
+
+                            buyer:
+                                map.get(
+                                    String(
+                                        row.buyer_telegram_id
+                                    )
+                                ) ||
+                                null,
+
                             contacts:
                                 wantedContactMap.get(
                                     String(row.id)
@@ -13333,6 +13726,77 @@ app.post(
                             "wanted_already_exists"
                     }
                 );
+        }
+
+
+        const {
+            data:existingWantedOrders
+        } =
+            await supabase
+                .from("wanted_payment_orders")
+                .select("id,invoice_payload")
+                .eq("buyer_telegram_id",auth.user.telegram_id)
+                .ilike("desired_username",username)
+                .eq("amount_stars",WANTED_PRICE_STARS)
+                .eq("status","created")
+                .limit(1);
+
+
+        if (existingWantedOrders?.length) {
+            const existingOrder = existingWantedOrders[0];
+
+            const { error:updateExistingWantedError } =
+                await supabase
+                    .from("wanted_payment_orders")
+                    .update({
+                        budget,
+                        category,
+                        description
+                    })
+                    .eq("id",existingOrder.id);
+
+            if (updateExistingWantedError) {
+                return res.status(500).json({
+                    ok:false,
+                    error:"wanted_payment_order_failed"
+                });
+            }
+
+            const { error:updateExistingContactError } =
+                await supabase
+                    .from("wanted_contacts")
+                    .upsert({
+                        wanted_id:existingOrder.id,
+                        buyer_telegram_id:auth.user.telegram_id,
+                        telegram:wantedContacts.telegram || null,
+                        whatsapp:wantedContacts.whatsapp || null,
+                        email:wantedContacts.email || null,
+                        other:wantedContacts.other || null,
+                        updated_at:nowIso()
+                    },{ onConflict:"wanted_id" });
+
+            if (updateExistingContactError) {
+                return res.status(500).json({
+                    ok:false,
+                    error:"wanted_contact_save_failed"
+                });
+            }
+
+            const invoiceLink =
+                await createStarsInvoice(
+                    "Publish Wanted Request",
+                    `Publish Wanted request for @${username}`,
+                    existingOrder.invoice_payload,
+                    WANTED_PRICE_STARS
+                );
+
+            return res.json({
+                ok:true,
+                reused_order:true,
+                order_id:existingOrder.id,
+                amount_stars:WANTED_PRICE_STARS,
+                invoice_link:invoiceLink
+            });
         }
 
 
@@ -28376,6 +28840,26 @@ app.post(
                 }
 
 
+                if (
+                    !await claimPaymentFulfillment(
+                        "renewal",
+                        order.id
+                    )
+                ) {
+                    return;
+                }
+
+
+                if (
+                    !await claimPaymentFulfillment(
+                        "listing",
+                        order.id
+                    )
+                ) {
+                    return;
+                }
+
+
                 await supabase
                     .from(
                         "listing_payment_orders"
@@ -28989,6 +29473,28 @@ app.post(
                 }
 
 
+                if (
+                    !successfulStarsPaymentMatches(
+                        payment,
+                        payerId,
+                        order.buyer_telegram_id,
+                        order.amount_stars
+                    )
+                ) {
+                    return;
+                }
+
+
+                if (
+                    !await claimPaymentFulfillment(
+                        "contact",
+                        order.id
+                    )
+                ) {
+                    return;
+                }
+
+
                 await supabase
                     .from(
                         "contact_unlocks"
@@ -29051,6 +29557,28 @@ app.post(
                     )
                 ) {
 
+                    return;
+                }
+
+
+                if (
+                    !successfulStarsPaymentMatches(
+                        payment,
+                        payerId,
+                        order.buyer_telegram_id,
+                        order.amount_stars
+                    )
+                ) {
+                    return;
+                }
+
+
+                if (
+                    !await claimPaymentFulfillment(
+                        "wanted",
+                        order.id
+                    )
+                ) {
                     return;
                 }
 
@@ -29170,6 +29698,28 @@ app.post(
                     )
                 ) {
 
+                    return;
+                }
+
+
+                if (
+                    !successfulStarsPaymentMatches(
+                        payment,
+                        payerId,
+                        order.seller_telegram_id,
+                        order.amount_stars
+                    )
+                ) {
+                    return;
+                }
+
+
+                if (
+                    !await claimPaymentFulfillment(
+                        "promotion",
+                        order.id
+                    )
+                ) {
                     return;
                 }
 
