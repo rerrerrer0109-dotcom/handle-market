@@ -9597,7 +9597,7 @@ Never send passwords, recovery codes, seed phrases or other account secrets to s
 </div>
 
 <div class="section-subtitle">
-Create a listing for a registered Handle Market user. No Telegram Stars are charged.
+Create a listing for a registered Handle Market user by Telegram ID or Telegram username. No Telegram Stars are charged.
 </div>
 
 <form
@@ -9607,6 +9607,31 @@ Create a listing for a registered Handle Market user. No Telegram Stars are char
 >
 
 <div class="field">
+
+<label>
+Find seller by
+</label>
+
+<select
+    id="adminSellerLookupType"
+    onchange="updateAdminSellerLookupUi()"
+    required
+>
+<option value="id" selected>Telegram ID</option>
+<option value="username">Telegram username</option>
+</select>
+
+<div class="field-hint">
+Choose how to find the registered Handle Market seller.
+</div>
+
+</div>
+
+
+<div
+    class="field"
+    id="adminSellerTelegramIdField"
+>
 
 <label>
 Seller Telegram ID
@@ -9624,6 +9649,32 @@ Seller Telegram ID
 
 <div class="field-hint">
 The seller must have opened Handle Market at least once.
+</div>
+
+</div>
+
+
+<div
+    class="field"
+    id="adminSellerTelegramUsernameField"
+    hidden
+>
+
+<label>
+Seller Telegram username
+</label>
+
+<input
+    id="adminSellerTelegramUsername"
+    type="text"
+    inputmode="text"
+    autocomplete="off"
+    maxlength="64"
+    placeholder="@username"
+>
+
+<div class="field-hint">
+Enter the seller's Telegram username. The @ symbol is optional. If the username cannot be matched uniquely, use Telegram ID.
 </div>
 
 </div>
@@ -24292,6 +24343,81 @@ function updateAdminContactFieldUi() {
 }
 
 
+function updateAdminSellerLookupUi() {
+
+    const lookupType =
+        document.getElementById(
+            "adminSellerLookupType"
+        )?.value ||
+        "id";
+
+
+    const idField =
+        document.getElementById(
+            "adminSellerTelegramIdField"
+        );
+
+
+    const usernameField =
+        document.getElementById(
+            "adminSellerTelegramUsernameField"
+        );
+
+
+    const idInput =
+        document.getElementById(
+            "adminSellerTelegramId"
+        );
+
+
+    const usernameInput =
+        document.getElementById(
+            "adminSellerTelegramUsername"
+        );
+
+
+    const useUsername =
+        lookupType ===
+        "username";
+
+
+    if (
+        idField
+    ) {
+
+        idField.hidden =
+            useUsername;
+    }
+
+
+    if (
+        usernameField
+    ) {
+
+        usernameField.hidden =
+            !useUsername;
+    }
+
+
+    if (
+        idInput
+    ) {
+
+        idInput.required =
+            !useUsername;
+    }
+
+
+    if (
+        usernameInput
+    ) {
+
+        usernameInput.required =
+            useUsername;
+    }
+}
+
+
 async function adminCreateListing(
     event
 ) {
@@ -24325,6 +24451,13 @@ async function adminCreateListing(
 
     try {
 
+        const sellerLookupType =
+            document.getElementById(
+                "adminSellerLookupType"
+            )?.value ||
+            "id";
+
+
         const data =
             await api(
                 "/admin/create-listing",
@@ -24332,10 +24465,30 @@ async function adminCreateListing(
                     initData:
                         tg.initData,
 
+                    seller_lookup_type:
+                        sellerLookupType,
+
                     seller_telegram_id:
-                        document.getElementById(
-                            "adminSellerTelegramId"
-                        ).value,
+                        sellerLookupType ===
+                        "id"
+                            ? (
+                                document.getElementById(
+                                    "adminSellerTelegramId"
+                                )?.value ||
+                                ""
+                            )
+                            : "",
+
+                    seller_telegram_username:
+                        sellerLookupType ===
+                        "username"
+                            ? (
+                                document.getElementById(
+                                    "adminSellerTelegramUsername"
+                                )?.value ||
+                                ""
+                            )
+                            : "",
 
                     whatsapp_username:
                         document.getElementById(
@@ -24395,6 +24548,7 @@ async function adminCreateListing(
         )?.reset();
 
 
+        updateAdminSellerLookupUi();
         updateAdminContactFieldUi();
         updateAdminListingPricingUi();
 
@@ -24430,8 +24584,17 @@ async function adminCreateListing(
 
         const messages = {
 
+            invalid_seller_lookup_type:
+                "Choose Telegram ID or Telegram username.",
+
             invalid_seller_telegram_id:
                 "Enter a valid seller Telegram ID.",
+
+            invalid_seller_telegram_username:
+                "Enter a valid seller Telegram username.",
+
+            seller_username_ambiguous:
+                "More than one registered account matches this Telegram username. Use Telegram ID instead.",
 
             seller_not_found:
                 "Seller not found. The seller must open Handle Market at least once.",

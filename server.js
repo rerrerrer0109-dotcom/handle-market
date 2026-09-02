@@ -8062,7 +8062,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v76-admin-reactivate-expired"
+                    "v77-admin-seller-lookup"
             }
         );
     }
@@ -24664,17 +24664,26 @@ app.post(
         }
 
 
-        const sellerTelegramId =
-            Number(
-                req.body.seller_telegram_id
-            );
+        const sellerLookupType =
+            String(
+                req.body.seller_lookup_type ||
+                (
+                    req.body.seller_telegram_username
+                        ? "username"
+                        : "id"
+                )
+            )
+                .trim()
+                .toLowerCase();
 
 
         if (
-            !Number.isSafeInteger(
-                sellerTelegramId
-            ) ||
-            sellerTelegramId <= 0
+            ![
+                "id",
+                "username"
+            ].includes(
+                sellerLookupType
+            )
         ) {
 
             return res
@@ -24683,7 +24692,221 @@ app.post(
                     {
                         ok: false,
                         error:
-                            "invalid_seller_telegram_id"
+                            "invalid_seller_lookup_type"
+                    }
+                );
+        }
+
+
+        let sellerTelegramId =
+            0;
+
+
+        let seller =
+            null;
+
+
+        if (
+            sellerLookupType ===
+            "id"
+        ) {
+
+            sellerTelegramId =
+                Number(
+                    req.body.seller_telegram_id
+                );
+
+
+            if (
+                !Number.isSafeInteger(
+                    sellerTelegramId
+                ) ||
+                sellerTelegramId <= 0
+            ) {
+
+                return res
+                    .status(400)
+                    .json(
+                        {
+                            ok: false,
+                            error:
+                                "invalid_seller_telegram_id"
+                        }
+                    );
+            }
+
+
+            const {
+                data:
+                    sellerById,
+                error:
+                    sellerByIdError
+            } =
+                await supabase
+                    .from("users")
+                    .select(
+                        "telegram_id,first_name,last_name,telegram_username,free_listing_used,free_listing_used_at"
+                    )
+                    .eq(
+                        "telegram_id",
+                        sellerTelegramId
+                    )
+                    .maybeSingle();
+
+
+            if (
+                sellerByIdError
+            ) {
+
+                console.error(
+                    "Admin seller lookup by ID:",
+                    sellerByIdError
+                );
+
+
+                return res
+                    .status(500)
+                    .json(
+                        {
+                            ok: false,
+                            error:
+                                "seller_lookup_failed"
+                        }
+                    );
+            }
+
+
+            seller =
+                sellerById;
+
+        } else {
+
+            const sellerTelegramUsername =
+                String(
+                    req.body.seller_telegram_username ||
+                    ""
+                )
+                    .trim()
+                    .replace(
+                        /^@+/,
+                        ""
+                    );
+
+
+            if (
+                !/^[A-Za-z0-9_]{1,64}$/.test(
+                    sellerTelegramUsername
+                )
+            ) {
+
+                return res
+                    .status(400)
+                    .json(
+                        {
+                            ok: false,
+                            error:
+                                "invalid_seller_telegram_username"
+                        }
+                    );
+            }
+
+
+            const usernamePattern =
+                sellerTelegramUsername
+                    .replace(
+                        /[\\%_]/g,
+                        "\\$&"
+                    );
+
+
+            const {
+                data:
+                    sellerMatches,
+                error:
+                    sellerUsernameError
+            } =
+                await supabase
+                    .from("users")
+                    .select(
+                        "telegram_id,first_name,last_name,telegram_username,free_listing_used,free_listing_used_at"
+                    )
+                    .ilike(
+                        "telegram_username",
+                        usernamePattern
+                    )
+                    .limit(2);
+
+
+            if (
+                sellerUsernameError
+            ) {
+
+                console.error(
+                    "Admin seller lookup by username:",
+                    sellerUsernameError
+                );
+
+
+                return res
+                    .status(500)
+                    .json(
+                        {
+                            ok: false,
+                            error:
+                                "seller_lookup_failed"
+                        }
+                    );
+            }
+
+
+            if (
+                (
+                    sellerMatches ||
+                    []
+                ).length >
+                1
+            ) {
+
+                return res
+                    .status(409)
+                    .json(
+                        {
+                            ok: false,
+                            error:
+                                "seller_username_ambiguous"
+                        }
+                    );
+            }
+
+
+            seller =
+                sellerMatches?.[0] ||
+                null;
+
+
+            sellerTelegramId =
+                Number(
+                    seller?.telegram_id ||
+                    0
+                );
+        }
+
+
+        if (
+            !seller ||
+            !Number.isSafeInteger(
+                sellerTelegramId
+            ) ||
+            sellerTelegramId <= 0
+        ) {
+
+            return res
+                .status(404)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "seller_not_found"
                     }
                 );
         }
@@ -24774,62 +24997,6 @@ app.post(
 
         const input =
             validation.data;
-
-
-        const {
-            data:
-                seller,
-            error:
-                sellerError
-        } =
-            await supabase
-                .from("users")
-                .select(
-                    "telegram_id,first_name,last_name,telegram_username,free_listing_used,free_listing_used_at"
-                )
-                .eq(
-                    "telegram_id",
-                    sellerTelegramId
-                )
-                .maybeSingle();
-
-
-        if (
-            sellerError
-        ) {
-
-            console.error(
-                "Admin seller lookup:",
-                sellerError
-            );
-
-
-            return res
-                .status(500)
-                .json(
-                    {
-                        ok: false,
-                        error:
-                            "seller_lookup_failed"
-                    }
-                );
-        }
-
-
-        if (
-            !seller
-        ) {
-
-            return res
-                .status(404)
-                .json(
-                    {
-                        ok: false,
-                        error:
-                            "seller_not_found"
-                    }
-                );
-        }
 
 
         const {
