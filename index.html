@@ -11495,6 +11495,74 @@ function v794CloseMiniApp() {
 
 
 /* =========================================================
+   V79.4.4 — EARLY REFERRAL BOOTSTRAP
+   Referral UI is declared later in the document, but /auth runs
+   before that script block. Keep initial authentication independent
+   from script-block order.
+   ========================================================= */
+function hmReferralStartCodeBootstrap() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const candidates = [
+        tg?.initDataUnsafe?.start_param,
+        params.get("tgWebAppStartParam"),
+        params.get("startapp"),
+        params.get("start_param")
+    ];
+
+    for (const candidate of candidates) {
+
+        const code =
+            String(candidate || "")
+                .trim()
+                .replace(/^ref[_-]?/i, "")
+                .toUpperCase();
+
+        if (/^[A-Z0-9]{8,20}$/.test(code)) {
+            return code;
+        }
+    }
+
+    return "";
+}
+
+function hmApplyReferralStatusBootstrap(status) {
+
+    if (!status) {
+        return;
+    }
+
+    window.__hmPendingReferralStatus = status;
+
+    let attempts = 0;
+
+    const applyWhenReady = () => {
+
+        attempts += 1;
+
+        if (typeof window.v46ApplyReferralStatus === "function") {
+            const pending = window.__hmPendingReferralStatus;
+            window.__hmPendingReferralStatus = null;
+
+            if (pending) {
+                window.v46ApplyReferralStatus(pending);
+            }
+            return;
+        }
+
+        if (attempts < 100) {
+            setTimeout(applyWhenReady, 50);
+        }
+    };
+
+    applyWhenReady();
+}
+
+/* =========================================================
    AUTH
    ========================================================= */
 
@@ -11526,7 +11594,7 @@ async function authenticate() {
                         tg.initData,
 
                     referral_code:
-                        v46ReferralStartCode()
+                        hmReferralStartCodeBootstrap()
                 }
             );
 
@@ -11581,7 +11649,7 @@ async function authenticate() {
             data.referral
         ) {
 
-            v46ApplyReferralStatus(
+            hmApplyReferralStatusBootstrap(
                 data.referral
             );
         }
