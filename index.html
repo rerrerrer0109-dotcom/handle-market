@@ -7897,6 +7897,32 @@ body {
     display:none !important;
 }
 
+.app.v794-auth-pending {
+    visibility:hidden;
+}
+
+#v794AccessGate[data-mode="loading"] .v794-access-card {
+    width:min(280px,100%);
+    padding:20px 18px;
+}
+
+#v794AccessGate[data-mode="loading"] .v794-access-icon {
+    width:48px;
+    height:48px;
+    border-radius:15px;
+    margin-bottom:12px;
+    font-size:23px;
+}
+
+#v794AccessGate[data-mode="loading"] .v794-access-title {
+    font-size:18px;
+}
+
+#v794AccessGate[data-mode="loading"] .v794-access-text {
+    margin-top:6px;
+    font-size:12px;
+}
+
 .v794-access-card {
     width:min(430px,100%);
     border:1px solid rgba(255,255,255,.11);
@@ -7950,7 +7976,7 @@ body {
 
 <body>
 
-<div id="v794AccessGate" aria-live="polite">
+<div id="v794AccessGate" aria-live="polite" hidden>
     <div class="v794-access-card">
         <div class="v794-access-icon" id="v794AccessGateIcon">H</div>
         <div class="v794-access-title" id="v794AccessGateTitle">Checking access…</div>
@@ -7960,7 +7986,7 @@ body {
 </div>
 
 
-<div class="app">
+<div class="app v794-auth-pending">
 
 <header>
 
@@ -11344,6 +11370,10 @@ function v794SetAccessGate(
     }
 
 
+    gate.dataset.mode =
+        mode;
+
+
     if (
         mode ===
         "ok"
@@ -11442,11 +11472,30 @@ function v794SetAccessGate(
             "H";
     }
 
+
+    if (
+        mode ===
+        "loading"
+    ) {
+
+        title.textContent =
+            "Handle Market";
+
+        text.textContent =
+            "Loading…";
+
+        actions.innerHTML =
+            "";
+
+        return;
+    }
+
+
     title.textContent =
-        "Checking access…";
+        "Handle Market";
 
     text.textContent =
-        "Securely connecting to Handle Market.";
+        "Loading…";
 
     actions.innerHTML =
         "";
@@ -29229,9 +29278,27 @@ async function updateNotificationSetting(
 
 async function startApp() {
 
-    v794SetAccessGate(
-        "checking"
-    );
+    const appRoot =
+        document.querySelector(
+            ".app"
+        );
+
+
+    /*
+     * V79.4.5: keep the app private while /auth checks account access,
+     * but do not flash a large "Checking access" screen on fast opens.
+     * A compact loader is shown only when auth takes longer than 450 ms.
+     */
+    const accessLoaderTimer =
+        setTimeout(
+            () => {
+                v794SetAccessGate(
+                    "loading"
+                );
+            },
+            450
+        );
+
 
     updateContactFieldUi();
     updateListingPricingUi();
@@ -29240,7 +29307,7 @@ async function startApp() {
 
 
     /*
-     * Authenticate before loading marketplace data.
+     * Authenticate before revealing marketplace data.
      * A blocked Telegram account stops here and sees only
      * the Access Restricted screen.
      */
@@ -29248,14 +29315,26 @@ async function startApp() {
         await authenticate();
 
 
+    clearTimeout(
+        accessLoaderTimer
+    );
+
+
     if (!authenticated) {
         return;
     }
 
 
+    if (appRoot) {
+        appRoot.classList.remove(
+            "v794-auth-pending"
+        );
+    }
+
+
     /*
      * /auth has succeeded, so this account is allowed into the app.
-     * Hide the blocking gate before loading non-critical account state.
+     * Hide any delayed loader immediately; secondary data loads later.
      */
     v794SetAccessGate(
         "ok"
