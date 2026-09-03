@@ -33,7 +33,7 @@ app.use((req, res, next) => {
 
     res.setHeader(
         "Access-Control-Allow-Headers",
-        "Content-Type"
+        "Content-Type, X-Telegram-Init-Data"
     );
 
     if (req.method === "OPTIONS") {
@@ -8893,7 +8893,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v79.4-global-user-search-block"
+                    "v79.4.1-cors-auth-header-fix"
             }
         );
     }
