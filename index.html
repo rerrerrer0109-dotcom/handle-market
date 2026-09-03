@@ -11304,7 +11304,8 @@ setInterval(
    ========================================================= */
 
 function v794SetAccessGate(
-    mode = "checking"
+    mode = "checking",
+    detail = ""
 ) {
 
     const gate =
@@ -11408,8 +11409,13 @@ function v794SetAccessGate(
         title.textContent =
             "Unable to connect";
 
+        const safeDetail =
+            String(detail || "").trim();
+
         text.textContent =
-            "Handle Market could not verify your Telegram session.";
+            safeDetail
+                ? `Handle Market could not verify your Telegram session. Error: ${safeDetail}`
+                : "Handle Market could not verify your Telegram session.";
 
         actions.innerHTML = `
             <button
@@ -11675,7 +11681,11 @@ async function authenticate() {
                 "auth-status auth-error";
 
             v794SetAccessGate(
-                "error"
+                "error",
+                String(
+                    error?.message ||
+                    "request_failed"
+                )
             );
         }
 
