@@ -18856,20 +18856,6 @@ function openOfferModal(
 
         </div>
 
-
-        <div class="field">
-
-            <label>
-                Message
-            </label>
-
-            <textarea
-                id="offerMessageInput"
-                maxlength="500"
-            ></textarea>
-
-        </div>
-
     `;
 
 
@@ -18905,11 +18891,6 @@ function openOfferModal(
                         duration_hours:
                             document.getElementById(
                                 "offerDurationInput"
-                            ).value,
-
-                        message:
-                            document.getElementById(
-                                "offerMessageInput"
                             ).value
                     }
                 );
@@ -27460,6 +27441,9 @@ function friendlyError(
 
         offer_below_minimum:
             "Your offer is below the seller's minimum offer.",
+
+        offer_cooldown_24h:
+            "You can send only one new offer to the same listing every 24 hours.",
 
         offer_expired:
             "This offer has expired.",

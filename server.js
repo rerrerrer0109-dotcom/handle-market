@@ -8802,7 +8802,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v79.2-seller-analytics-engagement-sync"
+                    "v79.3-offer-antispam"
             }
         );
     }
@@ -21978,16 +21978,9 @@ app.post(
             );
 
 
+        // v79.3: Offers are price-only. Free-form offer messages are disabled.
         const message =
-            String(
-                req.body.message ||
-                ""
-            )
-                .trim()
-                .slice(
-                    0,
-                    500
-                );
+            "";
 
 
         const durationHours =
@@ -22239,6 +22232,86 @@ app.post(
         }
 
 
+        /*
+         * v79.3 anti-spam: a buyer may create at most one new offer
+         * for the same listing during any rolling 24-hour window.
+         * This applies regardless of whether the previous offer was
+         * declined, cancelled, expired, or otherwise closed.
+         */
+        const offerCooldownSince =
+            new Date(
+                Date.now() -
+                24 * 60 * 60 * 1000
+            ).toISOString();
+
+
+        const {
+            data:
+                recentOffer,
+            error:
+                recentOfferError
+        } =
+            await supabase
+                .from("offers")
+                .select(
+                    "id,created_at"
+                )
+                .eq(
+                    "listing_id",
+                    listingId
+                )
+                .eq(
+                    "buyer_telegram_id",
+                    buyerId
+                )
+                .gte(
+                    "created_at",
+                    offerCooldownSince
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                )
+                .limit(1);
+
+
+        if (recentOfferError) {
+
+            console.error(
+                "Offer cooldown check:",
+                recentOfferError
+            );
+
+            return res
+                .status(500)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "offer_create_failed"
+                    }
+                );
+        }
+
+
+        if (
+            recentOffer?.length
+        ) {
+
+            return res
+                .status(429)
+                .json(
+                    {
+                        ok: false,
+                        error:
+                            "offer_cooldown_24h"
+                    }
+                );
+        }
+
+
         const {
             data:
                 offer,
@@ -22310,7 +22383,7 @@ app.post(
 
             listing.seller_telegram_id,
 
-            `💬 New offer for @${listing.whatsapp_username}\n\nOffer: $${amount.toLocaleString("en-US")}${message ? `\n\nMessage: ${message}` : ""}\n\nOpen Handle Market → Profile → Offers.`
+            `💬 New offer for @${listing.whatsapp_username}\n\nOffer: $${amount.toLocaleString("en-US")}\n\nOpen Handle Market → Profile → Offers.`
         );
 
 
