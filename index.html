@@ -7901,26 +7901,37 @@ body {
     visibility:hidden;
 }
 
+#v794AccessGate[data-mode="loading"] {
+    background:#081018;
+}
+
 #v794AccessGate[data-mode="loading"] .v794-access-card {
-    width:min(280px,100%);
-    padding:20px 18px;
+    width:min(390px,88vw);
+    padding:0;
+    border:0;
+    background:transparent;
+    box-shadow:none;
 }
 
-#v794AccessGate[data-mode="loading"] .v794-access-icon {
-    width:48px;
-    height:48px;
-    border-radius:15px;
-    margin-bottom:12px;
-    font-size:23px;
+.v794-access-splash {
+    display:none;
+    width:100%;
+    height:auto;
+    aspect-ratio:1 / 1;
+    object-fit:cover;
+    border-radius:30px;
+    box-shadow:0 24px 80px rgba(0,0,0,.34);
 }
 
-#v794AccessGate[data-mode="loading"] .v794-access-title {
-    font-size:18px;
+#v794AccessGate[data-mode="loading"] .v794-access-splash {
+    display:block;
 }
 
-#v794AccessGate[data-mode="loading"] .v794-access-text {
-    margin-top:6px;
-    font-size:12px;
+#v794AccessGate[data-mode="loading"] .v794-access-icon,
+#v794AccessGate[data-mode="loading"] .v794-access-title,
+#v794AccessGate[data-mode="loading"] .v794-access-text,
+#v794AccessGate[data-mode="loading"] .v794-access-actions {
+    display:none !important;
 }
 
 .v794-access-card {
@@ -7972,12 +7983,24 @@ body {
 }
 </style>
 
+<link rel="preload" as="image" href="handle-market-splash.webp" type="image/webp">
+
 </head>
 
 <body>
 
 <div id="v794AccessGate" aria-live="polite" hidden>
     <div class="v794-access-card">
+        <img
+            class="v794-access-splash"
+            id="v794AccessGateSplash"
+            src="handle-market-splash.webp"
+            alt="Handle Market"
+            width="768"
+            height="768"
+            decoding="async"
+            fetchpriority="high"
+        >
         <div class="v794-access-icon" id="v794AccessGateIcon">H</div>
         <div class="v794-access-title" id="v794AccessGateTitle">Checking access…</div>
         <div class="v794-access-text" id="v794AccessGateText">Securely connecting to Handle Market.</div>
@@ -29285,9 +29308,9 @@ async function startApp() {
 
 
     /*
-     * V79.4.5: keep the app private while /auth checks account access,
+     * V79.4.6: keep the app private while /auth checks account access,
      * but do not flash a large "Checking access" screen on fast opens.
-     * A compact loader is shown only when auth takes longer than 450 ms.
+     * A branded image splash is shown only when auth takes longer than 450 ms.
      */
     const accessLoaderTimer =
         setTimeout(
