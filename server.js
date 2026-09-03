@@ -5455,9 +5455,10 @@ async function processListingExpiryNotifications() {
                     : "listing";
 
 
-            await safeSendMessage(
+            await sendUserNotification(
 
                 listing.seller_telegram_id,
+                "seller_updates",
 
                 `⏰ Your ${planText} @${listing.whatsapp_username} expires in less than 1 hour.\n\nAfter expiration it will be hidden from Marketplace.`
             );
@@ -5519,9 +5520,10 @@ async function processListingExpiryNotifications() {
             []
         ) {
 
-            await safeSendMessage(
+            await sendUserNotification(
 
                 listing.seller_telegram_id,
+                "seller_updates",
 
                 `⌛ @${listing.whatsapp_username} has expired and is now hidden from Marketplace.\n\nRenew the listing for $${LISTING_RENEWAL_PRICE_USD} to activate it for another ${PAID_LISTING_DURATION_DAYS} days.`
             );
@@ -5675,9 +5677,10 @@ async function processPromotionExpiryNotifications(
             !sameAsListingExpiry
         ) {
 
-            await safeSendMessage(
+            await sendUserNotification(
 
                 listing.seller_telegram_id,
+                "seller_updates",
 
                 `${emoji} ${label} for @${listing.whatsapp_username} expires in less than 1 hour.`
             );
@@ -5773,9 +5776,10 @@ async function processPromotionExpiryNotifications(
                 );
 
 
-            await safeSendMessage(
+            await sendUserNotification(
 
                 listing.seller_telegram_id,
+                "seller_updates",
 
                 `${emoji} ${label} promotion for @${listing.whatsapp_username} has ended.${listingStillActive ? "\n\nYour listing remains active." : ""}`
             );
@@ -5810,6 +5814,8 @@ async function processPromotionExpiryNotifications(
 const NOTIFICATION_KEYS = {
     chats:"chats",
     offers:"offers",
+    wanted_activity:"wanted_activity",
+    contact_unlocks:"contact_unlocks",
     support:"support",
     watchlist_updates:"watchlist_updates",
     price_drops:"price_drops",
@@ -5846,7 +5852,7 @@ async function getNotificationPreferences(
                 "notification_preferences"
             )
             .select(
-                "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,seller_updates,updated_at"
+                "telegram_id,chats,offers,wanted_activity,contact_unlocks,support,watchlist_updates,price_drops,saved_searches,seller_updates,updated_at"
             )
             .eq(
                 "telegram_id",
@@ -5866,6 +5872,8 @@ async function getNotificationPreferences(
             telegram_id:id,
             chats:true,
             offers:true,
+            wanted_activity:true,
+            contact_unlocks:true,
             support:true,
             watchlist_updates:true,
             price_drops:true,
@@ -5885,6 +5893,8 @@ async function getNotificationPreferences(
         telegram_id:id,
         chats:true,
         offers:true,
+        wanted_activity:true,
+        contact_unlocks:true,
         support:true,
         watchlist_updates:true,
         price_drops:true,
@@ -5908,7 +5918,7 @@ async function getNotificationPreferences(
                 defaults
             )
             .select(
-                "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,seller_updates,updated_at"
+                "telegram_id,chats,offers,wanted_activity,contact_unlocks,support,watchlist_updates,price_drops,saved_searches,seller_updates,updated_at"
             )
             .single();
 
@@ -6010,6 +6020,32 @@ function safeSendOfferMessage(
 }
 
 
+function safeSendWantedActivity(
+    telegramId,
+    text
+) {
+
+    return sendUserNotification(
+        telegramId,
+        "wanted_activity",
+        text
+    );
+}
+
+
+function safeSendContactUnlock(
+    telegramId,
+    text
+) {
+
+    return sendUserNotification(
+        telegramId,
+        "contact_unlocks",
+        text
+    );
+}
+
+
 app.post(
     "/notification-settings/get",
     async (req, res) => {
@@ -6097,6 +6133,14 @@ app.post(
                 req.body.offers === undefined
                     ? current?.offers !== false
                     : Boolean(req.body.offers),
+            wanted_activity:
+                req.body.wanted_activity === undefined
+                    ? current?.wanted_activity !== false
+                    : Boolean(req.body.wanted_activity),
+            contact_unlocks:
+                req.body.contact_unlocks === undefined
+                    ? current?.contact_unlocks !== false
+                    : Boolean(req.body.contact_unlocks),
             support:
                 req.body.support === undefined
                     ? current?.support !== false
@@ -6138,7 +6182,7 @@ app.post(
                     }
                 )
                 .select(
-                    "telegram_id,chats,offers,support,watchlist_updates,price_drops,saved_searches,seller_updates,updated_at"
+                    "telegram_id,chats,offers,wanted_activity,contact_unlocks,support,watchlist_updates,price_drops,saved_searches,seller_updates,updated_at"
                 )
                 .single();
 
@@ -8924,7 +8968,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v80.1-referral-first-listing"
+                    "v81-telegram-notifications"
             }
         );
     }
@@ -15753,6 +15797,23 @@ app.post(
                 }
             }
 
+            try {
+                await safeSendWantedActivity(
+                    buyerId,
+                    `🎯 A seller says they have @${wanted.desired_username}.\n\nOpen Handle Market → Profile → Chats to respond.`
+                );
+            } catch (notificationError) {
+                await logSystemError(
+                    "wanted_interest_notification",
+                    notificationError,
+                    {
+                        wanted_id:wantedId,
+                        seller_telegram_id:sellerId,
+                        buyer_telegram_id:buyerId
+                    }
+                );
+            }
+
             return res.json({
                 ok:true,
                 interest:{
@@ -16173,7 +16234,7 @@ app.post(
                 .eq("id",chat.wanted_id)
                 .maybeSingle();
 
-        await safeSendMessage(
+        await safeSendChatMessage(
             counterpartId,
             `💬 New Handle Market message about Wanted @${wanted?.desired_username || "username"}.\n\nOpen Handle Market → Profile → Chats.`
         );
@@ -33405,6 +33466,47 @@ app.post(
                             refundError,
                             {
                                 order_id:order.id
+                            }
+                        );
+                    }
+                } else {
+                    try {
+                        const {
+                            data:unlockedListing
+                        } =
+                            await supabase
+                                .from("listings")
+                                .select(
+                                    "id,seller_telegram_id,listing_number,whatsapp_username"
+                                )
+                                .eq(
+                                    "id",
+                                    order.listing_id
+                                )
+                                .maybeSingle();
+
+
+                        if (
+                            unlockedListing &&
+                            Number(
+                                unlockedListing.seller_telegram_id
+                            ) !==
+                            Number(
+                                order.buyer_telegram_id
+                            )
+                        ) {
+                            await safeSendContactUnlock(
+                                unlockedListing.seller_telegram_id,
+                                `🔓 A buyer unlocked your contact for @${unlockedListing.whatsapp_username}.\n\nThey can now contact you using the details saved on this listing.`
+                            );
+                        }
+                    } catch (notificationError) {
+                        await logSystemError(
+                            "contact_unlock_seller_notification",
+                            notificationError,
+                            {
+                                order_id:order.id,
+                                listing_id:order.listing_id
                             }
                         );
                     }
