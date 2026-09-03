@@ -37414,7 +37414,8 @@ async function hmLoadMarketplaceV45Bootstrap() {
 
 .v46-link-card,
 .v46-tier,
-.v46-rules {
+.v46-rules,
+.v46-qualification-card {
     margin-top:13px;
     padding:15px;
     border:1px solid var(--border,#e4e8ef);
@@ -37515,10 +37516,65 @@ async function hmLoadMarketplaceV45Bootstrap() {
     font-size:11px;
 }
 
+.v46-tier-reward-summary {
+    margin-top:7px;
+    font-size:12px;
+    line-height:1.4;
+    font-weight:800;
+    opacity:.86;
+}
+
+.v46-qualification-title {
+    font-size:15px;
+    font-weight:950;
+}
+
+.v46-qualification-flow {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:7px;
+    margin-top:11px;
+}
+
+.v46-qualification-step {
+    padding:10px 8px;
+    border-radius:13px;
+    background:var(--soft,#f1f4f8);
+    text-align:center;
+    font-size:11px;
+    line-height:1.35;
+    font-weight:800;
+}
+
+.v46-qualification-step strong {
+    display:block;
+    margin-bottom:3px;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    opacity:.62;
+}
+
+.v46-qualification-note {
+    margin-top:10px;
+    font-size:11px;
+    line-height:1.5;
+    opacity:.76;
+}
+
 .v46-rules {
     font-size:11px;
     line-height:1.55;
     opacity:.78;
+}
+
+@media (max-width:430px) {
+    .v46-qualification-flow {
+        grid-template-columns:1fr;
+    }
+    .v46-qualification-step {
+        text-align:left;
+    }
 }
 
 @media (min-width:700px) {
@@ -37963,35 +38019,50 @@ function v46RenderReferralPage() {
     const tiers = [
         {
             value:3,
-            title:v39T("Starter reward","Первая награда")
+            title:v39T("Starter reward","Первая награда"),
+            reward:v39T("BUMP for 24 hours ×1","BUMP на 24 часа ×1")
         },
         {
             value:10,
-            title:v39T("Growth reward","Награда за рост")
+            title:v39T("Growth reward","Награда за рост"),
+            reward:v39T("HOT for 7 days ×1 + FREE listing for 7 days ×1","HOT на 7 дней ×1 + бесплатный лот на 7 дней ×1")
         },
         {
             value:25,
-            title:v39T("Premium reward","Премиальная награда")
+            title:v39T("Premium reward","Премиальная награда"),
+            reward:v39T("VIP for 7 days ×1 + FREE listing for 7 days ×1","VIP на 7 дней ×1 + бесплатный лот на 7 дней ×1")
         },
         {
             value:50,
-            title:v39T("Power reward","Большая награда")
+            title:v39T("Power reward","Большая награда"),
+            reward:v39T("VIP for 7 days ×1 + FREE listing for 30 days ×1","VIP на 7 дней ×1 + бесплатный лот на 30 дней ×1")
         },
         {
             value:100,
-            title:v39T("Ultimate reward","Главная награда")
+            title:v39T("Ultimate reward","Главная награда"),
+            reward:v39T("Lifetime Listing ×1","Lifetime Listing ×1")
         }
     ];
 
 
     content.innerHTML = `
         <div class="v46-referral-hero">
-            <div class="v46-referral-kicker">Handle Market · v75</div>
+            <div class="v46-referral-kicker">Handle Market · Referral Rewards</div>
             <div class="v46-referral-title">🎁 ${v39T("Invite & Earn","Приглашай и получай")}</div>
             <div class="v46-referral-copy">${v39T("Invite new Handle Market users. Rewards are cumulative and each reward can be used once.","Приглашайте новых пользователей Handle Market. Награды суммируются, каждую можно использовать один раз.")}</div>
             <div class="v46-referral-count"><strong>${count}</strong><span>${v39T("qualified invites","засчитанных приглашений")}</span></div>
             <div class="v46-progress"><span style="width:${progress}%"></span></div>
             <div class="v46-referral-copy">${next ? v39T(`${Math.max(0,Number(next) - count)} more until the next reward`, `Ещё ${Math.max(0,Number(next) - count)} до следующей награды`) : v39T("All reward levels unlocked 🎉","Все уровни наград открыты 🎉")}</div>
+        </div>
+
+        <div class="v46-qualification-card">
+            <div class="v46-qualification-title">✅ ${v39T("What counts as a referral?","Как засчитывается реферал?")}</div>
+            <div class="v46-qualification-flow">
+                <div class="v46-qualification-step"><strong>${v39T("Step 1","Шаг 1")}</strong>${v39T("A new user opens Handle Market through your personal referral link.","Новый пользователь открывает Handle Market по вашей персональной реферальной ссылке.")}</div>
+                <div class="v46-qualification-step"><strong>${v39T("Pending","Ожидание")}</strong>${v39T("The invitation is saved, but it does not increase your referral counter yet.","Приглашение сохраняется, но счётчик рефералов пока не увеличивается.")}</div>
+                <div class="v46-qualification-step"><strong>${v39T("Qualified ✓","Засчитан ✓")}</strong>${v39T("The invited user successfully submits their first FREE listing.","Приглашённый пользователь успешно создаёт свой первый БЕСПЛАТНЫЙ лот.")}</div>
+            </div>
+            <div class="v46-qualification-note">${v39T("Only after the first free listing is created does the referral become Qualified and count toward your rewards. Moderation approval is not required for the referral to count.","Только после создания первого бесплатного лота реферал получает статус Qualified и идёт в счёт наград. Для засчёта реферала не нужно ждать одобрения лота модератором.")}</div>
         </div>
 
         <div class="v46-link-card">
@@ -38013,8 +38084,9 @@ function v46RenderReferralPage() {
                     <div class="v46-tier ${unlocked ? "unlocked" : "locked"}">
                         <div class="v46-tier-head">
                             <div>
-                                <div class="v46-tier-label">${tier.value} ${v39T("invites","приглашений")}</div>
+                                <div class="v46-tier-label">${tier.value} ${v39T("qualified referrals","засчитанных рефералов")}</div>
                                 <div class="v46-tier-title">${escapeHtml(tier.title)}</div>
+                                <div class="v46-tier-reward-summary">🎁 ${escapeHtml(tier.reward)}</div>
                             </div>
                             <div class="v46-tier-state">${unlocked ? v39T("Unlocked","Открыто") : `${count}/${tier.value}`}</div>
                         </div>
@@ -38025,7 +38097,7 @@ function v46RenderReferralPage() {
         </div>
 
         <div class="v46-rules">
-            🛡 ${v39T("Anti-abuse: only a new Handle Market account opened through your link counts. One Telegram account can be attributed once; self-referrals and blocked accounts do not count.","Защита от накрутки: учитывается только новый аккаунт Handle Market, открытый по вашей ссылке. Один Telegram-аккаунт засчитывается один раз; саморефералы и заблокированные аккаунты не учитываются.")}
+            🛡 ${v39T("A referral counts only when a genuinely new Handle Market user joins through your link and successfully submits their first free listing. Existing accounts, self-referrals, blocked accounts, artificial registrations and multi-account abuse do not count.","Реферал засчитывается только если действительно новый пользователь Handle Market пришёл по вашей ссылке и успешно создал свой первый бесплатный лот. Старые аккаунты, саморефералы, заблокированные аккаунты, искусственные регистрации и мультиаккаунты не учитываются.")}
         </div>
     `;
 }
