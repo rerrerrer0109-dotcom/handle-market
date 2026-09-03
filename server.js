@@ -823,7 +823,7 @@ function validateInitData(
         ) ||
         authDate <= 0 ||
         now - authDate >
-        3600 ||
+        24 * 60 * 60 ||
         authDate >
         now + 30
     ) {
@@ -8893,7 +8893,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v79.4.1-cors-auth-header-fix"
+                    "v80-wanted-2"
             }
         );
     }
@@ -14629,166 +14629,184 @@ app.post(
         }
 
         const {
-            data:
-                posts,
+            data:posts,
             error
         } =
             await supabase
-                .from(
-                    "wanted_requests"
-                )
+                .from("wanted_requests")
                 .select(
                     "id,buyer_telegram_id,desired_username,budget,currency,category,description,status,created_at"
                 )
-                .eq(
-                    "status",
-                    "active"
-                )
-                .eq(
-                    "is_frozen",
-                    false
-                )
-                .order(
-                    "created_at",
-                    {
-                        ascending: false
-                    }
-                )
+                .eq("status","active")
+                .eq("is_frozen",false)
+                .order("created_at",{ ascending:false })
                 .limit(100);
 
-
         if (error) {
-
-            return res
-                .status(500)
-                .json(
-                    {
-                        ok: false,
-                        error:
-                            "wanted_load_failed"
-                    }
-                );
+            return res.status(500).json({
+                ok:false,
+                error:"wanted_load_failed"
+            });
         }
 
+        const rows = posts || [];
 
         const buyerIds = [
             ...new Set(
-                (
-                    posts ||
-                    []
-                ).map(
-                    row =>
-                        row.buyer_telegram_id
-                )
+                rows.map(row => row.buyer_telegram_id)
             )
         ];
 
-
         let buyers = [];
 
-
-        if (
-            buyerIds.length
-        ) {
-
-            const {
-                data
-            } =
+        if (buyerIds.length) {
+            const result =
                 await supabase
                     .from("users")
-                    .select(
-                        "telegram_id,first_name,telegram_username"
-                    )
-                    .in(
-                        "telegram_id",
-                        buyerIds
-                    );
+                    .select("telegram_id,first_name,telegram_username")
+                    .in("telegram_id",buyerIds);
 
-
-            buyers =
-                data ||
-                [];
+            buyers = result.data || [];
         }
 
-
-        const map =
+        const buyerMap =
             new Map(
-
-                buyers.map(
-                    row => [
-                        String(
-                            row.telegram_id
-                        ),
-                        row
-                    ]
-                )
+                buyers.map(row => [
+                    String(row.telegram_id),
+                    row
+                ])
             );
-
 
         const wantedIds =
-            (posts || []).map(
-                row => row.id
-            );
+            rows.map(row => row.id);
 
         let wantedContacts = [];
+        let interestRows = [];
 
         if (wantedIds.length) {
-            const { data } =
-                await supabase
-                    .from("wanted_contacts")
-                    .select("wanted_id,telegram,whatsapp,email,other")
-                    .in("wanted_id",wantedIds);
+            const [contactsResult,interestsResult] =
+                await Promise.all([
+                    supabase
+                        .from("wanted_contacts")
+                        .select("wanted_id,telegram,whatsapp,email,other")
+                        .in("wanted_id",wantedIds),
+                    supabase
+                        .from("wanted_interests")
+                        .select("wanted_id,seller_telegram_id,created_at")
+                        .in("wanted_id",wantedIds)
+                        .order("created_at",{ ascending:false })
+                        .limit(5000)
+                ]);
 
             wantedContacts =
-                data || [];
+                contactsResult.data || [];
+
+            if (interestsResult.error) {
+                console.error(
+                    "Wanted interest feed:",
+                    interestsResult.error
+                );
+                return res.status(500).json({
+                    ok:false,
+                    error:"wanted_interest_load_failed"
+                });
+            }
+
+            interestRows =
+                interestsResult.data || [];
         }
 
-        const wantedContactMap =
+        const contactMap =
             new Map(
-                wantedContacts.map(
-                    row => [
-                        String(row.wanted_id),
-                        {
-                            telegram:row.telegram || "",
-                            whatsapp:row.whatsapp || "",
-                            email:row.email || "",
-                            other:row.other || ""
-                        }
-                    ]
-                )
+                wantedContacts.map(row => [
+                    String(row.wanted_id),
+                    {
+                        telegram:row.telegram || "",
+                        whatsapp:row.whatsapp || "",
+                        email:row.email || "",
+                        other:row.other || ""
+                    }
+                ])
             );
 
+        const interestedSellerMap =
+            new Map();
 
-        res.json(
-            {
-                ok: true,
+        const myLatestInterestMap =
+            new Map();
 
-                posts:
-                    (
-                        posts ||
-                        []
-                    ).map(
-                        row => ({
+        const currentSellerId =
+            Number(auth.user.telegram_id);
 
-                            ...row,
+        for (const interest of interestRows) {
+            const wantedKey =
+                String(interest.wanted_id);
 
-                            buyer:
-                                map.get(
-                                    String(
-                                        row.buyer_telegram_id
-                                    )
-                                ) ||
-                                null,
-
-                            contacts:
-                                wantedContactMap.get(
-                                    String(row.id)
-                                ) ||
-                                { telegram:"",whatsapp:"",email:"",other:"" }
-                        })
-                    )
+            if (!interestedSellerMap.has(wantedKey)) {
+                interestedSellerMap.set(
+                    wantedKey,
+                    new Set()
+                );
             }
-        );
+
+            interestedSellerMap
+                .get(wantedKey)
+                .add(
+                    String(interest.seller_telegram_id)
+                );
+
+            if (
+                Number(interest.seller_telegram_id) === currentSellerId &&
+                !myLatestInterestMap.has(wantedKey)
+            ) {
+                myLatestInterestMap.set(
+                    wantedKey,
+                    interest.created_at
+                );
+            }
+        }
+
+        const cooldownMs =
+            24 * 60 * 60 * 1000;
+
+        return res.json({
+            ok:true,
+            posts:
+                rows.map(row => {
+                    const key =
+                        String(row.id);
+
+                    const myInterestAt =
+                        myLatestInterestMap.get(key) ||
+                        null;
+
+                    const cooldownUntil =
+                        myInterestAt
+                            ? new Date(
+                                new Date(myInterestAt).getTime() +
+                                cooldownMs
+                              ).toISOString()
+                            : null;
+
+                    return {
+                        ...row,
+                        buyer:
+                            buyerMap.get(
+                                String(row.buyer_telegram_id)
+                            ) || null,
+                        contacts:
+                            contactMap.get(key) ||
+                            { telegram:"",whatsapp:"",email:"",other:"" },
+                        interest_count:
+                            interestedSellerMap.get(key)?.size ||
+                            0,
+                        my_interest_at:
+                            myInterestAt,
+                        my_interest_cooldown_until:
+                            cooldownUntil
+                    };
+                })
+        });
     }
 );
 
@@ -14892,6 +14910,46 @@ app.post(
             );
 
 
+        let interestRows = [];
+
+        if (rows.length) {
+            const interestResult =
+                await supabase
+                    .from("wanted_interests")
+                    .select("wanted_id,seller_telegram_id")
+                    .in(
+                        "wanted_id",
+                        rows.map(row => row.id)
+                    );
+
+            if (interestResult.error) {
+                console.error(
+                    "My Wanted interests:",
+                    interestResult.error
+                );
+                return res.status(500).json({
+                    ok:false,
+                    error:"wanted_interest_load_failed"
+                });
+            }
+
+            interestRows =
+                interestResult.data || [];
+        }
+
+        const interestMap =
+            new Map();
+
+        for (const interest of interestRows) {
+            const key = String(interest.wanted_id);
+            if (!interestMap.has(key)) {
+                interestMap.set(key,new Set());
+            }
+            interestMap
+                .get(key)
+                .add(String(interest.seller_telegram_id));
+        }
+
         res.json(
             {
                 ok: true,
@@ -14899,6 +14957,9 @@ app.post(
                     rows.map(
                         row => ({
                             ...row,
+                            interest_count:
+                                interestMap.get(String(row.id))?.size ||
+                                0,
                             contacts:
                                 contactMap.get(String(row.id)) ||
                                 { telegram:"",whatsapp:"",email:"",other:"" }
@@ -15477,6 +15538,221 @@ app.post(
    V64 WANTED INTERNAL CHAT
    ========================================================= */
 
+/* =========================================================
+   V80 — WANTED RESPONSE / INTEREST
+   One seller may submit one new response to the same Wanted
+   request per rolling 24-hour window.
+   ========================================================= */
+app.post(
+    "/wanted-interest/create",
+    async (req,res) => {
+        const auth =
+            await getDatabaseUser(
+                req.body.initData
+            );
+
+        if (!auth.ok) {
+            return res
+                .status(auth.status)
+                .json({ ok:false,error:auth.error });
+        }
+
+        const sellerId =
+            Number(auth.user.telegram_id);
+
+        const wantedId =
+            String(req.body.wanted_id || "").trim();
+
+        if (!wantedId) {
+            return res.status(400).json({
+                ok:false,
+                error:"wanted_not_found"
+            });
+        }
+
+        const { data:wanted,error:wantedError } =
+            await supabase
+                .from("wanted_requests")
+                .select("id,buyer_telegram_id,desired_username,status,is_frozen")
+                .eq("id",wantedId)
+                .maybeSingle();
+
+        if (
+            wantedError ||
+            !wanted ||
+            wanted.status !== "active" ||
+            wanted.is_frozen
+        ) {
+            return res.status(404).json({
+                ok:false,
+                error:"wanted_not_found"
+            });
+        }
+
+        const buyerId =
+            Number(wanted.buyer_telegram_id);
+
+        if (buyerId === sellerId) {
+            return res.status(400).json({
+                ok:false,
+                error:"wanted_owner_chat"
+            });
+        }
+
+        const interestId =
+            crypto.randomUUID();
+
+        const interestResult =
+            await supabase.rpc(
+                "hm_v80_create_wanted_interest",
+                {
+                    p_interest_id:interestId,
+                    p_wanted_id:wantedId,
+                    p_buyer_telegram_id:buyerId,
+                    p_seller_telegram_id:sellerId
+                }
+            );
+
+        if (interestResult.error) {
+            console.error(
+                "Wanted interest create RPC:",
+                interestResult.error
+            );
+            return res.status(500).json({
+                ok:false,
+                error:"wanted_interest_create_failed"
+            });
+        }
+
+        const interestState =
+            interestResult.data ||
+            {};
+
+        if (
+            interestState.ok === false &&
+            interestState.error === "wanted_interest_cooldown"
+        ) {
+            const retryAt =
+                interestState.retry_at ||
+                null;
+
+            return res.status(429).json({
+                ok:false,
+                error:"wanted_interest_cooldown",
+                last_interest_at:
+                    interestState.last_interest_at ||
+                    null,
+                retry_at:retryAt,
+                retry_after_seconds:
+                    retryAt
+                        ? Math.max(
+                            1,
+                            Math.ceil(
+                                (new Date(retryAt).getTime() - Date.now()) /
+                                1000
+                            )
+                          )
+                        : 24 * 60 * 60
+            });
+        }
+
+        if (interestState.ok !== true) {
+            return res.status(500).json({
+                ok:false,
+                error:
+                    interestState.error ||
+                    "wanted_interest_create_failed"
+            });
+        }
+
+        try {
+            const existingResult =
+                await supabase
+                    .from("wanted_chats")
+                    .select("id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at")
+                    .eq("wanted_id",wantedId)
+                    .eq("seller_telegram_id",sellerId)
+                    .maybeSingle();
+
+            if (existingResult.error) {
+                throw existingResult.error;
+            }
+
+            let chat =
+                existingResult.data ||
+                null;
+
+            if (!chat) {
+                const chatId =
+                    crypto.randomUUID();
+
+                const createResult =
+                    await supabase
+                        .from("wanted_chats")
+                        .insert({
+                            id:chatId,
+                            wanted_id:wantedId,
+                            buyer_telegram_id:buyerId,
+                            seller_telegram_id:sellerId,
+                            updated_at:nowIso()
+                        })
+                        .select("id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at")
+                        .single();
+
+                if (createResult.error) {
+                    if (createResult.error.code === "23505") {
+                        const duplicate =
+                            await supabase
+                                .from("wanted_chats")
+                                .select("id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at")
+                                .eq("wanted_id",wantedId)
+                                .eq("seller_telegram_id",sellerId)
+                                .maybeSingle();
+
+                        if (duplicate.data) {
+                            chat = duplicate.data;
+                        } else {
+                            throw createResult.error;
+                        }
+                    } else {
+                        throw createResult.error;
+                    }
+                } else {
+                    chat = createResult.data;
+                }
+            }
+
+            return res.json({
+                ok:true,
+                interest:{
+                    id:interestId,
+                    wanted_id:wantedId,
+                    created_at:nowIso()
+                },
+                chat,
+                wanted_username:wanted.desired_username
+            });
+
+        } catch (error) {
+            await supabase
+                .from("wanted_interests")
+                .delete()
+                .eq("id",interestId);
+
+            console.error(
+                "Wanted interest chat create:",
+                error
+            );
+
+            return res.status(500).json({
+                ok:false,
+                error:"wanted_chat_create_failed"
+            });
+        }
+    }
+);
+
+
 async function getWantedChatForParticipant(
     chatId,
     telegramId
@@ -15567,42 +15843,10 @@ app.post(
             return res.json({ ok:true,chat:existing,wanted_username:wanted.desired_username });
         }
 
-        const chatId =
-            crypto.randomUUID();
-
-        const { data:created,error:createError } =
-            await supabase
-                .from("wanted_chats")
-                .insert({
-                    id:chatId,
-                    wanted_id:wantedId,
-                    buyer_telegram_id:buyerId,
-                    seller_telegram_id:sellerId,
-                    updated_at:nowIso()
-                })
-                .select("id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at")
-                .single();
-
-        if (createError) {
-            if (createError.code === "23505") {
-                const { data:duplicate } =
-                    await supabase
-                        .from("wanted_chats")
-                        .select("id,wanted_id,buyer_telegram_id,seller_telegram_id,created_at,updated_at")
-                        .eq("wanted_id",wantedId)
-                        .eq("seller_telegram_id",sellerId)
-                        .maybeSingle();
-
-                if (duplicate) {
-                    return res.json({ ok:true,chat:duplicate,wanted_username:wanted.desired_username });
-                }
-            }
-
-            console.error("Wanted chat create:",createError);
-            return res.status(500).json({ ok:false,error:"wanted_chat_create_failed" });
-        }
-
-        return res.json({ ok:true,chat:created,wanted_username:wanted.desired_username });
+        return res.status(403).json({
+            ok:false,
+            error:"wanted_interest_required"
+        });
     }
 );
 

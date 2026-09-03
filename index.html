@@ -4536,6 +4536,163 @@ button {
     font-size:9px;
     font-weight:850;
 }
+
+
+/* =========================================================
+   V80 — WANTED 2.0
+   ========================================================= */
+.v80-wanted-toolbar {
+    display:grid;
+    grid-template-columns:minmax(0,1.6fr) minmax(120px,.9fr) minmax(110px,.7fr) minmax(145px,.9fr);
+    gap:8px;
+    margin:12px 0 14px;
+}
+.v80-wanted-toolbar input,
+.v80-wanted-toolbar select {
+    width:100%;
+    min-height:42px;
+    margin:0;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--surface);
+    color:var(--text);
+    font-size:10px;
+    font-weight:750;
+}
+.v80-wanted-results {
+    margin:-4px 0 12px;
+    color:var(--muted);
+    font-size:9px;
+    font-weight:800;
+}
+.v80-wanted-card {
+    position:relative;
+    overflow:hidden;
+    border-left:3px solid var(--blue);
+}
+.v80-wanted-card::before {
+    content:"";
+    position:absolute;
+    inset:0 auto 0 0;
+    width:3px;
+    background:linear-gradient(180deg,var(--blue),var(--purple));
+}
+.v80-wanted-head {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+}
+.v80-wanted-kicker {
+    display:inline-flex;
+    align-items:center;
+    min-height:20px;
+    margin-bottom:6px;
+    padding:0 8px;
+    border-radius:999px;
+    background:var(--blue-soft);
+    color:var(--blue);
+    font-size:8px;
+    font-weight:950;
+    letter-spacing:.08em;
+}
+.v80-wanted-budget {
+    flex:0 0 auto;
+    min-width:92px;
+    padding:9px 10px;
+    border:1px solid var(--border);
+    border-radius:13px;
+    background:var(--surface-2);
+    text-align:right;
+}
+.v80-wanted-budget span {
+    display:block;
+    color:var(--muted);
+    font-size:8px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+}
+.v80-wanted-budget strong {
+    display:block;
+    margin-top:2px;
+    color:var(--green);
+    font-size:16px;
+    font-weight:950;
+}
+.v80-wanted-meta {
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-top:10px;
+}
+.v80-wanted-meta-pill {
+    display:inline-flex;
+    align-items:center;
+    min-height:25px;
+    padding:0 9px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:var(--surface-2);
+    color:var(--text-2);
+    font-size:8.5px;
+    font-weight:850;
+}
+.v80-wanted-meta-pill.responses {
+    color:var(--purple);
+    background:var(--purple-soft);
+    border-color:transparent;
+}
+.v80-wanted-response-button {
+    width:100%;
+    min-height:43px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    border:0;
+    border-radius:12px;
+    background:var(--blue);
+    color:#fff;
+    font-size:10px;
+    font-weight:950;
+}
+.v80-wanted-response-button.secondary {
+    color:var(--blue);
+    background:var(--blue-soft);
+}
+.v80-wanted-response-note {
+    margin-top:7px;
+    color:var(--muted);
+    text-align:center;
+    font-size:8.5px;
+    font-weight:800;
+}
+.v80-wanted-empty {
+    padding:22px 14px;
+    border:1px dashed var(--border);
+    border-radius:14px;
+    color:var(--muted);
+    text-align:center;
+    font-size:10px;
+    font-weight:800;
+}
+@media (max-width:720px) {
+    .v80-wanted-toolbar {
+        grid-template-columns:1fr 1fr;
+    }
+}
+@media (max-width:430px) {
+    .v80-wanted-toolbar {
+        grid-template-columns:1fr;
+    }
+    .v80-wanted-head {
+        align-items:stretch;
+    }
+    .v80-wanted-budget {
+        min-width:84px;
+    }
+}
 @media (max-width:430px) {
     .hm-contact-grid { grid-template-columns:1fr; gap:7px; }
     .hm-contact-row { align-items:flex-start; }
@@ -9136,7 +9293,51 @@ Pay 250 ⭐ & Publish
 Wanted Requests
 </div>
 
-<br>
+<div class="section-subtitle">
+Find active buyer demand and respond when you own the requested username.
+</div>
+
+<div class="v80-wanted-toolbar">
+    <input
+        id="v80WantedSearch"
+        type="search"
+        placeholder="Search @username or description"
+        autocomplete="off"
+        oninput="renderWantedFeed()"
+    >
+
+    <select id="v80WantedCategory" onchange="renderWantedFeed()">
+        <option value="">All categories</option>
+        <option>Brand</option>
+        <option>Business</option>
+        <option>Tech &amp; AI</option>
+        <option>Short</option>
+        <option>Travel</option>
+        <option>Finance</option>
+        <option>Gaming</option>
+        <option>Crypto</option>
+        <option>Media</option>
+        <option>Generic</option>
+        <option>Other</option>
+    </select>
+
+    <input
+        id="v80WantedMinBudget"
+        type="number"
+        min="0"
+        step="1"
+        placeholder="Min budget"
+        oninput="renderWantedFeed()"
+    >
+
+    <select id="v80WantedSort" onchange="renderWantedFeed()">
+        <option value="newest">Newest</option>
+        <option value="budget_desc">Highest budget</option>
+        <option value="responses_desc">Most responses</option>
+    </select>
+</div>
+
+<div id="v80WantedResults" class="v80-wanted-results"></div>
 
 <div id="wantedPosts">
 
@@ -20136,96 +20337,286 @@ function openWantedPage(
 }
 
 
+let v80WantedFeedPosts = [];
+
+
+function v80WantedTimeAgo(
+    value
+) {
+    const ms =
+        Date.now() -
+        new Date(value || 0).getTime();
+
+    if (!Number.isFinite(ms) || ms < 0) {
+        return "just now";
+    }
+
+    const minutes = Math.floor(ms / 60000);
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes}m ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+
+    return new Date(value).toLocaleDateString();
+}
+
+
+function v80WantedInterestCountText(
+    count
+) {
+    const n = Math.max(0, Number(count || 0));
+    return `${n} ${n === 1 ? "seller" : "sellers"} interested`;
+}
+
+
+function v80WantedHasRecentInterest(
+    post
+) {
+    const until =
+        new Date(
+            post?.my_interest_cooldown_until ||
+            0
+        ).getTime();
+
+    return Number.isFinite(until) &&
+        until > Date.now();
+}
+
+
+function renderWantedFeed() {
+    const container =
+        document.getElementById(
+            "wantedPosts"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const search =
+        String(
+            document.getElementById("v80WantedSearch")?.value ||
+            ""
+        )
+            .trim()
+            .replace(/^@+/, "")
+            .toLowerCase();
+
+    const category =
+        String(
+            document.getElementById("v80WantedCategory")?.value ||
+            ""
+        ).trim();
+
+    const minBudgetRaw =
+        Number(
+            document.getElementById("v80WantedMinBudget")?.value ||
+            0
+        );
+
+    const minBudget =
+        Number.isFinite(minBudgetRaw)
+            ? Math.max(0, minBudgetRaw)
+            : 0;
+
+    const sort =
+        String(
+            document.getElementById("v80WantedSort")?.value ||
+            "newest"
+        );
+
+    let posts =
+        [...v80WantedFeedPosts]
+            .filter(
+                post => {
+                    const username =
+                        String(post.desired_username || "")
+                            .replace(/^@+/, "")
+                            .toLowerCase();
+
+                    const description =
+                        String(post.description || "")
+                            .toLowerCase();
+
+                    const searchMatch =
+                        !search ||
+                        username.includes(search) ||
+                        description.includes(search);
+
+                    const categoryMatch =
+                        !category ||
+                        String(post.category || "") === category;
+
+                    const budgetMatch =
+                        Number(post.budget || 0) >= minBudget;
+
+                    return searchMatch &&
+                        categoryMatch &&
+                        budgetMatch;
+                }
+            );
+
+    posts.sort(
+        (a,b) => {
+            if (sort === "budget_desc") {
+                return Number(b.budget || 0) - Number(a.budget || 0);
+            }
+
+            if (sort === "responses_desc") {
+                const diff =
+                    Number(b.interest_count || 0) -
+                    Number(a.interest_count || 0);
+
+                if (diff) return diff;
+            }
+
+            return new Date(b.created_at || 0).getTime() -
+                new Date(a.created_at || 0).getTime();
+        }
+    );
+
+    const resultLabel =
+        document.getElementById(
+            "v80WantedResults"
+        );
+
+    if (resultLabel) {
+        resultLabel.textContent =
+            `${posts.length} active ${posts.length === 1 ? "request" : "requests"}`;
+    }
+
+    container.innerHTML =
+        posts.length
+            ? posts.map(
+                post => {
+                    const owner =
+                        authenticatedUser &&
+                        Number(post.buyer_telegram_id) ===
+                        Number(
+                            authenticatedUser.telegram_id ||
+                            authenticatedUser.id
+                        );
+
+                    const recentInterest =
+                        v80WantedHasRecentInterest(post);
+
+                    const count =
+                        Math.max(
+                            0,
+                            Number(post.interest_count || 0)
+                        );
+
+                    return `
+                        <div class="card wanted-card v80-wanted-card">
+                            <div class="v80-wanted-head">
+                                <div>
+                                    <div class="v80-wanted-kicker">WANTED</div>
+                                    <div class="username">
+                                        @${escapeHtml(post.desired_username)}
+                                    </div>
+                                </div>
+
+                                <div class="v80-wanted-budget">
+                                    <span>Budget</span>
+                                    <strong>$${formatPrice(post.budget)}</strong>
+                                </div>
+                            </div>
+
+                            <div class="v80-wanted-meta">
+                                <span class="category-badge">
+                                    ${escapeHtml(post.category || "Other")}
+                                </span>
+                                <span class="v80-wanted-meta-pill responses">
+                                    ${escapeHtml(v80WantedInterestCountText(count))}
+                                </span>
+                                <span class="v80-wanted-meta-pill">
+                                    Posted ${escapeHtml(v80WantedTimeAgo(post.created_at))}
+                                </span>
+                                ${newListingBadgeHtml(post)}
+                            </div>
+
+                            ${
+                                post.description
+                                    ? `<div class="description">${escapeHtml(post.description)}</div>`
+                                    : ""
+                            }
+
+                            ${wantedContactBoxHtml(post,owner)}
+
+                            ${
+                                owner
+                                    ? `
+                                        <div class="hm-wanted-owner-badge">
+                                            Your Request · ${escapeHtml(v80WantedInterestCountText(count))}
+                                        </div>
+                                    `
+                                    : `
+                                        <div class="hm-wanted-actions" style="grid-template-columns:1fr">
+                                            ${
+                                                recentInterest
+                                                    ? `
+                                                        <button
+                                                            class="v80-wanted-response-button secondary"
+                                                            onclick="openWantedChat('${escapeJs(post.id)}')"
+                                                        >
+                                                            ${hmContactIconSvg("message")}
+                                                            Open chat
+                                                        </button>
+                                                        <div class="v80-wanted-response-note">
+                                                            Response already sent. New responses to this Wanted are limited to once every 24 hours.
+                                                        </div>
+                                                    `
+                                                    : `
+                                                        <button
+                                                            class="v80-wanted-response-button"
+                                                            onclick="respondToWanted('${escapeJs(post.id)}',this)"
+                                                        >
+                                                            ${hmContactIconSvg("message")}
+                                                            I Have This Username
+                                                        </button>
+                                                    `
+                                            }
+                                        </div>
+                                    `
+                            }
+                        </div>
+                    `;
+                }
+            ).join("")
+            : '<div class="v80-wanted-empty">No Wanted requests match your filters.</div>';
+}
+
+
 async function loadWanted() {
-
     try {
-
         const data =
             await api(
                 "/wanted-auth",
                 {
-                    initData:
-                        tg.initData
+                    initData:tg.initData
                 }
             );
 
-        const posts =
-            data.posts ||
-            [];
+        v80WantedFeedPosts =
+            Array.isArray(data.posts)
+                ? data.posts
+                : [];
 
+        renderWantedFeed();
 
-        document.getElementById(
-            "wantedPosts"
-        ).innerHTML =
-            posts.length
-                ? posts.map(
-                    post => {
+    } catch (error) {
+        const container =
+            document.getElementById("wantedPosts");
 
-                        const owner =
-                            authenticatedUser &&
-                            Number(
-                                post.buyer_telegram_id
-                            ) ===
-                            Number(
-                                authenticatedUser.telegram_id ||
-                                authenticatedUser.id
-                            );
-
-
-                        return `
-                            <div class="card wanted-card">
-
-                                <div class="username">
-                                    @${escapeHtml(post.desired_username)}
-                                </div>
-
-                                <div class="price">
-                                    $${formatPrice(post.budget)}
-                                </div>
-
-                                <div class="listing-info-row">
-                                    <span class="category-badge">
-                                        ${escapeHtml(post.category || "Other")}
-                                    </span>
-
-                                    ${newListingBadgeHtml(post)}
-                                </div>
-
-                                ${
-                                    post.description
-                                        ? `<div class="description">${escapeHtml(post.description)}</div>`
-                                        : ""
-                                }
-
-                                ${wantedContactBoxHtml(post,owner)}
-
-                                ${
-                                    owner
-                                        ? `
-                                            <div class="hm-wanted-owner-badge">
-                                                Your Request · incoming chats appear in Profile → Chats
-                                            </div>
-                                        `
-                                        : `
-                                            <div class="hm-wanted-actions">
-                                                <button
-                                                    class="hm-wanted-chat-button"
-                                                    onclick="openWantedChat('${escapeJs(post.id)}')"
-                                                >
-                                                    ${hmContactIconSvg("message")}
-                                                    Chat with buyer
-                                                </button>
-                                            </div>
-                                        `
-                                }
-
-                            </div>
-                        `;
-                    }
-                ).join("")
-                : '<div class="empty">No active Wanted requests.</div>';
-
-    } catch {}
+        if (container) {
+            container.innerHTML =
+                '<div class="v80-wanted-empty">Could not load Wanted requests.</div>';
+        }
+    }
 }
 
 
@@ -20440,6 +20831,12 @@ async function loadMyWanted() {
                                         : ""
                                 }
 
+
+                                <div class="v80-wanted-meta" style="margin-bottom:10px">
+                                    <span class="v80-wanted-meta-pill responses">
+                                        ${escapeHtml(v80WantedInterestCountText(post.interest_count || 0))}
+                                    </span>
+                                </div>
 
                                 ${wantedContactBoxHtml(
                                     post,
@@ -20808,6 +21205,75 @@ async function openChatByListing(
                 error.message
             )
         );
+    }
+}
+
+
+async function respondToWanted(
+    wantedId,
+    button = null
+) {
+    const originalHtml =
+        button?.innerHTML ||
+        "";
+
+    try {
+        if (button) {
+            button.disabled = true;
+            button.textContent = "Sending response...";
+        }
+
+        const data =
+            await api(
+                "/wanted-interest/create",
+                {
+                    initData:tg.initData,
+                    wanted_id:wantedId
+                }
+            );
+
+        await loadWanted();
+
+        if (
+            data?.chat?.id
+        ) {
+            await openChatConversation(
+                data.chat.id,
+                "wanted"
+            );
+            return;
+        }
+
+        hmToast(
+            "Your response was sent to the buyer."
+        );
+
+    } catch (error) {
+        const messages = {
+            wanted_not_found:
+                "This Wanted request is no longer available.",
+            wanted_owner_chat:
+                "This is your own Wanted request.",
+            wanted_interest_cooldown:
+                "You can send only one new response to the same Wanted request every 24 hours.",
+            wanted_interest_create_failed:
+                "Could not send your response. Please try again.",
+            wanted_chat_create_failed:
+                "Your response could not open a chat. Please try again."
+        };
+
+        hmToast(
+            messages[error.message] ||
+            friendlyError(error.message)
+        );
+
+    } finally {
+        if (button && document.body.contains(button)) {
+            button.disabled = false;
+            if (originalHtml) {
+                button.innerHTML = originalHtml;
+            }
+        }
     }
 }
 
