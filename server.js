@@ -3119,6 +3119,37 @@ async function createFreeListing(
         }
 
 
+        /*
+         * v80.1: a referral is qualified only after the invited user
+         * successfully submits their first FREE listing. Referral failures
+         * must never roll back an otherwise valid listing.
+         */
+        try {
+            await v801QualifyReferralAfterFirstListing(
+                seller.telegram_id,
+                listingId
+            );
+        } catch (referralError) {
+            console.error(
+                "v80.1 referral qualification:",
+                referralError
+            );
+
+            try {
+                await logSystemError(
+                    "v801_referral_first_listing",
+                    referralError,
+                    {
+                        telegram_id:
+                            seller.telegram_id,
+                        listing_id:
+                            listingId
+                    }
+                );
+            } catch {}
+        }
+
+
         return listingId;
 
     } catch (error) {
@@ -8893,7 +8924,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v80-wanted-2"
+                    "v80.1-referral-first-listing"
             }
         );
     }
@@ -35307,6 +35338,105 @@ async function v46RegisterReferral(
                 data.referrer_id
             ),
             `🎉 New qualified referral!\n\nProgress: ${count} invited.${unlocked}`
+        );
+    }
+
+
+    return data;
+}
+
+
+async function v801QualifyReferralAfterFirstListing(
+    referredTelegramId,
+    listingId
+) {
+
+    const {
+        data,
+        error
+    } =
+        await supabase.rpc(
+            "hm_qualify_referral_first_listing_v801",
+            {
+                p_referred_telegram_id:
+                    Number(
+                        referredTelegramId
+                    ),
+                p_listing_id:
+                    listingId
+            }
+        );
+
+
+    if (
+        error
+    ) {
+        throw error;
+    }
+
+
+    if (
+        data?.ok &&
+        data?.new_qualification &&
+        data?.referrer_id
+    ) {
+
+        const count =
+            Number(
+                data.qualified_count ||
+                0
+            );
+
+
+        let unlocked =
+            "";
+
+
+        if (
+            count === 3
+        ) {
+            unlocked =
+                "\n\n🎁 Unlocked: BUMP for 24 hours.";
+        }
+
+
+        if (
+            count === 10
+        ) {
+            unlocked =
+                "\n\n🎁 Unlocked: HOT for 7 days + one free 7-day listing.";
+        }
+
+
+        if (
+            count === 25
+        ) {
+            unlocked =
+                "\n\n🎁 Unlocked: VIP for 7 days + one free 7-day listing.";
+        }
+
+
+        if (
+            count === 50
+        ) {
+            unlocked =
+                "\n\n🎁 Unlocked: VIP for 7 days + one free 30-day listing.";
+        }
+
+
+        if (
+            count === 100
+        ) {
+            unlocked =
+                "\n\n🏆 Unlocked: Lifetime Listing ×1.";
+        }
+
+
+        await safeSendMessage(
+            Number(
+                data.referrer_id
+            ),
+            `🎉 New qualified referral!\n\nYour invited user created their first listing.\nProgress: ${count} invited.${unlocked}`
         );
     }
 
