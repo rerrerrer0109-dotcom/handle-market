@@ -6243,6 +6243,19 @@ const SAVED_SEARCH_PROMOTIONS = [
     "vip"
 ];
 
+const SAVED_SEARCH_USERNAME_LENGTHS = [
+    "all",
+    "2_4",
+    "5_7",
+    "8_plus"
+];
+
+const SAVED_SEARCH_PRICE_TYPES = [
+    "all",
+    "fixed",
+    "negotiable"
+];
+
 
 function normalizeSavedSearchInput(
     body
@@ -6282,6 +6295,24 @@ function normalizeSavedSearchInput(
         );
 
 
+    const usernameLength =
+        String(
+            body.username_length ||
+            "all"
+        )
+            .trim()
+            .toLowerCase();
+
+
+    const priceType =
+        String(
+            body.price_type ||
+            "all"
+        )
+            .trim()
+            .toLowerCase();
+
+
     const minText =
         String(
             body.min_price ??
@@ -6314,6 +6345,12 @@ function normalizeSavedSearchInput(
         ) ||
         !SAVED_SEARCH_PROMOTIONS.includes(
             promotion
+        ) ||
+        !SAVED_SEARCH_USERNAME_LENGTHS.includes(
+            usernameLength
+        ) ||
+        !SAVED_SEARCH_PRICE_TYPES.includes(
+            priceType
         ) ||
         (
             minPrice !== null &&
@@ -6393,6 +6430,30 @@ function normalizeSavedSearchInput(
         }
 
         if (
+            usernameLength !==
+            "all"
+        ) {
+            parts.push(
+                usernameLength === "2_4"
+                    ? "2–4 chars"
+                    : usernameLength === "5_7"
+                        ? "5–7 chars"
+                        : "8+ chars"
+            );
+        }
+
+        if (
+            priceType !==
+            "all"
+        ) {
+            parts.push(
+                priceType === "fixed"
+                    ? "Fixed"
+                    : "Negotiable"
+            );
+        }
+
+        if (
             minPrice !== null ||
             maxPrice !== null
         ) {
@@ -6419,6 +6480,10 @@ function normalizeSavedSearchInput(
             promotion,
             premium_only:
                 premiumOnly,
+            username_length:
+                usernameLength,
+            price_type:
+                priceType,
             min_price:
                 minPrice,
             max_price:
@@ -6564,6 +6629,56 @@ function savedSearchMatchesListing(
     }
 
 
+    const usernameLengthFilter =
+        String(
+            search.username_length ||
+            "all"
+        );
+
+
+    const usernameLength =
+        String(
+            enriched.whatsapp_username ||
+            ""
+        ).length;
+
+
+    if (
+        (
+            usernameLengthFilter === "2_4" &&
+            (usernameLength < 2 || usernameLength > 4)
+        ) ||
+        (
+            usernameLengthFilter === "5_7" &&
+            (usernameLength < 5 || usernameLength > 7)
+        ) ||
+        (
+            usernameLengthFilter === "8_plus" &&
+            usernameLength < 8
+        )
+    ) {
+        return false;
+    }
+
+
+    const priceTypeFilter =
+        String(
+            search.price_type ||
+            "all"
+        );
+
+
+    if (
+        priceTypeFilter !== "all" &&
+        String(
+            enriched.price_type ||
+            "negotiable"
+        ) !== priceTypeFilter
+    ) {
+        return false;
+    }
+
+
     const promotion =
         String(
             search.promotion ||
@@ -6669,7 +6784,7 @@ app.post(
                     "saved_searches"
                 )
                 .select(
-                    "id,name,search_query,category,promotion,premium_only,min_price,max_price,alerts_enabled,created_at,updated_at"
+                    "id,name,search_query,category,promotion,premium_only,username_length,price_type,min_price,max_price,alerts_enabled,created_at,updated_at"
                 )
                 .eq(
                     "telegram_id",
@@ -6839,7 +6954,7 @@ app.post(
                     }
                 )
                 .select(
-                    "id,name,search_query,category,promotion,premium_only,min_price,max_price,alerts_enabled,created_at,updated_at"
+                    "id,name,search_query,category,promotion,premium_only,username_length,price_type,min_price,max_price,alerts_enabled,created_at,updated_at"
                 )
                 .single();
 
@@ -7075,7 +7190,7 @@ async function processSavedSearchNotifications() {
                     "saved_searches"
                 )
                 .select(
-                    "id,telegram_id,name,search_query,category,promotion,premium_only,min_price,max_price,alerts_enabled,created_at"
+                    "id,telegram_id,name,search_query,category,promotion,premium_only,username_length,price_type,min_price,max_price,alerts_enabled,created_at"
                 )
                 .eq(
                     "alerts_enabled",
@@ -7109,7 +7224,7 @@ async function processSavedSearchNotifications() {
             await supabase
                 .from("listings")
                 .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,category,is_premium_name,status,is_paused,is_frozen,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
+                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,category,is_premium_name,status,is_paused,is_frozen,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
                 )
                 .eq(
                     "status",
@@ -8968,7 +9083,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v81-telegram-notifications"
+                    "v82-marketplace-search-filters"
             }
         );
     }
@@ -34388,6 +34503,49 @@ function v45MarketplaceParams(
             : "all";
 
 
+    const usernameLengthCandidate =
+        String(
+            req.query.username_length ||
+            "all"
+        )
+            .trim()
+            .toLowerCase();
+
+
+    const usernameLength =
+        [
+            "all",
+            "2_4",
+            "5_7",
+            "8_plus"
+        ].includes(
+            usernameLengthCandidate
+        )
+            ? usernameLengthCandidate
+            : "all";
+
+
+    const priceTypeCandidate =
+        String(
+            req.query.price_type ||
+            "all"
+        )
+            .trim()
+            .toLowerCase();
+
+
+    const priceType =
+        [
+            "all",
+            "fixed",
+            "negotiable"
+        ].includes(
+            priceTypeCandidate
+        )
+            ? priceTypeCandidate
+            : "all";
+
+
     const sortCandidate =
         String(
             req.query.sort ||
@@ -34401,6 +34559,8 @@ function v45MarketplaceParams(
             "newest",
             "price_low",
             "price_high",
+            "most_viewed",
+            "most_liked",
             "az",
             "za"
         ].includes(
@@ -34476,6 +34636,10 @@ function v45MarketplaceParams(
             minPrice,
         max_price:
             maxPrice,
+        username_length:
+            usernameLength,
+        price_type:
+            priceType,
         sort
     };
 }
@@ -34578,7 +34742,7 @@ async function v45LoadMarketplacePage(
                 error
             } =
                 await supabase.rpc(
-                    "get_marketplace_page_v45",
+                    "get_marketplace_page_v82",
                     {
                         p_search:
                             params.search ||
@@ -34603,6 +34767,16 @@ async function v45LoadMarketplacePage(
                             params.min_price,
                         p_max_price:
                             params.max_price,
+                        p_username_length:
+                            params.username_length ===
+                            "all"
+                                ? null
+                                : params.username_length,
+                        p_price_type:
+                            params.price_type ===
+                            "all"
+                                ? null
+                                : params.price_type,
                         p_sort:
                             params.sort,
                         p_limit:
@@ -34757,7 +34931,7 @@ if (!v794Auth) {
             return res.json({
                 ok:true,
                 version:
-                    "v75-referral-growth-3day-free",
+                    "v82-marketplace-search-filters",
                 server_time:
                     nowIso(),
                 page:

@@ -4065,6 +4065,56 @@ button {
     font-size:8px;
 }
 
+#marketplace .v82-filter-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+}
+
+#marketplace .v82-filter-field {
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+#marketplace .v82-filter-field > span {
+    padding-left:2px;
+    font-size:7.7px;
+    font-weight:850;
+    opacity:.68;
+}
+
+#marketplace .active-filter-pill {
+    gap:5px;
+}
+
+#marketplace .active-filter-remove {
+    width:16px;
+    height:16px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    border:0;
+    border-radius:6px;
+    color:inherit;
+    background:rgba(22,136,232,.08);
+    font-size:11px;
+    line-height:1;
+}
+
+#marketplace .active-filter-clear {
+    min-height:26px;
+    padding:0 9px;
+    border:1px dashed var(--border);
+    border-radius:9px;
+    color:var(--muted);
+    background:transparent;
+    font-size:8px;
+    font-weight:850;
+}
+
 #marketplace .market-save-search-bar {
     padding:0 16px 9px;
 }
@@ -8579,6 +8629,8 @@ Find the right username using search, filters and sorting.
 <option value="newest">Newest</option>
 <option value="price_low">Price: Low → High</option>
 <option value="price_high">Price: High → Low</option>
+<option value="most_viewed">Most Viewed</option>
+<option value="most_liked">Most Liked</option>
 <option value="az">A → Z</option>
 <option value="za">Z → A</option>
 
@@ -8631,6 +8683,46 @@ Category
 <option value="Other">Other</option>
 
 </select>
+
+</div>
+
+
+<div class="filter-section">
+
+<div class="filter-label">
+Username
+</div>
+
+<div class="v82-filter-grid">
+
+<label class="v82-filter-field">
+<span>Length</span>
+<select
+    id="marketLengthFilter"
+    class="filter-select"
+    onchange="setMarketplaceLength(this.value)"
+>
+<option value="all">Any length</option>
+<option value="2_4">2–4 characters</option>
+<option value="5_7">5–7 characters</option>
+<option value="8_plus">8+ characters</option>
+</select>
+</label>
+
+<label class="v82-filter-field">
+<span>Price type</span>
+<select
+    id="marketPriceTypeFilter"
+    class="filter-select"
+    onchange="setMarketplacePriceType(this.value)"
+>
+<option value="all">Any type</option>
+<option value="fixed">Fixed</option>
+<option value="negotiable">Negotiable</option>
+</select>
+</label>
+
+</div>
 
 </div>
 
@@ -11108,6 +11200,8 @@ const marketFilters = {
 
     search:"",
     category:"all",
+    usernameLength:"all",
+    priceType:"all",
     promotion:"all",
     premiumOnly:false,
     minPrice:"",
@@ -13590,6 +13684,47 @@ function getFilteredMarketplaceListings() {
 
 
     if (
+        marketFilters.usernameLength !==
+        "all"
+    ) {
+
+        listings =
+            listings.filter(
+                listing => {
+                    const length =
+                        String(
+                            listing.whatsapp_username ||
+                            ""
+                        ).length;
+
+                    return marketFilters.usernameLength === "2_4"
+                        ? length >= 2 && length <= 4
+                        : marketFilters.usernameLength === "5_7"
+                            ? length >= 5 && length <= 7
+                            : length >= 8;
+                }
+            );
+    }
+
+
+    if (
+        marketFilters.priceType !==
+        "all"
+    ) {
+
+        listings =
+            listings.filter(
+                listing =>
+                    String(
+                        listing.price_type ||
+                        "negotiable"
+                    ) ===
+                    marketFilters.priceType
+            );
+    }
+
+
+    if (
         marketFilters.premiumOnly
     ) {
 
@@ -13757,6 +13892,28 @@ function getFilteredMarketplaceListings() {
                         a.asking_price ||
                         0
                     )
+            );
+
+            break;
+
+
+        case "most_viewed":
+
+            listings.sort(
+                (a,b) =>
+                    Number(b.views_count || 0) -
+                    Number(a.views_count || 0)
+            );
+
+            break;
+
+
+        case "most_liked":
+
+            listings.sort(
+                (a,b) =>
+                    Number(b.likes_count || 0) -
+                    Number(a.likes_count || 0)
             );
 
             break;
@@ -14081,6 +14238,32 @@ function setMarketplaceCategory(
 }
 
 
+function setMarketplaceLength(
+    value
+) {
+
+    marketFilters.usernameLength =
+        ["all","2_4","5_7","8_plus"].includes(value)
+            ? value
+            : "all";
+
+    applyMarketplaceFilters();
+}
+
+
+function setMarketplacePriceType(
+    value
+) {
+
+    marketFilters.priceType =
+        ["all","fixed","negotiable"].includes(value)
+            ? value
+            : "all";
+
+    applyMarketplaceFilters();
+}
+
+
 function openCategory(
     category
 ) {
@@ -14202,6 +14385,12 @@ function resetMarketplaceFilters() {
     marketFilters.category =
         "all";
 
+    marketFilters.usernameLength =
+        "all";
+
+    marketFilters.priceType =
+        "all";
+
     marketFilters.promotion =
         "all";
 
@@ -14239,6 +14428,18 @@ function resetMarketplaceFilters() {
 
     document.getElementById(
         "marketCategoryFilter"
+    ).value =
+        "all";
+
+
+    document.getElementById(
+        "marketLengthFilter"
+    ).value =
+        "all";
+
+
+    document.getElementById(
+        "marketPriceTypeFilter"
     ).value =
         "all";
 
@@ -14339,6 +14540,18 @@ function updateMarketplaceFilterUI(
 
 
     if (
+        marketFilters.usernameLength !==
+        "all"
+    ) activeCount++;
+
+
+    if (
+        marketFilters.priceType !==
+        "all"
+    ) activeCount++;
+
+
+    if (
         marketFilters.promotion !==
         "all"
     ) activeCount++;
@@ -14389,6 +14602,86 @@ function updateMarketplaceFilterUI(
 }
 
 
+function v82FilterPill(
+    label,
+    key,
+    gold = false
+) {
+
+    return `
+        <span class="active-filter-pill${gold ? " gold" : ""}">
+            <span>${escapeHtml(label)}</span>
+            <button
+                class="active-filter-remove"
+                type="button"
+                onclick="clearMarketplaceFilter('${escapeJs(key)}')"
+                aria-label="Remove filter"
+            >×</button>
+        </span>
+    `;
+}
+
+
+function clearMarketplaceFilter(
+    key
+) {
+
+    if (key === "search") {
+        marketFilters.search = "";
+        document.getElementById("homeSearchInput").value = "";
+        document.getElementById("marketSearchInput").value = "";
+        document.getElementById("marketSearchClear")?.classList.remove("show");
+    }
+
+    if (key === "category") {
+        marketFilters.category = "all";
+        document.getElementById("marketCategoryFilter").value = "all";
+    }
+
+    if (key === "usernameLength") {
+        marketFilters.usernameLength = "all";
+        document.getElementById("marketLengthFilter").value = "all";
+    }
+
+    if (key === "priceType") {
+        marketFilters.priceType = "all";
+        document.getElementById("marketPriceTypeFilter").value = "all";
+    }
+
+    if (key === "promotion") {
+        marketFilters.promotion = "all";
+        document.querySelectorAll("[data-promotion-filter]").forEach(
+            button => button.classList.toggle(
+                "active",
+                button.dataset.promotionFilter === "all"
+            )
+        );
+    }
+
+    if (key === "premiumOnly") {
+        marketFilters.premiumOnly = false;
+        document.getElementById("premiumOnlyToggle")?.classList.remove("active");
+    }
+
+    if (key === "minPrice") {
+        marketFilters.minPrice = "";
+        document.getElementById("marketMinPrice").value = "";
+    }
+
+    if (key === "maxPrice") {
+        marketFilters.maxPrice = "";
+        document.getElementById("marketMaxPrice").value = "";
+    }
+
+    renderHomeListings();
+    applyMarketplaceFilters();
+
+    if (typeof v45QueueMarketplaceReload === "function") {
+        v45QueueMarketplaceReload(80);
+    }
+}
+
+
 function renderActiveFilterBar() {
 
     const bar =
@@ -14400,91 +14693,105 @@ function renderActiveFilterBar() {
     const pills = [];
 
 
-    if (
-        marketFilters.search
-    ) {
-
+    if (marketFilters.search) {
         pills.push(
-            `<span class="active-filter-pill">${escapeHtml(marketFilters.search)}</span>`
+            v82FilterPill(
+                marketFilters.search,
+                "search"
+            )
         );
     }
 
 
-    if (
-        marketFilters.category !==
-        "all"
-    ) {
-
+    if (marketFilters.category !== "all") {
         pills.push(
-            `<span class="active-filter-pill">${escapeHtml(marketFilters.category)}</span>`
+            v82FilterPill(
+                marketFilters.category,
+                "category"
+            )
         );
     }
 
 
-    if (
-        marketFilters.promotion !==
-        "all"
-    ) {
-
-        let name =
-            "Regular";
-
-
-        if (
-            marketFilters.promotion ===
-            "vip"
-        ) name =
-            "VIP";
-
-
-        if (
-            marketFilters.promotion ===
-            "hot"
-        ) name =
-            "HOT";
-
-
-        if (
-            marketFilters.promotion ===
-            "bump"
-        ) name =
-            "Bump";
-
+    if (marketFilters.usernameLength !== "all") {
+        const label =
+            marketFilters.usernameLength === "2_4"
+                ? "2–4 chars"
+                : marketFilters.usernameLength === "5_7"
+                    ? "5–7 chars"
+                    : "8+ chars";
 
         pills.push(
-            `<span class="active-filter-pill">${name}</span>`
+            v82FilterPill(
+                label,
+                "usernameLength"
+            )
         );
     }
 
 
-    if (
-        marketFilters.premiumOnly
-    ) {
-
+    if (marketFilters.priceType !== "all") {
         pills.push(
-            `<span class="active-filter-pill gold">Premium</span>`
+            v82FilterPill(
+                marketFilters.priceType === "fixed"
+                    ? "Fixed"
+                    : "Negotiable",
+                "priceType"
+            )
         );
     }
 
 
-    if (
-        marketFilters.minPrice !==
-        ""
-    ) {
+    if (marketFilters.promotion !== "all") {
+        let name = "Regular";
+
+        if (marketFilters.promotion === "vip") name = "VIP";
+        if (marketFilters.promotion === "hot") name = "HOT";
+        if (marketFilters.promotion === "bump") name = "Bump";
 
         pills.push(
-            `<span class="active-filter-pill">From $${escapeHtml(marketFilters.minPrice)}</span>`
+            v82FilterPill(
+                name,
+                "promotion"
+            )
         );
     }
 
 
-    if (
-        marketFilters.maxPrice !==
-        ""
-    ) {
-
+    if (marketFilters.premiumOnly) {
         pills.push(
-            `<span class="active-filter-pill">Up to $${escapeHtml(marketFilters.maxPrice)}</span>`
+            v82FilterPill(
+                "Premium",
+                "premiumOnly",
+                true
+            )
+        );
+    }
+
+
+    if (marketFilters.minPrice !== "") {
+        pills.push(
+            v82FilterPill(
+                `From $${marketFilters.minPrice}`,
+                "minPrice"
+            )
+        );
+    }
+
+
+    if (marketFilters.maxPrice !== "") {
+        pills.push(
+            v82FilterPill(
+                `Up to $${marketFilters.maxPrice}`,
+                "maxPrice"
+            )
+        );
+    }
+
+
+    if (pills.length) {
+        pills.push(
+            `<button class="active-filter-clear" type="button" onclick="resetMarketplaceFilters()">Clear all</button>`
         );
     }
 
@@ -14498,7 +14805,6 @@ function renderActiveFilterBar() {
         pills.length > 0
     );
 }
-
 
 function isNewListing(
     listing
@@ -29015,7 +29321,7 @@ function renderDiscoveryRows(
 
 /* =========================================================
    SAVED SEARCHES
-   marketFilters object stays unchanged.
+   v82 also stores Username Length and Price Type filters.
    ========================================================= */
 
 let savedSearchesData = [];
@@ -29041,6 +29347,32 @@ function currentSavedSearchSummary() {
     ) {
         parts.push(
             marketFilters.category
+        );
+    }
+
+
+    if (
+        marketFilters.usernameLength !==
+        "all"
+    ) {
+        parts.push(
+            marketFilters.usernameLength === "2_4"
+                ? "2–4 chars"
+                : marketFilters.usernameLength === "5_7"
+                    ? "5–7 chars"
+                    : "8+ chars"
+        );
+    }
+
+
+    if (
+        marketFilters.priceType !==
+        "all"
+    ) {
+        parts.push(
+            marketFilters.priceType === "fixed"
+                ? "Fixed"
+                : "Negotiable"
         );
     }
 
@@ -29186,6 +29518,10 @@ async function saveCurrentSearch() {
                     marketFilters.promotion,
                 premium_only:
                     marketFilters.premiumOnly,
+                username_length:
+                    marketFilters.usernameLength,
+                price_type:
+                    marketFilters.priceType,
                 min_price:
                     marketFilters.minPrice,
                 max_price:
@@ -29306,6 +29642,32 @@ function savedSearchSummary(
     ) {
         parts.push(
             search.category
+        );
+    }
+
+    if (
+        search.username_length &&
+        search.username_length !==
+        "all"
+    ) {
+        parts.push(
+            search.username_length === "2_4"
+                ? "2–4 chars"
+                : search.username_length === "5_7"
+                    ? "5–7 chars"
+                    : "8+ chars"
+        );
+    }
+
+    if (
+        search.price_type &&
+        search.price_type !==
+        "all"
+    ) {
+        parts.push(
+            search.price_type === "fixed"
+                ? "Fixed"
+                : "Negotiable"
         );
     }
 
@@ -29440,6 +29802,14 @@ function runSavedSearch(
         search.category ||
         "all";
 
+    marketFilters.usernameLength =
+        search.username_length ||
+        "all";
+
+    marketFilters.priceType =
+        search.price_type ||
+        "all";
+
     marketFilters.promotion =
         search.promotion ||
         "all";
@@ -29486,6 +29856,94 @@ function runSavedSearch(
             marketFilters.search;
     }
 
+    const lengthSelect =
+        document.getElementById(
+            "marketLengthFilter"
+        );
+
+    if (lengthSelect) {
+        lengthSelect.value =
+            marketFilters.usernameLength;
+    }
+
+    const priceTypeSelect =
+        document.getElementById(
+            "marketPriceTypeFilter"
+        );
+
+    if (priceTypeSelect) {
+        priceTypeSelect.value =
+            marketFilters.priceType;
+    }
+
+    const categorySelect =
+        document.getElementById(
+            "marketCategoryFilter"
+        );
+
+    if (categorySelect) {
+        categorySelect.value =
+            marketFilters.category;
+    }
+
+    const minPriceInput =
+        document.getElementById(
+            "marketMinPrice"
+        );
+
+    if (minPriceInput) {
+        minPriceInput.value =
+            marketFilters.minPrice;
+    }
+
+    const maxPriceInput =
+        document.getElementById(
+            "marketMaxPrice"
+        );
+
+    if (maxPriceInput) {
+        maxPriceInput.value =
+            marketFilters.maxPrice;
+    }
+
+    const sortSelect =
+        document.getElementById(
+            "marketSort"
+        );
+
+    if (sortSelect) {
+        sortSelect.value =
+            "recommended";
+    }
+
+    document.getElementById(
+        "premiumOnlyToggle"
+    )?.classList.toggle(
+        "active",
+        marketFilters.premiumOnly
+    );
+
+    document.querySelectorAll(
+        "[data-promotion-filter]"
+    ).forEach(
+        button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.promotionFilter ===
+                marketFilters.promotion
+            );
+        }
+    );
+
+    document.getElementById(
+        "marketSearchClear"
+    )?.classList.toggle(
+        "show",
+        Boolean(
+            marketFilters.search.trim()
+        )
+    );
+
 
     updateMarketplaceFilterUI();
     renderHomeListings();
@@ -29498,6 +29956,12 @@ function runSavedSearch(
             '.nav-item[data-page="marketplace"]'
         )
     );
+
+    if (typeof v45QueueMarketplaceReload === "function") {
+        v45QueueMarketplaceReload(40);
+    } else {
+        loadMarketplace();
+    }
 }
 
 
@@ -36067,6 +36531,28 @@ function v45MarketplaceUrl(
 
 
     if (
+        marketFilters.usernameLength !==
+        "all"
+    ) {
+        params.set(
+            "username_length",
+            marketFilters.usernameLength
+        );
+    }
+
+
+    if (
+        marketFilters.priceType !==
+        "all"
+    ) {
+        params.set(
+            "price_type",
+            marketFilters.priceType
+        );
+    }
+
+
+    if (
         marketFilters.promotion !==
         "all"
     ) {
@@ -36829,6 +37315,38 @@ function setMarketplaceCategoryV45(
 ) {
     v45BaseSetMarketplaceCategory(
         category
+    );
+    v45QueueMarketplaceReload(
+        80
+    );
+};
+
+
+const v45BaseSetMarketplaceLength =
+    setMarketplaceLength;
+
+setMarketplaceLength =
+function setMarketplaceLengthV82(
+    value
+) {
+    v45BaseSetMarketplaceLength(
+        value
+    );
+    v45QueueMarketplaceReload(
+        80
+    );
+};
+
+
+const v45BaseSetMarketplacePriceType =
+    setMarketplacePriceType;
+
+setMarketplacePriceType =
+function setMarketplacePriceTypeV82(
+    value
+) {
+    v45BaseSetMarketplacePriceType(
+        value
     );
     v45QueueMarketplaceReload(
         80
