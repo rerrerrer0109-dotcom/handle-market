@@ -1717,6 +1717,19 @@ async function getDatabaseUser(
             }
 
 
+            if (
+                data?.is_blocked
+            ) {
+
+                return {
+                    ok:false,
+                    status:403,
+                    error:
+                        "account_blocked"
+                };
+            }
+
+
             const moved =
                 Number(
                     claim.listings_moved ||
@@ -1766,6 +1779,24 @@ async function getDatabaseUser(
                     null
             }
         );
+    }
+
+
+    /*
+     * V79.4: provisional ownership claim can transfer an admin block
+     * from the placeholder account to the real Telegram account.
+     * Re-check after the claim so the first real open is denied too.
+     */
+    if (
+        data?.is_blocked
+    ) {
+
+        return {
+            ok:false,
+            status:403,
+            error:
+                "account_blocked"
+        };
     }
 
 
@@ -7172,6 +7203,18 @@ app.get(
     "/discover",
     async (req, res) => {
 
+
+const v794Auth =
+    await v794RequireMiniAppReadUser(
+        req,
+        res
+    );
+
+if (!v794Auth) {
+    return;
+}
+
+
         const {
             data:
                 listings,
@@ -8786,6 +8829,54 @@ async function maybeFlagFrequentListingChanges(
 }
 
 
+
+/* =========================================================
+   V79.4 AUTHENTICATED READ GATE
+   Mini App read endpoints require signed Telegram initData
+   in X-Telegram-Init-Data. This lets the backend enforce
+   account blocks before marketplace data is returned.
+   ========================================================= */
+
+async function v794RequireMiniAppReadUser(
+    req,
+    res
+) {
+
+    const initData =
+        String(
+            req.get(
+                "X-Telegram-Init-Data"
+            ) ||
+            ""
+        );
+
+
+    const auth =
+        await getDatabaseUser(
+            initData
+        );
+
+
+    if (!auth.ok) {
+
+        res
+            .status(
+                auth.status
+            )
+            .json({
+                ok:false,
+                error:
+                    auth.error
+            });
+
+        return null;
+    }
+
+
+    return auth;
+}
+
+
 /* =========================================================
    HEALTH
    ========================================================= */
@@ -8802,7 +8893,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v79.3-offer-antispam"
+                    "v79.4-global-user-search-block"
             }
         );
     }
@@ -11266,6 +11357,18 @@ app.post(
 app.get(
     "/listings",
     async (req, res) => {
+
+
+const v794Auth =
+    await v794RequireMiniAppReadUser(
+        req,
+        res
+    );
+
+if (!v794Auth) {
+    return;
+}
+
 
         const v45Maintenance =
             await v45GetMaintenanceState();
@@ -14297,6 +14400,18 @@ app.get(
     "/wanted",
     async (req, res) => {
 
+
+        const v794Auth =
+            await v794RequireMiniAppReadUser(
+                req,
+                res
+            );
+
+        if (!v794Auth) {
+            return;
+        }
+
+
         const {
             data:
                 posts,
@@ -14312,6 +14427,10 @@ app.get(
                 .eq(
                     "status",
                     "active"
+                )
+                .eq(
+                    "is_frozen",
+                    false
                 )
                 .order(
                     "created_at",
@@ -14525,6 +14644,10 @@ app.post(
                     "status",
                     "active"
                 )
+                .eq(
+                    "is_frozen",
+                    false
+                )
                 .order(
                     "created_at",
                     {
@@ -14705,7 +14828,7 @@ app.post(
                     "wanted_requests"
                 )
                 .select(
-                    "id,desired_username,budget,currency,category,description,status,created_at,updated_at"
+                    "id,desired_username,budget,currency,category,description,status,is_frozen,frozen_reason,created_at,updated_at"
                 )
                 .eq(
                     "buyer_telegram_id",
@@ -15408,14 +15531,15 @@ app.post(
         const { data:wanted,error:wantedError } =
             await supabase
                 .from("wanted_requests")
-                .select("id,buyer_telegram_id,desired_username,status")
+                .select("id,buyer_telegram_id,desired_username,status,is_frozen")
                 .eq("id",wantedId)
                 .maybeSingle();
 
         if (
             wantedError ||
             !wanted ||
-            wanted.status !== "active"
+            wanted.status !== "active" ||
+            wanted.is_frozen
         ) {
             return res.status(404).json({ ok:false,error:"wanted_not_found" });
         }
@@ -15989,6 +16113,18 @@ app.post(
 app.get(
     "/seller-profile/:profileId",
     async (req, res) => {
+
+
+const v794Auth =
+    await v794RequireMiniAppReadUser(
+        req,
+        res
+    );
+
+if (!v794Auth) {
+    return;
+}
+
 
         const profileId =
             String(
@@ -20046,16 +20182,42 @@ app.post(
 );
 
 
+
 /* =========================================================
-   V40 ADMIN GLOBAL SEARCH
-   Owner / Moderator only via V39 role gate.
-   Searches LOT number, listing UUID, WhatsApp username,
-   or exact seller Telegram ID.
+   V79.4 ADMIN GLOBAL SEARCH
+   One admin search across:
+   - LOT number / listing UUID / WhatsApp username
+   - Telegram ID / Telegram username
+   - Telegram first name / last name / combined display name
+
+   User results do not depend on listings. A user with zero
+   listings or Wanted posts is still searchable/manageable.
    ========================================================= */
 
 app.post(
     "/admin/search",
     async (req, res) => {
+
+        const admin =
+            req.adminAuth ||
+            await requireAdmin(
+                req.body.initData
+            );
+
+
+        if (!admin.ok) {
+
+            return res
+                .status(
+                    admin.status
+                )
+                .json({
+                    ok:false,
+                    error:
+                        admin.error
+                });
+        }
+
 
         const raw =
             String(
@@ -20073,36 +20235,58 @@ app.post(
 
             return res.json({
                 ok:true,
+                users:[],
                 listings:[]
             });
         }
 
 
-        let query =
-            supabase
-                .from("listings")
-                .select(
-                    "id,listing_number,seller_telegram_id,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,status,is_paused,is_frozen,frozen_reason,is_premium_name,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at,contact_review_required,contact_last_changed_at"
-                );
+        const listingSelect =
+            "id,listing_number,seller_telegram_id,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,status,is_paused,is_frozen,frozen_reason,is_premium_name,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at,contact_review_required,contact_last_changed_at";
+
+
+        const userSelect =
+            "telegram_id,first_name,last_name,telegram_username,is_admin,admin_role,is_blocked,is_provisional,last_seen_at";
 
 
         const lotMatch =
             raw.match(
-                /^(?:lot\s*#?\s*)?(\d{1,12})$/i
+                /^(?:lot\s*#?\s*)?(\d{1,16})$/i
             );
+
 
         const uuidMatch =
             /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
                 .test(raw);
 
 
+        const normalizedHandle =
+            raw
+                .replace(
+                    /^@+/,
+                    ""
+                )
+                .trim();
+
+
+        const listingPromises = [];
+        const userPromises = [];
+
+
         if (uuidMatch) {
 
-            query =
-                query.eq(
-                    "id",
-                    raw
-                );
+            listingPromises.push(
+                supabase
+                    .from("listings")
+                    .select(
+                        listingSelect
+                    )
+                    .eq(
+                        "id",
+                        raw
+                    )
+                    .limit(30)
+            );
 
         } else if (lotMatch) {
 
@@ -20123,40 +20307,65 @@ app.post(
                     .status(400)
                     .json({
                         ok:false,
-                        error:"invalid_admin_search"
+                        error:
+                            "invalid_admin_search"
                     });
             }
 
 
-            if (
-                numeric <=
-                2147483647
-            ) {
+            listingPromises.push(
+                supabase
+                    .from("listings")
+                    .select(
+                        listingSelect
+                    )
+                    .eq(
+                        "listing_number",
+                        numeric
+                    )
+                    .limit(30)
+            );
 
-                query =
-                    query.or(
-                        `listing_number.eq.${numeric},seller_telegram_id.eq.${numeric}`
-                    );
 
-            } else {
-
-                query =
-                    query.eq(
+            listingPromises.push(
+                supabase
+                    .from("listings")
+                    .select(
+                        listingSelect
+                    )
+                    .eq(
                         "seller_telegram_id",
                         numeric
-                    );
-            }
+                    )
+                    .order(
+                        "created_at",
+                        {
+                            ascending:false
+                        }
+                    )
+                    .limit(30)
+            );
+
+
+            userPromises.push(
+                supabase
+                    .from("users")
+                    .select(
+                        userSelect
+                    )
+                    .eq(
+                        "telegram_id",
+                        numeric
+                    )
+                    .limit(30)
+            );
 
         } else {
 
-            const username =
-                raw
+            const whatsappSearch =
+                normalizedHandle
                     .replace(
-                        /^@/,
-                        ""
-                    )
-                    .replace(
-                        /[^a-zA-Z0-9_.]/g,
+                        /[%*,()]/g,
                         ""
                     )
                     .slice(
@@ -20165,138 +20374,753 @@ app.post(
                     );
 
 
-            if (!username) {
+            if (whatsappSearch) {
 
-                return res
-                    .status(400)
-                    .json({
-                        ok:false,
-                        error:"invalid_admin_search"
-                    });
+                listingPromises.push(
+                    supabase
+                        .from("listings")
+                        .select(
+                            listingSelect
+                        )
+                        .ilike(
+                            "whatsapp_username",
+                            `%${whatsappSearch}%`
+                        )
+                        .order(
+                            "created_at",
+                            {
+                                ascending:false
+                            }
+                        )
+                        .limit(30)
+                );
             }
 
 
-            query =
-                query.ilike(
-                    "whatsapp_username",
-                    `%${username}%`
+            const telegramCandidate =
+                normalizedHandle
+                    .replace(
+                        /[^A-Za-z0-9_]/g,
+                        ""
+                    )
+                    .slice(
+                        0,
+                        64
+                    );
+
+
+            if (
+                telegramCandidate &&
+                /^[A-Za-z0-9_]{1,64}$/.test(
+                    telegramCandidate
+                )
+            ) {
+
+                userPromises.push(
+                    supabase
+                        .from("users")
+                        .select(
+                            userSelect
+                        )
+                        .ilike(
+                            "telegram_username",
+                            `%${telegramCandidate}%`
+                        )
+                        .limit(30)
                 );
+            }
+
+
+            const displayNameSearch =
+                normalizedHandle
+                    .replace(
+                        /[%*,()]/g,
+                        ""
+                    )
+                    .replace(
+                        /\s+/g,
+                        " "
+                    )
+                    .trim()
+                    .slice(
+                        0,
+                        80
+                    );
+
+
+            if (displayNameSearch) {
+
+                userPromises.push(
+                    supabase
+                        .from("users")
+                        .select(
+                            userSelect
+                        )
+                        .ilike(
+                            "first_name",
+                            `%${displayNameSearch}%`
+                        )
+                        .limit(30)
+                );
+
+
+                userPromises.push(
+                    supabase
+                        .from("users")
+                        .select(
+                            userSelect
+                        )
+                        .ilike(
+                            "last_name",
+                            `%${displayNameSearch}%`
+                        )
+                        .limit(30)
+                );
+
+
+                const nameParts =
+                    displayNameSearch
+                        .split(/\s+/)
+                        .filter(Boolean);
+
+
+                if (
+                    nameParts.length >= 2
+                ) {
+
+                    const firstPart =
+                        nameParts[0];
+
+                    const lastPart =
+                        nameParts[
+                            nameParts.length -
+                            1
+                        ];
+
+
+                    userPromises.push(
+                        supabase
+                            .from("users")
+                            .select(
+                                userSelect
+                            )
+                            .ilike(
+                                "first_name",
+                                `%${firstPart}%`
+                            )
+                            .ilike(
+                                "last_name",
+                                `%${lastPart}%`
+                            )
+                            .limit(30)
+                    );
+
+
+                    userPromises.push(
+                        supabase
+                            .from("users")
+                            .select(
+                                userSelect
+                            )
+                            .ilike(
+                                "first_name",
+                                `%${lastPart}%`
+                            )
+                            .ilike(
+                                "last_name",
+                                `%${firstPart}%`
+                            )
+                            .limit(30)
+                    );
+                }
+            }
         }
 
 
-        const {
-            data,
-            error
-        } =
-            await query
-                .order(
-                    "created_at",
-                    {
-                        ascending:false
+        try {
+
+            const [
+                listingResults,
+                userResults
+            ] =
+                await Promise.all([
+                    Promise.all(
+                        listingPromises
+                    ),
+                    Promise.all(
+                        userPromises
+                    )
+                ]);
+
+
+            const directListings = [];
+            const directListingIds =
+                new Set();
+
+
+            for (
+                const result of
+                listingResults
+            ) {
+
+                if (result.error) {
+                    throw result.error;
+                }
+
+
+                for (
+                    const row of
+                    (
+                        result.data ||
+                        []
+                    )
+                ) {
+
+                    const key =
+                        String(
+                            row.id
+                        );
+
+
+                    if (
+                        directListingIds.has(
+                            key
+                        )
+                    ) {
+                        continue;
                     }
-                )
-                .limit(30);
 
 
-        if (error) {
+                    directListingIds.add(
+                        key
+                    );
+
+                    directListings.push(
+                        row
+                    );
+                }
+            }
+
+
+            const users = [];
+            const userIds =
+                new Set();
+
+
+            for (
+                const result of
+                userResults
+            ) {
+
+                if (result.error) {
+                    throw result.error;
+                }
+
+
+                for (
+                    const user of
+                    (
+                        result.data ||
+                        []
+                    )
+                ) {
+
+                    const key =
+                        String(
+                            user.telegram_id
+                        );
+
+
+                    if (
+                        userIds.has(
+                            key
+                        )
+                    ) {
+                        continue;
+                    }
+
+
+                    userIds.add(
+                        key
+                    );
+
+                    users.push(
+                        user
+                    );
+
+
+                    if (
+                        users.length >= 30
+                    ) {
+                        break;
+                    }
+                }
+
+
+                if (
+                    users.length >= 30
+                ) {
+                    break;
+                }
+            }
+
+
+            /*
+             * When a Telegram user/name match is found, include that
+             * user's listings too. This makes one search show both
+             * the account and its marketplace inventory.
+             */
+            if (
+                userIds.size
+            ) {
+
+                const matchedUserIds =
+                    [
+                        ...userIds
+                    ].map(
+                        value =>
+                            Number(
+                                value
+                            )
+                    );
+
+
+                const {
+                    data:
+                        userListings,
+                    error:
+                        userListingsError
+                } =
+                    await supabase
+                        .from("listings")
+                        .select(
+                            listingSelect
+                        )
+                        .in(
+                            "seller_telegram_id",
+                            matchedUserIds
+                        )
+                        .order(
+                            "created_at",
+                            {
+                                ascending:false
+                            }
+                        )
+                        .limit(100);
+
+
+                if (
+                    userListingsError
+                ) {
+                    throw userListingsError;
+                }
+
+
+                for (
+                    const row of
+                    (
+                        userListings ||
+                        []
+                    )
+                ) {
+
+                    const key =
+                        String(
+                            row.id
+                        );
+
+
+                    if (
+                        directListingIds.has(
+                            key
+                        )
+                    ) {
+                        continue;
+                    }
+
+
+                    directListingIds.add(
+                        key
+                    );
+
+                    directListings.push(
+                        row
+                    );
+                }
+            }
+
+
+            const listingSellerIds =
+                directListings
+                    .map(
+                        row =>
+                            Number(
+                                row.seller_telegram_id
+                            )
+                    )
+                    .filter(
+                        Number.isSafeInteger
+                    );
+
+
+            const allUserIds =
+                [
+                    ...new Set([
+                        ...[
+                            ...userIds
+                        ].map(Number),
+                        ...listingSellerIds
+                    ])
+                ].filter(
+                    Number.isSafeInteger
+                );
+
+
+            let allUsers =
+                users;
+
+
+            if (
+                allUserIds.length
+            ) {
+
+                const {
+                    data:
+                        allUserRows,
+                    error:
+                        allUsersError
+                } =
+                    await supabase
+                        .from("users")
+                        .select(
+                            userSelect
+                        )
+                        .in(
+                            "telegram_id",
+                            allUserIds
+                        );
+
+
+                if (
+                    allUsersError
+                ) {
+                    throw allUsersError;
+                }
+
+
+                const map =
+                    new Map(
+                        users.map(
+                            user => [
+                                String(
+                                    user.telegram_id
+                                ),
+                                user
+                            ]
+                        )
+                    );
+
+
+                for (
+                    const user of
+                    (
+                        allUserRows ||
+                        []
+                    )
+                ) {
+
+                    map.set(
+                        String(
+                            user.telegram_id
+                        ),
+                        user
+                    );
+                }
+
+
+                allUsers =
+                    [
+                        ...map.values()
+                    ];
+            }
+
+
+            const userMap =
+                new Map(
+                    allUsers.map(
+                        user => [
+                            String(
+                                user.telegram_id
+                            ),
+                            user
+                        ]
+                    )
+                );
+
+
+            const matchedIds =
+                users.map(
+                    user =>
+                        Number(
+                            user.telegram_id
+                        )
+                );
+
+
+            const listingCountMap =
+                new Map();
+
+            const wantedCountMap =
+                new Map();
+
+            const offerCountMap =
+                new Map();
+
+
+            if (
+                matchedIds.length
+            ) {
+
+                const [
+                    listingCountRows,
+                    wantedCountRows,
+                    offerCountRows
+                ] =
+                    await Promise.all([
+                        supabase
+                            .from("listings")
+                            .select(
+                                "seller_telegram_id"
+                            )
+                            .in(
+                                "seller_telegram_id",
+                                matchedIds
+                            )
+                            .limit(5000),
+
+                        supabase
+                            .from("wanted_requests")
+                            .select(
+                                "buyer_telegram_id"
+                            )
+                            .in(
+                                "buyer_telegram_id",
+                                matchedIds
+                            )
+                            .limit(5000),
+
+                        supabase
+                            .from("offers")
+                            .select(
+                                "buyer_telegram_id"
+                            )
+                            .in(
+                                "buyer_telegram_id",
+                                matchedIds
+                            )
+                            .limit(5000)
+                    ]);
+
+
+                if (
+                    listingCountRows.error
+                ) {
+                    throw listingCountRows.error;
+                }
+
+                if (
+                    wantedCountRows.error
+                ) {
+                    throw wantedCountRows.error;
+                }
+
+                if (
+                    offerCountRows.error
+                ) {
+                    throw offerCountRows.error;
+                }
+
+
+                for (
+                    const row of
+                    (
+                        listingCountRows.data ||
+                        []
+                    )
+                ) {
+
+                    const key =
+                        String(
+                            row.seller_telegram_id
+                        );
+
+                    listingCountMap.set(
+                        key,
+                        (
+                            listingCountMap.get(
+                                key
+                            ) ||
+                            0
+                        ) +
+                        1
+                    );
+                }
+
+
+                for (
+                    const row of
+                    (
+                        wantedCountRows.data ||
+                        []
+                    )
+                ) {
+
+                    const key =
+                        String(
+                            row.buyer_telegram_id
+                        );
+
+                    wantedCountMap.set(
+                        key,
+                        (
+                            wantedCountMap.get(
+                                key
+                            ) ||
+                            0
+                        ) +
+                        1
+                    );
+                }
+
+
+                for (
+                    const row of
+                    (
+                        offerCountRows.data ||
+                        []
+                    )
+                ) {
+
+                    const key =
+                        String(
+                            row.buyer_telegram_id
+                        );
+
+                    offerCountMap.set(
+                        key,
+                        (
+                            offerCountMap.get(
+                                key
+                            ) ||
+                            0
+                        ) +
+                        1
+                    );
+                }
+            }
+
+
+            const rows =
+                directListings
+                    .map(
+                        row =>
+                            withLifecycle(
+                                withPromotion(
+                                    row
+                                )
+                            )
+                    )
+                    .sort(
+                        (
+                            a,
+                            b
+                        ) =>
+                            new Date(
+                                b.created_at ||
+                                0
+                            ) -
+                            new Date(
+                                a.created_at ||
+                                0
+                            )
+                    )
+                    .slice(
+                        0,
+                        100
+                    );
+
+
+            return res.json({
+                ok:true,
+
+                users:
+                    users.map(
+                        user => {
+
+                            const key =
+                                String(
+                                    user.telegram_id
+                                );
+
+
+                            return {
+                                ...user,
+
+                                counts:{
+                                    listings:
+                                        listingCountMap.get(
+                                            key
+                                        ) ||
+                                        0,
+
+                                    wanted:
+                                        wantedCountMap.get(
+                                            key
+                                        ) ||
+                                        0,
+
+                                    offers:
+                                        offerCountMap.get(
+                                            key
+                                        ) ||
+                                        0
+                                }
+                            };
+                        }
+                    ),
+
+                listings:
+                    rows.map(
+                        row => ({
+                            ...row,
+
+                            seller:
+                                userMap.get(
+                                    String(
+                                        row.seller_telegram_id
+                                    )
+                                ) ||
+                                null
+                        })
+                    )
+            });
+
+        } catch (error) {
 
             console.error(
                 "Admin global search:",
                 error
             );
 
+
             return res
                 .status(500)
                 .json({
                     ok:false,
-                    error:"admin_search_failed"
+                    error:
+                        "admin_search_failed"
                 });
         }
-
-
-        const rows =
-            (
-                data || []
-            ).map(
-                row =>
-                    withLifecycle(
-                        withPromotion(
-                            row
-                        )
-                    )
-            );
-
-
-        const sellerIds = [
-            ...new Set(
-                rows.map(
-                    row =>
-                        Number(
-                            row.seller_telegram_id
-                        )
-                )
-                .filter(
-                    Number.isFinite
-                )
-            )
-        ];
-
-
-        let sellers = [];
-
-
-        if (
-            sellerIds.length
-        ) {
-
-            const {
-                data:sellerRows
-            } =
-                await supabase
-                    .from("users")
-                    .select(
-                        "telegram_id,first_name,last_name,is_blocked"
-                    )
-                    .in(
-                        "telegram_id",
-                        sellerIds
-                    );
-
-
-            sellers =
-                sellerRows || [];
-        }
-
-
-        const sellerMap =
-            new Map(
-                sellers.map(
-                    seller => [
-                        String(
-                            seller.telegram_id
-                        ),
-                        seller
-                    ]
-                )
-            );
-
-
-        return res.json({
-            ok:true,
-            listings:
-                rows.map(
-                    row => ({
-                        ...row,
-                        seller:
-                            sellerMap.get(
-                                String(
-                                    row.seller_telegram_id
-                                )
-                            ) ||
-                            null
-                    })
-                )
-        });
     }
 );
 
@@ -24643,7 +25467,7 @@ app.post(
                 await supabase
                     .from("wanted_requests")
                     .select(
-                        "id,buyer_telegram_id,desired_username,budget,currency,category,description,status,created_at,updated_at"
+                        "id,buyer_telegram_id,desired_username,budget,currency,category,description,status,is_frozen,frozen_reason,created_at,updated_at"
                     )
                     .order(
                         "created_at",
@@ -26726,15 +27550,17 @@ app.post(
 
 
 
+
 /* =========================================================
-   ADMIN BLOCK / UNBLOCK SELLER
-   Uses the existing users.is_blocked account flag.
-   Blocking also freezes the seller's current listings.
-   No new SQL columns are required.
+   V79.4 ADMIN BLOCK / UNBLOCK USER
+   - Works directly by Telegram ID, even with zero listings.
+   - Blocked user cannot authenticate/use protected Mini App data.
+   - Active listings and Wanted requests are frozen, never deleted.
+   - Unblock can either restore block-frozen content or keep it frozen.
    ========================================================= */
 
 const SELLER_BLOCK_FREEZE_PREFIX =
-    "Seller account blocked by moderation";
+    "User account blocked by moderation";
 
 
 async function resolveSellerForAdminBlock(
@@ -26743,6 +27569,7 @@ async function resolveSellerForAdminBlock(
 
     let sellerTelegramId =
         Number(
+            body.user_telegram_id ||
             body.seller_telegram_id
         );
 
@@ -26827,7 +27654,7 @@ async function resolveSellerForAdminBlock(
         await supabase
             .from("users")
             .select(
-                "telegram_id,first_name,last_name,telegram_username,is_admin,is_blocked"
+                "telegram_id,first_name,last_name,telegram_username,is_admin,is_blocked,is_provisional"
             )
             .eq(
                 "telegram_id",
@@ -26872,13 +27699,11 @@ app.post(
                 .status(
                     admin.status
                 )
-                .json(
-                    {
-                        ok: false,
-                        error:
-                            admin.error
-                    }
-                );
+                .json({
+                    ok:false,
+                    error:
+                        admin.error
+                });
         }
 
 
@@ -26902,13 +27727,11 @@ app.post(
 
             return res
                 .status(400)
-                .json(
-                    {
-                        ok: false,
-                        error:
-                            "invalid_seller_block_action"
-                    }
-                );
+                .json({
+                    ok:false,
+                    error:
+                        "invalid_seller_block_action"
+                });
         }
 
 
@@ -26922,6 +27745,11 @@ app.post(
                     0,
                     300
                 );
+
+
+        const restoreContent =
+            req.body.restore_content ===
+            true;
 
 
         try {
@@ -26938,13 +27766,11 @@ app.post(
 
                 return res
                     .status(409)
-                    .json(
-                        {
-                            ok: false,
-                            error:
-                                "cannot_block_admin"
-                        }
-                    );
+                    .json({
+                        ok:false,
+                        error:
+                            "cannot_block_admin"
+                    });
             }
 
 
@@ -26959,13 +27785,11 @@ app.post(
 
                 return res
                     .status(409)
-                    .json(
-                        {
-                            ok: false,
-                            error:
-                                "cannot_block_self"
-                        }
-                    );
+                    .json({
+                        ok:false,
+                        error:
+                            "cannot_block_self"
+                    });
             }
 
 
@@ -26974,18 +27798,27 @@ app.post(
                 "block"
             ) {
 
+                if (!reason) {
+
+                    return res
+                        .status(400)
+                        .json({
+                            ok:false,
+                            error:
+                                "block_reason_required"
+                        });
+                }
+
+
                 const {
                     error:
                         userError
                 } =
                     await supabase
                         .from("users")
-                        .update(
-                            {
-                                is_blocked:
-                                    true
-                            }
-                        )
+                        .update({
+                            is_blocked:true
+                        })
                         .eq(
                             "telegram_id",
                             seller.telegram_id
@@ -27001,37 +27834,30 @@ app.post(
 
 
                 const freezeReason =
-                    reason
-                        ? `${SELLER_BLOCK_FREEZE_PREFIX}: ${reason}`
-                        : SELLER_BLOCK_FREEZE_PREFIX;
+                    `${SELLER_BLOCK_FREEZE_PREFIX}: ${reason}`;
 
 
                 const {
+                    data:
+                        frozenListings,
                     error:
                         freezeError
                 } =
                     await supabase
                         .from("listings")
-                        .update(
-                            {
-                                is_frozen:
-                                    true,
-
-                                frozen_reason:
-                                    freezeReason,
-
-                                frozen_at:
-                                    nowIso(),
-
-                                frozen_by:
-                                    Number(
-                                        admin.user.telegram_id
-                                    ),
-
-                                updated_at:
-                                    nowIso()
-                            }
-                        )
+                        .update({
+                            is_frozen:true,
+                            frozen_reason:
+                                freezeReason,
+                            frozen_at:
+                                nowIso(),
+                            frozen_by:
+                                Number(
+                                    admin.user.telegram_id
+                                ),
+                            updated_at:
+                                nowIso()
+                        })
                         .eq(
                             "seller_telegram_id",
                             seller.telegram_id
@@ -27047,7 +27873,8 @@ app.post(
                         .eq(
                             "is_frozen",
                             false
-                        );
+                        )
+                        .select("id");
 
 
                 if (
@@ -27055,49 +27882,109 @@ app.post(
                 ) {
 
                     console.error(
-                        "Seller block listing freeze:",
+                        "User block listing freeze:",
                         freezeError
                     );
                 }
 
 
-                await safeSendMessage(
-                    seller.telegram_id,
+                const {
+                    data:
+                        frozenWanted,
+                    error:
+                        wantedFreezeError
+                } =
+                    await supabase
+                        .from(
+                            "wanted_requests"
+                        )
+                        .update({
+                            is_frozen:true,
+                            frozen_reason:
+                                freezeReason,
+                            frozen_at:
+                                nowIso(),
+                            frozen_by:
+                                Number(
+                                    admin.user.telegram_id
+                                ),
+                            updated_at:
+                                nowIso()
+                        })
+                        .eq(
+                            "buyer_telegram_id",
+                            seller.telegram_id
+                        )
+                        .eq(
+                            "status",
+                            "active"
+                        )
+                        .eq(
+                            "is_frozen",
+                            false
+                        )
+                        .select("id");
 
-                    `🚫 Your Handle Market account was blocked by moderation.` +
-                    `\n\nYour current listings were frozen and you cannot use Handle Market while the block is active.` +
-                    (
-                        reason
-                            ? `\n\nReason: ${reason}`
-                            : ""
-                    )
-                );
+
+                if (
+                    wantedFreezeError
+                ) {
+
+                    console.error(
+                        "User block Wanted freeze:",
+                        wantedFreezeError
+                    );
+                }
 
 
-                return res.json(
-                    {
-                        ok: true,
-                        action:
-                            "block",
-                        seller:
-                            {
-                                telegram_id:
-                                    seller.telegram_id,
+                try {
+                    v45MarketplaceCache.clear();
+                } catch {}
 
-                                first_name:
-                                    seller.first_name,
 
-                                last_name:
-                                    seller.last_name,
+                if (
+                    !seller.is_provisional
+                ) {
 
-                                telegram_username:
-                                    seller.telegram_username,
+                    await safeSendMessage(
+                        seller.telegram_id,
 
-                                is_blocked:
-                                    true
-                            }
+                        `🚫 Your Handle Market account was blocked by moderation.` +
+                        `\n\nYour active listings and Wanted requests were frozen. You cannot open or use Handle Market while the block is active.` +
+                        `\n\nReason: ${reason}`
+                    );
+                }
+
+
+                return res.json({
+                    ok:true,
+                    action:"block",
+
+                    frozen:{
+                        listings:
+                            frozenListings?.length ||
+                            0,
+                        wanted:
+                            frozenWanted?.length ||
+                            0
+                    },
+
+                    seller:{
+                        telegram_id:
+                            seller.telegram_id,
+                        first_name:
+                            seller.first_name,
+                        last_name:
+                            seller.last_name,
+                        telegram_username:
+                            seller.telegram_username,
+                        is_provisional:
+                            Boolean(
+                                seller.is_provisional
+                            ),
+                        is_blocked:true
                     }
-                );
+                });
             }
 
 
@@ -27107,12 +27994,9 @@ app.post(
             } =
                 await supabase
                     .from("users")
-                    .update(
-                        {
-                            is_blocked:
-                                false
-                        }
-                    )
+                    .update({
+                        is_blocked:false
+                    })
                     .eq(
                         "telegram_id",
                         seller.telegram_id
@@ -27127,98 +28011,165 @@ app.post(
             }
 
 
-            /*
-             * Only unfreeze listings that were frozen specifically
-             * because of the seller account block.
-             * Manual moderation freezes are preserved.
-             */
+            let restoredListings =
+                [];
 
-            const {
-                error:
-                    unfreezeError
-            } =
-                await supabase
-                    .from("listings")
-                    .update(
-                        {
-                            is_frozen:
-                                false,
-
-                            frozen_reason:
-                                null,
-
-                            frozen_at:
-                                null,
-
-                            frozen_by:
-                                null,
-
-                            updated_at:
-                                nowIso()
-                        }
-                    )
-                    .eq(
-                        "seller_telegram_id",
-                        seller.telegram_id
-                    )
-                    .eq(
-                        "is_frozen",
-                        true
-                    )
-                    .ilike(
-                        "frozen_reason",
-                        `${SELLER_BLOCK_FREEZE_PREFIX}%`
-                    );
+            let restoredWanted =
+                [];
 
 
             if (
-                unfreezeError
+                restoreContent
             ) {
 
-                console.error(
-                    "Seller unblock listing unfreeze:",
-                    unfreezeError
+                const {
+                    data,
+                    error
+                } =
+                    await supabase
+                        .from("listings")
+                        .update({
+                            is_frozen:false,
+                            frozen_reason:null,
+                            frozen_at:null,
+                            frozen_by:null,
+                            updated_at:
+                                nowIso()
+                        })
+                        .eq(
+                            "seller_telegram_id",
+                            seller.telegram_id
+                        )
+                        .eq(
+                            "is_frozen",
+                            true
+                        )
+                        .ilike(
+                            "frozen_reason",
+                            `${SELLER_BLOCK_FREEZE_PREFIX}%`
+                        )
+                        .select("id");
+
+
+                if (
+                    error
+                ) {
+
+                    console.error(
+                        "User unblock listing restore:",
+                        error
+                    );
+
+                } else {
+
+                    restoredListings =
+                        data ||
+                        [];
+                }
+
+
+                const wantedRestore =
+                    await supabase
+                        .from(
+                            "wanted_requests"
+                        )
+                        .update({
+                            is_frozen:false,
+                            frozen_reason:null,
+                            frozen_at:null,
+                            frozen_by:null,
+                            updated_at:
+                                nowIso()
+                        })
+                        .eq(
+                            "buyer_telegram_id",
+                            seller.telegram_id
+                        )
+                        .eq(
+                            "is_frozen",
+                            true
+                        )
+                        .ilike(
+                            "frozen_reason",
+                            `${SELLER_BLOCK_FREEZE_PREFIX}%`
+                        )
+                        .select("id");
+
+
+                if (
+                    wantedRestore.error
+                ) {
+
+                    console.error(
+                        "User unblock Wanted restore:",
+                        wantedRestore.error
+                    );
+
+                } else {
+
+                    restoredWanted =
+                        wantedRestore.data ||
+                        [];
+                }
+            }
+
+
+            try {
+                v45MarketplaceCache.clear();
+            } catch {}
+
+
+            if (
+                !seller.is_provisional
+            ) {
+
+                await safeSendMessage(
+                    seller.telegram_id,
+
+                    `✅ Your Handle Market account was unblocked by moderation.` +
+                    (
+                        restoreContent
+                            ? `\n\nListings and Wanted requests frozen only because of this account block were restored.`
+                            : `\n\nPreviously frozen listings and Wanted requests remain frozen until moderation restores them.`
+                    )
                 );
             }
 
 
-            await safeSendMessage(
-                seller.telegram_id,
+            return res.json({
+                ok:true,
+                action:"unblock",
+                restore_content:
+                    restoreContent,
 
-                `✅ Your Handle Market account was unblocked by moderation.` +
-                `\n\nListings that were frozen only because of the account block were restored.`
-            );
+                restored:{
+                    listings:
+                        restoredListings.length,
+                    wanted:
+                        restoredWanted.length
+                },
 
-
-            return res.json(
-                {
-                    ok: true,
-                    action:
-                        "unblock",
-                    seller:
-                        {
-                            telegram_id:
-                                seller.telegram_id,
-
-                            first_name:
-                                seller.first_name,
-
-                            last_name:
-                                seller.last_name,
-
-                            telegram_username:
-                                seller.telegram_username,
-
-                            is_blocked:
-                                false
-                        }
+                seller:{
+                    telegram_id:
+                        seller.telegram_id,
+                    first_name:
+                        seller.first_name,
+                    last_name:
+                        seller.last_name,
+                    telegram_username:
+                        seller.telegram_username,
+                    is_provisional:
+                        Boolean(
+                            seller.is_provisional
+                        ),
+                    is_blocked:false
                 }
-            );
+            });
 
         } catch (error) {
 
             console.error(
-                "Admin seller block:",
+                "Admin user block:",
                 error
             );
 
@@ -27244,13 +28195,11 @@ app.post(
                 .status(
                     status
                 )
-                .json(
-                    {
-                        ok: false,
-                        error:
-                            code
-                    }
-                );
+                .json({
+                    ok:false,
+                    error:
+                        code
+                });
         }
     }
 );
@@ -27272,13 +28221,11 @@ app.post(
                 .status(
                     admin.status
                 )
-                .json(
-                    {
-                        ok: false,
-                        error:
-                            admin.error
-                    }
-                );
+                .json({
+                    ok:false,
+                    error:
+                        admin.error
+                });
         }
 
 
@@ -27289,7 +28236,7 @@ app.post(
             await supabase
                 .from("users")
                 .select(
-                    "telegram_id,first_name,last_name,telegram_username,last_seen_at,is_admin,is_blocked"
+                    "telegram_id,first_name,last_name,telegram_username,last_seen_at,is_admin,is_blocked,is_provisional"
                 )
                 .eq(
                     "is_blocked",
@@ -27302,8 +28249,7 @@ app.post(
                 .order(
                     "last_seen_at",
                     {
-                        ascending:
-                            false
+                        ascending:false
                     }
                 );
 
@@ -27313,31 +28259,31 @@ app.post(
         ) {
 
             console.error(
-                "Blocked sellers load:",
+                "Blocked users load:",
                 error
             );
 
 
             return res
                 .status(500)
-                .json(
-                    {
-                        ok: false,
-                        error:
-                            "blocked_sellers_load_failed"
-                    }
-                );
+                .json({
+                    ok:false,
+                    error:
+                        "blocked_sellers_load_failed"
+                });
         }
 
 
-        return res.json(
-            {
-                ok: true,
-                sellers:
-                    data ||
-                    []
-            }
-        );
+        return res.json({
+            ok:true,
+            users:
+                data ||
+                [],
+            /* backwards compatibility with the existing admin UI */
+            sellers:
+                data ||
+                []
+        });
     }
 );
 
@@ -29959,6 +30905,18 @@ app.post(
 app.get(
     "/listing/price-history/:listingId",
     async (req, res) => {
+
+
+const v794Auth =
+    await v794RequireMiniAppReadUser(
+        req,
+        res
+    );
+
+if (!v794Auth) {
+    return;
+}
+
 
         const listingId =
             String(
@@ -33350,6 +34308,18 @@ app.get(
     "/marketplace/listings",
     async (req, res) => {
 
+
+const v794Auth =
+    await v794RequireMiniAppReadUser(
+        req,
+        res
+    );
+
+if (!v794Auth) {
+    return;
+}
+
+
         const startedAt =
             Date.now();
 
@@ -33403,7 +34373,7 @@ app.get(
 
             res.set(
                 "Cache-Control",
-                "public, max-age=5, stale-while-revalidate=10"
+                "private, no-store"
             );
 
 

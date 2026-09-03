@@ -7877,9 +7877,88 @@ body {
 }
 </style>
 
+
+<style id="v794AccessGateStyle">
+#v794AccessGate {
+    position:fixed;
+    inset:0;
+    z-index:2147483000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:
+        radial-gradient(circle at 50% 15%, rgba(37,211,102,.12), transparent 34%),
+        #0c0f12;
+    color:#fff;
+}
+
+#v794AccessGate[hidden] {
+    display:none !important;
+}
+
+.v794-access-card {
+    width:min(430px,100%);
+    border:1px solid rgba(255,255,255,.11);
+    border-radius:22px;
+    padding:26px 22px;
+    background:rgba(22,26,31,.94);
+    box-shadow:0 24px 80px rgba(0,0,0,.42);
+    text-align:center;
+}
+
+.v794-access-icon {
+    width:58px;
+    height:58px;
+    border-radius:18px;
+    margin:0 auto 16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    background:rgba(37,211,102,.12);
+    border:1px solid rgba(37,211,102,.28);
+}
+
+.v794-access-title {
+    font-size:22px;
+    line-height:1.2;
+    font-weight:900;
+    letter-spacing:-.02em;
+}
+
+.v794-access-text {
+    margin-top:10px;
+    font-size:13px;
+    line-height:1.55;
+    color:rgba(255,255,255,.68);
+}
+
+.v794-access-actions {
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+    margin-top:20px;
+}
+
+.v794-access-actions button {
+    width:100%;
+}
+</style>
+
 </head>
 
 <body>
+
+<div id="v794AccessGate" aria-live="polite">
+    <div class="v794-access-card">
+        <div class="v794-access-icon" id="v794AccessGateIcon">H</div>
+        <div class="v794-access-title" id="v794AccessGateTitle">Checking access…</div>
+        <div class="v794-access-text" id="v794AccessGateText">Securely connecting to Handle Market.</div>
+        <div class="v794-access-actions" id="v794AccessGateActions"></div>
+    </div>
+</div>
+
 
 <div class="app">
 
@@ -10001,11 +10080,11 @@ Loading...
 <div class="admin-section">
 
 <div class="admin-section-title">
-🚫 Blocked Sellers
+🚫 Blocked Users
 </div>
 
 <div class="section-subtitle">
-Blocked sellers cannot use Handle Market. Their current listings are frozen automatically.
+Blocked users cannot open Handle Market. Their active Listings and Wanted requests are frozen automatically.
 </div>
 
 <div id="blockedSellers">
@@ -10836,6 +10915,25 @@ async function api(
         !data.ok
     ) {
 
+        if (
+            String(
+                data.error ||
+                ""
+            ) ===
+            "account_blocked"
+        ) {
+
+            authenticatedUser =
+                null;
+
+            try {
+                v794SetAccessGate(
+                    "blocked"
+                );
+            } catch {}
+        }
+
+
         throw new Error(
             data.error ||
             "request_failed"
@@ -11200,6 +11298,196 @@ setInterval(
 );
 
 
+
+/* =========================================================
+   V79.4 ACCESS GATE
+   ========================================================= */
+
+function v794SetAccessGate(
+    mode = "checking"
+) {
+
+    const gate =
+        document.getElementById(
+            "v794AccessGate"
+        );
+
+    const icon =
+        document.getElementById(
+            "v794AccessGateIcon"
+        );
+
+    const title =
+        document.getElementById(
+            "v794AccessGateTitle"
+        );
+
+    const text =
+        document.getElementById(
+            "v794AccessGateText"
+        );
+
+    const actions =
+        document.getElementById(
+            "v794AccessGateActions"
+        );
+
+
+    if (
+        !gate ||
+        !title ||
+        !text ||
+        !actions
+    ) {
+        return;
+    }
+
+
+    if (
+        mode ===
+        "ok"
+    ) {
+
+        gate.hidden =
+            true;
+
+        return;
+    }
+
+
+    gate.hidden =
+        false;
+
+
+    if (
+        mode ===
+        "blocked"
+    ) {
+
+        if (icon) {
+            icon.textContent =
+                "🚫";
+        }
+
+        title.textContent =
+            "Access Restricted";
+
+        text.textContent =
+            "Your access to Handle Market has been restricted. Contact support if you believe this is a mistake.";
+
+        actions.innerHTML = `
+            <button
+                class="primary"
+                onclick="v794ContactSupport()"
+            >
+                Contact Support
+            </button>
+
+            <button
+                class="secondary"
+                onclick="v794CloseMiniApp()"
+            >
+                Close
+            </button>
+        `;
+
+        return;
+    }
+
+
+    if (
+        mode ===
+        "error"
+    ) {
+
+        if (icon) {
+            icon.textContent =
+                "!";
+        }
+
+        title.textContent =
+            "Unable to connect";
+
+        text.textContent =
+            "Handle Market could not verify your Telegram session.";
+
+        actions.innerHTML = `
+            <button
+                class="primary"
+                onclick="location.reload()"
+            >
+                Retry
+            </button>
+
+            <button
+                class="secondary"
+                onclick="v794CloseMiniApp()"
+            >
+                Close
+            </button>
+        `;
+
+        return;
+    }
+
+
+    if (icon) {
+        icon.textContent =
+            "H";
+    }
+
+    title.textContent =
+        "Checking access…";
+
+    text.textContent =
+        "Securely connecting to Handle Market.";
+
+    actions.innerHTML =
+        "";
+}
+
+
+function v794ContactSupport() {
+
+    const url =
+        "https://t.me/handlemarket_bot";
+
+
+    if (
+        tg?.openTelegramLink
+    ) {
+
+        tg.openTelegramLink(
+            url
+        );
+
+        return;
+    }
+
+
+    window.open(
+        url,
+        "_blank"
+    );
+}
+
+
+function v794CloseMiniApp() {
+
+    if (
+        tg?.close
+    ) {
+
+        tg.close();
+
+        return;
+    }
+
+
+    window.close();
+}
+
+
 /* =========================================================
    AUTH
    ========================================================= */
@@ -11370,6 +11658,9 @@ async function authenticate() {
             ]
         );
 
+
+        return true;
+
     } catch (error) {
 
         console.error(
@@ -11377,12 +11668,39 @@ async function authenticate() {
         );
 
 
-        status.textContent =
-            "✕ Authentication failed";
+        if (
+            String(
+                error?.message ||
+                ""
+            ) ===
+            "account_blocked"
+        ) {
+
+            status.textContent =
+                "🚫 Access restricted";
+
+            status.className =
+                "auth-status auth-error";
+
+            v794SetAccessGate(
+                "blocked"
+            );
+
+        } else {
+
+            status.textContent =
+                "✕ Authentication failed";
+
+            status.className =
+                "auth-status auth-error";
+
+            v794SetAccessGate(
+                "error"
+            );
+        }
 
 
-        status.className =
-            "auth-status auth-error";
+        return false;
     }
 }
 
@@ -12692,7 +13010,15 @@ async function loadMarketplace() {
         const response =
             await fetch(
                 API_URL +
-                "/listings"
+                "/listings",
+                {
+                    headers:{
+                        Accept:"application/json",
+                        "X-Telegram-Init-Data":
+                            tg?.initData ||
+                            ""
+                    }
+                }
             );
 
 
@@ -19956,17 +20282,33 @@ async function loadMyWanted() {
 
                                 <div
                                     class="badge ${
-                                        post.status ===
-                                        "active"
-                                            ? "badge-active"
-                                            : "badge-closed"
+                                        post.is_frozen
+                                            ? "badge-paused"
+                                            : post.status ===
+                                                "active"
+                                                ? "badge-active"
+                                                : "badge-closed"
                                     }"
                                     style="margin-top:10px"
                                 >
-                                    ${String(
-                                        post.status
-                                    ).toUpperCase()}
+                                    ${
+                                        post.is_frozen
+                                            ? "FROZEN"
+                                            : String(
+                                                post.status
+                                              ).toUpperCase()
+                                    }
                                 </div>
+
+                                ${
+                                    post.is_frozen
+                                        ? `
+                                            <div class="field-hint" style="margin-top:7px">
+                                                Frozen by Handle Market moderation.
+                                            </div>
+                                          `
+                                        : ""
+                                }
 
 
                                 ${wantedContactBoxHtml(
@@ -22717,7 +23059,15 @@ async function openSellerProfile(
                 +
                 encodeURIComponent(
                     profileId
-                )
+                ),
+                {
+                    headers:{
+                        Accept:"application/json",
+                        "X-Telegram-Init-Data":
+                            tg?.initData ||
+                            ""
+                    }
+                }
             );
 
 
@@ -24104,6 +24454,11 @@ function renderAdminWanted() {
                     String(post.status) ===
                     "active";
 
+                const frozen =
+                    Boolean(
+                        post.is_frozen
+                    );
+
                 const created =
                     formatDateTime(
                         post.created_at
@@ -24126,7 +24481,9 @@ function renderAdminWanted() {
                         </div>
 
                         <div class="listing-info-row">
-                            <span class="badge ${active ? "badge-active" : "badge-closed"}">${escapeHtml(String(post.status || "unknown").toUpperCase())}</span>
+                            <span class="badge ${frozen ? "badge-paused" : active ? "badge-active" : "badge-closed"}">
+                                ${frozen ? "FROZEN" : escapeHtml(String(post.status || "unknown").toUpperCase())}
+                            </span>
                             <span class="category-badge">${escapeHtml(post.category || "Other")}</span>
                             <span class="v66-admin-chat-count">${hmContactIconSvg("message")} ${Number(post.chat_count || 0)} chats</span>
                         </div>
@@ -24138,6 +24495,16 @@ function renderAdminWanted() {
                         }
 
                         <div class="v66-admin-wanted-meta">Created ${escapeHtml(created)}</div>
+
+                        ${
+                            frozen
+                                ? `
+                                    <div class="field-hint" style="margin-top:7px">
+                                        ${escapeHtml(post.frozen_reason || "Frozen by moderation")}
+                                    </div>
+                                  `
+                                : ""
+                        }
 
                         <div class="v66-admin-contact-title">Buyer contacts</div>
                         ${contactRowsHtml(post.contacts || {}, { showActions:true })}
@@ -25117,9 +25484,13 @@ async function adminViewListingContact(
 }
 
 
-function adminBlockSellerByListing(
-    listingId,
-    username
+
+function adminOpenUserBlockModal(
+    {
+        sellerTelegramId = null,
+        listingId = null,
+        label = "User"
+    } = {}
 ) {
 
     const title =
@@ -25127,18 +25498,15 @@ function adminBlockSellerByListing(
             "inputModalTitle"
         );
 
-
     const subtitle =
         document.getElementById(
             "inputModalSubtitle"
         );
 
-
     const fields =
         document.getElementById(
             "inputModalFields"
         );
-
 
     const action =
         document.getElementById(
@@ -25158,11 +25526,11 @@ function adminBlockSellerByListing(
 
 
     title.textContent =
-        `🚫 Block Seller · @${username || "username"}`;
+        `🚫 Block User · ${label || "User"}`;
 
 
     subtitle.textContent =
-        "The seller will be blocked from Handle Market and all current listings will be frozen.";
+        "The user will lose access to Handle Market. Active Listings and Wanted requests will be frozen, not deleted.";
 
 
     fields.innerHTML = `
@@ -25173,15 +25541,30 @@ function adminBlockSellerByListing(
                 Reason
             </label>
 
-            <textarea
-                id="adminSellerBlockReason"
-                maxlength="300"
-                placeholder="Optional moderation reason"
-            ></textarea>
+            <select id="adminUserBlockReasonType">
+                <option value="">Select reason</option>
+                <option value="Spam">Spam</option>
+                <option value="Scam / Fraud">Scam / Fraud</option>
+                <option value="Fake listings">Fake listings</option>
+                <option value="Abuse">Abuse</option>
+                <option value="Payment issue">Payment issue</option>
+                <option value="Other">Other</option>
+            </select>
 
-            <div class="field-hint">
-                This reason is sent to the seller and shown on listings frozen by this action.
-            </div>
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Details · optional
+            </label>
+
+            <textarea
+                id="adminUserBlockReasonDetails"
+                maxlength="220"
+                placeholder="Additional moderation notes"
+            ></textarea>
 
         </div>
 
@@ -25197,18 +25580,58 @@ function adminBlockSellerByListing(
                 font-weight:700;
             "
         >
-            🚫 The seller will not be able to open or use Handle Market while blocked.
-            Existing active, pending and reserved listings will be frozen automatically.
+            🚫 Blocked user access is denied at authentication.
+            Marketplace, Wanted, Offers, Chat, Unlock Contact,
+            promotions, likes/favorites and Seller Analytics will not load.
         </div>
     `;
 
 
     action.textContent =
-        "Block Seller";
+        "Block User";
 
 
     action.onclick =
         async () => {
+
+            const reasonType =
+                String(
+                    document.getElementById(
+                        "adminUserBlockReasonType"
+                    )?.value ||
+                    ""
+                ).trim();
+
+
+            if (!reasonType) {
+
+                hmToast(
+                    "Choose a block reason."
+                );
+
+                return;
+            }
+
+
+            const details =
+                String(
+                    document.getElementById(
+                        "adminUserBlockReasonDetails"
+                    )?.value ||
+                    ""
+                )
+                    .trim()
+                    .slice(
+                        0,
+                        220
+                    );
+
+
+            const reason =
+                details
+                    ? `${reasonType}: ${details}`
+                    : reasonType;
+
 
             action.disabled =
                 true;
@@ -25216,27 +25639,32 @@ function adminBlockSellerByListing(
 
             try {
 
-                const reason =
-                    document.getElementById(
-                        "adminSellerBlockReason"
-                    )?.value ||
-                    "";
-
-
                 await api(
                     "/admin/seller-block",
                     {
                         initData:
                             tg.initData,
 
-                        listing_id:
-                            listingId,
+                        ...(sellerTelegramId
+                            ? {
+                                seller_telegram_id:
+                                    Number(
+                                        sellerTelegramId
+                                    )
+                              }
+                            : {}),
+
+                        ...(listingId
+                            ? {
+                                listing_id:
+                                    listingId
+                              }
+                            : {}),
 
                         action:
                             "block",
 
-                        reason:
-                            reason
+                        reason
                     }
                 );
 
@@ -25246,19 +25674,31 @@ function adminBlockSellerByListing(
                 );
 
 
-                await Promise.all(
+                await Promise.allSettled(
                     [
                         loadAdminPanel(),
                         loadMarketplace(),
                         loadMyListings(),
-                        loadOfferCenter()
+                        loadOfferCenter(),
+                        loadWanted(),
+                        loadMyWanted()
                     ]
                 );
 
 
                 hmToast(
-                    `🚫 Seller for @${username} has been blocked.`
+                    `🚫 ${label || "User"} has been blocked.`
                 );
+
+
+                if (
+                    document.getElementById(
+                        "v40AdminSearchInput"
+                    )?.value
+                ) {
+
+                    await v40AdminSearch();
+                }
 
             } catch (
                 error
@@ -25267,7 +25707,7 @@ function adminBlockSellerByListing(
                 const messages = {
 
                     seller_not_found:
-                        "Seller not found.",
+                        "User not found.",
 
                     cannot_block_admin:
                         "Administrator accounts cannot be blocked.",
@@ -25276,10 +25716,13 @@ function adminBlockSellerByListing(
                         "You cannot block your own administrator account.",
 
                     invalid_seller_telegram_id:
-                        "Invalid seller account.",
+                        "Invalid Telegram account.",
+
+                    block_reason_required:
+                        "Choose a block reason.",
 
                     invalid_seller_block_action:
-                        "Invalid seller block action."
+                        "Invalid block action."
                 };
 
 
@@ -25306,15 +25749,138 @@ function adminBlockSellerByListing(
 }
 
 
+function adminBlockUser(
+    sellerTelegramId,
+    label
+) {
+
+    adminOpenUserBlockModal({
+        sellerTelegramId,
+        label:
+            label ||
+            `Telegram ID ${sellerTelegramId}`
+    });
+}
+
+
+function adminBlockSellerByListing(
+    listingId,
+    username
+) {
+
+    adminOpenUserBlockModal({
+        listingId,
+        label:
+            username
+                ? `Seller of @${username}`
+                : "Seller"
+    });
+}
+
+
 async function adminUnblockSeller(
     sellerTelegramId,
     sellerLabel
 ) {
 
-    const performUnblock =
+    const title =
+        document.getElementById(
+            "inputModalTitle"
+        );
+
+    const subtitle =
+        document.getElementById(
+            "inputModalSubtitle"
+        );
+
+    const fields =
+        document.getElementById(
+            "inputModalFields"
+        );
+
+    const action =
+        document.getElementById(
+            "inputModalAction"
+        );
+
+
+    if (
+        !title ||
+        !subtitle ||
+        !fields ||
+        !action
+    ) {
+
+        return;
+    }
+
+
+    title.textContent =
+        `✅ Unblock User · ${sellerLabel || "User"}`;
+
+
+    subtitle.textContent =
+        "Choose whether content frozen specifically by the account block should be restored.";
+
+
+    fields.innerHTML = `
+
+        <label
+            style="
+                display:flex;
+                gap:10px;
+                align-items:flex-start;
+                padding:12px;
+                border:1px solid var(--border);
+                border-radius:12px;
+                cursor:pointer;
+            "
+        >
+
+            <input
+                id="adminUserUnblockRestore"
+                type="checkbox"
+                checked
+                style="width:auto;margin-top:2px"
+            >
+
+            <span>
+                <strong>Restore Listings & Wanted</strong>
+                <div class="field-hint" style="margin-top:4px">
+                    Only content frozen because of this account block will be restored.
+                    Manual moderation freezes stay unchanged.
+                </div>
+            </span>
+
+        </label>
+
+
+        <div class="field-hint" style="margin-top:10px">
+            Turn this off to unblock the account while keeping previously frozen Listings and Wanted frozen.
+        </div>
+    `;
+
+
+    action.textContent =
+        "Unblock User";
+
+
+    action.onclick =
         async () => {
 
+            action.disabled =
+                true;
+
+
             try {
+
+                const restoreContent =
+                    Boolean(
+                        document.getElementById(
+                            "adminUserUnblockRestore"
+                        )?.checked
+                    );
+
 
                 await api(
                     "/admin/seller-block",
@@ -25323,27 +25889,51 @@ async function adminUnblockSeller(
                             tg.initData,
 
                         seller_telegram_id:
-                            sellerTelegramId,
+                            Number(
+                                sellerTelegramId
+                            ),
 
                         action:
-                            "unblock"
+                            "unblock",
+
+                        restore_content:
+                            restoreContent
                     }
                 );
 
 
-                await Promise.all(
+                closeModal(
+                    "inputModal"
+                );
+
+
+                await Promise.allSettled(
                     [
                         loadAdminPanel(),
                         loadMarketplace(),
                         loadMyListings(),
-                        loadOfferCenter()
+                        loadOfferCenter(),
+                        loadWanted(),
+                        loadMyWanted()
                     ]
                 );
 
 
                 hmToast(
-                    `✅ ${sellerLabel || "Seller"} has been unblocked.`
+                    restoreContent
+                        ? `✅ ${sellerLabel || "User"} has been unblocked and block-frozen content restored.`
+                        : `✅ ${sellerLabel || "User"} has been unblocked. Frozen content was kept frozen.`
                 );
+
+
+                if (
+                    document.getElementById(
+                        "v40AdminSearchInput"
+                    )?.value
+                ) {
+
+                    await v40AdminSearch();
+                }
 
             } catch (
                 error
@@ -25354,38 +25944,18 @@ async function adminUnblockSeller(
                         error.message
                     )
                 );
+
+            } finally {
+
+                action.disabled =
+                    false;
             }
         };
 
 
-    if (
-        tg?.showConfirm
-    ) {
-
-        tg.showConfirm(
-            `Unblock ${sellerLabel || "this seller"}?\n\nListings frozen only because of the seller block will be restored automatically.`,
-            confirmed => {
-
-                if (confirmed) {
-
-                    performUnblock();
-                }
-            }
-        );
-
-
-        return;
-    }
-
-
-    if (
-        confirm(
-            `Unblock ${sellerLabel || "this seller"}?`
-        )
-    ) {
-
-        await performUnblock();
-    }
+    showModal(
+        "inputModal"
+    );
 }
 
 
@@ -25440,7 +26010,7 @@ async function loadBlockedSellers() {
                                         " "
                                     )
                                 ||
-                                "Seller";
+                                "User";
 
 
                             const username =
@@ -25505,7 +26075,7 @@ async function loadBlockedSellers() {
                                                 )
                                             "
                                         >
-                                            ✅ Unblock Seller
+                                            ✅ Unblock User
                                         </button>
 
                                     </div>
@@ -25516,20 +26086,20 @@ async function loadBlockedSellers() {
                     )
                     .join("")
 
-                : '<div class="empty">No blocked sellers.</div>';
+                : '<div class="empty">No blocked users.</div>';
 
     } catch (
         error
     ) {
 
         console.error(
-            "Blocked sellers load:",
+            "Blocked users load:",
             error
         );
 
 
         container.innerHTML =
-            '<div class="empty">Failed to load blocked sellers.</div>';
+            '<div class="empty">Failed to load blocked users.</div>';
     }
 }
 
@@ -27691,7 +28261,15 @@ async function loadDiscovery() {
         const response =
             await fetch(
                 API_URL +
-                "/discover"
+                "/discover",
+                {
+                    headers:{
+                        Accept:"application/json",
+                        "X-Telegram-Init-Data":
+                            tg?.initData ||
+                            ""
+                    }
+                }
             );
 
 
@@ -28593,12 +29171,31 @@ async function updateNotificationSetting(
 
 async function startApp() {
 
+    v794SetAccessGate(
+        "checking"
+    );
+
     updateContactFieldUi();
     updateListingPricingUi();
     updateAdminListingPricingUi();
     updateAdminContactFieldUi();
 
-    /* v45: wait until the final paginated loader is registered, then preserve the original startup order. */
+
+    /*
+     * Authenticate before loading marketplace data.
+     * A blocked Telegram account stops here and sees only
+     * the Access Restricted screen.
+     */
+    const authenticated =
+        await authenticate();
+
+
+    if (!authenticated) {
+        return;
+    }
+
+
+    /* v45: wait until the final paginated loader is registered. */
     for (let i = 0; i < 200; i++) {
         if (typeof window.__hmLoadMarketplaceV45 === "function") {
             break;
@@ -28607,19 +29204,29 @@ async function startApp() {
         await new Promise(resolve => setTimeout(resolve, 10));
     }
 
+
     if (typeof window.__hmLoadMarketplaceV45 === "function") {
         await window.__hmLoadMarketplaceV45();
     } else {
         await loadMarketplace();
     }
 
-    await authenticate();
 
-    loadWanted();
+    await Promise.allSettled(
+        [
+            loadWanted(),
+            loadRecommendations()
+        ]
+    );
 
     await handleStartParameter();
 
     updateLiveCountdowns();
+
+
+    v794SetAccessGate(
+        "ok"
+    );
 }
 
 
@@ -28709,7 +29316,15 @@ async function openPublicPriceHistory(
                 "/listing/price-history/" +
                 encodeURIComponent(
                     listingId
-                )
+                ),
+                {
+                    headers:{
+                        Accept:"application/json",
+                        "X-Telegram-Init-Data":
+                            tg?.initData ||
+                            ""
+                    }
+                }
             );
 
 
@@ -29526,7 +30141,7 @@ const V39_RU = {
     "Resolve":"Решить",
     "Open Reports":"Открытые жалобы",
     "Frozen Listings":"Замороженные лоты",
-    "Blocked Sellers":"Заблокированные продавцы",
+    "Blocked Users":"Заблокированные пользователи",
     "Support Tickets":"Тикеты поддержки",
     "Risk Flags":"Флаги риска",
     "Listing History":"История лота",
@@ -29562,7 +30177,7 @@ const V39_RU = {
     "Active Listings":"Активные лоты",
     "Pending":"На модерации",
     "Frozen":"Заморожено",
-    "Blocked Sellers":"Заблокировано продавцов",
+    "Blocked Users":"Заблокировано пользователей",
     "Open Reports":"Открытые жалобы",
     "Open Risk Flags":"Открытые флаги риска",
     "Open Support":"Открытые тикеты",
@@ -30323,7 +30938,7 @@ function v39InjectAdminSections() {
         "⏳ Pending Listings":"pending",
         "🎯 Wanted Management":"wanted",
         "🛠 Listing Management":"management",
-        "🚫 Blocked Sellers":"blocked",
+        "🚫 Blocked Users":"blocked",
         "🎧 Support Tickets":"support",
         "🚩 Risk Flags":"risk",
         "🕓 Listing History":"history",
@@ -30463,7 +31078,7 @@ async function loadAdminDashboard() {
             ["💬",s.internal_chats_total,v39T("Internal Chats","Внутренние чаты")],
             ["⚠️",s.suspicious_chats_open,v39T("Suspicious Chats","Подозрительные чаты")],
             ["🧊",s.listings_frozen,v39T("Frozen","Заморожено")],
-            ["🚫",s.blocked_sellers,v39T("Blocked Sellers","Заблокировано продавцов")],
+            ["🚫",s.blocked_sellers,v39T("Blocked Users","Заблокировано пользователей")],
             ["🚩",s.reports_open,v39T("Open Reports","Открытые жалобы")],
             ["⚠️",s.risk_flags_open,v39T("Open Risk Flags","Открытые флаги риска")],
             ["🎧",s.support_open,v39T("Open Support","Открытые тикеты")],
@@ -31376,6 +31991,7 @@ function renderMainProfileV40(
    V40 — ADMIN GLOBAL SEARCH
    ========================================================= */
 
+
 function v40InjectAdminSearch() {
 
     if (
@@ -31402,12 +32018,26 @@ function v40InjectAdminSearch() {
         "afterend",
         `
             <div class="admin-section" id="v40AdminSearchSection">
-                <div class="admin-section-title">🔎 ${v39T("Global Admin Search","Глобальный поиск администратора")}</div>
-                <div class="section-subtitle">${v39T("Search by LOT #, listing UUID, WhatsApp username or seller Telegram ID.","Поиск по LOT #, UUID лота, WhatsApp username или Telegram ID продавца.")}</div>
+                <div class="admin-section-title">
+                    🔎 ${v39T("Global Admin Search","Глобальный поиск администратора")}
+                </div>
+
+                <div class="section-subtitle">
+                    ${v39T(
+                        "Search by LOT #, listing UUID, WhatsApp username, Telegram username, Telegram ID or Telegram display name.",
+                        "Поиск по LOT #, UUID лота, WhatsApp username, Telegram username, Telegram ID или имени/никнейму в Telegram."
+                    )}
+                </div>
 
                 <div class="v40-search-row">
-                    <input id="v40AdminSearchInput" placeholder="LOT #000123 / @username / Telegram ID" onkeydown="if(event.key==='Enter'){v40AdminSearch()}">
-                    <button class="primary" onclick="v40AdminSearch()">${v39T("Search","Найти")}</button>
+                    <input
+                        id="v40AdminSearchInput"
+                        placeholder="@username / Telegram ID / name / LOT #"
+                        onkeydown="if(event.key==='Enter'){v40AdminSearch()}"
+                    >
+                    <button class="primary" onclick="v40AdminSearch()">
+                        ${v39T("Search","Найти")}
+                    </button>
                 </div>
 
                 <div id="v40AdminSearchResults" style="margin-top:10px"></div>
@@ -31468,6 +32098,323 @@ function v40AdminResultStatus(
 }
 
 
+function v794AdminUserDisplayName(
+    user
+) {
+
+    return (
+        [
+            user?.first_name,
+            user?.last_name
+        ]
+            .filter(Boolean)
+            .join(" ")
+            .trim()
+        ||
+        (
+            user?.telegram_username
+                ? `@${user.telegram_username}`
+                : `Telegram ID ${user?.telegram_id || ""}`
+        )
+    );
+}
+
+
+function v794AdminUserCard(
+    user
+) {
+
+    const name =
+        v794AdminUserDisplayName(
+            user
+        );
+
+
+    const telegramUsername =
+        user.telegram_username
+            ? `@${user.telegram_username}`
+            : v39T(
+                "No Telegram username",
+                "Нет Telegram username"
+            );
+
+
+    const counts =
+        user.counts ||
+        {};
+
+
+    const statusBadge =
+        user.is_blocked
+            ? '<span class="badge badge-rejected">🚫 BLOCKED</span>'
+            : user.is_admin
+                ? '<span class="badge badge-active">🛡 ADMIN</span>'
+                : '<span class="badge badge-active">ACTIVE</span>';
+
+
+    const provisionalBadge =
+        user.is_provisional
+            ? '<span class="badge badge-paused">PROVISIONAL</span>'
+            : "";
+
+
+    const safeLabel =
+        escapeJs(
+            user.telegram_username
+                ? `@${user.telegram_username}`
+                : name
+        );
+
+
+    return `
+        <div class="v40-search-result">
+            <div class="v40-performance-top">
+                <div>
+                    <div class="field-hint">
+                        ${v39T("TELEGRAM USER","ПОЛЬЗОВАТЕЛЬ TELEGRAM")}
+                    </div>
+
+                    <div class="username" style="margin-top:4px">
+                        ${escapeHtml(name)}
+                    </div>
+
+                    <div class="field-hint" style="margin-top:5px">
+                        ${escapeHtml(telegramUsername)}
+                    </div>
+                </div>
+
+                <div class="v40-search-meta">
+                    ${statusBadge}
+                    ${provisionalBadge}
+                </div>
+            </div>
+
+            <div class="field-hint" style="margin-top:9px">
+                Telegram ID:
+                <strong>${escapeHtml(user.telegram_id)}</strong>
+            </div>
+
+            <div class="v40-search-meta" style="margin-top:9px">
+                <span class="category-badge">
+                    ${Number(counts.listings || 0)} Listings
+                </span>
+
+                <span class="category-badge">
+                    ${Number(counts.wanted || 0)} Wanted
+                </span>
+
+                <span class="category-badge">
+                    ${Number(counts.offers || 0)} Offers
+                </span>
+            </div>
+
+            <div class="buttons" style="margin-top:10px">
+                ${
+                    user.is_admin
+                        ? `
+                            <button class="secondary" disabled>
+                                🛡 ${v39T("Administrator","Администратор")}
+                            </button>
+                          `
+                        : user.is_blocked
+                            ? `
+                                <button
+                                    class="secondary"
+                                    onclick="adminUnblockSeller('${escapeJs(user.telegram_id)}','${safeLabel}')"
+                                >
+                                    ✅ ${v39T("Unblock User","Разблокировать")}
+                                </button>
+                              `
+                            : `
+                                <button
+                                    class="reject-button"
+                                    onclick="adminBlockUser('${escapeJs(user.telegram_id)}','${safeLabel}')"
+                                >
+                                    🚫 ${v39T("Block User","Заблокировать")}
+                                </button>
+                              `
+                }
+            </div>
+        </div>
+    `;
+}
+
+
+function v794AdminListingCard(
+    listing
+) {
+
+    const seller =
+        listing.seller ||
+        {};
+
+
+    const sellerName =
+        v794AdminUserDisplayName(
+            seller
+        ) ||
+        v39T(
+            "Seller",
+            "Продавец"
+        );
+
+
+    const sellerUsername =
+        seller.telegram_username
+            ? `@${seller.telegram_username}`
+            : "";
+
+
+    const status =
+        v40AdminResultStatus(
+            listing
+        );
+
+
+    const sellerLabel =
+        seller.telegram_username
+            ? `@${seller.telegram_username}`
+            : sellerName;
+
+
+    return `
+        <div class="v40-search-result">
+            <div class="v40-performance-top">
+                <div>
+                    ${listingNumberHtml(listing)}
+
+                    <div class="username">
+                        @${escapeHtml(listing.whatsapp_username || "username")}
+                    </div>
+
+                    <div class="price">
+                        $${formatPrice(listing.asking_price)}
+                    </div>
+                </div>
+
+                <span class="v40-status-chip">
+                    ${escapeHtml(status)}
+                </span>
+            </div>
+
+            <div class="v40-search-meta">
+                <span class="category-badge">
+                    ${escapeHtml(listing.category || "Other")}
+                </span>
+
+                ${premiumNameBadgeHtml(listing)}
+                ${promotionBadgeHtml(listing)}
+
+                ${
+                    seller.is_blocked
+                        ? '<span class="badge badge-rejected">🚫 BLOCKED USER</span>'
+                        : ""
+                }
+
+                ${
+                    listing.contact_review_required
+                        ? '<span class="badge badge-paused">⚠️ CONTACT REVIEW</span>'
+                        : ""
+                }
+            </div>
+
+            <div class="field-hint" style="margin-top:9px">
+                ${escapeHtml(sellerName)}
+                ${sellerUsername ? ` · ${escapeHtml(sellerUsername)}` : ""}
+                · Telegram ID:
+                ${escapeHtml(listing.seller_telegram_id)}
+            </div>
+
+            <div class="buttons" style="margin-top:10px">
+                ${
+                    status === "ACTIVE"
+                        ? `
+                            <button
+                                class="secondary"
+                                onclick="openListingPage('${listing.id}')"
+                            >
+                                ${v39T("Open","Открыть")}
+                            </button>
+                          `
+                        : ""
+                }
+
+                <button
+                    class="secondary"
+                    onclick="adminViewListingContact('${listing.id}','${escapeJs(listing.whatsapp_username || "username")}')"
+                >
+                    🔎 ${v39T("Contact","Контакт")}
+                </button>
+
+                <button
+                    class="secondary"
+                    onclick="adminOpenListingHistory('${escapeJs(listing.listing_number || listing.id)}')"
+                >
+                    🕓 ${v39T("History","История")}
+                </button>
+
+                ${
+                    listing.is_frozen
+                        ? `
+                            <button
+                                class="secondary"
+                                onclick="adminUnfreezeListing('${listing.id}')"
+                            >
+                                🧊 ${v39T("Unfreeze","Разморозить")}
+                            </button>
+                          `
+                        : status !== "REMOVED"
+                            ? `
+                                <button
+                                    class="freeze-button"
+                                    onclick="adminFreezeListing('${listing.id}','${escapeJs(listing.whatsapp_username || "username")}')"
+                                >
+                                    🧊 ${v39T("Freeze","Заморозить")}
+                                </button>
+                              `
+                            : ""
+                }
+
+                ${
+                    status !== "REMOVED"
+                        ? `
+                            <button
+                                class="reject-button"
+                                onclick="adminRemoveListingConfirmed('${listing.id}','${escapeJs(listing.whatsapp_username || "username")}')"
+                            >
+                                🗑 ${v39T("Remove","Удалить")}
+                            </button>
+                          `
+                        : ""
+                }
+
+                ${
+                    seller.is_admin
+                        ? ""
+                        : seller.is_blocked
+                            ? `
+                                <button
+                                    class="secondary"
+                                    onclick="adminUnblockSeller('${escapeJs(listing.seller_telegram_id)}','${escapeJs(sellerLabel)}')"
+                                >
+                                    ✅ ${v39T("Unblock User","Разблокировать")}
+                                </button>
+                              `
+                            : `
+                                <button
+                                    class="reject-button"
+                                    onclick="adminBlockUser('${escapeJs(listing.seller_telegram_id)}','${escapeJs(sellerLabel)}')"
+                                >
+                                    🚫 ${v39T("Block User","Заблокировать")}
+                                </button>
+                              `
+                }
+            </div>
+        </div>
+    `;
+}
+
+
 async function v40AdminSearch() {
 
     const input =
@@ -31497,8 +32444,10 @@ async function v40AdminSearch() {
 
 
     if (!q) {
+
         results.innerHTML =
             `<div class="empty">${v39T("Enter a search value.","Введите запрос.")}</div>`;
+
         return;
     }
 
@@ -31520,87 +32469,45 @@ async function v40AdminSearch() {
             );
 
 
+        const users =
+            data.users ||
+            [];
+
+
         const listings =
             data.listings ||
             [];
 
 
-        results.innerHTML =
+        const userHtml =
+            users.length
+                ? `
+                    <div class="field-hint" style="margin:4px 0 8px">
+                        ${v39T("USERS","ПОЛЬЗОВАТЕЛИ")} · ${users.length}
+                    </div>
+                    ${users.map(v794AdminUserCard).join("")}
+                  `
+                : "";
+
+
+        const listingHtml =
             listings.length
-                ? listings.map(listing => {
+                ? `
+                    <div class="field-hint" style="margin:14px 0 8px">
+                        ${v39T("LISTINGS","ЛОТЫ")} · ${listings.length}
+                    </div>
+                    ${listings.map(v794AdminListingCard).join("")}
+                  `
+                : "";
 
-                    const seller =
-                        listing.seller || {};
 
-                    const sellerName =
-                        [
-                            seller.first_name,
-                            seller.last_name
-                        ]
-                            .filter(Boolean)
-                            .join(" ") ||
-                        v39T("Seller","Продавец");
-
-                    const status =
-                        v40AdminResultStatus(
-                            listing
-                        );
-
-                    return `
-                        <div class="v40-search-result">
-                            <div class="v40-performance-top">
-                                <div>
-                                    ${listingNumberHtml(listing)}
-                                    <div class="username">@${escapeHtml(listing.whatsapp_username || "username")}</div>
-                                    <div class="price">$${formatPrice(listing.asking_price)}</div>
-                                </div>
-                                <span class="v40-status-chip">${escapeHtml(status)}</span>
-                            </div>
-
-                            <div class="v40-search-meta">
-                                <span class="category-badge">${escapeHtml(listing.category || "Other")}</span>
-                                ${premiumNameBadgeHtml(listing)}
-                                ${promotionBadgeHtml(listing)}
-                                ${seller.is_blocked ? '<span class="badge badge-rejected">🚫 BLOCKED SELLER</span>' : ''}
-                                ${listing.contact_review_required ? '<span class="badge badge-paused">⚠️ CONTACT REVIEW</span>' : ''}
-                            </div>
-
-                            <div class="field-hint" style="margin-top:9px">
-                                ${escapeHtml(sellerName)} · Telegram ID: ${escapeHtml(listing.seller_telegram_id)}
-                            </div>
-
-                            <div class="buttons" style="margin-top:10px">
-                                ${
-                                    status === "ACTIVE"
-                                        ? `<button class="secondary" onclick="openListingPage('${listing.id}')">${v39T("Open","Открыть")}</button>`
-                                        : ""
-                                }
-                                <button class="secondary" onclick="adminViewListingContact('${listing.id}','${escapeJs(listing.whatsapp_username || "username")}')">🔎 ${v39T("Contact","Контакт")}</button>
-                                <button class="secondary" onclick="adminOpenListingHistory('${escapeJs(listing.listing_number || listing.id)}')">🕓 ${v39T("History","История")}</button>
-
-                                ${
-                                    listing.is_frozen
-                                        ? `<button class="secondary" onclick="adminUnfreezeListing('${listing.id}')">🧊 ${v39T("Unfreeze","Разморозить")}</button>`
-                                        : status !== "REMOVED"
-                                            ? `<button class="freeze-button" onclick="adminFreezeListing('${listing.id}','${escapeJs(listing.whatsapp_username || "username")}')">🧊 ${v39T("Freeze","Заморозить")}</button>`
-                                            : ""
-                                }
-
-                                ${
-                                    status !== "REMOVED"
-                                        ? `<button class="reject-button" onclick="adminRemoveListingConfirmed('${listing.id}','${escapeJs(listing.whatsapp_username || "username")}')">🗑 ${v39T("Remove","Удалить")}</button>`
-                                        : ""
-                                }
-
-                                ${
-                                    !seller.is_blocked
-                                        ? `<button class="reject-button" onclick="adminBlockSellerByListing('${listing.id}','${escapeJs(listing.whatsapp_username || "username")}')">🚫 ${v39T("Block Seller","Блокировать продавца")}</button>`
-                                        : ""
-                                }
-                            </div>
-                        </div>
-                    `;
-                }).join("")
+        results.innerHTML =
+            (
+                userHtml ||
+                listingHtml
+            )
+                ? userHtml +
+                  listingHtml
                 : `<div class="empty">${v39T("Nothing found.","Ничего не найдено.")}</div>`;
 
     } catch (error) {
@@ -34886,7 +35793,10 @@ async function v45FetchMarketplacePage(
                         controller.signal,
                     headers:{
                         Accept:
-                            "application/json"
+                            "application/json",
+                        "X-Telegram-Init-Data":
+                            tg?.initData ||
+                            ""
                     }
                 }
             );
@@ -34917,6 +35827,23 @@ async function v45FetchMarketplacePage(
             !response.ok ||
             !data?.ok
         ) {
+
+            if (
+                String(
+                    data?.error ||
+                    ""
+                ) ===
+                "account_blocked"
+            ) {
+
+                authenticatedUser =
+                    null;
+
+                v794SetAccessGate(
+                    "blocked"
+                );
+            }
+
 
             const error =
                 new Error(
