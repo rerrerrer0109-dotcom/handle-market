@@ -11604,19 +11604,31 @@ async function authenticate() {
         }
 
 
-        updateListingPlanUi();
+        /*
+         * V79.4.2: once /auth succeeds, do not let any secondary
+         * UI/data refresh masquerade as a Telegram authentication failure.
+         * Blocked accounts are rejected by /auth before this point.
+         */
+        try {
+            updateListingPlanUi();
+        } catch (error) {
+            console.warn("Post-auth listing UI:", error);
+        }
 
 
-        document.getElementById(
-            "wantedFee"
-        ).textContent =
-            `${wantedPriceStars} ⭐`;
+        try {
+            document.getElementById(
+                "wantedFee"
+            ).textContent =
+                `${wantedPriceStars} ⭐`;
 
-
-        document.getElementById(
-            "wantedButton"
-        ).textContent =
-            `Pay ${wantedPriceStars} ⭐ & Publish`;
+            document.getElementById(
+                "wantedButton"
+            ).textContent =
+                `Pay ${wantedPriceStars} ⭐ & Publish`;
+        } catch (error) {
+            console.warn("Post-auth Wanted UI:", error);
+        }
 
 
         status.textContent =
@@ -11625,38 +11637,6 @@ async function authenticate() {
 
         status.className =
             "auth-status auth-ok";
-
-
-        await Promise.all(
-            [
-                loadWatchlistState(),
-                loadLikeState(),
-                loadMyReports(),
-                loadUnreadCounts()
-            ]
-        );
-
-
-        renderMainProfile(
-            data.user
-        );
-
-
-        renderMarketplace();
-
-
-        await checkUnlockedContacts(
-            marketplaceListings
-        );
-
-
-        await Promise.all(
-            [
-                loadMyListings(),
-                loadMyWanted(),
-                loadRecommendations()
-            ]
-        );
 
 
         return true;
@@ -29195,6 +29175,39 @@ async function startApp() {
     }
 
 
+    /*
+     * /auth has succeeded, so this account is allowed into the app.
+     * Hide the blocking gate before loading non-critical account state.
+     */
+    v794SetAccessGate(
+        "ok"
+    );
+
+
+    try {
+        renderMainProfile(
+            authenticatedUser
+        );
+    } catch (error) {
+        console.warn(
+            "Profile render after auth:",
+            error
+        );
+    }
+
+
+    await Promise.allSettled(
+        [
+            loadWatchlistState(),
+            loadLikeState(),
+            loadMyReports(),
+            loadUnreadCounts(),
+            loadMyListings(),
+            loadMyWanted()
+        ]
+    );
+
+
     /* v45: wait until the final paginated loader is registered. */
     for (let i = 0; i < 200; i++) {
         if (typeof window.__hmLoadMarketplaceV45 === "function") {
@@ -42618,6 +42631,6 @@ v79PrepareAdminWorkspace();
 </script>
 
 
-<!-- Handle Market v79 — Admin Workspace & Free Wanted -->
+<!-- Handle Market v79.4.2 — Auth Gate Fix -->
 </body>
 </html>
