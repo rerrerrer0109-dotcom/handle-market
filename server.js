@@ -3541,20 +3541,36 @@ async function attachOwnerListingStats(
             stats: {
 
                 views:
-                    viewCounts.get(
-                        String(
-                            row.id
+                    Math.max(
+                        Number(
+                            viewCounts.get(
+                                String(
+                                    row.id
+                                )
+                            ) ||
+                            0
+                        ),
+                        Number(
+                            row.views_count ||
+                            0
                         )
-                    ) ||
-                    0,
+                    ),
 
                 likes:
-                    likeCounts.get(
-                        String(
-                            row.id
+                    Math.max(
+                        Number(
+                            likeCounts.get(
+                                String(
+                                    row.id
+                                )
+                            ) ||
+                            0
+                        ),
+                        Number(
+                            row.likes_count ||
+                            0
                         )
-                    ) ||
-                    0,
+                    ),
 
                 watchlists:
                     watchCounts.get(
@@ -8786,7 +8802,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v79.1-admin-workspace-privacy-fix"
+                    "v79.2-seller-analytics-engagement-sync"
             }
         );
     }
