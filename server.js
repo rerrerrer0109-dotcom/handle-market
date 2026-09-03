@@ -1318,7 +1318,7 @@ async function v781ResolveOrCreateAdminSellerByUsername(
                         telegram_id:
                             provisionalTelegramId,
                         first_name:
-                            "Pending seller",
+                            `@${found.username}`,
                         last_name:
                             "",
                         telegram_username:
@@ -4304,7 +4304,7 @@ async function attachPublicSellerProfiles(
                 supabase
                     .from("users")
                     .select(
-                        "telegram_id,first_name,last_name,photo_url,last_seen_at"
+                        "telegram_id,first_name,last_name,telegram_username,photo_url,last_seen_at,is_provisional"
                     )
                     .in(
                         "telegram_id",
@@ -4370,18 +4370,23 @@ async function attachPublicSellerProfiles(
                                         user
                                     ),
 
+                                masked_name:
+                                    maskedSellerTelegramName(
+                                        user
+                                    ),
+
                                 avatar_url:
                                     user?.photo_url ||
                                     null,
 
-                                last_seen_at:
-                                    user?.last_seen_at ||
-                                    null,
+                                is_provisional:
+                                    Boolean(
+                                        user?.is_provisional
+                                    ),
 
-                                is_online:
-                                    sellerIsOnline(
-                                        user?.last_seen_at
-                                    )
+                                user_last_seen_at:
+                                    user?.last_seen_at ||
+                                    null
                             }
                         ];
                     }
@@ -4411,6 +4416,25 @@ async function attachPublicSellerProfiles(
                 null;
 
 
+            const sellerActivityAt =
+                sellerSummary
+                    ? (
+                        sellerSummary.is_provisional
+
+                            ? (
+                                copy.created_at ||
+                                sellerSummary.user_last_seen_at ||
+                                null
+                            )
+
+                            : (
+                                sellerSummary.user_last_seen_at ||
+                                null
+                            )
+                    )
+                    : null;
+
+
             delete copy
                 .seller_telegram_id;
 
@@ -4426,14 +4450,20 @@ async function attachPublicSellerProfiles(
                         display_name:
                             sellerSummary.display_name,
 
+                        masked_name:
+                            sellerSummary.masked_name ||
+                            null,
+
                         avatar_url:
                             sellerSummary.avatar_url,
 
                         last_seen_at:
-                            sellerSummary.last_seen_at,
+                            sellerActivityAt,
 
                         is_online:
-                            sellerSummary.is_online
+                            sellerIsOnline(
+                                sellerActivityAt
+                            )
                     }
                     : null;
 
@@ -4444,30 +4474,217 @@ async function attachPublicSellerProfiles(
 }
 
 
-function safeSellerDisplayName(
-    user
+function provisionalSellerAlias(
+    username
 ) {
 
-    const first =
+    const raw =
         String(
-            user?.first_name ||
-            "Seller"
-        ).trim() ||
-        "Seller";
+            username ||
+            ""
+        )
+            .replace(/^@+/, "")
+            .trim();
 
 
-    const last =
+    if (!raw) {
+        return "SEL***";
+    }
+
+
+    const separated =
+        raw
+            .replace(
+                /([a-z0-9])([A-Z])/g,
+                "$1 $2"
+            )
+            .replace(
+                /[_\-.]+/g,
+                " "
+            )
+            .trim();
+
+
+    const parts =
+        separated
+            .split(/\s+/)
+            .filter(Boolean);
+
+
+    let base = "";
+
+
+    if (
+        parts.length >= 2
+    ) {
+
+        base =
+            parts
+                .map(
+                    part =>
+                        String(part)
+                            .charAt(0)
+                )
+                .join("")
+                .slice(0,3)
+                .toUpperCase();
+    }
+
+
+    const letters =
+        raw.replace(
+            /[^A-Za-z0-9]/g,
+            ""
+        );
+
+
+    if (!base) {
+
+        if (
+            letters.length <= 3
+        ) {
+
+            base =
+                (
+                    letters.charAt(0) ||
+                    "S"
+                ).toUpperCase();
+
+        } else if (
+            letters.length === 4
+        ) {
+
+            base =
+                letters
+                    .slice(0,2)
+                    .toUpperCase();
+
+        } else {
+
+            base =
+                letters
+                    .slice(0,3)
+                    .toUpperCase();
+        }
+    }
+
+
+    return `${base || "S"}***`;
+}
+
+
+function maskSellerNamePart(
+    value
+) {
+
+    const raw =
         String(
-            user?.last_name ||
+            value ||
             ""
         ).trim();
 
 
-    return last
+    if (!raw) {
+        return "";
+    }
 
-        ? `${first} ${last.charAt(0).toUpperCase()}.`
 
-        : first;
+    const chars =
+        Array.from(raw);
+
+
+    if (
+        chars.length <= 1
+    ) {
+
+        return `${chars[0] || ""}*`;
+    }
+
+
+    if (
+        chars.length === 2
+    ) {
+
+        return `${chars[0]}*`;
+    }
+
+
+    if (
+        chars.length === 3
+    ) {
+
+        return `${chars.slice(0,2).join("")}*`;
+    }
+
+
+    if (
+        chars.length === 4
+    ) {
+
+        return `${chars.slice(0,2).join("")}**`;
+    }
+
+
+    return `${chars.slice(0,3).join("")}**`;
+}
+
+
+function maskedSellerTelegramName(
+    user
+) {
+
+    if (
+        !user ||
+        user.is_provisional
+    ) {
+        return null;
+    }
+
+
+    const first =
+        maskSellerNamePart(
+            user.first_name
+        );
+
+
+    const last =
+        maskSellerNamePart(
+            user.last_name
+        );
+
+
+    const value =
+        [first,last]
+            .filter(Boolean)
+            .join(" ")
+            .trim();
+
+
+    return value ||
+        null;
+}
+
+
+function safeSellerDisplayName(
+    user
+) {
+
+    if (
+        user?.telegram_username
+    ) {
+
+        return provisionalSellerAlias(
+            user.telegram_username
+        );
+    }
+
+
+    return (
+        maskedSellerTelegramName(
+            user
+        ) ||
+        "Seller"
+    );
 }
 
 
@@ -4747,7 +4964,7 @@ async function buildSellerProfilePayload(
         await supabase
             .from("users")
             .select(
-                "telegram_id,first_name,last_name,photo_url,last_seen_at"
+                "telegram_id,first_name,last_name,telegram_username,photo_url,last_seen_at,is_provisional"
             )
             .eq(
                 "telegram_id",
@@ -4768,7 +4985,7 @@ async function buildSellerProfilePayload(
     } =
         await supabase
             .from("listings")
-            .select("id")
+            .select("id,created_at")
             .eq(
                 "seller_telegram_id",
                 profile.telegram_id
@@ -4783,6 +5000,45 @@ async function buildSellerProfilePayload(
             row =>
                 row.id
         );
+
+
+    const provisionalActivityAt =
+        user.is_provisional
+
+            ? (
+                (
+                    allSellerListings ||
+                    []
+                )
+                    .map(
+                        row =>
+                            row.created_at
+                    )
+                    .filter(Boolean)
+                    .sort(
+                        (
+                            a,
+                            b
+                        ) =>
+                            new Date(b).getTime() -
+                            new Date(a).getTime()
+                    )[0] ||
+                user.last_seen_at ||
+                null
+            )
+
+            : null;
+
+
+    const sellerActivityAt =
+        user.is_provisional
+
+            ? provisionalActivityAt
+
+            : (
+                user.last_seen_at ||
+                null
+            );
 
 
     let acceptedAgreements =
@@ -4854,43 +5110,36 @@ async function buildSellerProfilePayload(
             );
 
 
-    const [
-        activeListingsResult,
-        responseStats
-    ] =
-        await Promise.all([
-
-            supabase
-                .from("listings")
-                .select(
-                    "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
-                )
-                .eq(
-                    "seller_telegram_id",
-                    profile.telegram_id
-                )
-                .eq(
-                    "status",
-                    "active"
-                )
-                .eq(
-                    "is_paused",
-                    false
-                )
-                .eq(
-                    "is_frozen",
-                    false
-                )
-                .limit(200),
-
-            calculateSellerResponseStats(
+    const {
+        data:
+            activeListingsData
+    } =
+        await supabase
+            .from("listings")
+            .select(
+                "id,seller_telegram_id,listing_number,whatsapp_username,asking_price,price_type,minimum_offer,currency,category,description,is_premium_name,is_featured,views_count,likes_count,created_at,bump_until,hot_until,vip_until,bump_promoted_at,hot_promoted_at,vip_promoted_at,listing_plan,listing_period_started_at,listing_expires_at"
+            )
+            .eq(
+                "seller_telegram_id",
                 profile.telegram_id
             )
-        ]);
+            .eq(
+                "status",
+                "active"
+            )
+            .eq(
+                "is_paused",
+                false
+            )
+            .eq(
+                "is_frozen",
+                false
+            )
+            .limit(200);
 
 
     const activeListings =
-        activeListingsResult.data ||
+        activeListingsData ||
         [];
 
 
@@ -4964,6 +5213,11 @@ async function buildSellerProfilePayload(
                 user
             ),
 
+        masked_name:
+            maskedSellerTelegramName(
+                user
+            ),
+
         avatar_url:
             user.photo_url ||
             null,
@@ -4979,21 +5233,11 @@ async function buildSellerProfilePayload(
 
             is_online:
                 sellerIsOnline(
-                    user.last_seen_at
+                    sellerActivityAt
                 ),
 
             last_seen_at:
-                user.last_seen_at ||
-                null
-        },
-
-        response_time: {
-
-            average_seconds:
-                responseStats.average_seconds,
-
-            samples:
-                responseStats.samples
+                sellerActivityAt
         },
 
         stats: {
@@ -8542,7 +8786,7 @@ app.get(
                     "Handle Market API",
 
                 version:
-                    "v79-admin-workspace-wanted"
+                    "v79.1-admin-workspace-privacy-fix"
             }
         );
     }
@@ -16320,14 +16564,15 @@ app.post(
                 id:payload.id,
                 display_name:
                     payload.display_name,
+                masked_name:
+                    payload.masked_name ||
+                    null,
                 avatar_url:
                     payload.avatar_url,
                 seller_since:
                     payload.seller_since,
                 presence:
                     payload.presence,
-                response_time:
-                    payload.response_time,
                 stats:
                     payload.stats,
                 latest_listings:

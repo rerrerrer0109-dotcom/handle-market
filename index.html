@@ -3589,6 +3589,23 @@ button {
     font-weight:900;
 }
 
+.seller-mini-masked-name {
+    margin-top:1px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    color:var(--muted);
+    font-size:8px;
+    font-weight:700;
+}
+
+.seller-masked-name {
+    margin-top:2px;
+    color:var(--muted);
+    font-size:10px;
+    font-weight:700;
+}
+
 .seller-mini-status {
     margin-top:2px;
     color:var(--muted);
@@ -8740,7 +8757,7 @@ Fill at least one contact. You can add several or all of them. Buyers see the va
 
     <div class="field">
         <label>WhatsApp</label>
-        <input id="contactWhatsApp" maxlength="200" placeholder="+996... or wa.me link" autocomplete="off">
+        <input id="contactWhatsApp" maxlength="200" placeholder="Phone number or wa.me link" autocomplete="off">
     </div>
 
     <div class="field">
@@ -8934,7 +8951,7 @@ Fill at least one external contact. Sellers will also be able to message you thr
 
     <div class="field">
         <label>WhatsApp</label>
-        <input id="wantedContactWhatsApp" maxlength="200" placeholder="+996... or wa.me link" autocomplete="off">
+        <input id="wantedContactWhatsApp" maxlength="200" placeholder="Phone number or wa.me link" autocomplete="off">
     </div>
 
     <div class="field">
@@ -14020,9 +14037,25 @@ function renderListingCard(
                             )}
                         </div>
 
+                        ${
+                            sellerSummary?.masked_name
+
+                                ? `
+                                    <div class="seller-mini-masked-name">
+                                        ${escapeHtml(
+                                            sellerSummary.masked_name
+                                        )}
+                                    </div>
+                                `
+
+                                : ""
+                        }
+
                         <div
                             class="seller-mini-status ${
-                                sellerSummary?.is_online
+                                sellerPresenceIsOnline(
+                                        sellerSummary
+                                    )
                                     ? "online"
                                     : ""
                             }"
@@ -14819,6 +14852,20 @@ async function openListingPage(
                                         "Seller"
                                     )}
                                 </div>
+
+                                ${
+                                    sellerSummary?.masked_name
+
+                                        ? `
+                                            <div class="seller-mini-masked-name">
+                                                ${escapeHtml(
+                                                    sellerSummary.masked_name
+                                                )}
+                                            </div>
+                                        `
+
+                                        : ""
+                                }
 
                                 <div
                                     class="seller-mini-status ${
@@ -17989,7 +18036,7 @@ function openEditListing(
 
                 <div class="field">
                     <label>WhatsApp</label>
-                    <input id="editContactWhatsAppInput" maxlength="200" value="${escapeHtml(editContacts.whatsapp)}" placeholder="+996... or wa.me link">
+                    <input id="editContactWhatsAppInput" maxlength="200" value="${escapeHtml(editContacts.whatsapp)}" placeholder="Phone number or wa.me link">
                 </div>
 
                 <div class="field">
@@ -22862,7 +22909,7 @@ function sellerLastSeenText(
         time <= 0
     ) {
 
-        return "Last active unavailable";
+        return "Activity status unavailable";
     }
 
 
@@ -22880,10 +22927,11 @@ function sellerLastSeenText(
 
 
     if (
-        seconds < 60
+        seconds <=
+        5 * 60
     ) {
 
-        return "Active just now";
+        return "🟢 Online";
     }
 
 
@@ -22897,7 +22945,7 @@ function sellerLastSeenText(
         minutes < 60
     ) {
 
-        return `Last active ${minutes}m ago`;
+        return `Last seen ${minutes} min ago`;
     }
 
 
@@ -22911,7 +22959,11 @@ function sellerLastSeenText(
         hours < 24
     ) {
 
-        return `Last active ${hours}h ago`;
+        return `Last seen ${hours} ${
+            hours === 1
+                ? "hour"
+                : "hours"
+        } ago`;
     }
 
 
@@ -22922,20 +22974,42 @@ function sellerLastSeenText(
 
 
     if (
-        days <= 30
+        days < 3
     ) {
 
-        return `Last active ${days}d ago`;
+        return "Active recently";
     }
 
 
-    return "Last active over 30d ago";
+    if (
+        days < 7
+    ) {
+
+        return "Active this week";
+    }
+
+
+    return "Activity status unavailable";
 }
 
 
 function sellerPresenceText(
     seller
 ) {
+
+    const lastSeenAt =
+        seller?.last_seen_at ||
+        seller?.presence?.last_seen_at ||
+        null;
+
+
+    if (lastSeenAt) {
+
+        return sellerLastSeenText(
+            lastSeenAt
+        );
+    }
+
 
     if (
         seller?.is_online ||
@@ -22946,94 +23020,44 @@ function sellerPresenceText(
     }
 
 
-    return sellerLastSeenText(
-        seller?.last_seen_at ||
-        seller?.presence?.last_seen_at
-    );
+    return "Activity status unavailable";
 }
 
 
-function sellerResponseTimeText(
-    responseTime
+function sellerPresenceIsOnline(
+    seller
 ) {
 
-    const seconds =
-        Number(
-            responseTime?.average_seconds
-        );
+    const lastSeenAt =
+        seller?.last_seen_at ||
+        seller?.presence?.last_seen_at ||
+        null;
 
 
-    const samples =
-        Number(
-            responseTime?.samples ||
+    const time =
+        new Date(
+            lastSeenAt ||
             0
-        );
+        ).getTime();
 
 
     if (
-        !Number.isFinite(
-            seconds
-        ) ||
-        seconds < 0 ||
-        samples < 1
+        Number.isFinite(time) &&
+        time > 0
     ) {
 
-        return "Response time not enough data";
+        return (
+            Date.now() -
+            time
+        ) <=
+            5 * 60 * 1000;
     }
 
 
-    if (
-        seconds < 60
-    ) {
-
-        return "Usually replies within a minute";
-    }
-
-
-    const minutes =
-        Math.max(
-            1,
-            Math.round(
-                seconds / 60
-            )
-        );
-
-
-    if (
-        minutes < 60
-    ) {
-
-        return `Usually replies within ${minutes} min`;
-    }
-
-
-    const hours =
-        Math.max(
-            1,
-            Math.round(
-                minutes / 60
-            )
-        );
-
-
-    if (
-        hours < 24
-    ) {
-
-        return `Usually replies within ${hours}h`;
-    }
-
-
-    const days =
-        Math.max(
-            1,
-            Math.round(
-                hours / 24
-            )
-        );
-
-
-    return `Usually replies within ${days}d`;
+    return Boolean(
+        seller?.is_online ||
+        seller?.presence?.is_online
+    );
 }
 
 
@@ -23100,12 +23124,6 @@ function renderSellerProfile(
         );
 
 
-    const responseText =
-        sellerResponseTimeText(
-            profile.response_time
-        );
-
-
     document.getElementById(
         "sellerProfileContent"
     ).innerHTML = `
@@ -23133,6 +23151,20 @@ function renderSellerProfile(
 
                     </div>
 
+                    ${
+                        profile.masked_name
+
+                            ? `
+                                <div class="seller-masked-name">
+                                    ${escapeHtml(
+                                        profile.masked_name
+                                    )}
+                                </div>
+                            `
+
+                            : ""
+                    }
+
                     <div class="seller-member">
 
                         Member since
@@ -23147,19 +23179,15 @@ function renderSellerProfile(
 
                         <div
                             class="seller-presence-chip ${
-                                profile.presence?.is_online
+                                sellerPresenceIsOnline(
+                                    profile
+                                )
                                     ? "online"
                                     : ""
                             }"
                         >
                             ${escapeHtml(
                                 presenceText
-                            )}
-                        </div>
-
-                        <div class="seller-presence-chip">
-                            ⚡ ${escapeHtml(
-                                responseText
                             )}
                         </div>
 
@@ -23535,12 +23563,6 @@ async function loadFollowingSellers() {
                                 seller
                             );
 
-                        const response =
-                            sellerResponseTimeText(
-                                seller.response_time
-                            );
-
-
                         return `
                             <div class="v42-following-card">
                                 <div class="v42-following-top">
@@ -23560,8 +23582,22 @@ async function loadFollowingSellers() {
                                             )}
                                         </div>
 
+                                        ${
+                                            seller.masked_name
+
+                                                ? `
+                                                    <div class="v42-following-meta">
+                                                        ${escapeHtml(
+                                                            seller.masked_name
+                                                        )}
+                                                    </div>
+                                                `
+
+                                                : ""
+                                        }
+
                                         <div class="v42-following-meta">
-                                            ${escapeHtml(presence)} · ⚡ ${escapeHtml(response)}
+                                            ${escapeHtml(presence)}
                                         </div>
 
                                         <div class="v42-following-meta">
@@ -41109,7 +41145,7 @@ function v79InjectAdminCreateWanted() {
                     </div>
                     <div class="field">
                         <label>WhatsApp</label>
-                        <input id="v79AdminWantedContactWhatsApp" maxlength="200" placeholder="+996... or wa.me link" autocomplete="off">
+                        <input id="v79AdminWantedContactWhatsApp" maxlength="200" placeholder="Phone number or wa.me link" autocomplete="off">
                     </div>
                     <div class="field">
                         <label>Email</label>
